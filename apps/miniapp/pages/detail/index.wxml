@@ -1,0 +1,7 @@
+<view class="page safe-bottom"><view wx:if="{{loading}}" class="loading"><van-loading size="40rpx"/>加载中...</view>
+<view wx:if="{{error}}" class="card"><view class="error">{{error}}</view><van-button bind:click="load" size="small">重试</van-button></view>
+<block wx:if="{{order}}"><view class="card"><view class="title ellipsis">{{order.orderNo}}</view><van-tag color="{{order.statusColor}}" text-color="#fff">{{order.statusLabel}}</van-tag>
+<view class="summary">计划 {{order.plannedPackages}} 包 / {{order.plannedTonnes}} 吨</view><view class="number">实扫 {{order.actualPackages}} 包 / {{order.actualTonnes}} 吨</view></view>
+<van-cell-group><van-cell title="客户" value="{{order.customerName}}"/><van-cell title="车辆" value="{{order.vehicleNo}}"/><van-cell title="仓库" value="{{order.warehouseCode}}"/><van-cell title="计划版本" value="{{order.planVersion}}"/></van-cell-group>
+<view class="title">商品明细</view><view wx:for="{{order.lines}}" wx:key="id" class="card"><view class="ellipsis">{{item.productCode}} · {{item.productName}}</view><view class="description">计划 {{item.plannedPackages}} 包 / 实扫 {{item.actualPackages}} 包</view></view>
+<view class="notice">每包重量可不同。总吨数来自实际重量累计。本端不进行扫码作业或库存修改。</view></block><van-empty wx:if="{{!order &amp;&amp; !loading &amp;&amp; !error}}" description="没有可显示的出库详情"/></view>

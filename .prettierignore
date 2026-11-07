@@ -1,0 +1,9 @@
+docs/references/
+docs/api/openapi.json
+package-lock.json
+apps/miniapp/package-lock.json
+apps/pda/
+.local/
+node_modules/
+dist/
+test-results/

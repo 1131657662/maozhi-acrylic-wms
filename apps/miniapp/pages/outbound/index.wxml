@@ -1,0 +1,7 @@
+<view class="page safe-bottom"><view class="row"><view class="title">出库查询</view><van-button size="small" bind:click="logout">退出</van-button></view>
+<van-search placeholder="出库单号前缀" bind:search="search"/><view class="notice">冻结仅代表扫码完成；Web 确认后才计为已出库。</view>
+<view wx:if="{{error}}" class="card"><view class="error">{{error}}</view><van-button size="small" bind:click="retry">重试</van-button></view>
+<view wx:for="{{items}}" wx:key="id" class="card" data-id="{{item.id}}" bindtap="open"><view class="row"><text class="title ellipsis">{{item.orderNo}}</text><van-tag color="{{item.statusColor}}" text-color="#fff">{{item.statusLabel}}</van-tag></view>
+<view class="description ellipsis">{{item.customerName}} · {{item.vehicleNo}}</view><view class="summary">计划 <text class="number">{{item.plannedPackages}}</text> 包 / {{item.plannedTonnes}} 吨</view><view>实扫 {{item.actualPackages}} 包 / {{item.actualTonnes}} 吨</view></view>
+<view wx:if="{{loading}}" class="loading"><van-loading size="40rpx"/>加载中...</view><van-empty wx:if="{{!loading &amp;&amp; !error &amp;&amp; !items.length}}" description="暂无匹配的出库计划"/>
+<view wx:if="{{!hasMore &amp;&amp; items.length}}" class="notice">已加载全部 {{total}} 条</view></view>

@@ -1,0 +1,9 @@
+{
+  "description": "茂智云仓 · 腈纶仓储管理系统 — 小程序查询端",
+  "appid": "touristappid",
+  "projectname": "maozhi-wms-query",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "setting": { "es6": true, "enhance": true, "minified": true, "urlCheck": false, "packNpmManually": false },
+  "libVersion": "3.11.1"
+}

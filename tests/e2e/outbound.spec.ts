@@ -1,0 +1,125 @@
+import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+
+async function login(page: Page): Promise<void> {
+  await page.goto('/user/login?redirect=%2F');
+  await expect(page.getByRole('heading', { name: '登录工作台' })).toBeVisible({ timeout: 15000 });
+  await page.getByLabel('用户名', { exact: true }).fill('owner');
+  await page.getByLabel('密码', { exact: true }).fill('e2e-only-password');
+  await page.getByRole('button', { name: /登\s*录/ }).click();
+  await expect(page.getByRole('heading', { name: '出库工作台' })).toBeVisible();
+}
+async function freezeViaPda(api: APIRequestContext): Promise<void> {
+  const base = 'http://127.0.0.1:4311/api/v1';
+  const auth = await api.post(`${base}/auth/login`, {
+    data: { username: 'owner', password: 'e2e-only-password', channel: 'pda' },
+  });
+  const headers = { Authorization: `Bearer ${(await auth.json()).data.token}` };
+  for (const [barcode, weightGrams] of [
+    ['DEMO-032-11', 302500],
+    ['DEMO-032-12', 297500],
+  ]) {
+    const scan = await api.post(`${base}/scan/plans/DEMO-001/facts`, {
+      headers,
+      data: {
+        id: randomUUID(),
+        barcode,
+        weightGrams,
+        catalogVersion: 1,
+        weightSource: 'catalog',
+        deviceId: 'e2e-pda',
+        scannedAt: new Date().toISOString(),
+        planVersion: 1,
+      },
+    });
+    expect(scan.ok()).toBeTruthy();
+  }
+  const plan = (await (await api.get(`${base}/scan/plans/DEMO-001`, { headers })).json()).data;
+  const freeze = await api.post(`${base}/scan/plans/DEMO-001/submit`, {
+    headers: { ...headers, 'Idempotency-Key': randomUUID() },
+    data: { revision: plan.revision, digest: plan.digest },
+  });
+  expect(freeze.ok()).toBeTruthy();
+}
+test('Web 登录、详情核对与一次出库确认', async ({ page, request }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await freezeViaPda(request);
+  await login(page);
+  await page.screenshot({ path: '.local/evidence/web-list-1440.png', fullPage: true });
+  await page.getByRole('link', { name: 'DEMO-OUT-20261107-001', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'DEMO-OUT-20261107-001' })).toBeVisible();
+  await expect(page.getByText('0.3025', { exact: true })).toBeVisible();
+  await expect(page.getByText('0.2975', { exact: true })).toBeVisible();
+  await page.screenshot({ path: '.local/evidence/web-detail-1440.png', fullPage: true });
+  await page.getByRole('button', { name: '核对并确认出库' }).click();
+  await page.getByRole('button', { name: '确认出库', exact: true }).click();
+  await expect(page.getByRole('button', { name: '已确认出库' })).toBeDisabled();
+  await page.getByText('库存概览', { exact: true }).click();
+  await expect(page.getByRole('cell', { name: '1.2000', exact: true })).toBeVisible();
+  await page.getByText('操作记录', { exact: true }).click();
+  await expect(page.getByText('outbound.confirm', { exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+test('1280 布局、空态和退出登录', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await login(page);
+  await page.screenshot({ path: '.local/evidence/web-list-1280.png', fullPage: true });
+  await page.getByRole('searchbox', { name: '搜索出库单' }).fill('NO-MATCH');
+  await page.getByRole('searchbox', { name: '搜索出库单' }).press('Enter');
+  await expect(page.locator('.ant-empty-description')).toHaveText('暂无数据');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+  await page.getByRole('button', { name: '退出登录' }).click();
+  await expect(page.getByRole('button', { name: /登\s*录/ })).toBeVisible();
+});
+
+test('Web 可登记独立包数与总吨数的入库单并维护主数据', async ({ page }) => {
+  await login(page);
+  await page.goto('/inbound/new');
+  await expect(page.getByRole('heading', { name: '登记入库' })).toBeVisible();
+  await page.getByLabel('入库单号').fill('IN-E2E-20261107-001');
+  await page.getByLabel('供应商').click();
+  await page.getByText('DEMO-SUPPLIER · 合成供应商', { exact: true }).click();
+  await page.getByLabel('仓库').click();
+  await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
+  await page.getByLabel('商品').click();
+  await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
+  await page.getByLabel('包数').fill('2');
+  await page.getByLabel('本次总重量（吨）').fill('0.7150');
+  await page.getByRole('button', { name: '确认入库' }).click();
+  await expect(page.getByRole('heading', { name: 'IN-E2E-20261107-001' })).toBeVisible();
+  await expect(page.locator('.ant-table-tbody').getByRole('cell', { name: '0.7150', exact: true })).toBeVisible();
+  await page.screenshot({ path: '.local/evidence/inbound-detail-1440.png', fullPage: true });
+
+  await page.goto('/master-data');
+  await page.getByRole('tab', { name: '客户' }).click();
+  await page.getByRole('button', { name: '新增主数据' }).click();
+  await page.getByLabel('编码').fill('E2E-CUSTOMER');
+  await page.getByLabel('名称').fill('浏览器验收客户');
+  await page.getByRole('button', { name: /保\s*存/ }).click();
+  await expect(page.getByText('浏览器验收客户', { exact: true })).toBeVisible();
+  await page.screenshot({ path: '.local/evidence/master-data-1440.png', fullPage: true });
+});
+
+test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
+  await login(page);
+  await page.goto('/outbound/new');
+  await expect(page.getByRole('heading', { name: '新建出库计划' })).toBeVisible();
+  await page.getByLabel('出库单号').fill('OUT-E2E-20261107-001');
+  await page.getByLabel('客户').click();
+  await page.getByText('DEMO-CUST-1 · 合成客户 1', { exact: true }).click();
+  await page.getByLabel('仓库').click();
+  await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
+  await page.getByLabel('车牌 / 车辆标识').fill('E2E-VEHICLE');
+  await page.getByLabel('商品').click();
+  await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
+  await page.getByLabel('计划包数').fill('1');
+  await page.getByLabel('计划重量（吨）').fill('0.3025');
+  await page.getByRole('button', { name: '创建计划' }).click();
+  await expect(page.getByRole('heading', { name: 'OUT-E2E-20261107-001' })).toBeVisible();
+  await page.getByRole('button', { name: '编辑计划' }).click();
+  await page.getByLabel('车牌 / 车辆标识').fill('E2E-VEHICLE-UPDATED');
+  await page.getByRole('button', { name: '保存修改' }).click();
+  await expect(page.getByText('E2E-VEHICLE-UPDATED', { exact: true })).toBeVisible();
+  await page.screenshot({ path: '.local/evidence/outbound-plan-1440.png', fullPage: true });
+});

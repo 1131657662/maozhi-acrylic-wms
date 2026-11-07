@@ -1,0 +1,829 @@
+﻿{
+    "exportedAt":  "2026-11-07T12:32:08.2095159+08:00",
+    "source":  "Figma local",
+    "font":  "Microsoft YaHei",
+    "imageCount":  82,
+    "imagesPresent":  82,
+    "screens":  [
+                    {
+                        "id":  "1:3357",
+                        "name":  "Prototype / interaction notes",
+                        "width":  680,
+                        "height":  760,
+                        "x":  3040,
+                        "y":  9752,
+                        "image":  "Prototype-interaction-notes.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "12:2457",
+                        "name":  "工作台 / 管理仪表台 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  9752,
+                        "image":  "工作台-管理仪表台-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:2815",
+                        "name":  "工作台 / 管理仪表台 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1520,
+                        "y":  9752,
+                        "image":  "工作台-管理仪表台-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:3026",
+                        "name":  "作业工作台 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  48,
+                        "image":  "作业工作台-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:3462",
+                        "name":  "作业工作台 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  3056,
+                        "image":  "作业工作台-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:3865",
+                        "name":  "作业工作台 / 审核员 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  48,
+                        "image":  "作业工作台-审核员-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:4312",
+                        "name":  "作业工作台 / 管理员 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  48,
+                        "image":  "作业工作台-管理员-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:4715",
+                        "name":  "作业工作台 / 有入库待办 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  48,
+                        "image":  "作业工作台-有入库待办-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:5160",
+                        "name":  "作业工作台 / 有异常 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  1028,
+                        "image":  "作业工作台-有异常-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:5563",
+                        "name":  "作业工作台 / 无待办有库存 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  1028,
+                        "image":  "作业工作台-无待办有库存-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:5971",
+                        "name":  "作业工作台 / 无权限 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  1028,
+                        "image":  "作业工作台-无权限-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "13:6382",
+                        "name":  "作业工作台 / 审核员 / v2 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1360,
+                        "y":  3056,
+                        "image":  "作业工作台-审核员-v2-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "14:6791",
+                        "name":  "作业工作台 / 任务局部失败 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  1028,
+                        "image":  "作业工作台-任务局部失败-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "14:7203",
+                        "name":  "作业工作台 / 摘要局部失败 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  2008,
+                        "image":  "作业工作台-摘要局部失败-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "14:7615",
+                        "name":  "作业工作台 / 加载中 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  2008,
+                        "image":  "作业工作台-加载中-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "14:8071",
+                        "name":  "TaskDrawer / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  6744,
+                        "image":  "TaskDrawer-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "14:8195",
+                        "name":  "整车审核 / 确认 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  5764,
+                        "image":  "整车审核-确认-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "15:8444",
+                        "name":  "整车审核 / 成功 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  6744,
+                        "image":  "整车审核-成功-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "16:8643",
+                        "name":  "TaskDrawer / overlay / plan / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  6744,
+                        "image":  "TaskDrawer-overlay-plan-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "17:8710",
+                        "name":  "计划编辑 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  5764,
+                        "image":  "计划编辑-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9139",
+                        "name":  "TaskDrawer / overlay / inbound / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  7724,
+                        "image":  "TaskDrawer-overlay-inbound-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9197",
+                        "name":  "TaskDrawer / overlay / plan / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  4560,
+                        "y":  7724,
+                        "image":  "TaskDrawer-overlay-plan-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9250",
+                        "name":  "TaskDrawer / overlay / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  3040,
+                        "y":  7724,
+                        "image":  "TaskDrawer-overlay-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9303",
+                        "name":  "TaskDrawer / overlay / inbound / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  8704,
+                        "image":  "TaskDrawer-overlay-inbound-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9368",
+                        "name":  "TaskFilter / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  7724,
+                        "image":  "TaskFilter-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9400",
+                        "name":  "作业工作台 / 逾期筛选 / v2 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  2008,
+                        "image":  "作业工作台-逾期筛选-v2-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9809",
+                        "name":  "计划编辑 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1520,
+                        "y":  5764,
+                        "image":  "计划编辑-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:9977",
+                        "name":  "整车审核 / 确认 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  4560,
+                        "y":  5764,
+                        "image":  "整车审核-确认-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "20:10159",
+                        "name":  "整车审核 / 成功 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1520,
+                        "y":  6744,
+                        "image":  "整车审核-成功-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "22:10314",
+                        "name":  "作业工作台 / 管理员 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  2720,
+                        "y":  3056,
+                        "image":  "作业工作台-管理员-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "22:10679",
+                        "name":  "作业工作台 / 有异常 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  4080,
+                        "y":  3056,
+                        "image":  "作业工作台-有异常-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "22:11044",
+                        "name":  "作业工作台 / 有入库待办 / v2 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  3936,
+                        "image":  "作业工作台-有入库待办-v2-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "23:11471",
+                        "name":  "作业工作台 / 无待办有库存 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1360,
+                        "y":  3936,
+                        "image":  "作业工作台-无待办有库存-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "23:11841",
+                        "name":  "作业工作台 / 无权限 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  2720,
+                        "y":  3936,
+                        "image":  "作业工作台-无权限-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "23:12252",
+                        "name":  "作业工作台 / 加载中 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  4080,
+                        "y":  3936,
+                        "image":  "作业工作台-加载中-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "23:12728",
+                        "name":  "作业工作台 / 任务局部失败 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  4816,
+                        "image":  "作业工作台-任务局部失败-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "23:13139",
+                        "name":  "作业工作台 / 摘要局部失败 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1360,
+                        "y":  4816,
+                        "image":  "作业工作台-摘要局部失败-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "23:13597",
+                        "name":  "TaskFilter / overlay / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1520,
+                        "y":  8704,
+                        "image":  "TaskFilter-overlay-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "29:7672",
+                        "name":  "入库单 / 列表 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  10848,
+                        "image":  "入库单-列表-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "31:5442",
+                        "name":  "出库单 / 列表 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  10848,
+                        "image":  "出库单-列表-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "31:5883",
+                        "name":  "库存 / 列表 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  10848,
+                        "image":  "库存-列表-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:5998",
+                        "name":  "货位 / 列表 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  10848,
+                        "image":  "货位-列表-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:6504",
+                        "name":  "盘点 / 列表 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  11828,
+                        "image":  "盘点-列表-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:7011",
+                        "name":  "Batch confirm / inbound / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  12848,
+                        "image":  "Batch-confirm-inbound-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:7056",
+                        "name":  "计划编辑 / 库存校验失败 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  13828,
+                        "image":  "计划编辑-库存校验失败-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:7249",
+                        "name":  "入库单 / 批量选择 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  12848,
+                        "image":  "入库单-批量选择-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:7742",
+                        "name":  "入库单 / 空态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  12848,
+                        "image":  "入库单-空态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:8096",
+                        "name":  "入库单 / 错误态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  12848,
+                        "image":  "入库单-错误态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:8629",
+                        "name":  "Inventory detail / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  14848,
+                        "image":  "Inventory-detail-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:8663",
+                        "name":  "Location detail / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  14848,
+                        "image":  "Location-detail-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:8697",
+                        "name":  "Stocktake detail / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  14848,
+                        "image":  "Stocktake-detail-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:8731",
+                        "name":  "库存 / 空态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  15848,
+                        "image":  "库存-空态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:9242",
+                        "name":  "库存 / 错误态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  15848,
+                        "image":  "库存-错误态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:9752",
+                        "name":  "Table / Long ID tooltip",
+                        "width":  760,
+                        "height":  180,
+                        "x":  0,
+                        "y":  16848,
+                        "image":  "Table-Long-ID-tooltip.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:9767",
+                        "name":  "Location edit / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  17848,
+                        "image":  "Location-edit-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:9793",
+                        "name":  "Stock adjust / overlay / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  18848,
+                        "image":  "Stock-adjust-overlay-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:9818",
+                        "name":  "盘点 / 执行 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  19848,
+                        "image":  "盘点-执行-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:10324",
+                        "name":  "作业工作台 / 数量拆分 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  19848,
+                        "image":  "作业工作台-数量拆分-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:12209",
+                        "name":  "出库单 / 空态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  20848,
+                        "image":  "出库单-空态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:12655",
+                        "name":  "出库单 / 错误态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  20848,
+                        "image":  "出库单-错误态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:13099",
+                        "name":  "作业工作台 / Tooltip 状态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  19848,
+                        "image":  "作业工作台-Tooltip-状态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:13760",
+                        "name":  "货位 / 空态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  21848,
+                        "image":  "货位-空态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:14271",
+                        "name":  "货位 / 错误态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  21848,
+                        "image":  "货位-错误态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:14780",
+                        "name":  "盘点 / 空态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  22848,
+                        "image":  "盘点-空态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "32:15291",
+                        "name":  "盘点 / 错误态 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  22848,
+                        "image":  "盘点-错误态-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16075",
+                        "name":  "Stock adjust confirm / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  23848,
+                        "image":  "Stock-adjust-confirm-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16095",
+                        "name":  "Stocktake partial confirm / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  24848,
+                        "image":  "Stocktake-partial-confirm-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16119",
+                        "name":  "Column settings / popover / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  25848,
+                        "image":  "Column-settings-popover-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16156",
+                        "name":  "Async task / drawer / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  26848,
+                        "image":  "Async-task-drawer-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16176",
+                        "name":  "Core filter / inventory / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  27848,
+                        "image":  "Core-filter-inventory-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16200",
+                        "name":  "Core filter / inbound / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  28848,
+                        "image":  "Core-filter-inbound-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16222",
+                        "name":  "Core filter / outbound / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  28848,
+                        "image":  "Core-filter-outbound-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16244",
+                        "name":  "Core filter / location / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  3040,
+                        "y":  28848,
+                        "image":  "Core-filter-location-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16266",
+                        "name":  "Core filter / stocktake / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  4560,
+                        "y":  28848,
+                        "image":  "Core-filter-stocktake-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16289",
+                        "name":  "库存 / 列表 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  29848,
+                        "image":  "库存-列表-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:16797",
+                        "name":  "货位 / 列表 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  30848,
+                        "image":  "货位-列表-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:17305",
+                        "name":  "盘点 / 列表 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1520,
+                        "y":  30848,
+                        "image":  "盘点-列表-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:17813",
+                        "name":  "入库单 / 列表 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  0,
+                        "y":  31848,
+                        "image":  "入库单-列表-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:18321",
+                        "name":  "出库单 / 列表 / 1280",
+                        "width":  1280,
+                        "height":  800,
+                        "x":  1520,
+                        "y":  31848,
+                        "image":  "出库单-列表-1280.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "34:18846",
+                        "name":  "Business conflict / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  32848,
+                        "image":  "Business-conflict-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "42:9819",
+                        "name":  "出库单 / 实际明细 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  0,
+                        "y":  33848,
+                        "image":  "出库单-实际明细-1440.png",
+                        "exists":  true
+                    },
+                    {
+                        "id":  "42:10373",
+                        "name":  "出库单 / 实际明细 / 手动 / 1440",
+                        "width":  1440,
+                        "height":  900,
+                        "x":  1520,
+                        "y":  33848,
+                        "image":  "出库单-实际明细-手动-1440.png",
+                        "exists":  true
+                    }
+                ]
+}

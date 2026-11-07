@@ -1,0 +1,26 @@
+import { ProTable, type ProColumns } from '@ant-design/pro-components';
+import { tonnes, type Detail } from '@wms/contracts';
+import { formatTime } from '../../lib/format-time';
+type Fact = Detail['facts'][number];
+const columns: ProColumns<Fact>[] = [
+  { title: '条码', dataIndex: 'barcode' },
+  { title: '实际重量（吨）', render: (_, row) => tonnes(row.weightGrams) },
+  { title: '来源', dataIndex: 'weightSource' },
+  { title: '设备', dataIndex: 'deviceId' },
+  { title: '记录人', dataIndex: 'recordedBy' },
+  { title: '扫码时间', dataIndex: 'scannedAt', render: (_, row) => formatTime(row.scannedAt) },
+];
+export function Facts({ order }: { order: Detail }) {
+  return (
+    <ProTable<Fact>
+      headerTitle="扫码事实"
+      rowKey="id"
+      columns={columns}
+      dataSource={order.facts}
+      search={false}
+      options={false}
+      pagination={{ pageSize: 10 }}
+      scroll={{ x: 850 }}
+    />
+  );
+}

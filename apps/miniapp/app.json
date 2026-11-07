@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/outbound/index",
+    "pages/detail/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "茂智腈纶仓",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f0f2f5"
+  },
+  "usingComponents": {
+    "van-button": "/miniprogram_npm/@vant/weapp/button/index",
+    "van-field": "/miniprogram_npm/@vant/weapp/field/index",
+    "van-cell": "/miniprogram_npm/@vant/weapp/cell/index",
+    "van-cell-group": "/miniprogram_npm/@vant/weapp/cell-group/index",
+    "van-tag": "/miniprogram_npm/@vant/weapp/tag/index",
+    "van-empty": "/miniprogram_npm/@vant/weapp/empty/index",
+    "van-loading": "/miniprogram_npm/@vant/weapp/loading/index",
+    "van-search": "/miniprogram_npm/@vant/weapp/search/index"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

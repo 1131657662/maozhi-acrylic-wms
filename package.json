@@ -1,0 +1,45 @@
+{
+  "name": "maozhi-acrylic-wms",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "packages/contracts"
+  ],
+  "engines": {
+    "node": ">=24.14.0 <25"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"npm run dev -w @wms/api\" \"npm run dev -w @wms/web\"",
+    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p apps/web",
+    "build": "npm run typecheck && npm run build -w @wms/web",
+    "test": "tsx --test apps/api/tests/*.test.ts apps/miniapp/tests/*.test.cjs",
+    "test:e2e": "playwright test",
+    "setup:demo": "tsx scripts/setup-demo.ts",
+    "backup": "tsx scripts/backup.ts",
+    "restore": "tsx scripts/restore.ts",
+    "openapi": "tsx scripts/openapi.ts",
+    "miniapp:prepare": "npm ci --prefix apps/miniapp && tsx scripts/prepare-miniapp.ts",
+    "format": "prettier --write apps/api/src apps/api/tests apps/web/src packages/contracts/src scripts tests"
+  },
+  "overrides": {
+    "@umijs/plugins": {
+      "@ant-design/pro-components": "3.1.15-9",
+      "antd": "6.7.0",
+      "react": "19.3.1",
+      "react-dom": "19.3.1"
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^6.0.3",
+    "concurrently": "^9.2.1",
+    "prettier": "3.9.10",
+    "supertest": "^7.1.4",
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3"
+  }
+}

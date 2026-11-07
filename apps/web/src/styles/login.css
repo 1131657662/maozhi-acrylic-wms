@@ -1,0 +1,43 @@
+.login-page {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  min-height: 100vh;
+}
+.login-intro {
+  padding: 18vh 9vw;
+  background: #103f3f;
+  color: white;
+}
+.login-intro h1 {
+  font-size: 36px;
+  line-height: 1.6;
+}
+.login-intro .eyebrow,
+.login-intro p {
+  color: #abd0c8;
+}
+.login-intro .demo-label {
+  color: #abd0c8;
+  border-color: #376361;
+  margin-top: 60px;
+}
+.login-card {
+  max-width: 440px;
+  width: 100%;
+  align-self: center;
+  justify-self: center;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.login-card label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.login-card p {
+  margin-bottom: 8px;
+}
+.login-card small {
+  text-align: center;
+}

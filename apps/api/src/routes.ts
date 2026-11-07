@@ -1,0 +1,38 @@
+import { Router } from 'express';
+import type { Database } from './db/mysql.ts';
+import { outboundController } from './features/outbound/controller.ts';
+import { scanController } from './features/scan/controller.ts';
+import { inboundController } from './features/inbound/controller.ts';
+import { masterDataController } from './features/master-data/controller.ts';
+import { outboundPlanController } from './features/outbound/plan-controller.ts';
+import { stockRows,auditRows } from './features/outbound/read-models.ts';
+import { ok,requireAuth,requireChannel } from './middleware/http.ts';
+
+export function businessRouter(db:Database,origins:string[]):Router {
+  const router=Router();
+  const outbound=outboundController(db);
+  const outboundPlans=outboundPlanController(db);
+  const inbound=inboundController(db);
+  const master=masterDataController(db);
+  const scan=scanController(db);
+  router.use(requireAuth(db));
+  router.get('/outbound',outbound.list);
+  router.get('/outbound/:id',outbound.detail);
+  router.post('/outbound',requireChannel('web',origins),outboundPlans.create);
+  router.patch('/outbound/:id',requireChannel('web',origins),outboundPlans.edit);
+  router.post('/outbound/:id/confirm',requireChannel('web',origins),outbound.confirm);
+  router.get('/inbound',requireChannel('web',origins),inbound.list);
+  router.get('/inbound/:id',requireChannel('web',origins),inbound.detail);
+  router.post('/inbound',requireChannel('web',origins),inbound.create);
+  router.get('/master-data/:catalog',requireChannel('web',origins),master.list);
+  router.post('/master-data/:catalog',requireChannel('web',origins),master.create);
+  router.patch('/master-data/:catalog/:code',requireChannel('web',origins),master.update);
+  router.get('/scan/plans',outbound.list);
+  router.get('/scan/plans/:id',outbound.detail);
+  router.get('/scan/catalog',scan.catalog);
+  router.post('/scan/plans/:id/facts',requireChannel('pda',origins),scan.fact);
+  router.post('/scan/plans/:id/submit',requireChannel('pda',origins),scan.freeze);
+  router.get('/stock',async(_req,res)=>ok(res,await stockRows(db)));
+  router.get('/audit',requireChannel('web',origins),async(_req,res)=>ok(res,await auditRows(db)));
+  return router;
+}
