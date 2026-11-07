@@ -4,7 +4,7 @@
 
 ## DD-01 统一列表壳
 
-- 问题：旧入库/出库列表分别维护筛选抽屉和批量逻辑；当前原型入库 `search={false}`（`apps/web/src/features/inbound/list.tsx:44-69`），出库也只有关键词和状态（`apps/web/src/features/outbound/list.tsx:61-108`）。
+- 问题：旧入库/出库列表分别维护筛选抽屉和批量逻辑；当前原型入库 `search={false}`（[inbound/list.tsx（44–69 行）](../apps/web/src/features/inbound/list.tsx#L44)），出库也只有关键词和状态（[outbound/list.tsx（61–108 行）](../apps/web/src/features/outbound/list.tsx#L61)）。
 - 方案：统一 ProTable 壳，日期/状态/仓库/往来单位/单号服务端筛选，关键列左固定、操作列右固定，筛选和列显隐版本化持久化。
 - 备选：每个页面独立设计；否决原因是重复学习和字段漂移，导出/打印无法共享 schema。
 - U 指标与基线：旧路径至少 4 次打开/填写/查询动作，目标 2 次；当前仅有单号关键词基线，完整流程和 10k 行 p95 均待实测。测量用 Playwright 事件计数和本地 MySQL 10k 行 API p50/p95。
@@ -12,26 +12,26 @@
 
 ## DD-02 入库重量独立录入
 
-- 问题：样本包重 60–389.5kg，9018 条条码实重独立存在（`.local/prod-sample/sku-analysis.json`）；统一件重会把估算写成事实。
+- 问题：样本包重 60–389.5kg，9018 条条码实重独立存在（[sku-analysis.json](../.local/prod-sample/sku-analysis.json)）；统一件重会把估算写成事实。
 - 方案：明细分别录包数和总吨数，实时累计但不反算；差异只提示或按配置校验。
 - 备选：输入件重后乘包数；否决原因是违背每包重量不同的业务边界。
-- U 指标与基线：新建目标 ≤2 屏，重量差异静默提交 0 次；当前表单已有两个独立字段（`apps/web/src/features/inbound/editor.tsx:112-123`），差异提示耗时待实测。用 E2E 10 组差异输入和字段焦点序列测量。
+- U 指标与基线：新建目标 ≤2 屏，重量差异静默提交 0 次；当前表单已有两个独立字段（[inbound/editor.tsx（112–123 行）](../apps/web/src/features/inbound/editor.tsx#L112)，差异提示耗时待实测）。用 E2E 10 组差异输入和字段焦点序列测量。
 - 回退：历史异常只警示，新单硬校验可由 feature flag 关闭；不改历史重量。
 
 ## DD-03 出库冻结与确认分层
 
-- 问题：旧 ERP 审核直接联动扣库存（`D:\wms-new\wms-backend\controllers\outbound_order.js:443-536`）；PDA 冻结若被当成出库会误扣。
+- 问题：旧 ERP 审核直接联动扣库存（[outbound_order.js（443–536 行）](D:/wms-new/wms-backend/controllers/outbound_order.js#L443)）；PDA 冻结若被当成出库会误扣。
 - 方案：PDA 只写不可变扫码事实并冻结；Web 详情展示包级实重，确认事务同时写库存、流水、审计和幂等结果。
 - 备选：PDA 提交直接扣库存；否决原因是突破 AGENTS 的 Web 明确确认边界。
-- U 指标与基线：重复确认 0 次重复扣减；当前 API 已用事务和命令回放（`apps/api/src/features/outbound/confirm.ts:25-36`），E2E 已覆盖一次确认，重复请求和确认前后用时待实测。用同一幂等键重放 3 次并核对库存/流水。
+- U 指标与基线：重复确认 0 次重复扣减；当前 API 已用事务和命令回放（[confirm.ts（25–36 行）](../apps/api/src/features/outbound/confirm.ts#L25)），E2E 已覆盖一次确认，重复请求和确认前后用时待实测。用同一幂等键重放 3 次并核对库存/流水。
 - 回退：确认失败事务回滚，保留扫码事实；测试环境可关闭新确认按钮，历史记录不回滚删除。
 
 ## DD-04 RK/CK 自动单号
 
-- 问题：当前两个 ProForm 仍要求手填单号（`apps/web/src/features/inbound/editor.tsx:80`、`apps/web/src/features/outbound/editor.tsx:105`）；旧 ERP 已有事务序列生成器（`D:\wms-new\wms-backend\utils\bill_no.js:11-71`）。
+- 问题：当前两个 ProForm 仍要求手填单号（[inbound/editor.tsx:80](../apps/web/src/features/inbound/editor.tsx#L80)、[outbound/editor.tsx:105](../apps/web/src/features/outbound/editor.tsx#L105)）；旧 ERP 已有事务序列生成器（[bill_no.js:11](D:/wms-new/wms-backend/utils/bill_no.js#L11)）。这里只引用已核实的函数入口，不引用文件末尾行号范围。
 - 方案：入库独立使用 `RK-YYYYMMDD-####`，出库独立使用 `CK-YYYYMMDD-####`；服务端事务取号，草稿显示只读预览，唯一约束拒绝重复。
 - 备选：前端计算预览、提交时再生成；否决原因是并发下预览与最终号不一致。
-- U 指标与基线：手工字段减少 1 个，50 个并发草稿单号唯一率 100%；当前 E2E 手填 `IN-E2E...`/`OUT-E2E...`（`tests/e2e/outbound.spec.ts:80,108`），并发和时长待实测。用 API 并发脚本验证。
+- U 指标与基线：手工字段减少 1 个，50 个并发草稿单号唯一率 100%；当前 E2E 手填 `IN-E2E...`/`OUT-E2E...`（[outbound.spec.ts:80](../tests/e2e/outbound.spec.ts#L80)、[outbound.spec.ts:108](../tests/e2e/outbound.spec.ts#L108)），并发和时长待实测。用 API 并发脚本验证。
 - 回退：序列失败不写业务单且不复用已消耗号；规则开关可暂时允许历史编辑但不允许重复。
 
 ## DD-05 双来源商品不合计
@@ -39,12 +39,12 @@
 - 问题：样本包含 141 个 SPEC 条码目录商品和 428 个 ERP 历史商品，无可靠映射键；模糊合并会改变库存口径。
 - 方案：数据库保留两套来源，库存和报表按来源分组，页面常驻来源标签，跨来源总计不渲染。
 - 备选：按名称/型号模糊合并；否决原因是不可逆且会静默错报。
-- U 指标与基线：跨来源合计 0 次，9018 条条码 100% 仍能回到 SPEC 商品；全量命中已有 DATA 基线（`scripts/verify-sample-seed.ts`），页面断言待实测。用两来源 fixture 查询并断言没有总计行。
+- U 指标与基线：跨来源合计 0 次，9018 条条码 100% 仍能回到 SPEC 商品；全量命中已有 DATA 基线（[verify-sample-seed.ts](../scripts/verify-sample-seed.ts)），页面断言待实测。用两来源 fixture 查询并断言没有总计行。
 - 回退：若需要人工对照，只增加独立映射表和对照视图，不改原商品、库存或历史单据。
 
 ## DD-06 状态与流水类型原文回退
 
-- 问题：真实状态有 `audited`/`submit`，流水类型有 `check`/`import`；当前状态组件只覆盖部分已知值（`apps/web/src/features/outbound/status.tsx:3-9`）。
+- 问题：真实状态有 `audited`/`submit`，流水类型有 `check`/`import`；当前状态组件只覆盖部分已知值（[status.tsx（3–9 行）](../apps/web/src/features/outbound/status.tsx#L3)）。
 - 方案：数据库保留原字符串，统一状态/流水标签；已知值映射中文，未知值显示原文和来源提示。
 - 备选：导入时强制映射到有限枚举；否决原因是历史语义不可逆。
 - U 指标与基线：状态或流水空白 0 个、未知值报错 0 个；当前只对出库已知状态做回退，未知值全页覆盖待实测。用 `future_status`/`future_type` fixture 跑列表、详情、流水、报表 E2E。
@@ -76,7 +76,7 @@
 
 ## DD-10 导出字段 schema
 
-- 问题：旧系统列表导出和详情导出各自维护（`D:\wms-new\wms-frontend-pure\src\views\wms\InboundOrderList.vue:444-537`、`InboundOrderDetail.vue:107-148`），屏幕、Excel 和打印易漂移。
+- 问题：旧系统列表导出和详情导出各自维护（[InboundOrderList.vue（444–537 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderList.vue#L444)、[InboundOrderDetail.vue（107–148 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderDetail.vue#L107)），屏幕、Excel 和打印易漂移。
 - 方案：每个列表定义一份字段 schema，ProTable、CSV（UTF-8 BOM）、Excel 和打印模板共享字段顺序；大数据按服务端分页导出。
 - 备选：三处各写字段映射；否决原因是字段变更容易漏改。
 - U 指标与基线：屏幕/导出/打印字段差异 0，筛选到导出 ≤3 步；当前原型无导出基线，schema 对照、10k 行内存和耗时待实测。用脚本比较列定义和导出表头。
@@ -90,6 +90,30 @@
 - U 指标与基线：打印/导出/屏幕字段差异 0，预览到系统打印 ≤2 步；当前无打印基线，浏览器打印和 PDF 渲染待实测。用 DOM/schema 对照和 1280/1440 预览检查。
 - 回退：保留基础 HTML 打印模板；模板异常不影响单据状态和库存事务。
 
+## DD-12 PDA 连续扫码与离线补传
+
+- 问题：PDA 已持久化事实并在联网时重试（[ScanRepository.kt:8](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/ScanRepository.kt#L8)、[SyncWorker.kt:19](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/sync/SyncWorker.kt#L19)），但主屏只显示队列总数且补传遇首个失败即退出本轮（[ScanScreen.kt:23](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/ui/ScanScreen.kt#L23)、[SyncRepository.kt:11](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/SyncRepository.kt#L11)）。现场需要连续录包并立刻知道失败、冲突和回传结果。
+- 方案：扫码主屏保持输入焦点，显示最近扫码结果及待补传/失败/冲突/已回传分类；网络错误自动重试，业务冲突进入核对队列。
+- 备选：把状态放在独立记录页；否决原因是现场需离开扫码流程才能确认是否漏传。
+- U 指标与基线：当前仪器测试覆盖本机队列持久化和冻结不扣库存（[ScanIntegrationTest.kt:21](../apps/pda/app/src/androidTest/java/cn/maozhi/wms/pda/ScanIntegrationTest.kt#L21)），连续 100 包焦点保持、错误分类可见性和实体扫码枪体验待实测；目标焦点保持率、冲突可见率、无冲突事实回传率均 100%。用 Android 仪器测试模拟 100 包、断网/恢复和单条 409，并另做实体设备扫码枪计时。
+- 回退：异常时回到当前扫码记录/补传入口；Room 中 UUID 与正文不可变，任何重试都不删除或重写事实；PDA 永不确认出库或扣库存。
+
+## DD-13 小程序只读查询上下文
+
+- 问题：列表保存关键词和分页（[outbound/index.js:4](../apps/miniapp/pages/outbound/index.js#L4)），但页面 `onShow` 会回到第一页，详情返回后需要重新定位（[outbound/index.js:5](../apps/miniapp/pages/outbound/index.js#L5)、[detail/index.js:5](../apps/miniapp/pages/detail/index.js#L5)）。现场常从长列表连续打开多张单据。
+- 方案：详情返回时保留筛选、页码、已加载记录和滚动锚点，并静默刷新当前页；只读查询边界不变。
+- 备选：每次返回均重载第一页；否决原因是反复滚动/翻页会增加单手操作步骤。
+- U 指标与基线：当前从详情返回会重新加载第一页，恢复原位置动作数基线待实测；目标以 1 次系统返回恢复原页与滚动锚点，关键词重输次数为 0。用微信开发者工具固定在第 3 页开详情、返回，记录页码、锚点和输入事件。
+- 回退：缓存过期时保留原列表并刷新当前页，失败显示“刷新失败，请重试”；页面生命周期异常时恢复现有第一页重载行为。小程序不扫码、不写事实、不改库存。
+
+## DD-14 备份产物校验与隔离恢复演练
+
+- 问题：备份脚本生成 SQL 但没有摘要清单（[backup.ts:7](../scripts/backup.ts#L7)）；恢复脚本会恢复到新库并在失败时清理，但不做摘要和数据级完整性对账（[restore.ts:7](../scripts/restore.ts#L7)）。仅“备份命令成功”不能证明产物可恢复。
+- 方案：每份备份附 SHA-256、大小、数据库身份和时间 manifest；先在隔离新库恢复，再核对身份、关键表行数与重量汇总；通过后仍由人显式决定是否切换。
+- 备选：只定期人工抽查页面；否决原因是不能稳定发现文件截断或历史行缺失。
+- U 指标与基线：当前无摘要 manifest 和数据对账步骤，恢复时长待实测；目标产物摘要校验率、恢复身份校验率和约定数据对账通过率均为 100%，隔离恢复耗时 <15 分钟。用单字节篡改样本、恢复新库并比较 manifest、表计数和重量汇总；每次迁移验收演练计时。
+- 回退：失败只清理本次隔离恢复库，保留原备份和当前开发库；若自动对账有误，回到人工只读对账，不自动切库、不连接生产。
+
 ## 页面族覆盖索引
 
 | UI_SPEC 页面族 | 对应 DD |
@@ -100,11 +124,13 @@
 | 入库列表 | DD-01、DD-08、DD-10、DD-11 |
 | 出库新建/详情 | DD-01、DD-03、DD-04、DD-06 |
 | 出库列表 | DD-01、DD-08、DD-10、DD-11 |
+| PDA 扫码与补传 | DD-03、DD-12 |
+| 小程序只读查询 | DD-09、DD-13 |
 | 库存查询/调整 | DD-01、DD-05、DD-06、DD-07 |
 | 盘点 | DD-01、DD-05、DD-07、DD-08 |
 | 统计报表 | DD-01、DD-05、DD-06、DD-08、DD-10 |
 | 系统配置 | DD-01、DD-04、DD-06、DD-09 |
-| 系统监控 | DD-01、DD-06、DD-09、DD-10 |
+| 系统监控 | DD-01、DD-06、DD-09、DD-10、DD-14 |
 | 消息中心 | DD-01、DD-06、DD-09 |
 | 个人中心 | DD-01、DD-06、DD-09 |
 | 打印 | DD-06、DD-10、DD-11 |

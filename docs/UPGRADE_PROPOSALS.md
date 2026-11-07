@@ -1,6 +1,6 @@
 # 升级与重构提案
 
-本轮只产出提案和文档，不改业务代码。提案依据旧 ERP 页面/控制器、当前原型、真实样本统计和现有 E2E；提案中的目标值是验收指标，不代表已经实现。
+本轮只产出提案和文档，不改业务代码。提案依据旧 ERP 页面/控制器、当前原型、真实样本统计和现有 E2E；提案中的目标值是验收指标，不代表已经实现。所有代码证据均复核到文件现有行范围，并提供可点击行链接；新提案目标需实测，不以设计稿代替验收。
 
 ## 升级
 
@@ -8,7 +8,7 @@
 
 **现状与证据**
 
-旧 ERP 的入库单列表已经有筛选抽屉、批量操作和导出，但入口与列表状态分散：`D:\wms-new\wms-frontend-pure\src\views\wms\InboundOrderList.vue:634-678,790-981`；出库列表同样重复一套筛选和批量逻辑：`D:\wms-new\wms-frontend-pure\src\views\wms\OutboundOrderList.vue:643-691,799-981`。当前原型入库和出库列表都显式 `search={false}`，只保留单号关键词/状态：`apps/web/src/features/inbound/list.tsx:44-69`、`apps/web/src/features/outbound/list.tsx:61-108`。
+旧 ERP 的入库单列表已经有筛选抽屉、批量操作和导出，但入口与列表状态分散：[InboundOrderList.vue（634–678、790–981 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderList.vue#L634)；出库列表同样重复一套筛选和批量逻辑：[OutboundOrderList.vue（643–691、799–981 行）](D:/wms-new/wms-frontend-pure/src/views/wms/OutboundOrderList.vue#L643)。当前原型入库和出库列表都显式 `search={false}`，只保留单号关键词/状态：[inbound/list.tsx（44–69 行）](../apps/web/src/features/inbound/list.tsx#L44)、[outbound/list.tsx（61–108 行）](../apps/web/src/features/outbound/list.tsx#L61)。
 
 **方案 A 与方案 B**
 
@@ -29,7 +29,7 @@
 
 **现状与证据**
 
-旧 ERP 已有编号生成器：`D:\wms-new\wms-backend\utils\bill_no.js:11-71`；但当前原型仍要求手填入库号和出库号：`apps/web/src/features/inbound/editor.tsx:80`、`apps/web/src/features/outbound/editor.tsx:105`。现有 E2E 也必须手填 `IN-E2E...` 和 `OUT-E2E...`：`tests/e2e/outbound.spec.ts:80,108`。
+旧 ERP 已有编号生成器：[bill_no.js:11](D:/wms-new/wms-backend/utils/bill_no.js#L11)；当前原型仍要求手填入库号和出库号：[inbound/editor.tsx:80](../apps/web/src/features/inbound/editor.tsx#L80)、[outbound/editor.tsx:105](../apps/web/src/features/outbound/editor.tsx#L105)。现有 E2E 也必须手填 `IN-E2E...` 和 `OUT-E2E...`：[outbound.spec.ts:80](../tests/e2e/outbound.spec.ts#L80)、[outbound.spec.ts:108](../tests/e2e/outbound.spec.ts#L108)。
 
 **方案 A 与方案 B**
 
@@ -50,7 +50,7 @@
 
 **现状与证据**
 
-样本重量范围 60–389.5kg，9018/9018 条码重量一致，说明统一件重反算不成立：`.local/prod-sample/sku-analysis.json`。当前入库表单已分别录包数和总吨数：`apps/web/src/features/inbound/editor.tsx:112-123`，但没有汇总差异提示。旧 ERP 入库审核会在同一动作中更新库存：`D:\wms-new\wms-backend\controllers\inbound_order.js:456-545`；当前出库则已把 PDA 事实与 Web 确认拆开：`apps/api/src/features/outbound/confirm.ts:25-36`。
+样本重量范围 60–389.5kg，9018/9018 条码重量一致，说明统一件重反算不成立：[sku-analysis.json](../.local/prod-sample/sku-analysis.json)。当前入库表单已分别录包数和总吨数：[inbound/editor.tsx（112–123 行）](../apps/web/src/features/inbound/editor.tsx#L112)，但没有汇总差异提示。旧 ERP 入库审核会在同一动作中更新库存：[inbound_order.js（456–545 行）](D:/wms-new/wms-backend/controllers/inbound_order.js#L456)；当前出库则已把 PDA 事实与 Web 确认拆开：[confirm.ts（25–36 行）](../apps/api/src/features/outbound/confirm.ts#L25)。
 
 **方案 A 与方案 B**
 
@@ -71,7 +71,7 @@
 
 **现状与证据**
 
-样本中单据状态为 `audited` 114/115（入库）、`audited` 414/415（出库）；流水类型为 `check` 47、`import` 60、`inbound` 182、`outbound` 539，且有 24 条软删：`.local/prod-sample/*.csv` 聚合统计。当前 Web 仅在出库状态组件中做部分映射：`apps/web/src/features/outbound/status.tsx:3-9`。
+样本中单据状态为 `audited` 114/115（入库）、`audited` 414/415（出库）；流水类型为 `check` 47、`import` 60、`inbound` 182、`outbound` 539，且有 24 条软删：[prod-sample CSV 汇总](../.local/prod-sample/manifest.json)。当前 Web 仅在出库状态组件中做部分映射：[status.tsx（3–9 行）](../apps/web/src/features/outbound/status.tsx#L3)。
 
 **方案 A 与方案 B**
 
@@ -88,13 +88,34 @@
 
 标签文案错误不会改变数据，但可能误导用户；未知值使用中性灰和原文，不猜中文含义。若新标签组件异常，回退为纯原文字段显示。
 
+### U-05 备份产物校验与恢复演练
+
+**现状与证据**
+
+当前备份脚本检查本地数据库身份并生成 SQL 文件，但没有产物摘要/大小清单或完成后校验：[backup.ts（7–29 行）](../scripts/backup.ts#L7)。恢复脚本会恢复到新库、校验库身份并在失败时清理本次新库，但没有校验和检查或数据级完整性对账：[restore.ts（7–28 行）](../scripts/restore.ts#L7)。操作日志由审计函数写入事务：[audit.ts（6–10 行）](../apps/api/src/shared/audit.ts#L6)。
+
+**方案 A 与方案 B**
+
+- 方案 A（推荐）：备份完成后写 SHA-256、文件大小、数据库身份和时间 manifest；恢复前校验摘要，导入新库后运行表行数、关键重量汇总和身份检查；通过后仍由人显式切换，失败只清理本次隔离恢复库。
+- 方案 B：只定期人工运行 `npm run restore`，人工抽查若干页面。优点是实现成本低；缺点是无法发现备份截断或样本之外的数据缺失，恢复结果依赖操作者记忆。
+
+推荐 A。它验证“能恢复且内容一致”，不改变当前库、不连接生产，也不把审计日志当审批流程。
+
+**收益假设**
+
+每个备份产物都有可验证摘要的比例 100%；每次恢复演练执行行数/重量对账；损坏文件在导入前拒绝；隔离恢复库端到端恢复目标 <15 分钟，当前恢复时长待实测。测量方式：对 SQL 文件做单字节篡改、执行本地恢复演练并核对 manifest、指定表计数与总重量；每次迁移验收前至少跑一次。
+
+**风险与回退**
+
+摘要只能证明文件未变化，不能单独证明数据逻辑完整，因此恢复后仍须跑数据对账。校验/导入失败只删除本次随机命名的恢复库，原开发库和备份文件保留；如果自动核对脚本有误，可回退到人工只读对账，不自动切换数据库。
+
 ## 优化
 
 ### O-01 列表信息密度、响应式和固定列
 
 **现状与证据**
 
-当前出库表已有固定状态/操作列和列显隐持久化：`apps/web/src/features/outbound/list.tsx:21-34,76-77`，但入库表没有固定操作列且两个列表通过 `scroll.x` 硬撑：`apps/web/src/features/inbound/list.tsx:44-52`。旧 StockList 同时放置库存重建、重置和清零等高风险按钮：`D:\wms-new\wms-frontend-pure\src\views\wms\StockList.vue:777-816`。
+当前出库表已有固定状态/操作列和列显隐持久化：[outbound/list.tsx（21–34、76–77 行）](../apps/web/src/features/outbound/list.tsx#L21)，但入库表没有固定操作列且两个列表通过 `scroll.x` 硬撑：[inbound/list.tsx（44–52 行）](../apps/web/src/features/inbound/list.tsx#L44)。旧 StockList 同时放置库存重建、重置和清零等高风险按钮：[StockList.vue（777–816 行）](D:/wms-new/wms-frontend-pure/src/views/wms/StockList.vue#L777)。
 
 **方案 A 与方案 B**
 
@@ -115,7 +136,7 @@
 
 **现状与证据**
 
-旧 ERP 列表导出和详情导出分开实现：入库列表 `D:\wms-new\wms-frontend-pure\src\views\wms\InboundOrderList.vue:444-537`、入库详情 `InboundOrderDetail.vue:107-148`；出库同样有列表/详情两套导出。当前原型没有导出和打印组件。
+旧 ERP 列表导出和详情导出分开实现：入库列表 [InboundOrderList.vue（444–537 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderList.vue#L444)、入库详情 [InboundOrderDetail.vue（107–148 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderDetail.vue#L107)；出库同样有列表/详情两套导出。当前原型没有导出和打印组件。
 
 **方案 A 与方案 B**
 
@@ -136,7 +157,7 @@
 
 **现状与证据**
 
-旧入/出库表单将表头、客户/供应商、车辆、明细拆在长页面：`D:\wms-new\wms-frontend-pure\src\views\wms\InboundOrderForm.vue:354-560`、`OutboundOrderForm.vue:427-749`。当前 ProForm 已有字段级规则，但错误只通过 Alert 展示：`apps/web/src/features/inbound/editor.tsx:64-65`、`apps/web/src/features/outbound/editor.tsx:88`。
+旧入/出库表单将表头、客户/供应商、车辆、明细拆在长页面：[InboundOrderForm.vue（354–560 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderForm.vue#L354)、[OutboundOrderForm.vue（427–749 行）](D:/wms-new/wms-frontend-pure/src/views/wms/OutboundOrderForm.vue#L427)。当前 ProForm 已有字段级规则，但错误只通过 Alert 展示：[inbound/editor.tsx（64–65 行）](../apps/web/src/features/inbound/editor.tsx#L64)、[outbound/editor.tsx:88](../apps/web/src/features/outbound/editor.tsx#L88)。
 
 **方案 A 与方案 B**
 
@@ -153,13 +174,55 @@
 
 快捷键可能与浏览器冲突，输入框内只在无组合输入时生效；快捷键异常可关闭 feature flag，保留鼠标操作。
 
+### O-04 PDA 连续扫码与离线补传反馈
+
+**现状与证据**
+
+PDA 已在本机持久化扫码事实、断网后保留并重试，不能把这些已有能力误报为缺失：[ScanRepository.kt（8–23 行）](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/ScanRepository.kt#L8)、[SyncWorker.kt（19–33 行）](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/sync/SyncWorker.kt#L19)。扫码页显示服务端与待处理总数，但扫码、记录、补传分成独立操作，未逐条显示失败/冲突原因：[ScanScreen.kt（23–36 行）](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/ui/ScanScreen.kt#L23)。同步当前遇到第一个失败事实就退出本轮：[SyncRepository.kt（11–24 行）](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/SyncRepository.kt#L11)。仪器测试已覆盖重开数据库后队列仍存在及扫码冻结不扣库存：[ScanIntegrationTest.kt（21–44 行）](../apps/pda/app/src/androidTest/java/cn/maozhi/wms/pda/ScanIntegrationTest.kt#L21)。
+
+**方案 A 与方案 B**
+
+- 方案 A（推荐）：扫码主屏保留焦点和连续扫码；在进度区拆分“待补传/失败/冲突/已回传”，显示最后一条结果及原因；网络错误自动重试，业务冲突停在可核对记录，不删除或改写 UUID/正文。优点是现场不用离开扫码主流程，也能知道哪些事实尚未到服务器。
+- 方案 B：保留当前主屏，把状态和处理全部放在“扫码记录”页。优点是扫码页更简单；缺点是现场需切页判断是否漏传，无法快速发现冲突。
+
+推荐 A。Miniapp 继续只读查询，不写扫码事实；PDA 是现场扫码事实的唯一入口。
+
+**收益假设**
+
+连续 100 包扫码的成功输入焦点保持率 100%；暂存事实 UUID/正文保持率 100%；网络恢复后无冲突事实最终回传率 100%；冲突事实可见率 100%。测量方式：Android 仪器测试模拟连续键盘输入、断网/恢复、单条 409 冲突并核验 Room 与服务端事实；当前实测只覆盖持久队列和成功同步，分状态可见性及实体扫码枪体验待实测。
+
+**风险与回退**
+
+自动同步不能把冻结、确认或库存写入带进 PDA；只允许上传扫码事实。遇到冲突不得自动重编号、改重量或删除；若新状态面板异常，回退到当前“扫码记录/补传”入口，Room 中事实保持不变。
+
+### O-05 小程序详情返回保留查询上下文
+
+**现状与证据**
+
+小程序定位是只读查询，列表支持关键词和分页：[outbound/index.js（4–30 行）](../apps/miniapp/pages/outbound/index.js#L4)。进入详情后返回会触发 `onShow` 并重置加载第一页，虽然关键词保留，但已滚动位置/后续页需要重新加载：[outbound/index.js（5–7、39–40 行）](../apps/miniapp/pages/outbound/index.js#L5)、[detail/index.js（5–8 行）](../apps/miniapp/pages/detail/index.js#L5)。
+
+**方案 A 与方案 B**
+
+- 方案 A（推荐）：从详情返回时保留关键词、页码、已加载记录和滚动位置；后台刷新当前页数据，列表变化时不清空用户上下文。优点是查下一张单不必重新滚动或翻页。
+- 方案 B：每次返回都重新从第一页查询。优点是页面状态始终新鲜；缺点是长列表重复定位，现场单手操作增加滚动步骤。
+
+推荐 A。小程序维持只读查询；扫码、盘点录入和任何库存写入仍不放到小程序。
+
+**收益假设**
+
+从详情返回到同一列表位置目标 1 次返回动作，不重新输入关键词，列表位置恢复率 100%。测量方式：微信开发者工具测试第 3 页打开详情并返回，记录输入动作、恢复页码和滚动锚点；当前返回状态基线待实测。
+
+**风险与回退**
+
+缓存可能短暂展示过期状态；返回时静默刷新当前页并标示刷新失败，保留本地结果与重试入口。若状态恢复引入页面生命周期问题，回退为当前从第一页刷新，不影响只读权限。
+
 ## 新增候选
 
 ### N-01 库存预警与库龄联动看板
 
 **现状与证据**
 
-旧系统已有库存预警字段和库龄报表入口：`D:\wms-new\wms-frontend-pure\src\views\wms\StockList.vue:140,1023-1055`、`D:\wms-new\wms-frontend-pure\src\views\wms\report\StockAging.vue`；当前原型只有基础库存表：`apps/web/src/features/outbound/stock.tsx:18-28`。样本库存 122 行，适合先做服务端聚合。
+旧系统已有库存预警字段和库龄报表入口：[StockList.vue（140、1023–1055 行）](D:/wms-new/wms-frontend-pure/src/views/wms/StockList.vue#L140)、[StockAging.vue](D:/wms-new/wms-frontend-pure/src/views/wms/report/StockAging.vue)；当前原型只有基础库存表：[stock.tsx（18–28 行）](../apps/web/src/features/outbound/stock.tsx#L18)。样本库存 122 行，适合先做服务端聚合。
 
 **方案 A 与方案 B**
 
@@ -180,14 +243,14 @@
 
 **现状与证据**
 
-sku.txt 已有 9018 行、141 个规格、无缺列/重复条码/非数字重量：`.local/prod-sample/sku-analysis.json`；旧 ERP 入库表单仍逐行添加明细：`D:\wms-new\wms-frontend-pure\src\views\wms\InboundOrderForm.vue:466-560`。当前原型 ProFormList 也逐行录入：`apps/web/src/features/inbound/editor.tsx:98-124`。
+sku.txt 已有 9018 行、141 个规格、无缺列/重复条码/非数字重量：[sku-analysis.json](../.local/prod-sample/sku-analysis.json)；旧 ERP 入库表单仍逐行添加明细：[InboundOrderForm.vue（466–560 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderForm.vue#L466)。当前原型 ProFormList 也逐行录入：[inbound/editor.tsx（98–124 行）](../apps/web/src/features/inbound/editor.tsx#L98)。
 
 **方案 A 与方案 B**
 
 - 方案 A（推荐）：允许粘贴条码或 CSV，服务端逐行校验条码、商品来源、重量精度，返回“可导入/错误行/重复行”报告；导入前只生成草稿，不直接改库存。
 - 方案 B：前端直接解析并批量提交。优点是体验快；缺点是大文件、编码和规则校验容易绕过服务端。
 
-建议 A，先经用户批准；它适合 9018 条目录和后续批量入库，但必须继续遵守入库不扫码的业务边界，条码导入只用于目录/事实辅助场景。
+建议 A，先经用户批准。该能力仅用于目录/事实辅助，不改变入库不扫码的业务边界，也不生成入库单明细或替代包数与总吨数独立登记。
 
 **收益假设**
 
@@ -196,6 +259,8 @@ sku.txt 已有 9018 行、141 个规格、无缺列/重复条码/非数字重量
 **风险与回退**
 
 错误文件只生成报告，不写库存；导入任务保存原文件摘要和校验版本。异常时回退到手工 ProForm，不删除草稿。
+
+**风险说明：**若误接入入库建单生成包级记录，会把辅助条码数据误记为入库事实；导入入口和 API 必须限制为目录/事实辅助，不能扫码称重、生成入库明细或改变“入库不扫码”的边界。
 
 ## 删减
 
@@ -245,18 +310,20 @@ sku.txt 已有 9018 行、141 个规格、无缺列/重复条码/非数字重量
 
 排序按“业务价值 ÷ 成本 ÷ 风险”判断：
 
-1. **B1，必须与 P 同批**：U-02 单号、U-03 重量/确认分层、U-04 原值回退、O-01 基础响应式、O-02 导出/打印字段 schema、库存调整和双来源口径。它们直接影响库存正确性、追溯或所有后续页面的共同能力。
-2. **B2，P 完成后紧接**：U-01 统一查询壳、O-03 键盘/恢复、日志查询、库存查询增强、主数据完整字段。它们主要减少日常操作成本，失败可局部回退。
-3. **B3，后置**：盘点、四类报表、消息中心、系统配置、N-01/N-02。它们价值明确但依赖口径、数据模型或用户确认，适合独立批次。
+1. **B1a 数据正确性，必须与对应 P 同批**：U-02 单号、U-03 重量/确认分层、U-04 原值回退、双来源不合计、库存调整事务。它们会改变库存或单据事实，须先以接口/E2E 验收。
+2. **B1b 共同能力，可独立于 B1a 回滚**：U-01 基础查询壳、O-01 基础响应式/固定列、O-02 导出/打印 schema。它们复用层次高，但不应与库存正确性改动绑成一个提交。
+3. **B2，核心 P 后紧接**：O-03 键盘/恢复、O-04 PDA 连续扫码/补传反馈、O-05 小程序查询上下文、U-05 备份恢复验证、日志查询、库存查询增强和主数据完整字段。
+4. **B3，后置**：盘点、四类报表、消息中心、系统配置、N-01/N-02。它们依赖数据口径、模型或候选批准，适合独立交付。
 
 P0 收敛标准：只保留会改变库存/单据可追溯性、阻断旧 ERP 核心路径，或被两个以上模块依赖的能力；权限因单用户约束为 N/A。
 
-## 前三批交付建议
+## 分批交付建议
 
 | 批次 | 内容 | 独立验收 | 回滚边界 |
 |---|---|---|---|
-| B1 | RK/CK 取号、状态原值回退、双来源不合计、入/出库确认与调整事务、列表壳基础响应式、导出/打印 schema | API 契约/E2E、库存前后值、重复提交、1280/1440 无横滚、CSV/打印字段对照 | 按模块 feature flag；不回滚真实历史数据 |
-| B2 | 多条件查询、列持久化、键盘流、错误恢复、日志/库存增强、主数据字段 | Playwright 点击/键盘指标、10k 行性能脚本、四态断言 | 前端路由和查询端点独立回退 |
+| B1a | RK/CK 取号、未知状态/类型原文回退、双来源不合计、出库确认/入库审核/库存调整事务 | API 契约与 E2E；单号并发唯一；前后库存、流水、审计对账；冲突/重复提交验证 | 事务边界和新写操作独立开关；数据失败时回滚事务，不改历史事实 |
+| B1b | 统一列表壳基础、列固定与响应式、导出/打印字段 schema | Playwright 多条件筛选；1280/1440 无横滚；屏幕/CSV/打印列一致 | 独立前端能力层，可回退旧列表/导出，不影响 B1a 业务事务 |
+| B2 | 键盘流、错误恢复、PDA/小程序体验、日志查询、备份校验与恢复演练、库存查询增强、主数据字段 | Playwright/Android/小程序模拟器用例；100 扫码断网恢复；备份篡改拒绝及新库对账 | 各端 UI 和验证工具分开回退；恢复只用新隔离库 |
 | B3 | 盘点、四报表、系统配置、消息中心、N-01/N-02 中经批准的候选 | 每个页面 E2E、SQL 对账、导出完整性和口径说明 | 各模块独立开关，保留列表/手工录入兜底 |
 
 ## 现在最值得做但不该做
