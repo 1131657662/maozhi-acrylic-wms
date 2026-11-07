@@ -9,7 +9,7 @@ async function assemble(db: Database, headers: z.infer<typeof headerSchema>[]): 
   if (!headers.length) return [];
   const ids = headers.map((row)=>row.id);
   const slots = ids.map(()=>'?').join(',');
-  const lines = z.array(rawLineSchema).parse(await db.all(`${lineSql} WHERE order_id IN (${slots}) ORDER BY product_code`,ids));
+  const lines = z.array(rawLineSchema).parse(await db.all(`${lineSql} WHERE order_id IN (${slots}) AND source_del_flag=0 ORDER BY product_code`,ids));
   const facts = z.array(rawFactSchema).parse(await db.all(`${factSql} WHERE plan_id IN (${slots}) ORDER BY id`,ids));
   const catalog = z.array(z.object({barcode:z.string(),productCode:z.string()})).parse(
     await db.all(`SELECT barcode,product_code AS productCode FROM scan_catalog WHERE barcode IN
@@ -18,7 +18,7 @@ async function assemble(db: Database, headers: z.infer<typeof headerSchema>[]): 
 }
 export async function getOrder(db: Database, id: string): Promise<Detail> {
   return db.transaction(async (tx) => {
-    const row = await tx.get(`${headerSql} WHERE id=?`,[id]);
+    const row = await tx.get(`${headerSql} WHERE id=? AND source_del_flag=0`,[id]);
     if (!row) throw new AppError('NOT_FOUND','出库计划不存在',404);
     const detail = (await assemble(tx,[headerSchema.parse(row)]))[0];
     if (!detail) throw new AppError('NOT_FOUND','出库计划不存在',404);
@@ -27,7 +27,7 @@ export async function getOrder(db: Database, id: string): Promise<Detail> {
 }
 export async function listOrders(db: Database, query: ListQuery) {
   return db.transaction(async (tx) => {
-    const predicates = ["order_no LIKE ? ESCAPE '!'"];
+    const predicates = ["source_del_flag=0", "order_no LIKE ? ESCAPE '!'"];
     const params: (string|number)[] = [query.keyword.replace(/[!%_]/g,'!$&')+'%'];
     if(query.status) { predicates.push('status=?'); params.push(query.status); }
     const where = predicates.join(' AND ');

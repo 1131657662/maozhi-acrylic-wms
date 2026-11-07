@@ -11,7 +11,7 @@ async function deductStock(db: Database, plan: Detail): Promise<void> {
   for (const line of plan.lines) {
     const weight = gramsToDecimal(line.actualWeightGrams);
     const result = await db.run(`UPDATE stock SET packages=packages-?,weight_tonnes=weight_tonnes-?
-      WHERE warehouse_code=? AND product_code=? AND packages>=? AND weight_tonnes>=?`,
+      WHERE warehouse_code=? AND product_code=? AND source_del_flag=0 AND packages>=? AND weight_tonnes>=?`,
       [line.actualPackages,weight,plan.warehouseCode,line.productCode,line.actualPackages,weight]);
     ensure(result.changes===1,'INSUFFICIENT_STOCK','库存包数或实重不足，确认未执行');
     await db.run(`INSERT INTO stock_journal(order_id,warehouse_code,product_code,packages_delta,tonnes_delta,created_at)

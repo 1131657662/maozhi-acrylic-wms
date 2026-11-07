@@ -7,6 +7,8 @@ const migrations = [
     'scan_catalog','stock','outbound_lines','outbound_orders','sessions','owner','app_meta'] },
   { id: '002_inbound_masters', guardedTables: ['inbound_lines','inbound_receipts','master_suppliers','master_customers',
     'master_warehouses','master_products'] },
+  { id: '003_source_snapshot', guardedTables: ['scan_catalog','stock_journal','stock','inbound_lines','inbound_receipts',
+    'outbound_lines','outbound_orders','master_suppliers','master_customers','master_warehouses','master_products'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

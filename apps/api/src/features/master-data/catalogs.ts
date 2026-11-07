@@ -12,7 +12,7 @@ export function parseCatalog(value: unknown): MasterCatalog {
   return masterCatalogSchema.parse(value);
 }
 export async function activeMaster(db: Database, catalog: MasterCatalog, code: string): Promise<{ code: string; name: string; active: true }> {
-  const row = await db.get(`SELECT code,name,active FROM ${tables[catalog]} WHERE code=? FOR SHARE`, [code]);
+  const row = await db.get(`SELECT code,name,active FROM ${tables[catalog]} WHERE code=? AND source_del_flag=0 FOR SHARE`, [code]);
   ensure(row && Number(row.active) === 1, 'MASTER_DATA_INACTIVE', `${catalog} 主数据不存在或已停用`);
   return { code: String(row.code), name: String(row.name), active: true };
 }

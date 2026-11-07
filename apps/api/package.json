@@ -1,6 +1,28 @@
 {
-  "name":"@wms/api","private":true,"version":"0.1.0","type":"module",
-  "scripts":{"dev":"tsx watch src/server.ts","start":"tsx src/server.ts"},
-  "dependencies":{"@wms/contracts":"*","bcryptjs":"^3.0.3","cookie-parser":"^1.4.7","cors":"^2.8.5","express":"^5.3.0","express-rate-limit":"^8.2.1","helmet":"^8.1.0","mysql2":"3.24.6","pino":"^10.3.1","zod":"^4.6.7"},
-  "devDependencies":{"@types/express":"^5.0.6","@types/cookie-parser":"^1.4.10","@types/cors":"^2.8.19"}
+  "name": "@wms/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@wms/contracts": "*",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "csv-parse": "6.1.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "mysql2": "3.24.6",
+    "pino": "^10.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6"
+  }
 }

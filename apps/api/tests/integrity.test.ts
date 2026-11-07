@@ -40,8 +40,11 @@ test('后续商品库存不足回滚此前商品的扣减与流水', async () =>
   try {
     await db.run('INSERT INTO master_products(code,name,active,created_at,updated_at) VALUES(?,?,?,?,?)',
       ['ACR-EXTRA','合成第二商品',1,'2026-11-07 00:00:00.000','2026-11-07 00:00:00.000']);
-    await db.run('INSERT INTO outbound_lines VALUES(?,?,?,?,?,?)', ['extra', 'DEMO-001', 'ACR-EXTRA', '合成第二商品', 1, '0.1000']);
-    await db.run('INSERT INTO scan_catalog VALUES(?,?,?,?)', ['DEMO-EXTRA', 'ACR-EXTRA', '0.1000', 1]);
+    await db.run(`INSERT INTO outbound_lines
+      (id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes)
+      VALUES(?,?,?,?,?,?)`, ['extra', 'DEMO-001', 'ACR-EXTRA', '合成第二商品', 1, '0.1000']);
+    await db.run('INSERT INTO scan_catalog(barcode,product_code,weight_tonnes,catalog_version) VALUES(?,?,?,?)',
+      ['DEMO-EXTRA', 'ACR-EXTRA', '0.1000', 1]);
     await recordFact(db, { planId: 'DEMO-001', fact: fact(), actor });
     await recordFact(db, { planId: 'DEMO-001', fact: fact({ barcode: 'DEMO-032-12', weightGrams: 297500 }), actor });
     const plan = await recordFact(db, {

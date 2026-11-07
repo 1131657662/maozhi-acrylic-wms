@@ -5,7 +5,7 @@ import { isoDate } from '../../db/dates.ts';
 
 export async function stockRows(db:Database) {
   const rows=await db.all(`SELECT warehouse_code AS warehouseCode,product_code AS productCode,
-    packages,weight_tonnes AS weightGrams FROM stock ORDER BY warehouse_code,product_code`);
+    packages,weight_tonnes AS weightGrams FROM stock WHERE source_del_flag=0 ORDER BY warehouse_code,product_code`);
   return stockSchema.parse(rows.map((row)=>({
     ...row,
     packages: Number(row.packages),

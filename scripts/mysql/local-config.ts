@@ -18,6 +18,6 @@ export async function adminDatabase() {
   return db;
 }
 export function quoteDatabase(name: string): string {
-  if (!/^maozhi_(dev|test_[a-f0-9]+|restore_[a-f0-9]+)$/.test(name)) throw new Error('数据库名不在开发白名单');
+  if (!/^maozhi_(dev|dev_sample|test_[a-f0-9]+|restore_[a-f0-9]+)$/.test(name)) throw new Error('数据库名不在开发白名单');
   return `\`${name}\``;
 }

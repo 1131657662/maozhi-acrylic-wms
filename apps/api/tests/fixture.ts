@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
-import { seedDemo } from '../src/db/seed.ts';
+import { seedDemo } from '../src/db/seed-test.ts';
 import { createApp } from '../src/app.ts';
 import { createTestDatabase } from '../../../scripts/mysql/test-database.ts';
 import type { FactInput } from '@wms/contracts';

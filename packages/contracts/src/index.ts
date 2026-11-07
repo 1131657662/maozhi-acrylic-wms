@@ -9,7 +9,7 @@ export const idSchema = z
   .max(64)
   .regex(/^[a-zA-Z0-9_-]+$/);
 export const gramsSchema = z.number().int().positive().max(1_000_000_000).multipleOf(100);
-export const statusSchema = z.enum(['open', 'frozen', 'confirmed']);
+export const statusSchema = z.string().trim().min(1).max(32);
 export const channelSchema = z.enum(['web', 'pda', 'miniapp']);
 export const loginSchema = z.strictObject({
   username: z.string().min(1).max(64),
