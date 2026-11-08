@@ -1,7 +1,7 @@
 import type { StockSource } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 
-// Product provenance, not document origin or code prefixes. Missing masters stay visible.
+// Exact product provenance; only ERP is business inventory. Other values remain queryable for compatibility.
 const sourceExpression =
   "CASE WHEN p.source_kind IN ('erp-product','sku-spec') THEN p.source_kind ELSE 'unclassified' END";
 const stockFrom = `FROM stock s LEFT JOIN master_products p ON p.code=s.product_code
@@ -22,6 +22,10 @@ export async function sourceStockSubtotal(db: Database, source: StockSource) {
     COALESCE(SUM(s.weight_tonnes),0) AS weight_tonnes ${stockFrom}`,
     [source],
   );
+}
+export async function unclassifiedStockCount(db: Database): Promise<number> {
+  const row = await db.get(`SELECT COUNT(*) AS stock_rows ${stockFrom}`, ['unclassified']);
+  return Number(row?.stock_rows ?? 0);
 }
 export async function sourceJournalRows(db: Database, source: StockSource, limit: number) {
   return db.all(

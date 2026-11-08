@@ -5,8 +5,9 @@ import request from 'supertest';
 import { sourceStockSchema, stockSchema, sourceJournalSchema } from '@wms/contracts';
 import { numberingFixture } from './numbering-fixture.ts';
 import { seedSourceEvidence } from '../../../scripts/e2e-source-fixtures.ts';
+import { logger } from '../src/shared/logger.ts';
 
-test('库存按商品来源分组；同名/误导前缀不合并，软删和条码重量不入小计', async () => {
+test('来源契约防混源：同名/误导前缀不合并，软删和条码重量不入 ERP 小计', async () => {
   const context = await numberingFixture();
   try {
     await seedSourceEvidence(context.db);
@@ -97,7 +98,7 @@ test('旧 stock 数组契约及三个登录渠道不变，新来源端点仅 Web
   }
 });
 
-test('可执行 SQL 对账：双来源非零夹具的跨源包数/吨数不命中任何页面候选值', async () => {
+test('可执行 SQL 防混源对账：异常非 ERP 夹具不影响 ERP 数值', async () => {
   const context = await numberingFixture();
   try {
     await seedSourceEvidence(context.db);
@@ -113,6 +114,28 @@ test('可执行 SQL 对账：双来源非零夹具的跨源包数/吨数不命�
     assert.equal(Number(proof.find((row) => row.metric === 'packages')?.forbidden_cross_source_value), 48);
     assert.equal(String(proof.find((row) => row.metric === 'tonnes')?.forbidden_cross_source_value), '14.5900');
     console.log(`B1A2_SQL ${JSON.stringify({ scoped, proof })}`);
+  } finally {
+    await context.dispose();
+  }
+});
+
+test('ERP 库存查询只在诊断日志提示未归属行数，不增加响应字段或重复刷日志', async (t) => {
+  const context = await numberingFixture();
+  const warning = t.mock.method(logger, 'warn', () => undefined);
+  try {
+    await seedSourceEvidence(context.db);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await context.web.get('/api/v1/stock/by-source?source=erp-product').expect(200);
+      assert.deepEqual(Object.keys(response.body.data).sort(), ['items', 'source', 'subtotal']);
+      assert.equal(response.body.data.items.length, 2);
+    }
+    assert.equal(warning.mock.callCount(), 1);
+    assert.deepEqual(warning.mock.calls[0]?.arguments[0], {
+      event: 'stock.unclassified_detected',
+      stockRows: 3,
+      inventorySource: 'erp-product',
+    });
+    console.log('ERP_INVENTORY_DIAGNOSTIC unclassified_rows=3; warning_calls=1; extra_response_fields=0');
   } finally {
     await context.dispose();
   }

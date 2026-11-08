@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { StockSource } from '@wms/contracts';
 import { stockKeys } from './keys';
 
-export function useSourceStock(source: StockSource) {
-  return useQuery({ ...stockKeys.view(source), refetchInterval: 10000 });
+export function useSourceStock() {
+  return useQuery({ ...stockKeys.view('erp-product'), refetchInterval: 10000 });
 }

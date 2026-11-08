@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { sourceStockSchema, tonnes } from '@wms/contracts';
 
 async function openStock(page: Page) {
   await page.goto('/user/login');
@@ -8,18 +9,16 @@ async function openStock(page: Page) {
   await expect(page.getByRole('heading', { name: '出库工作台' })).toBeVisible();
   await page.goto('/stock');
 }
-async function stockNumbers(page: Page) {
-  return {
-    packages: await page
-      .locator('[data-testid="stock-row-packages"], [data-testid="stock-subtotal-packages"]')
-      .allTextContents(),
-    tonnes: await page
-      .locator('[data-testid="stock-row-tonnes"], [data-testid="stock-subtotal-tonnes"]')
-      .allTextContents(),
-  };
+
+async function expectedErpStock(page: Page) {
+  const response = await page.request.get('/api/v1/stock/by-source?source=erp-product');
+  expect(response.ok()).toBeTruthy();
+  const data = sourceStockSchema.parse((await response.json()).data);
+  if (data.source !== 'erp-product' || !data.subtotal) throw new Error('Expected ERP stock only');
+  return data;
 }
 
-test('B1a2 单来源库存与流水；无跨源总计路径，SQL夹具值与页面逐项一致', async ({ page }) => {
+test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请求', async ({ page }) => {
   const errors: string[] = [];
   const stockRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -27,94 +26,76 @@ test('B1a2 单来源库存与流水；无跨源总计路径，SQL夹具值与页
     if (request.url().includes('/api/v1/stock')) stockRequests.push(request.url());
   });
   await openStock(page);
-  await expect(page.getByRole('tab')).toHaveCount(3);
-  const sources = [
-    {
-      source: 'erp-product',
-      label: 'ERP 历史商品',
-      packages: '18',
-      tonnes: '5.4460',
-      rows: ['7', '11'],
-      weights: ['2.1175', '3.3285'],
-    },
-    {
-      source: 'sku-spec',
-      label: 'SPEC 条码目录商品',
-      packages: '30',
-      tonnes: '9.1440',
-      rows: ['13', '17'],
-      weights: ['3.9130', '5.2310'],
-    },
-  ];
-  for (const source of sources) {
-    await page.getByRole('tab', { name: source.label, exact: true }).click();
-    await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', source.source);
-    await expect(page.getByTestId('stock-subtotal-packages')).toHaveText(source.packages);
-    await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(source.tonnes);
-    const numbers = await stockNumbers(page);
-    expect(numbers.packages.sort()).toEqual([source.packages, ...source.rows].sort());
-    expect(numbers.tonnes.sort()).toEqual([source.tonnes, ...source.weights].sort());
-    expect(numbers.packages).not.toContain('48');
-    expect(numbers.tonnes).not.toContain('14.5900');
-    await expect(page.getByTestId('journal-row-packages')).toHaveCount(2);
-    const journalNumbers = {
-      packages: await page.getByTestId('journal-row-packages').allTextContents(),
-      tonnes: await page.getByTestId('journal-row-tonnes').allTextContents(),
-    };
-    expect(journalNumbers).toEqual({ packages: ['1', '1'], tonnes: ['0.3000', '0.3000'] });
-    await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
-    await page.screenshot({ path: `.local/evidence/b1a2-stock-${source.source}-1440.png`, fullPage: true });
-    console.log(
-      `B1A2_BROWSER ${JSON.stringify({ source: source.source, numbers, journalNumbers, crossSourceMatches: 0 })}`,
-    );
+  const expected = await expectedErpStock(page);
+  await expect(page.getByTestId('stock-source-label')).toHaveText('库存口径：ERP 商品');
+  await expect(page.getByRole('tab')).toHaveCount(0);
+  await expect(page.getByTestId('source-stock')).toHaveCount(1);
+  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
+  await expect(page.getByTestId('stock-subtotal-packages')).toHaveText(String(expected.subtotal.packages));
+  await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(tonnes(expected.subtotal.weightGrams));
+  await expect(page.getByTestId('stock-row-packages')).toHaveCount(expected.items.length);
+  for (const row of expected.items) {
+    const tableRow = page.getByTestId('source-stock').getByRole('row').filter({ hasText: row.productCode });
+    await expect(tableRow.getByTestId('stock-row-packages')).toHaveText(String(row.packages));
+    await expect(tableRow.getByTestId('stock-row-tonnes')).toHaveText(tonnes(row.weightGrams));
   }
+  for (const code of ['ERP-LOOKALIKE', 'SRC-SPEC-A', 'SRC-LOCAL', 'SRC-MISSING']) {
+    await expect(page.getByRole('cell', { name: code, exact: true })).toHaveCount(0);
+  }
+  await expect(page.getByText('未归属', { exact: false })).toHaveCount(0);
+  await expect(page.getByText('SPEC 条码目录商品', { exact: false })).toHaveCount(0);
+  await expect(page.getByText('ERP 商品 · 最近 20 条库存流水', { exact: true })).toBeVisible();
+  await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
+  await page.screenshot({ path: '.local/evidence/erp-inventory-only-1440.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  await page.screenshot({ path: '.local/evidence/b1a2-stock-spec-1280.png', fullPage: true });
-  await page.getByRole('tab', { name: '未归属商品（仅明细）' }).click();
-  await expect(page.getByText('这些商品尚未归属 ERP 或 SPEC，暂不计算小计')).toBeVisible();
-  await expect(page.getByTestId('stock-subtotal-packages')).toHaveCount(0);
-  await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveCount(0);
-  await expect(page.getByRole('cell', { name: 'SRC-MISSING', exact: true })).toBeVisible();
+  await page.screenshot({ path: '.local/evidence/erp-inventory-only-1280.png', fullPage: true });
+  expect(stockRequests.length).toBeGreaterThan(0);
   expect(
-    stockRequests.every(
-      (url) => new URL(url).pathname.startsWith('/api/v1/stock/by-source') && new URL(url).searchParams.has('source'),
-    ),
+    stockRequests.every((url) => {
+      const request = new URL(url);
+      return (
+        request.pathname.startsWith('/api/v1/stock/by-source') && request.searchParams.get('source') === 'erp-product'
+      );
+    }),
   ).toBeTruthy();
   expect(errors).toEqual([]);
+  console.log(
+    `ERP_INVENTORY_ONLY ${JSON.stringify({ tabs: 0, source: expected.source, rows: expected.items.length, subtotal: expected.subtotal, nonErpRequests: 0 })}`,
+  );
 });
 
-test('B1a2 切换来源加载时不串旧数据，错源响应被拦截且可以重试', async ({ page }) => {
-  await openStock(page);
-  await expect(page.getByTestId('stock-subtotal-packages')).toHaveText('18');
+test('ERP 库存加载及错源重试：非 ERP 响应不显示、不残留数字', async ({ page }) => {
   let release: (() => void) | undefined;
   const waiting = new Promise<void>((resolve) => {
     release = resolve;
   });
   let incorrect = true;
-  await page.route('**/api/v1/stock/by-source?source=sku-spec', async (route) => {
+  await page.route('**/api/v1/stock/by-source?source=erp-product', async (route) => {
     await waiting;
     const response = await route.fetch();
     const body = await response.json();
-    if (incorrect) body.data.source = 'erp-product';
+    if (incorrect) {
+      body.data.source = 'sku-spec';
+      body.data.items = body.data.items.map((row: object) => ({ ...row, source: 'sku-spec' }));
+    }
     await route.fulfill({ response, json: body });
   });
-  await page.getByRole('tab', { name: 'SPEC 条码目录商品', exact: true }).click();
-  await expect(page.getByTestId('stock-source-label')).toContainText('SPEC 条码目录商品');
-  await expect(page.getByTestId('source-stock')).toHaveCount(0);
+  await openStock(page);
+  const expected = await expectedErpStock(page);
   await expect(page.locator('.ant-skeleton')).toBeVisible();
+  await expect(page.getByTestId('source-stock')).toHaveCount(0);
   release?.();
-  await expect(page.getByText('此来源库存加载失败，已停止展示旧数据')).toBeVisible();
+  await expect(page.getByText('ERP 库存加载失败，已停止展示旧数据')).toBeVisible();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveCount(0);
   incorrect = false;
   await page.getByRole('button', { name: /重\s*试/ }).click();
-  await expect(page.getByTestId('stock-subtotal-packages')).toHaveText('30');
-  await page.getByRole('tab', { name: 'ERP 历史商品', exact: true }).click();
-  await expect(page.getByTestId('stock-subtotal-packages')).toHaveText('18');
-  console.log('B1A2_SWITCH loading_old_values=0; wrong_source_display=0; retry=30; switch_back=18');
+  await expect(page.getByTestId('stock-subtotal-packages')).toHaveText(String(expected.subtotal.packages));
+  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
+  console.log('ERP_INVENTORY_RECOVERY wrong_source_display=0; retry=erp-product; tabs=0');
 });
 
-test('B1a2 本来源空态与无权限不显示其他来源数据', async ({ page }) => {
+test('ERP 库存空态与无权限：不出现其他用途入口或占位', async ({ page }) => {
   let forbidden = false;
   await page.route('**/api/v1/stock/by-source?source=erp-product', (route) =>
     route.fulfill({
@@ -128,10 +109,12 @@ test('B1a2 本来源空态与无权限不显示其他来源数据', async ({ pag
     }),
   );
   await openStock(page);
-  await expect(page.getByText('本来源暂无已确认库存；条码目录重量不等于库存')).toBeVisible();
+  await expect(page.getByText('暂无 ERP 商品库存；请核对入库单据')).toBeVisible();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveText('0');
+  await expect(page.getByRole('tab')).toHaveCount(0);
   forbidden = true;
   await page.reload();
-  await expect(page.getByText('无权查看此来源库存')).toBeVisible();
+  await expect(page.getByText('无权查看 ERP 库存')).toBeVisible();
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
+  await expect(page.getByRole('tab')).toHaveCount(0);
 });

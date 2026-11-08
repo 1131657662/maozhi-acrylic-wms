@@ -1,9 +1,9 @@
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { sourceStockSchema, sourceJournalSchema, type StockSource } from '@wms/contracts';
+import { sourceStockSchema, sourceJournalSchema } from '@wms/contracts';
 import { request } from '../../api/client';
 
 export const stockKeys = createQueryKeys('stock-source', {
-  view: (source: StockSource) => ({
+  view: (source: 'erp-product') => ({
     queryKey: [source],
     queryFn: async () => {
       const result = await request(`/stock/by-source?source=${source}`, sourceStockSchema);
@@ -11,7 +11,7 @@ export const stockKeys = createQueryKeys('stock-source', {
       return result;
     },
   }),
-  journal: (source: StockSource) => ({
+  journal: (source: 'erp-product') => ({
     queryKey: [source],
     queryFn: async () => {
       const result = await request(`/stock/by-source/journal?source=${source}&limit=20`, sourceJournalSchema);

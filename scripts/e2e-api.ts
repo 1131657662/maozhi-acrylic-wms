@@ -8,6 +8,8 @@ const { db, dispose } = await createTestDatabase();
 await seedDemo(db, 'e2e-only-password');
 await seedNumberingEvidence(db);
 await seedSourceEvidence(db);
+// This workflow fixture represents an ERP product; the database is disposable, never the sample database.
+await db.run("UPDATE master_products SET source_kind='erp-product' WHERE code='ACR-032'");
 const server = createApp(db, [...localOrigins, 'http://localhost:5174', 'http://127.0.0.1:5174']).listen(
   Number(process.env.TEST_PORT ?? 4311),
   '127.0.0.1',

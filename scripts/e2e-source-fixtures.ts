@@ -1,6 +1,7 @@
 import type { Database } from '../apps/api/src/db/mysql.ts';
 
-// Only disposable test databases. Never creates inventory in the sample development database.
+// Disposable adversarial fixtures: non-ERP stock is invalid business data used to prove exclusion.
+// Never creates inventory in the sample development database.
 export async function seedSourceEvidence(db: Database): Promise<void> {
   const name = String((await db.get('SELECT DATABASE() AS name'))?.name);
   if (!/^maozhi_test_[a-f0-9]{24}$/.test(name)) throw new Error('Source fixtures require a disposable test database');

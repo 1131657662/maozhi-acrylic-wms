@@ -1,16 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Result } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
-import { tonnes, type StockSource, type SourceJournalRow } from '@wms/contracts';
+import { tonnes, type SourceJournalRow } from '@wms/contracts';
 import { ApiError } from '../../api/client';
 import { JournalTypeTag } from '../../components/JournalTypeTag';
 import { formatTime } from '../../lib/format-time';
 
 import { stockKeys } from './keys';
-import { sourceLabels } from './source-labels';
 
-export function StockJournal({ source }: { source: StockSource }) {
-  const query = useQuery(stockKeys.journal(source));
+export function StockJournal() {
+  const query = useQuery(stockKeys.journal('erp-product'));
   if (query.error instanceof ApiError && query.error.status === 403)
     return <Result status="403" title="无权查看库存流水" />;
   if (query.error)
@@ -24,7 +23,7 @@ export function StockJournal({ source }: { source: StockSource }) {
   return (
     <ProTable<SourceJournalRow>
       rowKey="id"
-      headerTitle={`${sourceLabels[source]} · 最近 20 条库存流水`}
+      headerTitle="ERP 商品 · 最近 20 条库存流水"
       dataSource={query.data}
       loading={query.isLoading}
       search={false}

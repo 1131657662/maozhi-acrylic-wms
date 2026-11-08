@@ -74,13 +74,13 @@ test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.screenshot({ path: '.local/evidence/b1a2-unknown-inbound-1440.png', fullPage: true });
   await page.goto('/stock');
-  await page.getByRole('tab', { name: '未归属商品（仅明细）' }).click();
+  await expect(page.getByRole('tab')).toHaveCount(0);
   const journal = page.getByTestId('journal-type-tag').filter({ hasText: 'legacy_journal_type' });
   await expect(journal).toBeVisible();
   await expect(journal).toHaveClass(/ant-tag-default/);
   await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
   await page.screenshot({
-    path: '.local/evidence/b1a2-unknown-journal-1440.png',
+    path: '.local/evidence/erp-inventory-unknown-journal-1440.png',
     fullPage: true,
     animations: 'disabled',
   });

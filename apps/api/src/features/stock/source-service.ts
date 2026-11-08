@@ -3,8 +3,10 @@ import type { Database } from '../../db/mysql.ts';
 import { decimalToGrams } from '../../db/weight.ts';
 import { isoDate } from '../../db/dates.ts';
 import { sourceJournalRows, sourceStockRows, sourceStockSubtotal } from './source-repository.ts';
+import { reportUnclassifiedStock } from './source-diagnostics.ts';
 
 export async function readSourceStock(db: Database, source: StockSource) {
+  if (source === 'erp-product') await reportUnclassifiedStock(db);
   return db.transaction(async (tx) => {
     const rows = await sourceStockRows(tx, source);
     const subtotal = await sourceStockSubtotal(tx, source);

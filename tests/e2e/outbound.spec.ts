@@ -56,7 +56,7 @@ test('Web 登录、详情核对与一次出库确认', async ({ page, request })
   await page.getByRole('button', { name: '确认出库', exact: true }).click();
   await expect(page.getByRole('button', { name: '已确认出库' })).toBeDisabled();
   await page.getByText('库存概览', { exact: true }).click();
-  await page.getByRole('tab', { name: '未归属商品（仅明细）' }).click();
+  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
   await expect(page.getByRole('cell', { name: '1.2000', exact: true })).toBeVisible();
   await page.getByText('操作记录', { exact: true }).click();
   await expect(page.getByText('outbound.confirm', { exact: true })).toBeVisible();
