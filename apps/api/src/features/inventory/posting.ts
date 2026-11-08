@@ -4,6 +4,7 @@ import { decimalToGrams, gramsToDecimal } from '../../db/weight.ts';
 import { ensure } from '../../shared/errors.ts';
 import { activeMaster } from '../master-data/catalogs.ts';
 import type { InventoryOperation } from './operation.ts';
+import { assertWarehouseOpen } from '../stocktake/window.ts';
 
 export interface StockChange {
   productCode: string;
@@ -90,6 +91,7 @@ export async function postInventory(
   warehouse: string,
   changes: StockChange[],
 ): Promise<PostedChange[]> {
+  await assertWarehouseOpen(db, warehouse);
   await activeMaster(db, 'warehouses', warehouse);
   const posted: PostedChange[] = [];
   for (const change of [...changes].sort((a, b) => a.productCode.localeCompare(b.productCode))) {

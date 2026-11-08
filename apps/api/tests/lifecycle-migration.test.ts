@@ -7,11 +7,11 @@ import { businessFingerprint } from './lifecycle-fixture.ts';
 import { assertLifecycleReady } from '../src/db/lifecycle-readiness.ts';
 
 test('B2a 008 空表up/down；非空升级不改变历史业务数据，down无DDL拒绝', async () => {
-  const empty = await createTestDatabase();
+  const empty = await createTestDatabase('008_document_lifecycle');
   try {
     await migrateDown(empty.db);
     await assert.rejects(assertLifecycleReady(empty.db), /008/);
-    await migrateUp(empty.db);
+    await migrateUp(empty.db, '008_document_lifecycle');
     await assertLifecycleReady(empty.db);
     console.log('B2A_MIGRATION 008 empty_down=success re_up=success old_schema_start=refused');
   } finally {
@@ -20,7 +20,7 @@ test('B2a 008 空表up/down；非空升级不改变历史业务数据，down无D
   const context = await fixture('007_pda_handoff');
   try {
     const before = await businessFingerprint(context.db);
-    await migrateUp(context.db);
+    await migrateUp(context.db, '008_document_lifecycle');
     const after = await businessFingerprint(context.db);
     for (const table of Object.keys(before).filter((t) => t !== 'schema_migrations'))
       assert.equal(after[table], before[table], table);

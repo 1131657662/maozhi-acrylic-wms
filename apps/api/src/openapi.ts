@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { webListOperations } from './features/web-lists/openapi.ts';
 import { webExportOperations } from './features/web-exports/openapi.ts';
 import { lifecycleOperations } from './features/document-lifecycle/openapi.ts';
+import { stocktakeOperations } from './features/stocktake/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
@@ -47,6 +48,7 @@ export interface Operation {
   successStatus?: number;
 }
 export const operations: Operation[] = [
+  ...stocktakeOperations,
   ...lifecycleOperations,
   ...webListOperations,
   ...webExportOperations,
@@ -189,6 +191,7 @@ export const operations: Operation[] = [
 ];
 function parameters(operation: Operation): object[] {
   const result: object[] = [];
+  if (operation.path.includes('{product}')) result.push({ in: 'path', name: 'product', required: true, schema: { type: 'string', minLength: 1, maxLength: 80 } });
   if (operation.path.includes('{versionId}')) result.push({ in: 'path', name: 'versionId', required: true, schema: { type: 'integer', minimum: 1 } });
   if (operation.path.includes('{kind}'))
     result.push({ in: 'path', name: 'kind', required: true, schema: z.toJSONSchema(documentKindSchema) });

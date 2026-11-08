@@ -9,6 +9,7 @@ const types = new Map([
   ['stock.adjust', '库存调整'],
   ['inbound.reverse', '入库误确认撤销'],
   ['outbound.reverse', '出库误确认撤销'],
+  ['stocktake.post', '盘点差异回写'],
 ]);
 export function JournalTypeTag({ type }: { type: string | null }) {
   return (

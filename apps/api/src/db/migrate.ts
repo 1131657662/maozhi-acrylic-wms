@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { Database } from './mysql.ts';
 import { preflightCatalog,migrateCatalogData } from './catalog-migration.ts';
+import { prepareStocktakeDown } from './stocktake-migration.ts';
 
 const migrations = [
   { id: '001_initial', guardedTables: ['idempotent_commands','operation_log','stock_journal','scan_submissions','scan_facts',
@@ -15,6 +16,7 @@ const migrations = [
   { id: '006_catalog_versioning', guardedTables: ['scan_fact_context','catalog_entries','catalog_head','catalog_versions','catalog_client_activity','scan_facts','scan_catalog_v1_archive'] },
   { id: '007_pda_handoff', guardedTables: ['pda_handoff_clients','pda_handoff_records','pda_handoffs'] },
   { id: '008_document_lifecycle', guardedTables: ['document_closures','outbound_plan_exposures','inventory_operations','inbound_receipts','outbound_orders','stock_journal'] },
+  { id: '009_stocktake', guardedTables: ['stocktakes','stocktake_snapshots','stocktake_readings','stocktake_windows'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -70,6 +72,7 @@ export async function migrateDown(db: Database): Promise<void> {
           throw new Error(`拒绝回退：${table} 含有数据，禁止删除历史数据`);
       }
       await connection.run("UPDATE schema_migrations SET state='reverting' WHERE id=?", [migration.id]);
+      if(migration.id==='009_stocktake')await prepareStocktakeDown(connection);
       await statements(connection, migrationSql(migration.id, 'down'));
       await connection.run('DELETE FROM schema_migrations WHERE id=?', [migration.id]);
       return;

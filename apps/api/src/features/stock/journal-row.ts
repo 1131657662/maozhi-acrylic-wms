@@ -35,9 +35,11 @@ export function journalItem(row: Record<string, unknown>) {
         ? 'inbound'
         : row.order_id
           ? 'outbound'
-          : row.operation_type === 'stock.adjust'
-            ? 'adjustment'
-            : null));
+          : row.operation_type === 'stocktake.post'
+            ? 'stocktake.post'
+            : row.operation_type === 'stock.adjust'
+              ? 'adjustment'
+              : null));
   return {
     id: String(row.id),
     type,

@@ -129,3 +129,4 @@ export * from './web-list.ts';
 export * from './list-display.ts';
 export * from './web-export.ts';
 export * from './document-lifecycle.ts';
+export * from './stocktake.ts';

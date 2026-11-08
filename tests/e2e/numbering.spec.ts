@@ -36,6 +36,16 @@ async function login(page: Page) {
 async function noPageOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
 }
+async function prepareRecentUnknownJournal() {
+  const db = e2eDatabase();
+  try {
+    // The widget intentionally shows only the latest 20 entries. Own this fixture instead of depending on suite order.
+    await db.run(`INSERT INTO stock_journal(warehouse_code,product_code,packages_delta,tonnes_delta,created_at,source_business_type)
+      VALUES('DEMO-WH','ACR-032',0,'0.0000',UTC_TIMESTAMP(3),'legacy_journal_type_current_case')`);
+  } finally {
+    await db.close();
+  }
+}
 test('B1a 编号配置预览、调窄撞号拒绝且保留输入，修改成功', async ({ page }) => {
   await login(page);
   const expected = await prepareCollision(page);
@@ -100,9 +110,10 @@ test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和
   await expect(page.getByTestId('unknown-status-notice')).toContainText('不能据此判断是否已入库');
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.screenshot({ path: '.local/evidence/b1a2-unknown-inbound-1440.png', fullPage: true });
+  await prepareRecentUnknownJournal();
   await page.goto('/stock');
   await expect(page.getByRole('tab')).toHaveCount(0);
-  const journal = page.getByTestId('journal-type-tag').filter({ hasText: 'legacy_journal_type' });
+  const journal = page.getByTestId('journal-type-tag').filter({ hasText: 'legacy_journal_type_current_case' });
   await expect(journal).toBeVisible();
   await expect(journal).toHaveClass(/ant-tag-default/);
   await expect(page.locator('.ant-spin-blur')).toHaveCount(0);

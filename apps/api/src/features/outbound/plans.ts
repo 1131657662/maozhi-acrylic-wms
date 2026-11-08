@@ -10,6 +10,7 @@ import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { activeMaster } from '../master-data/catalogs.ts';
 import { getOrder } from './repository.ts';
 import { allocateNumber } from '../document-numbering/service.ts';
+import { lockInventoryWriter } from '../inventory/operation.ts';
 
 export async function createOutboundPlan(db: Database, input: OutboundPlanFields, key: string, actor: Actor) {
   const plan = createOutboundPlanSchema.parse(input);
@@ -36,6 +37,8 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
 export async function editOutboundPlan(db: Database, id: string, input: unknown, key: string, actor: Actor) {
   const command = editOutboundPlanSchema.parse(input);
   return db.transaction(async (tx) => {
+    // Serialize plan moves/edits with stocktake preview verification.
+    await lockInventoryWriter(tx);
     await lockPlan(tx, id);
     const replay = await replayCommand(tx, 'outbound.edit', key, [id,command], actor, detailSchema);
     if (replay) return replay;

@@ -1,4 +1,7 @@
 export default [
+  { path: '/stocktakes', name: '库存盘点', icon: 'audit', component: './stocktakes/index' },
+  { path: '/stocktakes/new', hideInMenu: true, component: './stocktakes/new' },
+  { path: '/stocktakes/:id', hideInMenu: true, component: './stocktakes/detail' },
   { path: '/catalog', name: '条码目录', icon: 'barcode', component: './catalog/index' },
   {
     path: '/system/document-numbering',

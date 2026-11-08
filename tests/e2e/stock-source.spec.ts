@@ -23,7 +23,8 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   const stockRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
-    if (request.url().includes('/api/v1/stock') || request.url().includes('/api/v1/web/lists/stock'))
+    const path = new URL(request.url()).pathname;
+    if (path === '/api/v1/stock' || path.startsWith('/api/v1/stock/') || path === '/api/v1/web/lists/stock')
       stockRequests.push(request.url());
   });
   await openStock(page);

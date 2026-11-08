@@ -10,6 +10,7 @@ import { authKeys } from './features/auth/keys';
 import { ApiError } from './api/client';
 import { LogoutButton } from './features/auth/logout';
 import './styles.css';
+import { ActiveStocktakeLink } from './features/stocktake/active-link';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -60,6 +61,7 @@ export const layout: RunTimeLayoutConfig = () => ({
     </Link>
   ),
   menuItemRender: (item, dom) => (item.path ? <Link to={item.path}>{dom}</Link> : dom),
+  menuExtraRender: () => <ActiveStocktakeLink />,
   actionsRender: () => [
     <span className="environment-label" key="environment">
       本地验证环境

@@ -1,5 +1,16 @@
 # 基础迁移执行记录
 
+
+## 009_stocktake（B3a，2026-11-08）
+
+- 新增盘点头、不可变快照、独立实盘、仓库暂停窗口四表，新增stocktake.post操作类型与仓库查询索引；无历史状态/库存回填。启动必须009 applied，不完整则拒绝新服务。
+- `npx tsx scripts/verify-stocktake-migration.ts --apply-local`：仅白名单本机127.0.0.1:3307，先确认4310已停；备份 `.local/backups/b3a-before-009-1794138264726.sql`，SHA256 `b7cb48a56f8e49d983263310eb08b1e60ae4208e6ef99329b47474e688bfaac8`。恢复到随机独立库，32表全部指纹相等；恢复副本升级后原31业务表不变，再执行开发库升级。
+- 行数原样：inbound_receipts115/outbound_orders415/stock122/stock_journal828/scan_facts0/catalog_entries9018。逐表指纹包含全部字段，非仅行数；不重seed、不清队列。原始日志 `.local/evidence/b3a-local-migration.log`，指纹 `b3a-migration-fingerprints.json`。
+- down实测：四张009表全空时可down/up，即使旧业务数据非空仍保留；在恢复副本创建一张盘点后，DDL前拒绝 `拒绝回退：stocktakes 含有数据，禁止删除历史数据`，全部行/迁移记录不变。临时测试库另验证纯空库down/up与旧schema启动拒绝。
+- MySQL可能用新增复合索引替换隐式仓库外键索引；安全down先检查information_schema，必要时补回仓库外键支持索引，不关闭外键检查。DDL不具备整体事务，失败保留reverting/applying，核查实际结构后修复，不删迁移记录盲重试。
+- 回退边界：四张盘点表全空才可停止写服务并down。已有盘点则不删历史；禁用新增、保留读取与暂停守卫后前向修复。进行中只能正常完成或明确作废释放，不能换旧包绕过暂停；不能用覆盖恢复丢弃新实盘/库存操作。备份仅恢复新库核对，不覆盖原库。
+- 本批只在本机样本库迁移、临时库故障演练，无生产连接、生产迁移或实体设备验收；管理员凭据不写日志/Git。
+
 ## 008_document_lifecycle（B2a，2026-11-08）
 
 - 新增单据终结关联`document_closures`、下发证据`outbound_plan_exposures`；扩大操作类型/入库入账状态CHECK，新增同仓商品流水序号与操作目标索引。原115入库/415出库状态、原流水、事实及目录不UPDATE，不用推测回填原确认。

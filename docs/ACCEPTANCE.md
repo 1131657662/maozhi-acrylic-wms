@@ -1,5 +1,90 @@
 # 第一里程碑验收记录
 
+## B3a：Web 盘点闭环（2026-11-08）
+
+本批从B2a基线 `ef3eb06ca0755e123ca69903d24d37d94fecd7e1` 开始。仅本地MySQL 3307、Web与API；不做PDA盘点、B2b更正、报表或打印。入库不扫码，盘点独立填写包数与吨数；扫码目录不参与库存。用户已确认：**完成或作废释放暂停，进行中只有作废可提前释放**，没有手动或超时解锁。以下为本批实测记录，较早批次保留当时范围。
+
+### P 覆盖率（本批限定路径5/5，不代表整个ERP的P完成率）
+
+| 路径 | 实测结果 | 证据 |
+| --- | --- | --- |
+| 新建与固定快照 | ERP仓库/可选商品范围；快照UPDATE/DELETE拒绝，未录NULL不当作0；同仓20并发开始仅1张成功 | `stocktake-capture.test.ts`；`stocktake.spec.ts` |
+| 列表、详情、逐行实盘 | 单号/状态筛选、分页、独立包吨录入；行revision防覆盖，重复保存只一次；1440/1280无页面级横滚 | `stocktake.spec.ts`；`b3a-list-*`、`b3a-reading-*` |
+| 人工差异回写 | 全录入、原因、预览token、人工提交；前后值/流水/审计/幂等同事务，零差异完成但不写伪流水 | `stocktake-post.test.ts`、`stocktake-positive.test.ts`；全量SQL |
+| 仓库暂停与作废 | 同仓确认/调整/撤销409；他仓成功，PDA补传/冻结正常；作废库存和流水均不变，记录保留 | `stocktake-window.test.ts`、`stocktake-failures.test.ts` |
+| 未入账收发与遗忘入口 | 单号+登记/计划包吨、已扫包吨分列；默认阻断，显式快照口径确认留完整审计；新单/晚到补传使旧预览失效；菜单数量直达盘点 | `stocktake-unposted.test.ts`；`stocktake.spec.ts`；`b3a-unposted-preview-*`、`b3a-forgotten-window-*` |
+
+### U 指标达成
+
+| 指标 | 基线与方法 | 本批实测/限制 |
+| --- | --- | --- |
+| 找回暂停原因 | 原型无盘点；旧ERP人工定位耗时待实测。首页菜单存在1张进行中时点击入口 | 1次点击定位该单；确认409含盘点号/路径；退出页面不释放 |
+| 故障自助恢复 | 浏览器注入审计失败后原抽屉重试；不以人工耗时未测数据宣称提速 | 原因和勾选保留，原幂等键重试成功，失败时全部表指纹不变 |
+| 万行正式构建首屏/翻页 | `verify-stocktake-browser.ts`，本机独立合成库，30个新浏览器context，1440×960；从goto到首行可见/点击下一页到第21行可见 | 首屏p50 **1084ms**、p95 **1122ms**、max1154ms；翻页p50 **121ms**、p95 **141ms**、max143ms；分别低于1500/500ms |
+| 万行服务端处理 | `verify-stocktake-volume.ts`：同机MySQL 3307；查询/单行保存各30次，快照/预览/回写各1次 | 快照383ms、预览61ms、10000行回写649ms；单行保存p95 9ms、200行查询p95 31ms；分页使用快照复合主键 |
+| 数据量与布局 | 正式构建显示200行，双宽度页面scrollWidth断言；SQL逐条检查10000行及末条 | 页面级横滚0；末条COUNT-10000命中；全量mismatches=0。人机实盘录入时长待实测 |
+
+性能不是生产SLA：本机回环网络、单用户合成库；初次开发模式首屏曾超过1.5s，不能与正式构建混为同一测量。现有全局库存writer锁使万行回写期间他仓确认等待 **658ms** 后成功，并非零等待；仅本仓受持久业务暂停。RSS前后191→209MiB是采样值，**不是峰值**。万行脚本部分实盘通过合成夹具填充，产品本轮仍只有逐行录入，不宣称实现批量导入。
+
+### N 已批准清单
+
+| 项 | 结论 |
+| --- | --- |
+| 新增业务能力 | 无；本批为P盘点闭环。未实现差异放行、PDA盘点、自动确认或超时解锁 |
+
+### 并发、失败、未入账及暂停的原始输出
+
+```text
+B3A_POST same_key=true concurrency=20 success=20 conflicts=0 operations=1 snapshot_unchanged=true after_complete_confirm=200
+B3A_POST same_key=false concurrency=20 success=1 conflicts=19 operations=1 snapshot_unchanged=true after_complete_confirm=200
+B3A_ACK default=409 stale_ack=409 current_ack=200 audit_unposted=2
+B3A_LATE_FACT older_order=true upload_during_pause=success planned=2/0.6000 scanned=1/0.3025 stale_ack=409 unchanged=true
+B3A_WINDOW inbound=409 outbound=409 adjustment=409 reverse=409 rejected_database_unchanged=true pda_upload_freeze=success void_stock_journal_unchanged=true after_void_confirm=200
+B3A_ISOLATION other_warehouse_confirm=200 zero_snapshot=0/0 mobile_channels=403
+B3A_VOLUME second_batch_failure_at=501 partial_writes=0 prior_batch_rolled_back=true
+```
+
+回写真实触发器失败注入覆盖 `inventory_operations → stock → stock_journal → stocktakes → stocktake_windows → operation_log → idempotent_commands` 七阶段，均输出 `partial_writes=0 window_retained=true`；开始快照六阶段失败也无残留，作废释放失败保留原窗口，10轮“开始与确认”并发 `snapshot_drift=0`。失败比对全部业务表行指纹，不只是行数；MySQL自增号空隙不算残留。正差异、负差异、零差异、零库存商品与软删库存键冲突均覆盖。
+
+浏览器另验证失败500后输入保留、原键重试、20次HTTP重放只1操作；异键20个HTTP并发恰1个200、19个409；空原因422、旧预览409、未确认口径409。遗忘场景输出 `confirm=409 visible_entry_locates_document=true void_stock_delta=0 void_journals=0 after_void_confirm=200`。PDA行为仅后端协议回归，未宣称本批实体设备实测。
+
+### 全量 SQL 对账与末条证据
+
+可执行SQL：[`scripts/sql/verify-stocktake.sql`](../scripts/sql/verify-stocktake.sql)。通过 `npx tsx scripts/verify-stocktake-volume.ts` 创建随机临时库并实际执行，输出 `.local/evidence/b3a-volume-sql.json`（10000行完整结果）与 `b3a-volume-metrics.json`。浏览器完整闭环另输出 `b3a-e2e-sql.json`。不以开发样本库没有盘点记录的0行查询冒充验收。
+
+| 对账 | 实际结果 |
+| --- | --- |
+| 每个商品：实盘−固定快照＝流水delta，非零差异恰1流水、零差异0流水 | 10000/10000 `balanced=1` |
+| 前后包数/吨数、操作类型、目标盘点及原因 | `mismatches=0` |
+| completed只有1笔库存操作/审计；其他状态没有回写操作 | `mismatches=0` |
+| counting保留窗口，completed/voided释放 | `mismatches=0` |
+| 当前库存等于最后有效流水后值 | `mismatches=0` |
+| 末条COUNT-10000 | 快照2包/0.6000吨；实盘1包/0.3001吨；delta−1包/−0.2999吨；流水1条、同值、balanced=1 |
+
+### 009 迁移、真实恢复演练与安全回退
+
+```text
+B3A_RESTORE all_tables=32 fingerprints_equal=true
+B3A_MIGRATION business_tables_unchanged=31 counts={"inbound_receipts":"115","outbound_orders":"415","stock":"122","stock_journal":"828","scan_facts":"0","catalog_entries":"9018"}
+B3A_SAMPLE_EMPTY_DOWN success=true re_up=true historical_rows_preserved=true
+B3A_SAMPLE_DOWN Error: 拒绝回退：stocktakes 含有数据，禁止删除历史数据 unchanged=true
+B3A_LOCAL_009 applied=true
+```
+
+实际顺序：停止本地API→备份→新库完整恢复并比对32表指纹→恢复副本009 up→盘点表空时down/up→构造盘点后非空down拒绝且指纹不变→本地开发库up。原31业务表（不含迁移登记表）逐行指纹不变。备份 `.local/backups/b3a-before-009-1794138264726.sql`，SHA-256 `b7cb48a56f8e49d983263310eb08b1e60ae4208e6ef99329b47474e688bfaac8`；原始输出 `b3a-local-migration.log`，迁移指纹 `b3a-migration-fingerprints.json`。
+
+down必须走迁移runner的非空门禁；DDL不事务化，中断保留applying/reverting。非空不得删历史，优先禁用新入口/前向修复；存在进行中窗口时不能回退到不识别暂停的旧写服务。没有生产连接/迁移、没有清理真实作业队列。主开发库未造盘点测试单。
+
+### 命令、截图与提交前审查
+
+- `npm run test`：**118/118，fail 0**，原始日志 `.local/evidence/b3a-full-test.log`。
+- `npm run build`：exit 0，严格类型检查与Web构建通过，日志 `.local/evidence/b3a-build.log`。
+- `npm run test:e2e`：**主套42/42 + 目录套9/9，共51/51，exit 0**；原始输出 `42 passed (5.0m)`、`9 passed (1.5m)`，日志 `.local/evidence/b3a-full-e2e.log`。
+- 万行SQL/服务性能与正式构建浏览器脚本均exit 0；日志 `b3a-volume.log`、`b3a-production-performance.log`，30次原始样本在 `b3a-production-performance.json`。
+- 双宽度截图：`.local/evidence/b3a-{new,reading,unposted-preview,completed,forgotten-window,list,volume}-{1440,1280}.png`；失败恢复 `b3a-post-failure-retry.png`。没有视觉快照断言，截图/备份/真实样本全部不进Git。
+- 回归修正记录：万行浏览器移到独立临时库，避免污染共享E2E首页；未知类型用例在检查前自行创建最近流水夹具；库存请求断言精确匹配 `/stock/`，不再误收 `/stocktakes`。005/008历史迁移测试固定原schema；005显式构造非空操作/库存/流水/审计/幂等夹具后验证拒绝down，不调用要求009的新写服务。保留原有业务断言，未为测试改变生产筛选/分页行为。失败尝试日志保存在 `b3a-e2e-first-attempt.log`、`b3a-e2e-fixture-isolation-attempt.log`，不作为最终通过证据。
+- 提交审查：参数化SQL、Web通道、原因/Zod校验、事务锁序、历史快照与009回退门禁已核对；无新依赖，无PDA/小程序业务变更。OpenAPI只改声明源码，生成物按约定另批。
+
 ## B2a：误确认撤销与未入账作废（2026-11-08）
 
 本批仅Web本地新单纠错；撤销不代表实物退货，作废只允许可证未入账。原单、原流水、原号、扫码事实均保留；终态`cancelled/voided`不重新开放确认或扫码。115张历史入库、415张历史出库只读，原状态不回填。已下发/已扫/冻结/交接未收妥的出库作废留B2b，不把服务端0事实当成现场0队列。下方旧批次记录保留当时范围。

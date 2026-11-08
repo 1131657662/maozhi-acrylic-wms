@@ -2,7 +2,7 @@
 
 状态只按当前代码与可定位证据填写；新现状无证据时按未完成处理。U 统一写作“旧痛点 → 新改法 → 量化收益”；无法说明收益的改动降为 P。P 覆盖率按非 N/A 的 P 行统计，权限按单用户边界明确记为 N/A，不纳入分母。P0 收敛为 8 项：仅纳入库存正确性、单据可追溯性、旧 ERP 高频路径或多个后续模块共同依赖的能力；其余功能按依赖和风险进入 P1–P3。
 
-2026-11-08状态同步：B1a、B1c-1/2、B1b-1/2已按原批次验收；本批B2a按授权仅实现本地新单误确认撤销与可证未入账作废，证据见ACCEPTANCE；不等于全部撤销/更正P完成。随后B2b更正→B3a盘点→B3b基础两报表→B3c派生两报表，须逐批放行。打印未完成且已延后，依赖积木报表配置。
+2026-11-08状态同步：B1a、B1c-1/2、B1b-1/2、B2a按原批次验收；本批B3a仅Web盘点闭环，证据见ACCEPTANCE。B2b更正后置，待用户明确规则；报表与其他P缺口仍逐批放行。打印未完成且已延后，依赖积木报表配置。
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
@@ -60,16 +60,16 @@
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 库存 | 查询、预警、流水（5.1） | B1b-1：ERP商品/仓库筛选、分页、同筛选小计、列设置已验；原调整和最近20条流水保留；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：查询对齐；逐行流水过滤/预警未做；XLSX导出已验，CSV不在本批 | 全量库存渲染 → 分页上限200行+筛选全量ERP小计 → 10k夹具单页200行、1280/1440页面横滚0 | SQL核对10000行/20000包/6000.0000吨；四态错源不残留数字；浏览器p95见ACCEPTANCE | 库存预警看板 | P1 | B1b-1 / B1b-2 / B2 | StockList、StockJournal | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；IMG: .local/evidence/b1b1-stock-1440.png；DATA: [scripts/verify-list-performance.ts](../scripts/verify-list-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 小计含全部匹配分页而非当前页；SPEC不计库存；增加汇总查询成本，不宣称SQL比旧全量读取更快；快照内分批、不混源，失败/取消不提供部分文件 |
-| 库存 | 手工库存调整、原因、流水（5.2） | ERP 行内调整抽屉：独立包数/吨数、原因、前后预览；流水/审计/幂等同事务 | P：本批调整通过 API/E2E；撤销/补偿和盘点回写仍后置 | 直接改值难复核 → 调整抽屉展示调整前后值且原因必填 → 调整可追溯率 100% | 同键 20 并发只调整 1 次；空原因 422、不足 409 均无写入；5 阶段故障回滚；SQL chain_breaks=0 | 无 | P0 | B1a | StockList | E2E: [tests/e2e/inventory-posting.spec.ts](../tests/e2e/inventory-posting.spec.ts)；DATA: [scripts/sql/verify-inventory-posting.sql](../scripts/sql/verify-inventory-posting.sql)；IMG: .local/evidence/b1a3-stock-adjustment-1440.png | 当前值过期返回 STALE_STOCK，保留输入、明确刷新；不同单据共享库存格，调整不篡改单据 |
+| 库存 | 手工库存调整、原因、流水（5.2） | ERP 行内调整抽屉：独立包数/吨数、原因、前后预览；流水/审计/幂等同事务 | P：调整已验证；B2a限定撤销/B3a盘点已另批验证，更正仍后置 | 直接改值难复核 → 调整抽屉展示调整前后值且原因必填 → 调整可追溯率 100% | 同键 20 并发只调整 1 次；空原因 422、不足 409 均无写入；5 阶段故障回滚；SQL chain_breaks=0 | 无 | P0 | B1a | StockList | E2E: [tests/e2e/inventory-posting.spec.ts](../tests/e2e/inventory-posting.spec.ts)；DATA: [scripts/sql/verify-inventory-posting.sql](../scripts/sql/verify-inventory-posting.sql)；IMG: .local/evidence/b1a3-stock-adjustment-1440.png | 当前值过期返回 STALE_STOCK，保留输入、明确刷新；不同单据共享库存格，调整不篡改单据 |
 | 库存 | 库存与扫码目录用途隔离 | 固定 ERP 汇总/明细/流水；未归属仅诊断日志，无入口 | P：库存只认 erp-product；四类报表尚未实现，须沿用 ERP 唯一口径 | 多个库存入口误导用户 → 删除 SPEC/未归属页签与占位，固定 ERP → 库存入口 3→1，非 ERP 请求/占位 0 | E2E 检查固定 ERP 请求、无页签、错源拒绝、四态；API 检查日志与原守卫 | 经营看板 | P1 | B1a | InventorySettlement | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；IMG: .local/evidence/erp-inventory-only-1440.png | sku-spec 只属于 B1c 目录页；保留 all/多来源/总计拒绝与旧 stock 契约；不改数据 |
 
 ## 盘点
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 盘点 | 新建、加载库存、填实盘、算差异（6.1） | 未实现 | P：盘点快照与实盘输入未做 | 人工逐商品找系统数 → 创建时锁定快照，逐行录实盘并即时差异 → 200 行录入无需离开表格 | E2E 键盘走完 200 行；耗时待实测 | PDA 盘点模式 | P2 | B3a（建议） | StockCheckOrderForm | E2E: 待补 | PDA 盘点需改业务边界和离线模型，先不做 |
-| 盘点 | 列表、搜索、状态（6.2） | 未实现 | P：列表和状态链缺失 | 盘点任务分散 → 统一列表筛选与状态 → 定位任务 ≤3 步 | E2E 统计点击；待实测 | 无 | P2 | B3a（建议） | StockCheckOrderList | E2E: 待补 | 无 |
-| 盘点 | 详情、差异回写、作废（6.3） | 未实现 | P：审批/差异处理、库存回写、流水和审计缺失 | 差异需人工手算再改库存 → 展示差异并事务回写补偿流水 → 差异行计算错误 0 | E2E 用正负差异和重复提交验证；待实测 | 差异放行（本轮不做） | P2 | B3a（建议） | StockCheckOrderDetail | E2E: 待补 | 不能静默放行差异；回写是显式单据操作 |
+| 盘点 | 新建、加载库存、填实盘、算差异（6.1） | B3a：ERP仓库/可选商品范围、固定快照、逐行包数/吨数实盘与revision校验已实测 | P：本轮Web路径完成；PDA盘点不在范围 | 人工找系统数并手算 → 同页并列固定快照/实盘/差异、行抽屉保存 → 离开详情0次，10000行SQL差异错误0 | 万行脚本逐行SQL；未录为NULL；正负零差异/API故障验证；人工录入耗时待实测 | PDA盘点（未批准） | P2 | B3a | StockCheckOrderForm | E2E: [tests/e2e/stocktake.spec.ts](../tests/e2e/stocktake.spec.ts)；DATA: [scripts/verify-stocktake-volume.ts](../scripts/verify-stocktake-volume.ts)；IMG: .local/evidence/b3a-reading-1280.png | 不扫码；只含ERP；包数吨数独立，不用统一件重；软删库存键冲突禁止覆盖 |
+| 盘点 | 列表、搜索、状态（6.2） | B3a：单号/状态筛选、分页、详情；菜单常驻进行中数量，单张直达 | P：本轮列表/状态/遗忘窗口路径已实测 | 容易忘记结束 → 常驻入口与暂停原因 → 单张进行中定位1次点击，进行中页面级横滚0 | E2E遗忘窗口确认409、入口定位；1440/1280；浏览器万行p95见ACCEPTANCE | 无 | P2 | B3a | StockCheckOrderList | E2E: [tests/e2e/stocktake.spec.ts](../tests/e2e/stocktake.spec.ts)；IMG: .local/evidence/b3a-forgotten-window-1280.png | counting仅完成/作废释放；不设手动或超时解锁；无自动放行 |
+| 盘点 | 详情、差异回写、作废（6.3） | B3a：人工原因、未入账清单、显式快照口径确认、原子回写/作废已实测 | P：本轮Web回写完成；不实现差异放行 | 差异手算再改库存 → 固定预览token与事务流水/审计 → 20并发仅1次入账，7阶段失败残留0 | 同键/异键并发、全量SQL；作废库存/流水变化0；ACK审计保留 | 差异放行（本轮不做） | P2 | B3a | StockCheckOrderDetail | E2E: [tests/e2e/stocktake.spec.ts](../tests/e2e/stocktake.spec.ts)；DATA: [scripts/sql/verify-stocktake.sql](../scripts/sql/verify-stocktake.sql)；IMG: .local/evidence/b3a-unposted-preview-1440.png | 快照后未入账默认409；人工确认“按快照时点口径回写”才继续；清单变更须重核；其他仓不受业务暂停影响 |
 
 ## 统计报表
 

@@ -3,7 +3,8 @@ import type { Database } from '../../db/mysql.ts';
 import type { Actor } from '../../shared/audit.ts';
 import { ensure } from '../../shared/errors.ts';
 
-export type OperationType = 'inbound.confirm' | 'outbound.confirm' | 'stock.adjust' | 'inbound.reverse' | 'outbound.reverse';
+export type OperationType =
+  'inbound.confirm' | 'outbound.confirm' | 'stock.adjust' | 'inbound.reverse' | 'outbound.reverse' | 'stocktake.post';
 export interface InventoryOperation {
   id: string;
   type: OperationType;

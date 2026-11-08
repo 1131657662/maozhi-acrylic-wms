@@ -17,6 +17,7 @@ import { handoffRouter } from './features/handoff/router.ts';
 import { webListRouter } from './features/web-lists/router.ts';
 import { webExportRouter } from './features/web-exports/router.ts';
 import { lifecycleRouter } from './features/document-lifecycle/router.ts';
+import { stocktakeRouter } from './features/stocktake/router.ts';
 
 export function businessRouter(db:Database,origins:string[],catalogPublishEnabled=false):Router {
   const router=Router();
@@ -28,6 +29,7 @@ export function businessRouter(db:Database,origins:string[],catalogPublishEnable
   const numbering=numberingController(db);
   const stockSource=stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(stocktakeRouter(db, origins));
   router.use(lifecycleRouter(db,origins));
   router.use(webListRouter(db,origins));
   router.use(webExportRouter(db,origins));
