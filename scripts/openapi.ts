@@ -1,9 +1,20 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { openApiDocument, operations } from '../apps/api/src/openapi.ts';
+
+function ordered(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(ordered);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([key, entry]) => [key, ordered(entry)]),
+  );
+}
+
 const target = fileURLToPath(new URL('../docs/api/', import.meta.url));
 mkdirSync(target, { recursive: true });
-writeFileSync(`${target}/openapi.json`, JSON.stringify(openApiDocument()) + '\n');
+writeFileSync(`${target}/openapi.json`, JSON.stringify(ordered(openApiDocument()), null, 2) + '\n');
 const rows = operations.map(
   (operation) =>
     `| ${operation.method.toUpperCase()} | /api/v1${operation.path} | ${operation.channel ?? '公开'} | ${operation.summary} |`,
