@@ -1,15 +1,18 @@
-import { Alert, Button, Skeleton } from 'antd';
+import { Alert, Button, Result, Skeleton } from 'antd';
 import { Link, useParams } from '@umijs/max';
 import { ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
 import { useReceipt } from './use-receipt';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
+import { InboundConfirmation } from './confirm';
+import { ApiError } from '../../api/client';
 
 export function InboundDetail() {
   const { id = '' } = useParams();
   const { data, isLoading, error, refetch } = useReceipt(id);
   if (isLoading) return <Skeleton active />;
+  if (error instanceof ApiError && error.status === 403) return <Result status="403" title="无权确认入库" />;
   if (error || !data)
     return (
       <Alert
@@ -35,6 +38,7 @@ export function InboundDetail() {
         <StatusTag status={data.status} kind="inbound" />
       </div>
       <StatusNotice status={data.status} kind="inbound" />
+      <InboundConfirmation key={data.id} receipt={data} />
       <ProDescriptions<InboundReceipt>
         title="入库信息"
         column={3}

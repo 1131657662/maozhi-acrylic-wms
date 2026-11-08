@@ -4,6 +4,8 @@
 
 ## 范围与决策
 
+当前增量状态以本文末尾“B1a 第 3 提交”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
+
 单用户模块化单体，无租户、组织权限、角色矩阵、多级审批。Web 一次确认出库。
 Web 使用官方 Ant Design Pro v6.0.3 工程结构、Umi Max、ProLayout、ProForm、ProTable 和 ProDescriptions；后端使用 Express 5 + TypeScript + Zod；原生微信小程序 + Vant；Kotlin + Room + WorkManager。
 开发库使用本地隔离 MySQL 8；迁移脚本提供 up/down，业务 SQL 不使用 SQLite 专有语法。测试为每轮创建并销毁的临时 MySQL 库，必要时可使用内存级测试替身，但不连接生产。
@@ -143,3 +145,39 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 - 尚无可靠的全局 SPEC↔ERP 映射，不建立推测关系；新扫码建议使用原出库单显式 ERP 作业行（单行可默认、多行须选择）。旧事实若无法精确唯一绑定原 ERP 行，列迁移异常，保留记录并阻止开启 B1c 发布；不猜测补值、不重建单据。现场选错行的防错效果须实体 PDA 验收。
 - v1 迁移待实施：先备份/恢复与事实/冻结摘要对账，封存原 v1、增加 context、解耦读取，再升级 PDA/登记旧队列，最后开放上传；旧 UUID/正文/hash/重量和 frozen 摘要保持。出现 v2 事实后不得回退只懂 v1 的代码或执行删除版本的 down，需保留兼容链路；目录纠错以新版本发布历史内容，不能重算已扫重量。
 - 验收门禁与未决能力：U-06 保留场景 A 的原单混版/删码后冻结确认；场景 B 明确第一段全程断网扫 3 包→回传→上传新目录→刷新→继续离线扫，并含新版先发布再回传旧版事实及失败注入，均尚未执行。错误已接受事实的更正流程、全局商品关系维护不在本批自动实现；离线新扫已确定，不再列为待放宽约束。N-02 只剩额外通用辅助录入候选，不再把条码目录上传标成 N。
+
+
+## B1a 第 3 提交：确认入账与库存调整（2026-11-08）
+
+范围仅为正向入库确认、出库确认流水证据、ERP 库存调整。B2 撤销/作废/更正、B1b 查询壳/响应式重构/导出打印 schema、B1c 目录版本化均不实施；已批准的离线目录设计不变。
+
+### 状态、事务与历史兼容
+
+- 新入库 `pending → confirmed`：创建只保存单头/明细、创建审计和创建幂等结果；显式确认才增加库存。`posting_state` 区分 `legacy/pending/confirmed`，`confirmation_operation_id` 指向本次操作。没有编辑/撤销/作废入口。
+- 出库仍为 `open → frozen → confirmed`；扫码/冻结不扣库。本次确认沿用旧 `confirm:用户名:幂等键` 以及原请求 hash/响应重放规则，补写前后值和操作标识。原 `source_id` 非空的 ERP 历史单据禁止再次确认。
+- 锁顺序：`app_meta.identity FOR UPDATE`（沿用单用户串行写锁）→ 单据行 `FOR UPDATE` → 主数据共享锁 → 按商品编码排序锁本仓有效库存行。库存调整没有单据锁，锁同一库存格；不同单据共用同一商品库存，不修改原单据明细。
+- 同一连接/事务内：检查幂等重放与状态 → 新建 `inventory_operations` → 库存前值/边界校验 → 写库存及含前后值的 `stock_journal` → 更新单据状态（调整无单据状态）→ `operation_log` → `idempotent_commands` → COMMIT。任意异常 ROLLBACK；不在事务外预占幂等键，不吞异常后继续写。
+- 同键同规范化请求返回原结果；不同单据/不同正文使用同一作用域的键返回 `IDEMPOTENCY_CONFLICT`。调整前值必须等于请求 `expected`，过期返回 `STALE_STOCK`；重放优先于前值检查。前端失败保持正文/键和已填字段；库存刷新须由用户明确操作，不自动用新前值重提调整。
+- 新库存写入只允许有效 `erp-product`。包数与重量独立，不设统一件重；重量按 100 克精度在 API 整数克与 MySQL DECIMAL(12,4) 吨间转换，负库存/溢出均拒绝。调整不是某单据的“修正”，其原因、前后值及操作 ID 可独立追溯。
+- 115 张历史入库单原状态 `audited/submit` 不映射、不猜测已入账标记；新增 `posting_state` 默认 `legacy`，保留旧状态、库存和单据为只读，防止重复入账。旧本地创建即入账的入库同样归 `legacy`。415 张历史出库原状态也不回填。未知状态继续原文提示。
+- 历史流水从原 `source_row_json` 提取原前后值，保留原流水类型；`evidenceKind=source-snapshot`、`operationId=source_id` 是历史定位，不冒充新事务 UUID。新流水 `evidenceKind=transaction`，操作 ID 指向操作记录；旧本地若从未保存前后值则明确 `legacy-unrecorded`，不反推历史。真实样本 828 条快照完整且 delta 全部一致。
+
+### API 增量（接口仍为整数克）
+
+| 端点 | 请求 | 响应/行为 |
+|---|---|---|
+| `POST /inbound` | 原创建字段和 Idempotency-Key；兼容原 receiptNo | `status=pending, postingState=pending, confirmationOperationId=null`；不入账。旧缓存 Web 应刷新以取得确认入口，不能再把创建成功当入账 |
+| `POST /inbound/:id/confirm` | 严格空对象 `{}` + UUID Idempotency-Key | 入库详情；`confirmed` 和 `confirmationOperationId`；重复原键返回原结果 |
+| `POST /outbound/:id/confirm` | 原 revision/digest + UUID Idempotency-Key | 原详情契约不变；新流水/审计含操作标识 |
+| `POST /stock/adjustments` | warehouseCode/productCode、packagesDelta、weightDeltaGrams、expected:{packages,weightGrams}、reason（trim 后非空且≤500）+ UUID Idempotency-Key | operationId、operationType=stock.adjust、仓库/商品/原因、before/after（包数/整数克） |
+| `/stock/journal`、`/stock/by-source/journal` | 原查询参数不变 | 增加 before/after、operationId、operationType、reason、evidenceKind；历史类型不枚举改写，新增字段可空/有兼容默认值 |
+
+错误：422 `VALIDATION_ERROR`（含空原因/两个 delta 都为零/非法精度）；409 `INSUFFICIENT_STOCK`、`STOCK_OVERFLOW`、`STALE_STOCK`、`IDEMPOTENCY_CONFLICT`、`ALREADY_CONFIRMED`、`LEGACY_RECEIPT/LEGACY_ORDER`、`PRODUCT_NOT_INVENTORY`；出库保留 `NOT_FROZEN/STALE_PLAN/DIGEST_MISMATCH`。三个写入口均限 Web 同源 Cookie 会话；PDA/小程序一律 403，无效身份 401。`/stock` 旧数组与防 all/多来源/total 守卫不变。
+
+### 迁移、验证与未做项
+
+- 新增 005 up/down：操作表、入库 posting_state/确认操作引用、流水前后值及操作外键；新事务流水 CHECK 保证非空且 after-before=delta。001–004 不修改。
+- 3307 本地样本库已先备份再 up；历史状态/库存/原流水/审计/幂等指纹一致。空表可 down/up；操作、入库或流水任一非空则 down 拒绝，不能靠删除历史数据绕过。完整回退说明见 `FOUNDATION_MIGRATION.md`。
+- 故障注入只在随机 `maozhi_test_*` 库使用 MySQL AFTER trigger；业务 API 没有测试开关或故障请求头。原始结果和可复跑命令见 `ACCEPTANCE.md`。
+- 来源新增/全局商品映射仍是未决能力：本轮没有把 `app` 或 `sku-spec` 自动改成 ERP，也未改主数据模型。真实商品使用原 ERP 主数据；测试合成商品显式标注为 ERP 用于单一库存流程。
+- 本轮只提交源码/迁移/测试/说明；OpenAPI 生成源码已更新，`docs/api` 生成物留独立提交，未混入本提交。没有新增依赖、修改生产配置或访问生产/3306/warehouse。

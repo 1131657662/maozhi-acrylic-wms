@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
 import {
   loginSchema,
   loginResultSchema,
@@ -38,6 +39,8 @@ interface Operation {
   idempotent?: boolean;
 }
 export const operations: Operation[] = [
+  { method: 'post', path: '/inbound/{id}/confirm', summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务', body: confirmInboundSchema, response: inboundReceiptSchema, channel: 'web', idempotent: true },
+  { method: 'post', path: '/stock/adjustments', summary: 'ERP 库存调整；原因必填，校验当前值，原子记账', body: stockAdjustmentSchema, response: stockAdjustmentResultSchema, channel: 'web', idempotent: true },
   { method: 'get', path: '/stock/by-source', summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计', query: stockSourceQuerySchema, response: sourceStockSchema, channel: 'web' },
   { method: 'get', path: '/stock/by-source/journal', summary: '单一商品来源最近流水；来源必填，不提供合计', query: sourceJournalQuerySchema, response: sourceJournalSchema, channel: 'web' },
   { method: 'get', path: '/document-numbering', summary: 'RK/CK 编号规则与非占号预览（北京时间）', response: numberingRulesSchema, channel: 'web' },
@@ -112,7 +115,7 @@ export const operations: Operation[] = [
   {
     method: 'post',
     path: '/inbound',
-    summary: '确认入库；包数、总吨数独立记录并一次增加库存',
+    summary: '创建待确认入库单；包数、总吨数独立记录，不增加库存',
     body: createInboundSchema,
     response: inboundReceiptSchema,
     channel: 'web',

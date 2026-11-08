@@ -4,11 +4,13 @@ import { randomUUID } from 'node:crypto';
 import { numberingFixture, newReceipt, origin } from './numbering-fixture.ts';
 import { actor } from './fixture.ts';
 import { createInbound } from '../src/features/inbound/create.ts';
+import { confirmInbound } from '../src/features/inbound/confirm.ts';
 
 test('未知单据状态和流水类型通过真实 HTTP 原样返回，软删流水排除', async () => {
   const { db, web, dispose } = await numberingFixture();
   try {
     const receipt = await createInbound(db, newReceipt(), randomUUID(), actor);
+    await confirmInbound(db, receipt.id, randomUUID(), actor);
     await db.run("UPDATE inbound_receipts SET status='future_inbound_state' WHERE id=?", [receipt.id]);
     await db.run("UPDATE outbound_orders SET status='constructor' WHERE id='DEMO-001'");
     await db.run("UPDATE stock_journal SET source_business_type='future_journal_type' WHERE inbound_receipt_id=?", [

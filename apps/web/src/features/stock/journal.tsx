@@ -7,6 +7,7 @@ import { JournalTypeTag } from '../../components/JournalTypeTag';
 import { formatTime } from '../../lib/format-time';
 
 import { stockKeys } from './keys';
+import { JournalDetail } from './journal-detail';
 
 export function StockJournal() {
   const query = useQuery(stockKeys.journal('erp-product'));
@@ -40,6 +41,7 @@ export function StockJournal() {
           render: (_, row) => <span data-testid="journal-row-tonnes">{tonnes(row.weightDeltaGrams)}</span>,
         },
         { title: '时间', render: (_, row) => formatTime(row.createdAt) },
+        { title: '依据', valueType: 'option', render: (_, row) => <JournalDetail row={row} /> },
       ]}
     />
   );

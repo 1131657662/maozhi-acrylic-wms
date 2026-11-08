@@ -1,5 +1,6 @@
 import type { StockSource } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
+import { journalFields, journalOperationJoin } from './journal-row.ts';
 
 // Exact product provenance; only ERP is business inventory. Other values remain queryable for compatibility.
 const sourceExpression =
@@ -29,9 +30,8 @@ export async function unclassifiedStockCount(db: Database): Promise<number> {
 }
 export async function sourceJournalRows(db: Database, source: StockSource, limit: number) {
   return db.all(
-    `SELECT j.id,j.source_id,j.source_business_type,j.inbound_receipt_id,j.order_id,
-    j.warehouse_code,j.product_code,j.packages_delta,j.tonnes_delta,j.created_at,${sourceExpression} AS source
-    FROM stock_journal j LEFT JOIN master_products p ON p.code=j.product_code
+    `SELECT ${journalFields},${sourceExpression} AS source
+    FROM stock_journal j ${journalOperationJoin} LEFT JOIN master_products p ON p.code=j.product_code
     WHERE j.source_del_flag=0 AND ${sourceExpression}=? ORDER BY j.id DESC LIMIT ?`,
     [source, limit],
   );

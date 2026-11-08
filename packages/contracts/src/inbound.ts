@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-const codeSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
+const codeSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-zA-Z0-9_-]+$/);
 const gramsSchema = z.number().int().positive().max(99_999_999_999_900).multipleOf(100);
 
 export const inboundLineInputSchema = z.strictObject({
@@ -13,7 +17,10 @@ export const createInboundSchema = z.strictObject({
   supplierCode: codeSchema,
   warehouseCode: codeSchema,
   memo: z.string().trim().max(500).optional(),
-  lines: z.array(inboundLineInputSchema).min(1).max(50)
+  lines: z
+    .array(inboundLineInputSchema)
+    .min(1)
+    .max(50)
     .refine((lines) => new Set(lines.map((line) => line.productCode)).size === lines.length, '商品不能重复'),
 });
 export const inboundLineSchema = inboundLineInputSchema.extend({ id: codeSchema, productName: z.string() });
@@ -21,6 +28,8 @@ export const inboundReceiptSchema = z.object({
   id: codeSchema,
   receiptNo: z.string(),
   status: z.string().nullable().default(null),
+  postingState: z.enum(['legacy', 'pending', 'confirmed']).default('legacy'),
+  confirmationOperationId: z.uuid().nullable().default(null),
   supplierCode: codeSchema,
   supplierName: z.string(),
   warehouseCode: codeSchema,

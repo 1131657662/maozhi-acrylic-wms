@@ -6,9 +6,11 @@ import { migrateUp, migrateDown } from '../src/db/migrate.ts';
 test('004 空表可 down/up；非空规则或计数器必须拒绝 down 且保留迁移状态', async () => {
   const { db, dispose } = await createTestDatabase();
   try {
+    await migrateDown(db); // 005 must be removed before testing the independent 004 rollback.
     await migrateDown(db);
     assert.equal(await db.get("SELECT id FROM schema_migrations WHERE id='004_document_numbering'"), undefined);
     await migrateUp(db);
+    await migrateDown(db);
     await db.run("INSERT INTO document_number_rules(kind,sequence_width) VALUES('inbound',4)");
     for (const stage of ['rules', 'counters']) {
       if (stage === 'counters')

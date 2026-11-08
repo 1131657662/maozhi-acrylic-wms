@@ -3,8 +3,11 @@ import { seedDemo } from '../apps/api/src/db/seed-test.ts';
 import { createApp, localOrigins } from '../apps/api/src/app.ts';
 import { seedNumberingEvidence } from './e2e-numbering-fixtures.ts';
 import { seedSourceEvidence } from './e2e-source-fixtures.ts';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
-const { db, dispose } = await createTestDatabase();
+const { db, name, dispose } = await createTestDatabase();
+mkdirSync('.local', { recursive: true });
+writeFileSync('.local/e2e-database.json', JSON.stringify({ name }));
 await seedDemo(db, 'e2e-only-password');
 await seedNumberingEvidence(db);
 await seedSourceEvidence(db);

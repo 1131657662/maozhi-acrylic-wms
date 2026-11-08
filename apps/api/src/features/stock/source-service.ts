@@ -1,7 +1,7 @@
 import { sourceJournalSchema, sourceStockSchema, type StockSource } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { decimalToGrams } from '../../db/weight.ts';
-import { isoDate } from '../../db/dates.ts';
+import { journalItem } from './journal-row.ts';
 import { sourceJournalRows, sourceStockRows, sourceStockSubtotal } from './source-repository.ts';
 import { reportUnclassifiedStock } from './source-diagnostics.ts';
 
@@ -31,18 +31,6 @@ export async function readSourceJournal(db: Database, source: StockSource, limit
   const rows = await sourceJournalRows(db, source, limit);
   return sourceJournalSchema.parse({
     source,
-    items: rows.map((row) => ({
-      id: String(row.id),
-      source: row.source,
-      type:
-        row.source_id !== null
-          ? row.source_business_type
-          : (row.source_business_type ?? (row.inbound_receipt_id ? 'inbound' : row.order_id ? 'outbound' : null)),
-      warehouseCode: row.warehouse_code,
-      productCode: row.product_code,
-      packagesDelta: Number(row.packages_delta),
-      weightDeltaGrams: decimalToGrams(row.tonnes_delta),
-      createdAt: isoDate(row.created_at),
-    })),
+    items: rows.map((row) => ({ ...journalItem(row), source: row.source })),
   });
 }

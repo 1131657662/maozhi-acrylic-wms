@@ -1,5 +1,8 @@
 import { ProDescriptions, ProTable, type ProColumns, type ProDescriptionsProps } from '@ant-design/pro-components';
 import { tonnes, type SourceStock, type SourceStockRow } from '@wms/contracts';
+import { Button } from 'antd';
+import { useState } from 'react';
+import { AdjustmentDrawer } from './adjustment-drawer';
 
 type ErpStock = Extract<SourceStock, { source: 'erp-product' }>;
 
@@ -40,6 +43,7 @@ function SourceSubtotal({ data }: { data: ErpStock }) {
 }
 
 export function SourceStockTable({ data }: { data: ErpStock }) {
+  const [selected, setSelected] = useState<SourceStockRow | null>(null);
   return (
     <section data-testid="source-stock" data-source={data.source}>
       <SourceSubtotal data={data} />
@@ -51,8 +55,20 @@ export function SourceStockTable({ data }: { data: ErpStock }) {
         options={false}
         pagination={false}
         locale={{ emptyText: '暂无 ERP 商品库存；请核对入库单据' }}
-        columns={stockColumns}
+        columns={[
+          ...stockColumns,
+          {
+            title: '操作',
+            valueType: 'option',
+            render: (_, row) => (
+              <Button type="link" onClick={() => setSelected(row)}>
+                调整库存
+              </Button>
+            ),
+          },
+        ]}
       />
+      {selected && <AdjustmentDrawer row={selected} onClose={() => setSelected(null)} />}
     </section>
   );
 }

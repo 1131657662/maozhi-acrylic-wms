@@ -1,12 +1,6 @@
 import { Alert, Button, Space } from 'antd';
 import { Link, useNavigate } from '@umijs/max';
-import {
-  ProForm,
-  ProFormDigit,
-  ProFormList,
-  ProFormSelect,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProForm, ProFormDigit, ProFormList, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
 import type { CreateInbound } from '@wms/contracts';
 import { tonnesToGrams } from '../../lib/weight-input';
 import { useMasterItems } from '../master-data/use-master-items';
@@ -53,7 +47,7 @@ export function InboundEditor() {
         <div>
           <span className="eyebrow">INBOUND ENTRY</span>
           <h1>登记入库</h1>
-          <p>保存后立即增加库存，并写入库存流水和操作记录。</p>
+          <p>先创建待确认单据，核对实物后明确确认才计入库存。</p>
         </div>
       </div>
       <div className="principle">
@@ -66,7 +60,7 @@ export function InboundEditor() {
         loading={create.isPending}
         onFinish={submit}
         submitter={{
-          searchConfig: { submitText: '确认入库', resetText: '取消' },
+          searchConfig: { submitText: '创建待确认入库单', resetText: '取消' },
           render: (_, dom) => (
             <Space>
               <Link to="/inbound">
@@ -77,7 +71,9 @@ export function InboundEditor() {
           ),
         }}
       >
-        <ProForm.Item label="入库单号"><span>确认保存后自动生成 RK 单号</span></ProForm.Item>
+        <ProForm.Item label="入库单号">
+          <span>确认保存后自动生成 RK 单号</span>
+        </ProForm.Item>
         <ProFormSelect
           name="supplierCode"
           label="供应商"

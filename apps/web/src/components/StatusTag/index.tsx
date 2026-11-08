@@ -7,8 +7,13 @@ const states = new Map([
   ['audited', { text: '已审核', color: 'default' }],
 ]);
 
+function knownState(status: string | null, kind: 'inbound' | 'outbound') {
+  if (kind === 'inbound' && status === 'pending') return { text: '待入库确认', color: 'warning' };
+  return status === null ? undefined : states.get(status);
+}
+
 export function StatusTag({ status, kind = 'outbound' }: { status: string | null; kind?: 'inbound' | 'outbound' }) {
-  const known = status === null ? undefined : states.get(status);
+  const known = knownState(status, kind);
   const text = kind === 'inbound' && status === 'confirmed' ? '已入库' : (known?.text ?? status ?? '未记录');
   return (
     <Tag color={known?.color ?? 'default'} data-testid="status-tag">
@@ -18,7 +23,7 @@ export function StatusTag({ status, kind = 'outbound' }: { status: string | null
 }
 
 export function StatusNotice({ status, kind }: { status: string | null; kind: 'inbound' | 'outbound' }) {
-  if (status !== null && states.has(status)) return null;
+  if (knownState(status, kind)) return null;
   return (
     <Alert
       type="info"

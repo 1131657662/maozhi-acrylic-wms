@@ -7,7 +7,7 @@ export async function seedDemo(db: Database, password: string): Promise<void> {
     await tx.run('INSERT INTO app_meta(meta_key,value) VALUES(?,?)', ['identity', 'maozhi-local-mysql8-v1']);
     await tx.run('INSERT INTO owner(username,password_hash) VALUES(?,?)', ['owner', passwordHash]);
     await tx.run('INSERT INTO master_products(code,name,active,created_at,updated_at,source_kind,source_del_flag) VALUES(?,?,?,?,?,?,?)',
-      ['ACR-032', '腈纶原料 · 合成样本', 1, '2026-11-07 00:00:00.000', '2026-11-07 00:00:00.000', 'test', 0]);
+      ['ACR-032', '腈纶原料 · 合成样本', 1, '2026-11-07 00:00:00.000', '2026-11-07 00:00:00.000', 'erp-product', 0]);
     await tx.run('INSERT INTO master_warehouses(code,name,active,created_at,updated_at,source_del_flag) VALUES(?,?,?,?,?,?)',
       ['DEMO-WH', '合成仓库', 1, '2026-11-07 00:00:00.000', '2026-11-07 00:00:00.000', 0]);
     await tx.run('INSERT INTO master_suppliers(code,name,active,created_at,updated_at,source_del_flag) VALUES(?,?,?,?,?,?)',

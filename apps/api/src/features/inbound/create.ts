@@ -9,6 +9,7 @@ import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { activeMaster } from '../master-data/catalogs.ts';
 import { getInbound } from './repository.ts';
 import { allocateNumber } from '../document-numbering/service.ts';
+import { requireInventoryProduct } from '../inventory/posting.ts';
 
 export async function createInbound(db: Database, input: CreateInbound, key: string, actor: Actor) {
   const payload = createInboundSchema.parse(input);
@@ -23,11 +24,14 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
       const id = randomUUID();
       const createdAt = sqlDate(new Date().toISOString());
       const receiptNo = await allocateNumber(tx, 'inbound', payload.receiptNo);
-      await tx.run(`INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at)
-        VALUES(?,?,?,?,?,?,?)`, [id,receiptNo,supplier.code,warehouse.code,payload.memo ?? null,actor.username,createdAt]);
-      await addLinesAndStock(tx, id, warehouse.code, payload, products, createdAt);
+      await tx.run(
+        `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at,status,posting_state)
+        VALUES(?,?,?,?,?,?,?,'pending','pending')`,
+        [id, receiptNo, supplier.code, warehouse.code, payload.memo ?? null, actor.username, createdAt],
+      );
+      await addLines(tx, id, payload, products);
       const after = await getInbound(tx, id);
-      await audit(tx, actor, { action: 'inbound.confirm', targetId: id, before: null, after });
+      await audit(tx, actor, { action: 'inbound.create', targetId: id, before: null, after });
       await saveCommand(tx, 'inbound.create', key, payload, actor, after);
       return after;
     });
@@ -36,18 +40,23 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
     throw error;
   }
 }
-async function addLinesAndStock(db: Database, id: string, warehouseCode: string, input: CreateInbound,
-  products: { code: string; name: string; active: true }[], createdAt: string): Promise<void> {
+async function addLines(
+  db: Database,
+  id: string,
+  input: CreateInbound,
+  products: { code: string; name: string; active: true }[],
+): Promise<void> {
   for (const [index, line] of input.lines.entries()) {
     const product = products[index]!;
+    await requireInventoryProduct(db, product.code);
     const weight = gramsToDecimal(line.weightGrams);
-    await db.run('INSERT INTO inbound_lines(id,receipt_id,product_code,packages,weight_tonnes) VALUES(?,?,?,?,?)',
-      [randomUUID(),id,product.code,line.packages,weight]);
-    await db.run(`INSERT INTO stock(warehouse_code,product_code,packages,weight_tonnes) VALUES(?,?,?,?)
-      ON DUPLICATE KEY UPDATE packages=packages+VALUES(packages),weight_tonnes=weight_tonnes+VALUES(weight_tonnes)`,
-      [warehouseCode,product.code,line.packages,weight]);
-    await db.run(`INSERT INTO stock_journal(inbound_receipt_id,warehouse_code,product_code,packages_delta,tonnes_delta,created_at)
-      VALUES(?,?,?,?,?,?)`, [id,warehouseCode,product.code,line.packages,weight,createdAt]);
+    await db.run('INSERT INTO inbound_lines(id,receipt_id,product_code,packages,weight_tonnes) VALUES(?,?,?,?,?)', [
+      randomUUID(),
+      id,
+      product.code,
+      line.packages,
+      weight,
+    ]);
   }
 }
 function duplicate(error: unknown): boolean {

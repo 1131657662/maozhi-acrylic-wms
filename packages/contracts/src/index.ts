@@ -1,4 +1,5 @@
 import { z } from 'zod';
+export * from './inventory-posting.ts';
 export * from './document-numbering.ts';
 export * from './stock-journal.ts';
 export * from './stock-source.ts';

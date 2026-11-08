@@ -87,7 +87,7 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
   await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
   await page.getByLabel('包数').fill('2');
   await page.getByLabel('本次总重量（吨）').fill('0.7150');
-  await page.getByRole('button', { name: '确认入库' }).click();
+  await page.getByRole('button', { name: '创建待确认入库单' }).click();
   await expect(page.getByRole('heading', { name: /^RK-\d{8}-\d+$/ })).toBeVisible();
   await expect(page.locator('.ant-table-tbody').getByRole('cell', { name: '0.7150', exact: true })).toBeVisible();
   await page.screenshot({ path: '.local/evidence/inbound-detail-1440.png', fullPage: true });

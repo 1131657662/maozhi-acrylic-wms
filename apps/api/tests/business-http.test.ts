@@ -27,6 +27,9 @@ test('PDA 和小程序会话不能读取或修改仅限 Web 的业务资源', as
       await api.get('/api/v1/inbound').auth(token, { type: 'bearer' }).expect(403);
       await api.get('/api/v1/master-data/products').auth(token, { type: 'bearer' }).expect(403);
       await api.post('/api/v1/inbound').auth(token, { type: 'bearer' }).send({}).expect(403);
+      await api.post('/api/v1/inbound/anything/confirm').auth(token, { type: 'bearer' }).send({}).expect(403);
+      await api.post('/api/v1/outbound/DEMO-001/confirm').auth(token, { type: 'bearer' }).send({}).expect(403);
+      await api.post('/api/v1/stock/adjustments').auth(token, { type: 'bearer' }).send({}).expect(403);
       await api.post('/api/v1/outbound').auth(token, { type: 'bearer' }).send({}).expect(403);
       await api.patch('/api/v1/outbound/DEMO-001').auth(token, { type: 'bearer' }).send({}).expect(403);
     }
@@ -89,7 +92,7 @@ test('Web 同源会话可创建入库和出库计划并查询主数据', async (
       .expect(200);
     assert.equal(edited.body.data.vehicleNo, 'HTTP-UPDATED');
     const stock = await web.get('/api/v1/stock').expect(200);
-    assert.equal(stock.body.data[0].packages, 8);
+    assert.equal(stock.body.data[0].packages, 6);
   } finally {
     await dispose();
   }

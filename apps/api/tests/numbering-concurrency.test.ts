@@ -50,10 +50,10 @@ test('每类 50 个并发 HTTP 创建均唯一，幂等重放不消耗额外单�
     const audit = Number((await db.get("SELECT COUNT(*) AS n FROM operation_log WHERE action='inbound.confirm'"))?.n);
     assert.equal(Number(inbound?.packages), 50);
     assert.equal(inbound?.tonnes, '15.1250');
-    assert.equal(stock?.packages, 56);
-    assert.equal(stock?.tonnes, '16.9250');
-    assert.equal(journal, 50);
-    assert.equal(audit, 50);
+    assert.equal(stock?.packages, 6);
+    assert.equal(stock?.tonnes, '1.8000');
+    assert.equal(journal, 0);
+    assert.equal(audit, 0);
     for (const [table, column] of [
       ['inbound_receipts', 'receipt_no'],
       ['outbound_orders', 'order_no'],
@@ -77,7 +77,7 @@ test('自动取号事务失败不消耗号，重试同键同正文只建一张�
     await assert.rejects(
       createInbound(
         db,
-        { ...newReceipt(), lines: [{ productCode: 'ACR-032', packages: 1, weightGrams: 99_999_999_999_900 }] },
+        { ...newReceipt(), lines: [{ productCode: 'MISSING-PRODUCT', packages: 1, weightGrams: 302500 }] },
         randomUUID(),
         actor,
       ),

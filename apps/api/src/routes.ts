@@ -11,6 +11,7 @@ import { journalQuerySchema } from '@wms/contracts';
 import { numberingController } from './features/document-numbering/controller.ts';
 import { journalRows } from './features/stock/journal.ts';
 import { stockSourceController } from './features/stock/source-controller.ts';
+import { stockAdjustmentController } from './features/stock/adjust-controller.ts';
 
 export function businessRouter(db:Database,origins:string[]):Router {
   const router=Router();
@@ -23,6 +24,7 @@ export function businessRouter(db:Database,origins:string[]):Router {
   const stockSource=stockSourceController(db);
   router.use(requireAuth(db));
   router.get('/stock/by-source',requireChannel('web',origins),stockSource.stock);
+  router.post('/stock/adjustments',requireChannel('web',origins),stockAdjustmentController(db));
   router.get('/stock/by-source/journal',requireChannel('web',origins),stockSource.journal);
   router.get('/document-numbering',requireChannel('web',origins),numbering.list);
   router.put('/document-numbering/:kind',requireChannel('web',origins),numbering.update);
@@ -36,6 +38,7 @@ export function businessRouter(db:Database,origins:string[]):Router {
   router.get('/inbound',requireChannel('web',origins),inbound.list);
   router.get('/inbound/:id',requireChannel('web',origins),inbound.detail);
   router.post('/inbound',requireChannel('web',origins),inbound.create);
+  router.post('/inbound/:id/confirm',requireChannel('web',origins),inbound.confirm);
   router.get('/master-data/:catalog',requireChannel('web',origins),master.list);
   router.post('/master-data/:catalog',requireChannel('web',origins),master.create);
   router.patch('/master-data/:catalog/:code',requireChannel('web',origins),master.update);

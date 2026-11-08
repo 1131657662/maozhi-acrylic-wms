@@ -10,6 +10,7 @@ const migrations = [
   { id: '003_source_snapshot', guardedTables: ['scan_catalog','stock_journal','stock','inbound_lines','inbound_receipts',
     'outbound_lines','outbound_orders','master_suppliers','master_customers','master_warehouses','master_products'] },
   { id: '004_document_numbering', guardedTables: ['document_number_counters','document_number_rules'] },
+  { id: '005_inventory_posting', guardedTables: ['inventory_operations','inbound_receipts','stock_journal'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

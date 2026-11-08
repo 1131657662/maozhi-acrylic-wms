@@ -79,11 +79,16 @@ test('兼容旧单号和旧幂等结果，编辑只能回传原号；不静默�
       assert.equal(first.body.data[field], `LEGACY-${path}`);
       if (path === 'inbound') {
         await db.run(
-          "UPDATE idempotent_commands SET result_json=JSON_REMOVE(result_json,'$.status') WHERE command_key=?",
+          "UPDATE idempotent_commands SET result_json=JSON_REMOVE(result_json,'$.status','$.postingState','$.confirmationOperationId') WHERE command_key=?",
           [`inbound.create:owner:${key}`],
         );
       }
-      assert.deepEqual((await post().expect(200)).body.data, first.body.data);
+      assert.deepEqual(
+        (await post().expect(200)).body.data,
+        path === 'inbound'
+          ? { ...first.body.data, status: null, postingState: 'legacy', confirmationOperationId: null }
+          : first.body.data,
+      );
       const duplicate = await web
         .post(`/api/v1/${path}`)
         .set('Origin', origin)

@@ -14,7 +14,7 @@ test('B1a 编号配置预览、调窄撞号拒绝且保留输入，修改成功'
   await login(page);
   await page.goto('/system/document-numbering');
   await expect(page.getByText(/预览不占号/)).toBeVisible();
-  await expect(page.getByText(/^RK-\d{8}-0001$/)).toBeVisible();
+  await expect(page.getByText(/^RK-\d{8}-\d{4}$/)).toBeVisible();
   await page.getByText('出库 CK', { exact: true }).click();
   await expect(page.getByText(/^CK-\d{8}-0010$/)).toBeVisible();
   await page.getByLabel('序号宽度', { exact: true }).fill('2');

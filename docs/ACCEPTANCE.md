@@ -1,5 +1,49 @@
 # 第一里程碑验收记录
 
+## B1a 第 3 提交：确认入账与库存调整（2026-11-08）
+
+本节为最新增量验收；后续旧节保留当时证据，不代表本批仍未完成。仅正向入库确认、出库确认流水证据和 ERP 库存调整；未进入 B1b/B1c/B2。所有破坏性测试均使用 3307 随机临时库；真实数据只读取本地样本，不连接生产/3306/warehouse。
+
+### P 覆盖率（本批 4/4，非全项目覆盖率）
+
+| 范围 | 本地结果 | 证据与边界 |
+|---|---|---|
+| 入库创建→明确确认 | API/E2E 通过 | 创建库存不变；确认同键 20 并发只入账一次；新键重复确认拒绝；历史只读 |
+| 出库确认前后值/类型/ID | API/E2E 通过 | 原 revision/digest/幂等协议保留；10 并发只扣一次；库存不足 409 全回滚 |
+| 库存调整 | API/E2E/SQL 通过 | 原因必填 422；正负独立包数/重量；过期前值拒绝；同键重放；跨单调整不改单据明细 |
+| 原子性与端权限 | API/E2E 通过 | 17 个写入阶段故障注入均完整回滚；PDA/小程序对入库确认、出库确认、调整各 403 |
+
+### U 指标达成（本批范围）
+
+| 指标 | 实测 | 测量方法 |
+|---|---|---|
+| 幂等重复库存变更 | 0 次 | 入库/调整各 20 并发同键，出库 10 并发同键；查询操作/流水与最终库存 |
+| 事务失败残留 | 0 行 | MySQL AFTER trigger 在操作、库存、流水、状态、审计、幂等写入后抛错；比较全部相关表快照 |
+| 失败恢复 | 原键可恢复，原输入保留 | 浏览器确认末段 500 后原键重试 200；调整不足 409 后保留原因/调整量 |
+| 流水证据和库存对账 | 新操作差额错误 0、断链 0；历史 828/828 前后值相符 | 可执行 SQL 与样本迁移兼容脚本；无新增性能/录入耗时声明 |
+
+### N 已批准清单
+
+| 候选 | 本批处理 |
+|---|---|
+| 无新增 N 实施 | 撤销/作废/更正仍 B2；目录版本化仍 B1c；未扩展审批/多用户 |
+
+### 原始测试、SQL、迁移和截图
+
+- `npm run test`：**52 passed / 0 failed**，原始输出 `.local/evidence/b1a3-test.log`。包含 MySQL 真实事务、迁移、并发、源隔离、旧契约及实际小程序请求模块。
+- `npm run test:e2e`：**16 passed**，原始输出 `.local/evidence/b1a3-e2e.log`。本批新增 `tests/e2e/inventory-posting.spec.ts`（4 条）及 `inventory-outbound.spec.ts`（1 条）；其余既有 11 条回归通过。
+- `npm run build`：严格类型检查与 Web 构建通过，原始输出 `.local/evidence/b1a3-build.log`。`antd lint` 检查修改的入库/库存/标签与确认 hook，0 issues，输出 `.local/evidence/b1a3-antd-lint.log`。
+- [`verify-inventory-posting.sql`](../scripts/sql/verify-inventory-posting.sql) 可只读执行：逐条 after-before=delta；按库存格验证首笔前值+全部已提交 delta=最新后值=当前库存，并检查相邻流水连贯。`inventory-reconciliation.test.ts` 实测 4 条新流水、mismatches=0、chain_breaks=0、balanced=1；浏览器跨单调整也执行同一 SQL。历史导入流水不重复作为新记账量累加。
+- `npx tsx --test apps/api/tests/inventory-rollback.test.ts`：入库 6、出库 6、调整 5 个故障阶段；日志 `B1A3_ROLLBACK ... all_tables_unchanged=true`。故障仅存在临时数据库触发器，业务 API 无故障开关。
+- `npx tsx --test apps/api/tests/inventory-migration.test.ts`：`005 down empty=success`；历史非空 up 保留原状态；非空 down 输出“拒绝回退：inbound_receipts 含有数据，禁止删除历史数据”或 inventory_operations，同步保留迁移 applied 和全部数据。没有删除历史来绕过门禁。
+- `npx tsx scripts/verify-posting-compatibility.ts`：读取本地样本导入临时库执行 004→005；115 张入库、415 张出库原状态及库存指纹不变，828 条历史流水证据完整、delta 828/828 匹配；历史重复确认均拒绝。输出 `.local/evidence/b1a3-history.log`，不将原始业务行写进文档。
+- 本机开发样本库已经备份后 up 至 005；备份文件大小/SHA、迁移状态和指纹一致性见 `.local/evidence/b1a3-local-migration.log`；恢复与非空回退限制见 `FOUNDATION_MIGRATION.md`。不把文件校验声明为本轮完整恢复演练。
+- 截图均在 `.local/evidence/`：`b1a3-inbound-confirm-1440.png`、`b1a3-inbound-confirm-1280.png`、`b1a3-stock-adjustment-1440.png`、`b1a3-stock-adjustment-1280.png`。已检查主操作/前后值可见、无页面横向溢出；截图为合成验收数据，不进 Git。
+- 首轮全量 E2E 发现夹具共享编号、正常登录审计计入写入比较、旧按钮名/加载图标影响定位；已调整夹具和精确验收范围，完整重跑通过。初始失败输出留 `.local/evidence/b1a3-e2e-first-full.log`、`b1a3-e2e-second-full.log`，丢响应重试单独复核输出 `b1a3-retry.log`。
+
+本次没有实体 PDA、小程序真机或生产验收。OpenAPI 生成源码已同步；`docs/api` 生成物按约定留独立提交，本轮未混入。只完成这一个业务提交，后续批次等待放行。
+
+
 ## 用途隔离修正验收（2026-11-08）
 
 当前业务口径：库存与单据只认 ERP 商品；sku.txt / sku-spec 是扫码目录，只属于 B1c 页面（未开发）。本次只纠正库存视图和相关证据，不改建单/确认写入行为、历史数据或 API 契约。

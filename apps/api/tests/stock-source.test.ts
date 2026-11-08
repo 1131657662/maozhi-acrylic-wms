@@ -12,13 +12,13 @@ test('来源契约防混源：同名/误导前缀不合并，软删和条码重�
   try {
     await seedSourceEvidence(context.db);
     for (const [source, packages, weightGrams] of [
-      ['erp-product', 18, 5446000],
+      ['erp-product', 24, 7246000],
       ['sku-spec', 30, 9144000],
     ] as const) {
       const response = await context.web.get(`/api/v1/stock/by-source?source=${source}`).expect(200);
       const data = sourceStockSchema.parse(response.body.data);
       assert.deepEqual(data.subtotal, { packages, weightGrams });
-      assert.equal(data.items.length, 2);
+      assert.equal(data.items.length, source === 'erp-product' ? 3 : 2);
       assert.ok(data.items.every((row) => row.source === source && row.sourceKind === source));
       assert.deepEqual(Object.keys(data).sort(), ['items', 'source', 'subtotal']);
       console.log(`B1A2_SOURCE ${JSON.stringify(data)}`);
@@ -26,7 +26,7 @@ test('来源契约防混源：同名/误导前缀不合并，软删和条码重�
     const unknown = (await context.web.get('/api/v1/stock/by-source?source=unclassified').expect(200)).body.data;
     assert.equal(unknown.subtotal, null);
     assert.ok(unknown.items.some((row: { productCode: string }) => row.productCode === 'SRC-MISSING'));
-    assert.equal(unknown.items.length, 3);
+    assert.equal(unknown.items.length, 2);
     const journal = sourceJournalSchema.parse(
       (await context.web.get('/api/v1/stock/by-source/journal?source=sku-spec').expect(200)).body.data,
     );
@@ -111,8 +111,8 @@ test('可执行 SQL 防混源对账：异常非 ERP 夹具不影响 ERP 数值',
     const scoped = await context.db.all(statements[0]!);
     const proof = await context.db.all(statements[1]!);
     assert.ok(proof.every((row) => Number(row.display_value_matches) === 0));
-    assert.equal(Number(proof.find((row) => row.metric === 'packages')?.forbidden_cross_source_value), 48);
-    assert.equal(String(proof.find((row) => row.metric === 'tonnes')?.forbidden_cross_source_value), '14.5900');
+    assert.equal(Number(proof.find((row) => row.metric === 'packages')?.forbidden_cross_source_value), 54);
+    assert.equal(String(proof.find((row) => row.metric === 'tonnes')?.forbidden_cross_source_value), '16.3900');
     console.log(`B1A2_SQL ${JSON.stringify({ scoped, proof })}`);
   } finally {
     await context.dispose();
@@ -127,15 +127,15 @@ test('ERP 库存查询只在诊断日志提示未归属行数，不增加响应�
     for (let attempt = 0; attempt < 2; attempt++) {
       const response = await context.web.get('/api/v1/stock/by-source?source=erp-product').expect(200);
       assert.deepEqual(Object.keys(response.body.data).sort(), ['items', 'source', 'subtotal']);
-      assert.equal(response.body.data.items.length, 2);
+      assert.equal(response.body.data.items.length, 3);
     }
     assert.equal(warning.mock.callCount(), 1);
     assert.deepEqual(warning.mock.calls[0]?.arguments[0], {
       event: 'stock.unclassified_detected',
-      stockRows: 3,
+      stockRows: 2,
       inventorySource: 'erp-product',
     });
-    console.log('ERP_INVENTORY_DIAGNOSTIC unclassified_rows=3; warning_calls=1; extra_response_fields=0');
+    console.log('ERP_INVENTORY_DIAGNOSTIC unclassified_rows=2; warning_calls=1; extra_response_fields=0');
   } finally {
     await context.dispose();
   }

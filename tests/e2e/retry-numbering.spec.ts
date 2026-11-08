@@ -34,10 +34,10 @@ test('B1a 创建入库已成功但响应丢失，同表单重试使用原键和�
     }
     return route.fulfill({ response });
   });
-  await page.getByRole('button', { name: '确认入库', exact: true }).click();
+  await page.getByRole('button', { name: '创建待确认入库单', exact: true }).click();
   await expect(page.getByRole('alert').filter({ hasText: /fetch|network|网络/i })).toBeVisible();
   await expect(page.getByLabel('包数', { exact: true })).toHaveValue('1');
-  const retry = page.getByRole('button', { name: /确认入库$/ });
+  const retry = page.getByRole('button', { name: /创建待确认入库单$/ });
   await expect(retry).toBeEnabled();
   await expect(retry).not.toHaveClass(/ant-btn-loading/);
   console.log('B1A_RETRY_UI', await retry.evaluate((button) => ({ classes: button.className, text: button.textContent })));
