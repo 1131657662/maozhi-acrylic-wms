@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { shareSchemas, type OpenApiPaths } from './openapi-schemas.ts';
 import { webListOperations } from './features/web-lists/openapi.ts';
 import { webExportOperations } from './features/web-exports/openapi.ts';
 import { lifecycleOperations } from './features/document-lifecycle/openapi.ts';
@@ -345,21 +346,23 @@ function operationDocument(operation: Operation): object {
   };
 }
 export function openApiDocument(): object {
-  const paths: Record<string, Record<string, object>> = {};
+  const paths: OpenApiPaths = {};
   for (const operation of operations) {
     paths[operation.path] ??= {};
     paths[operation.path]![operation.method] = operationDocument(operation);
   }
+  const shared = shareSchemas(paths);
   return {
     openapi: '3.1.0',
     info: { title: '茂智云仓 · 腈纶仓储管理系统 — 本地合成 API', version: '0.1.0' },
     servers: [{ url: 'http://127.0.0.1:4310/api/v1' }],
-    paths,
+    paths: shared.paths,
     components: {
       securitySchemes: {
         cookieAuth: { type: 'apiKey', in: 'cookie', name: 'wms_session' },
         bearerAuth: { type: 'http', scheme: 'bearer' },
       },
+      schemas: shared.schemas,
     },
   };
 }

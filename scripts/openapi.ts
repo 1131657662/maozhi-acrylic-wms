@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { openApiDocument, operations } from '../apps/api/src/openapi.ts';
 const target = fileURLToPath(new URL('../docs/api/', import.meta.url));
 mkdirSync(target, { recursive: true });
-writeFileSync(`${target}/openapi.json`, JSON.stringify(openApiDocument(), null, 2) + '\n');
+writeFileSync(`${target}/openapi.json`, JSON.stringify(openApiDocument()) + '\n');
 const rows = operations.map(
   (operation) =>
     `| ${operation.method.toUpperCase()} | /api/v1${operation.path} | ${operation.channel ?? '公开'} | ${operation.summary} |`,
