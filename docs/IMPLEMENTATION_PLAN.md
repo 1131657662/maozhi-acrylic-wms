@@ -6,6 +6,8 @@
 
 当前增量状态以本文末尾“B1a 第 3 提交”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
 
+下一批 B1c-1 的待确认计划见 [B1C1_IMPLEMENTATION_PLAN.md](B1C1_IMPLEMENTATION_PLAN.md)：仅目录版本化服务端与 Web 上传，尚未实施；PDA 留 B1c-2，列表壳/导出/打印留 B1b。计划保留离线本地同步版本与历史事实接收规则，并明确旧设备交接门禁。
+
 单用户模块化单体，无租户、组织权限、角色矩阵、多级审批。Web 一次确认出库。
 Web 使用官方 Ant Design Pro v6.0.3 工程结构、Umi Max、ProLayout、ProForm、ProTable 和 ProDescriptions；后端使用 Express 5 + TypeScript + Zod；原生微信小程序 + Vant；Kotlin + Room + WorkManager。
 开发库使用本地隔离 MySQL 8；迁移脚本提供 up/down，业务 SQL 不使用 SQLite 专有语法。测试为每轮创建并销毁的临时 MySQL 库，必要时可使用内存级测试替身，但不连接生产。
