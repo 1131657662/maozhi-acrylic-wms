@@ -2,6 +2,7 @@
 
 状态只按当前代码与可定位证据填写；新现状无证据时按未完成处理。U 统一写作“旧痛点 → 新改法 → 量化收益”；无法说明收益的改动降为 P。P 覆盖率按非 N/A 的 P 行统计，权限按单用户边界明确记为 N/A，不纳入分母。P0 收敛为 8 项：仅纳入库存正确性、单据可追溯性、旧 ERP 高频路径或多个后续模块共同依赖的能力；其余功能按依赖和风险进入 P1–P3。
 
+2026-11-08状态同步：B1a、B1c-1/2、B1b-1/2已按原批次验收；打印未完成且已延后。建议下一批B2a撤销/作废，随后B2b更正→B3a盘点→B3b基础两报表→B3c派生两报表；仅排期待确认，见IMPLEMENTATION_PLAN。旧B2/B3其余P/U/N不自动进入本批。
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
@@ -21,15 +22,15 @@
 | 基础资料 | 仓库新增、编辑、启停（2.2） | 简化 CRUD | P：旧字段与有效性约束未全量核对 | 同一资料结构在多页重复学习 → 复用编码/名称/状态布局 → 目标从每类学习 3 种布局降为 1 种 | 4 类主数据各完成 3 个任务，统计中位点击数；待实测 | 无 | P1 | B2 | Warehouse | IMG: .local/evidence/master-data-1440.png | 仓库编码被单据和库存引用，禁止直接改键 |
 | 基础资料 | 供应商新增、编辑、启停（2.3） | 简化 CRUD | P：供应商历史引用/搜索字段未全量对齐 | 列表与编辑上下文分离 → 行内显示状态、抽屉保存后回原筛选 → 目标启停 2 步完成 | Playwright 统计点击；待实测 | 导入校验报告 | P1 | B2 | Supplier | IMG: .local/evidence/master-data-1440.png | 编辑失败应保留表单值 |
 | 基础资料 | 客户新增、编辑、分级（2.4） | 简化 CRUD | P：客户完整字段、等级与历史快照未全量对齐 | 重复录入地址/联系人 → 选择客户时带出历史资料、单据保留快照 → 单据录入少填 3 个联系字段 | E2E 检查字段回填和历史快照；待实测实际省时 | 经营数据看板 | P1 | B2 | Customer | IMG: .local/evidence/master-data-1440.png | 客户资料变更须明确是否回写历史单据，建议不回写 |
-| 基础资料 | **[红色风险] ERP 库存商品与 SPEC 扫码目录用途隔离** | 库存唯一 ERP；141 规格/9018 条码只用于扫码目录，关联键仍缺失 | P：B1c-1 目录/事实上下文已验证；B1c-2 待实施，缺关联键不得自动匹配 ERP 商品 | 把扫码目录当库存 → 库存与单据只认 erp-product，sku-spec 只属于 B1c 目录页 → 非 ERP 库存入口与请求 0 次 | E2E 检查唯一 ERP 视图；9018 条目录沿用 DATA 基线 | 全局商品关系维护（后置，不属 B1c） | P0 | B1a / B1c | Product、InventorySettlement | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；DATA: [scripts/verify-sample-seed.ts](../scripts/verify-sample-seed.ts) | 不按名称/前缀猜测；B1c 由原单 ERP 作业行保存事实归属，不建立全局映射；缺归属旧事实须先核对，不能因上传丢失 |
+| 基础资料 | **[红色风险] ERP 库存商品与 SPEC 扫码目录用途隔离** | 库存唯一 ERP；141 规格/9018 条码只用于扫码目录，关联键仍缺失 | P：B1c-1 目录/事实上下文已验证；B1c-2 已验收；缺关联键不得自动匹配 ERP 商品 | 把扫码目录当库存 → 库存与单据只认 erp-product，sku-spec 只属于 B1c 目录页 → 非 ERP 库存入口与请求 0 次 | E2E 检查唯一 ERP 视图；9018 条目录沿用 DATA 基线 | 全局商品关系维护（后置，不属 B1c） | P0 | B1a / B1c | Product、InventorySettlement | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；DATA: [scripts/verify-sample-seed.ts](../scripts/verify-sample-seed.ts) | 不按名称/前缀猜测；B1c 由原单 ERP 作业行保存事实归属，不建立全局映射；缺归属旧事实须先核对，不能因上传丢失 |
 
 ## 入库
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 入库 | 新建：仓库/供应商/日期/车辆/明细（3.1） | RK 自动号；创建仅保存待确认单，详情明确确认才入账；浏览器路径已验证 | P：本轮正向确认通过；撤销/作废/更正留 B2，旧字段仍有差距 | 手填单号且明细逐项录入 → 服务端 RK 自动号、包数与总吨数独立录入 → 少填 1 个字段；新建目标 ≤2 屏 | 50 并发入库 0 重复；录入时长待实测 | N-02 粘贴多行录入（B3 候选）；仅用于目录/事实辅助，不改变入库不扫码的业务边界 | P0 | B1a | InboundOrderForm、InboundEntry | E2E: [tests/e2e/outbound.spec.ts:77](../tests/e2e/outbound.spec.ts#L77) | 旧请求可保留原单号；旧缓存前端须刷新以获得确认入口；不能把创建成功当库存入账 |
-| 入库 | 列表搜索、筛选、排序、导出（3.2） | B1b-1：组合筛选/稳定分页/列设置/选择/原上下文返回已验；历史状态不改；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：查询对齐；XLSX导出已验，CSV不在本批；打印留 B1b-3 | 逐单读明细且只搜关键词 → 批量摘要+多条件服务端查询 → 同机10k行50条查询p95 303.62→35.04ms；表体最多200行 | 30次读模型计时；双宽度200行E2E；人机查单耗时待实测 | 保存常用筛选（N候选） | P0 | B1b-1 / B1b-2 | InboundOrderList、InboundDataTables | E2E: [tests/e2e/web-lists.spec.ts](../tests/e2e/web-lists.spec.ts)；IMG: .local/evidence/b1b1-inbound-1440.png；DATA: [scripts/verify-list-performance.ts](../scripts/verify-list-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 上海整日边界；原始状态与入账状态分开；打印仍未做；快照内分批、不混源，失败/取消不提供部分文件 |
-| 入库 | 详情审核、撤销审核、库存联动（3.3） | pending→confirmed 明确确认；同事务入账/前后值/操作 ID/审计/幂等；历史单据只读 | P：B1a 正向确认通过本地 E2E；撤销审核/作废/更正归 B2，未完成 | 审核影响不集中、错误回退需人工找单 → 详情展示前后库存，B2 用补偿流水撤销 → 追溯目标为详情 1 屏 | 20 并发同键只入账 1 次；6 个写入阶段注入失败均整体回滚；不代替实体/生产验收 | 审计差异对比 | P0 | B1a / B2 | InboundOrderDetail | E2E: [tests/e2e/inventory-posting.spec.ts](../tests/e2e/inventory-posting.spec.ts)；IMG: .local/evidence/b1a3-inbound-confirm-1440.png | 审核是正向库存边界，撤销须检查后续出库依赖；不删历史流水；B1b 仅管共同能力 |
+| 入库 | 列表搜索、筛选、排序、导出（3.2） | B1b-1：组合筛选/稳定分页/列设置/选择/原上下文返回已验；历史状态不改；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：查询对齐；XLSX导出已验，CSV不在本批；打印已延后，依赖积木报表配置 | 逐单读明细且只搜关键词 → 批量摘要+多条件服务端查询 → 同机10k行50条查询p95 303.62→35.04ms；表体最多200行 | 30次读模型计时；双宽度200行E2E；人机查单耗时待实测 | 保存常用筛选（N候选） | P0 | B1b-1 / B1b-2 | InboundOrderList、InboundDataTables | E2E: [tests/e2e/web-lists.spec.ts](../tests/e2e/web-lists.spec.ts)；IMG: .local/evidence/b1b1-inbound-1440.png；DATA: [scripts/verify-list-performance.ts](../scripts/verify-list-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 上海整日边界；原始状态与入账状态分开；打印未完成；不复刻HTML版式；快照内分批、不混源，失败/取消不提供部分文件 |
+| 入库 | 详情审核、撤销审核、库存联动（3.3） | pending→confirmed 明确确认；同事务入账/前后值/操作 ID/审计/幂等；历史单据只读 | P：B1a 正向确认通过本地 E2E；撤销/作废建议B2a、更正建议B2b，均未完成 | 审核影响不集中、错误回退需人工找单 → 详情展示前后库存，B2 用补偿流水撤销 → 追溯目标为详情 1 屏 | 20 并发同键只入账 1 次；6 个写入阶段注入失败均整体回滚；不代替实体/生产验收 | 审计差异对比 | P0 | B1a / B2a / B2b | InboundOrderDetail | E2E: [tests/e2e/inventory-posting.spec.ts](../tests/e2e/inventory-posting.spec.ts)；IMG: .local/evidence/b1a3-inbound-confirm-1440.png | 审核是正向库存边界，撤销须检查后续出库依赖；不删历史流水；B1b 仅管共同能力 |
 
 ## 出库
 
@@ -37,8 +38,14 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 出库 | 新建：仓库/客户/日期/车辆/明细、库存校验（4.1） | CK 自动号及编辑保号通过浏览器验收；不预占库存 | P：计划字段和审核/作废链仍未齐 | 手填号且商品信息需重复录入 → 服务端 CK 自动号、客户快照回填、后续库存预检 → 已少填 1 个字段；预检后置 | 50 并发出库 0 重复；时长待实测 | Web 摄像头扫码 | P1 | B1a | OutboundOrderForm、OutboundPlanEntry | E2E: [tests/e2e/outbound.spec.ts:105](../tests/e2e/outbound.spec.ts#L105) | 号码创建后不可改；本次仅纠正 ERP 库存视图，不改计划写入行为；单据只认 ERP 商品 |
 | 出库 | 列表搜索、筛选、排序、导出（4.2） | B1b-1：单号/时间/状态/客户/仓库/车牌筛选、排序、列设置及返回上下文已验；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：查询对齐；XLSX导出已验，CSV不在本批 | 关键词和分散列设置 → 同一查询壳与URL状态、计划/实扫分开 → 详情返回额外重填0项；每页上限200行，双宽度页面横滚0 | E2E核对返回URL、排序响应、跨页选择；10k生产构建30次首屏/翻页p95见ACCEPTANCE | 批量动作（候选） | P1 | B1b-1 / B1b-2 | OutboundOrderList | E2E: [tests/e2e/web-lists.spec.ts](../tests/e2e/web-lists.spec.ts)；IMG: .local/evidence/b1b1-outbound-1280.png；DATA: [scripts/verify-list-browser-performance.ts](../scripts/verify-list-browser-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 无批量确认；计划明细/事实分别聚合，防JOIN放大；旧PDA/小程序契约不改；快照内分批、不混源，失败/取消不提供部分文件 |
-| 出库 | 详情审核、撤销审核、库存联动（4.3） | PDA 事实/冻结不扣库；Web 确认共享事务补齐前后值、操作类型/ID；原幂等协议保留 | P：本轮正向确认证据通过；撤销/作废/更正留 B2，打印留 B1b | 单按钮审核语义不清 → 计划、冻结、确认分态并展示包级实重 → 重复确认 0 次重复扣减 | 10 并发同键扣减一次；6 写入阶段故障回滚；不足 409 与两个移动端 403 已断言 | 差异放行/短装超发（本轮不做） | P0 | B1a | OutboundOrderDetail、OutboundVehicleConfirmation | E2E: [tests/e2e/inventory-outbound.spec.ts](../tests/e2e/inventory-outbound.spec.ts)；E2E: [tests/e2e/outbound.spec.ts](../tests/e2e/outbound.spec.ts) | 库存风险高；只有 Web 明确确认可扣库存；打印字段 schema 列入 B1b |
+| 出库 | 详情审核、撤销审核、库存联动（4.3） | PDA 事实/冻结不扣库；Web 确认共享事务补齐前后值、操作类型/ID；原幂等协议保留 | P：本轮正向确认证据通过；撤销/作废建议B2a、更正建议B2b，均未完成；打印已延后，依赖积木报表配置 | 单按钮审核语义不清 → 计划、冻结、确认分态并展示包级实重 → 重复确认 0 次重复扣减 | 10 并发同键扣减一次；6 写入阶段故障回滚；不足 409 与两个移动端 403 已断言 | 差异放行/短装超发（本轮不做） | P0 | B1a / B2a / B2b | OutboundOrderDetail、OutboundVehicleConfirmation | E2E: [tests/e2e/inventory-outbound.spec.ts](../tests/e2e/inventory-outbound.spec.ts)；E2E: [tests/e2e/outbound.spec.ts](../tests/e2e/outbound.spec.ts) | 库存风险高；只有 Web 明确确认可扣库存；打印由积木PDF代理提供，旧同单号叠图验收；未实施 |
 | 出库 | 未知状态/流水类型显示 | 统一标签；未知状态详情增加常驻释义与核对指引 | P：现有 Web 展示点已验收；后续页面须沿用 | 新值空白或只剩一串代码 → 灰色“状态待识别：原文”及详情说明，不画本地流程 → 0 空白、0 页面异常，下一步无需悬停查找 | E2E 真 MySQL 未知值逐页断言；1440/1280 截图 | 无 | P0 | B1a | OutboundOrderDetail、StockJournal | E2E: [tests/e2e/numbering.spec.ts](../tests/e2e/numbering.spec.ts)；IMG: .local/evidence/b1a2-unknown-status-1440.png | 保留原值；未确认语义不猜测；null 明示未记录；出库确认禁用 |
+
+## 打印（已延后）
+
+| 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 打印 | 入库单/出库单/出库套打及模板配置（3.3/4.3/9） | 已延后，依赖积木报表配置；未实现 | P：配置表（地址/报表ID/token/参数名/格式）+服务端代理PDF+单据下载按钮，均未做 | —（先保证旧版式对齐，不虚造效率提升） | 旧ERP同单号/同参数PDF叠图一致；待提供配置及旧打印件实测 | 无 | P1 | B1b-3（已延后） | 旧单据打印按钮、打印配置 | E2E: 待补；IMG: 待提供旧打印件 | 不用HTML/CSS复刻、不部署积木服务；token不传前端；模板版式不由XLSX schema生成 |
 
 ## 现场端（PDA / 小程序）
 
@@ -60,18 +67,18 @@
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 盘点 | 新建、加载库存、填实盘、算差异（6.1） | 未实现 | P：盘点快照与实盘输入未做 | 人工逐商品找系统数 → 创建时锁定快照，逐行录实盘并即时差异 → 200 行录入无需离开表格 | E2E 键盘走完 200 行；耗时待实测 | PDA 盘点模式 | P2 | B3 | StockCheckOrderForm | E2E: 待补 | PDA 盘点需改业务边界和离线模型，先不做 |
-| 盘点 | 列表、搜索、状态（6.2） | 未实现 | P：列表和状态链缺失 | 盘点任务分散 → 统一列表筛选与状态 → 定位任务 ≤3 步 | E2E 统计点击；待实测 | 无 | P2 | B3 | StockCheckOrderList | E2E: 待补 | 无 |
-| 盘点 | 详情、差异回写、作废（6.3） | 未实现 | P：审批/差异处理、库存回写、流水和审计缺失 | 差异需人工手算再改库存 → 展示差异并事务回写补偿流水 → 差异行计算错误 0 | E2E 用正负差异和重复提交验证；待实测 | 差异放行（本轮不做） | P2 | B3 | StockCheckOrderDetail | E2E: 待补 | 不能静默放行差异；回写是显式单据操作 |
+| 盘点 | 新建、加载库存、填实盘、算差异（6.1） | 未实现 | P：盘点快照与实盘输入未做 | 人工逐商品找系统数 → 创建时锁定快照，逐行录实盘并即时差异 → 200 行录入无需离开表格 | E2E 键盘走完 200 行；耗时待实测 | PDA 盘点模式 | P2 | B3a（建议） | StockCheckOrderForm | E2E: 待补 | PDA 盘点需改业务边界和离线模型，先不做 |
+| 盘点 | 列表、搜索、状态（6.2） | 未实现 | P：列表和状态链缺失 | 盘点任务分散 → 统一列表筛选与状态 → 定位任务 ≤3 步 | E2E 统计点击；待实测 | 无 | P2 | B3a（建议） | StockCheckOrderList | E2E: 待补 | 无 |
+| 盘点 | 详情、差异回写、作废（6.3） | 未实现 | P：审批/差异处理、库存回写、流水和审计缺失 | 差异需人工手算再改库存 → 展示差异并事务回写补偿流水 → 差异行计算错误 0 | E2E 用正负差异和重复提交验证；待实测 | 差异放行（本轮不做） | P2 | B3a（建议） | StockCheckOrderDetail | E2E: 待补 | 不能静默放行差异；回写是显式单据操作 |
 
 ## 统计报表
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 报表 | 月度出入库汇总（7.1） | 未实现 | P：月单数/包数/重量/净入库与导出未做 | 汇总需人工拼表 → 固定 ERP 口径，日期范围筛选后图表表格同步 → 每月人工合并 4 类表目标降为 1 次查询 | 用固定 CSV 对账合计；耗时待实测 | 经营看板 | P2 | B3 | MonthlySummary | E2E: 待补 | 用途隔离：仅 ERP 单据/库存，SPEC 目录不参与；明示软删口径 |
-| 报表 | 商品周转率（7.2） | 未实现 | P：周期、平均库存、排序和导出未做 | 需手算周转率 → 明示公式并可排序 → 计算复核目标从逐行计算降到抽查 10 行 | SQL 与脚本对同一时间段交叉核验；待实测 | 无 | P2 | B3 | Turnover | E2E: 待补 | 口径需先确认库存时间点；不将推测公式当事实 |
-| 报表 | 入库/出库明细（7.3） | 未实现 | P：筛选字段、导出缺失 | 多页导出再拼接 → 查询结果与导出字段/顺序一致 → 导出复核从 2 份对照降为 1 份 | 对比 CSV 表头和页面列定义；10k 行分页导出完整性 | 无 | P2 | B3 | InboundDetail、OutboundDetail | E2E: 待补 | Excel 格式需防公式注入，超大导出走分页 |
-| 报表 | 库龄分析（7.4） | 未实现 | P：截止日、库龄分段、下钻和导出未做 | 靠记忆找久库存 → 固定截止日和分段，下钻原库存 → 过龄项目定位 ≤2 步 | 固定快照 SQL 对账；响应时延待实测 | 库龄看板 | P2 | B3 | StockAging | E2E: 待补 | 库龄起算规则需用真实入库/出库流水验证 |
+| 报表 | 月度出入库汇总（7.1） | 未实现 | P：月单数/包数/重量/净入库与导出未做 | 汇总需人工拼表 → 固定 ERP 口径，日期范围筛选后图表表格同步 → 每月人工合并 4 类表目标降为 1 次查询 | 用固定 CSV 对账合计；耗时待实测 | 经营看板 | P2 | B3b（建议） | MonthlySummary | E2E: 待补 | 用途隔离：仅 ERP 单据/库存，SPEC 目录不参与；明示软删口径 |
+| 报表 | 商品周转率（7.2） | 未实现 | P：周期、平均库存、排序和导出未做 | 需手算周转率 → 明示公式并可排序 → 计算复核目标从逐行计算降到抽查 10 行 | SQL 与脚本对同一时间段交叉核验；待实测 | 无 | P2 | B3c（建议） | Turnover | E2E: 待补 | 口径需先确认库存时间点；不将推测公式当事实 |
+| 报表 | 入库/出库明细（7.3） | 未实现 | P：筛选字段、导出缺失 | 多页导出再拼接 → 查询结果与导出字段/顺序一致 → 导出复核从 2 份对照降为 1 份 | 对比 XLSX 表头和页面列定义；10k 行分页导出完整性 | 无 | P2 | B3b（建议） | InboundDetail、OutboundDetail | E2E: 待补 | Excel 格式需防公式注入，超大导出走分页 |
+| 报表 | 库龄分析（7.4） | 未实现 | P：截止日、库龄分段、下钻和导出未做 | 靠记忆找久库存 → 固定截止日和分段，下钻原库存 → 过龄项目定位 ≤2 步 | 固定快照 SQL 对账；响应时延待实测 | 库龄看板 | P2 | B3c（建议） | StockAging | E2E: 待补 | 库龄起算规则需用真实入库/出库流水验证 |
 
 ## 权限
 
