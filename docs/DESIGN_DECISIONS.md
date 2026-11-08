@@ -93,9 +93,9 @@
 ## DD-12 PDA 连续扫码与离线补传
 
 - 问题：PDA 已持久化事实并在联网时重试（[ScanRepository.kt:8](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/ScanRepository.kt#L8)、[SyncWorker.kt:19](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/sync/SyncWorker.kt#L19)），但主屏只显示队列总数且补传遇首个失败即退出本轮（[ScanScreen.kt:23](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/ui/ScanScreen.kt#L23)、[SyncRepository.kt:11](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/SyncRepository.kt#L11)）。现场需要连续录包并立刻知道失败、冲突和回传结果。
-- 方案：扫码主屏保持输入焦点，显示最近扫码结果及待补传/失败/冲突/已回传分类；网络错误自动重试，业务冲突进入核对队列。
+- 方案：扫码主屏保持输入焦点，显示最近扫码结果及待核验/补传/失败/冲突/已回传分类；网络错误自动重试，业务冲突进入核对队列。B1c/DD-15 优先定义新扫码在线解析最新版；离线补传专指已有事实/待核验命令，不能用旧缓存产生新的成功事实。
 - 备选：把状态放在独立记录页；否决原因是现场需离开扫码流程才能确认是否漏传。
-- U 指标与基线：当前仪器测试覆盖本机队列持久化和冻结不扣库存（[ScanIntegrationTest.kt:21](../apps/pda/app/src/androidTest/java/cn/maozhi/wms/pda/ScanIntegrationTest.kt#L21)），连续 100 包焦点保持、错误分类可见性和实体扫码枪体验待实测；目标焦点保持率、冲突可见率、无冲突事实回传率均 100%。用 Android 仪器测试模拟 100 包、断网/恢复和单条 409，并另做实体设备扫码枪计时。
+- U 指标与基线：当前仪器测试覆盖本机队列持久化和冻结不扣库存（[ScanIntegrationTest.kt:21](../apps/pda/app/src/androidTest/java/cn/maozhi/wms/pda/ScanIntegrationTest.kt#L21)），连续 100 包在线扫码焦点保持、错误分类可见性和实体扫码枪体验待实测；目标焦点保持率、冲突可见率、无冲突记录回传率均 100%。用 Android 仪器测试模拟 100 包、已有记录断网/恢复和单条 409，并另做实体设备扫码枪计时。
 - 回退：异常时回到当前扫码记录/补传入口；Room 中 UUID 与正文不可变，任何重试都不删除或重写事实；PDA 永不确认出库或扣库存。
 
 ## DD-13 小程序只读查询上下文
@@ -114,6 +114,14 @@
 - U 指标与基线：当前无摘要 manifest 和数据对账步骤，恢复时长待实测；目标产物摘要校验率、恢复身份校验率和约定数据对账通过率均为 100%，隔离恢复耗时 <15 分钟。用单字节篡改样本、恢复新库并比较 manifest、表计数和重量汇总；每次迁移验收演练计时。
 - 回退：失败只清理本次隔离恢复库，保留原备份和当前开发库；若自动对账有误，回到人工只读对账，不自动切库、不连接生产。
 
+## DD-15 条码目录整版发布与事实独立追溯（B1c，设计未实施）
+
+- 问题：旧 PDA 已有 SKU 版本/导入/云更新（[V10SkuActivity.kt:101](D:/wms-new/wms-pda/app/src/main/java/com/jinglun/wmspda/ui/V10SkuActivity.kt#L101)），属于 P。当前版本锁死 v1，且 [repository.ts:14](../apps/api/src/features/outbound/repository.ts#L14) 和 [PDA ScanRepository.kt:19](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/ScanRepository.kt#L19) 用当前目录归属旧事实；用户缺码补传目录后必须在原出库单续扫，不能让删码或改重破坏冻结/确认。
+- 方案：采用 U-06 的不可变整版 entries/versions、单行 head 与 fact context；Web 同页展示全量校验/差异后一次发布，历史在抽屉；消失码无失效审批、不自动扣库存。目录容器最大 1440px、抽屉最大 720px（均为 4 的倍数且随视口收缩），为条码/规格/新旧重量留出空间；其余沿用 token，不改组件默认密度。每条事实保存版本/规格/实重及原单 ERP 作业行绑定，同单可混版。新扫码由服务端在线原子解析最新版；PDA 缓存整版切换，只辅助浏览，断网保留原记录/命令，成功重放不查当前目录。规格不模糊匹配 ERP，目录/库存/单据用途隔离。
+- 备选：当前表 + SCD 区间历史能省空间，但增加移除/重现/并发重建风险，按需更新约 9k 条规模不选；按整单固定目录版本虽简单，却无法让原单扫新版新增码，也否决；USB 本机覆盖与离线缓存直接新扫无法保证服务端最新版，不保留为权威发布路径。
+- U 指标与基线：现状无 Web 上传且 v1 硬编码，时延基线待实测；目标全量解析/差异 <10s、发布事务 p95 <500ms、历史事实变化 0、原单重建 0、逐包版本/实重追溯 100%。U-06 的 catalog-mixed-version-continuation 逐步断言 v1 两包→缺码→v2 新包→原单冻结→v3 移除全部→原单确认；API 故障注入/Playwright/Android 仪器测试及实体 PDA 分档测量，当前全部为计划验收。
+- 风险与回退：固定锁序/幂等结果避免发布与扫码竞态；事实归属、旧 digest 算法和旧队列先核验迁移，再开放上传；不改旧 UUID/正文/hash/实重。错误文件整版不动；错误已发布版以新版本恢复旧内容，已有事实不自动改重。产生新版本事实后只停新发布、保留兼容读/补传/冻结/确认，不回退只懂 v1 的代码、不 down 删除版本数据。
+
 ## 页面族覆盖索引
 
 | UI_SPEC 页面族 | 对应 DD |
@@ -122,12 +130,12 @@
 | 基础资料列表族 | DD-01、DD-06、DD-09 |
 | 入库新建/详情 | DD-01、DD-02、DD-04、DD-10 |
 | 入库列表 | DD-01、DD-08、DD-10、DD-11 |
-| 出库新建/详情 | DD-01、DD-03、DD-04、DD-06 |
+| 出库新建/详情 | DD-01、DD-03、DD-04、DD-06、DD-15 |
 | 出库列表 | DD-01、DD-08、DD-10、DD-11 |
-| PDA 扫码与补传 | DD-03、DD-12 |
+| PDA 扫码与补传 | DD-03、DD-12、DD-15 |
 | 小程序只读查询 | DD-09、DD-13 |
 | 库存查询/调整 | DD-01、DD-05、DD-06、DD-07 |
-| B1c 条码目录（未开发） | DD-05、DD-12 |
+| B1c 条码目录（未开发） | DD-05、DD-12、DD-15 |
 | 盘点 | DD-01、DD-05、DD-07、DD-08 |
 | 统计报表 | DD-01、DD-05、DD-06、DD-08、DD-10 |
 | 系统配置 | DD-01、DD-04、DD-06、DD-09 |
