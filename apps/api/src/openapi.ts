@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { catalogOperations } from './features/catalog/openapi.ts';
+import { handoffOperations } from './features/handoff/openapi.ts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
 import {
   loginSchema,
@@ -42,6 +43,7 @@ export interface Operation {
 }
 export const operations: Operation[] = [
   ...catalogOperations,
+  ...handoffOperations,
   { method: 'post', path: '/inbound/{id}/confirm', summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务', body: confirmInboundSchema, response: inboundReceiptSchema, channel: 'web', idempotent: true },
   { method: 'post', path: '/stock/adjustments', summary: 'ERP 库存调整；原因必填，校验当前值，原子记账', body: stockAdjustmentSchema, response: stockAdjustmentResultSchema, channel: 'web', idempotent: true },
   { method: 'get', path: '/stock/by-source', summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计', query: stockSourceQuerySchema, response: sourceStockSchema, channel: 'web' },

@@ -13,6 +13,7 @@ const migrations = [
   { id: '004_document_numbering', guardedTables: ['document_number_counters','document_number_rules'] },
   { id: '005_inventory_posting', guardedTables: ['inventory_operations','inbound_receipts','stock_journal'] },
   { id: '006_catalog_versioning', guardedTables: ['scan_fact_context','catalog_entries','catalog_head','catalog_versions','catalog_client_activity','scan_facts','scan_catalog_v1_archive'] },
+  { id: '007_pda_handoff', guardedTables: ['pda_handoff_clients','pda_handoff_records','pda_handoffs'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

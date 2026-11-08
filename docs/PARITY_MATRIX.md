@@ -5,7 +5,7 @@
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
-用途隔离：库存与单据只认 `erp-product`；`sku-spec` 仅属于 B1c 条码目录用途；B1c-1 Web/服务端已验证，PDA 同步留 B1c-2。目录是用户按需上传的有效条码全量快照，不参与库存/单据/报表聚合；扫码时的版本/实重另存不可变事实。未归属数据只写诊断日志，不设库存入口。B1c 设计见 U-06/DD-15，计划用例不得算作已通过证据。
+用途隔离：库存与单据只认 `erp-product`；`sku-spec` 仅属于 B1c 条码目录用途；B1c-1 Web/服务端已验证；B1c-2 本地与 M71 隔离包已验证，现场实际队列仍待验收。目录是用户按需上传的有效条码全量快照，不参与库存/单据/报表聚合；扫码时的版本/实重另存不可变事实。未归属数据只写诊断日志，不设库存入口。B1c 设计见 U-06/DD-15，计划用例不得算作已通过证据。
 
 ## 登录首页
 
@@ -44,8 +44,8 @@
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| PDA 现场扫码 | 出库扫码事实、冻结与补传（4.3/现场作业） | Room 持久队列、WorkManager 重试已有；扫码页只显示待处理总数 | U：扫码结果与待补传/失败/冲突状态未逐条可见 | 扫码后离开主屏查队列 → 主屏连续扫码并显式分列补传/失败/冲突 → 100 包离线连续输入焦点保持目标 100%，冲突可见率 100% | Android 仪器测试断网新扫/回传和真正冲突；实体扫码枪待实测 | 无 | P1 | B2 | ScanScreen、扫码记录 | E2E: [Android ScanIntegrationTest.kt](../apps/pda/app/src/androidTest/java/cn/maozhi/wms/pda/ScanIntegrationTest.kt) | 沿用 B1c 本地同步版本 + 服务端接受历史版本事实；不得冻结即出库或由 PDA 扣库存 |
-| PDA SKU / 条码目录管理 | 本地版本、文件导入、云端更新（旧 PDA 补充能力；关联手册 4.3，手册未单列 SKU 章节） | B1c-1 已验证 Web 上传/差异/历史/原子发布、固定 v1 兼容与事实解耦；PDA 仍为旧端 | P：Web 权威上传与版本追溯已验证；PDA 原子同步/离线混版待 B1c-2；本行仍不计完整 P 通过 | 缺码后无法续扫且换目录影响旧记录 → 全量快照整版生效、本地同步版本离线扫码、服务端接受历史版本事实 → 原单重建 0 次、历史事实变化 0、版本/实重追溯 100% | 场景 A Web/API 混版与旧摘要已测，PDA 场景 A/B 待 B1c-2；重复上传版本增量 0、失败指针变化 0；性能另见验收 | 无 | P1 | B1c-1 / B1c-2 | 旧 PDA SKU 管理 / V10SkuActivity | E2E: [tests/e2e/catalog-versioning.spec.ts](../tests/e2e/catalog-versioning.spec.ts)；E2E: [tests/e2e/catalog-upload-errors.spec.ts](../tests/e2e/catalog-upload-errors.spec.ts)；DATA: [scripts/verify-catalog-migration.ts](../scripts/verify-catalog-migration.ts) | 推荐不可变整版快照，备选区间历史；移除不审批、不扣库；同单混版；新版改重/删码只提示，版本不存在/被撤销等异常进可见冲突；v1 队列/摘要先兼容 |
+| PDA 现场扫码 | 出库扫码事实、冻结与补传（4.3/现场作业） | B1c-2 本地版本/逐条同步状态与差异提示已验；记录页显示待传/失败/冲突；主屏高频扫码体验留原 U 批次 | U：真实扫码枪焦点/反馈与操作耗时仍待测，不能以仓储层 100 条自动录入代替 | 扫码后离开主屏查队列 → 主屏连续扫码并显式分列补传/失败/冲突 → 100 包离线连续输入焦点保持目标 100%，冲突可见率 100% | Android 仪器测试断网新扫/回传和真正冲突；实体扫码枪待实测 | 无 | P1 | B2 | ScanScreen、扫码记录 | E2E: [Android ScanIntegrationTest.kt](../apps/pda/app/src/androidTest/java/cn/maozhi/wms/pda/ScanIntegrationTest.kt) | 沿用 B1c 本地同步版本 + 服务端接受历史版本事实；不得冻结即出库或由 PDA 扣库存 |
+| PDA SKU / 条码目录管理 | 本地版本、文件导入、云端更新（旧 PDA 补充能力；关联手册 4.3，手册未单列 SKU 章节） | B1c-1 Web 已验；B1c-2 本地目录原子刷新/离线混版/旧队列交接与可见门禁已验（M71 隔离合成数据） | P：本轮技术链路通过；不把实体隔离合成验收写为实际现场队列上线验收 | 缺码后无法续扫且换目录影响旧记录 → 全量快照整版生效、本地同步版本离线扫码、服务端接受历史版本事实 → 原单重建 0 次、历史事实变化 0、版本/实重追溯 100% | M71 断网 100 条重开 100/100，刷新失败后第 101 条成功；原单 60*v1+1*v2，旧正文变化 0；58 条一次批量核验；真实枪耗时待测 | 无 | P1 | B1c-1 / B1c-2 | 旧 PDA SKU 管理 / V10SkuActivity | E2E: [tests/e2e/catalog-versioning.spec.ts](../tests/e2e/catalog-versioning.spec.ts)；E2E: [tests/e2e/catalog-upload-errors.spec.ts](../tests/e2e/catalog-upload-errors.spec.ts)；DATA: [scripts/pda/verify-device-queue.py](../scripts/pda/verify-device-queue.py)；E2E: [tests/e2e/catalog-handoff.spec.ts](../tests/e2e/catalog-handoff.spec.ts)；IMG: .local/evidence/b1c2-version-notice-pda.png | 推荐不可变整版快照，备选区间历史；移除不审批、不扣库；同单混版；新版改重/删码只提示，版本不存在/被撤销等异常进可见冲突；v1 队列/摘要先兼容 |
 | 小程序只读查询 | 单据/库存只读查询（现场辅助） | 出库列表和详情查询已有 | U：详情返回后列表回到第一页且需重新定位 | 返回详情重载第一页 → 保留筛选、页码、列表和滚动锚点并刷新 → 返回目标位置 1 次系统返回动作，恢复率 100% | 微信开发者工具第 3 页往返测试；当前位置恢复基线待实测 | 无 | P2 | B2 | 出库查询、单据详情 | E2E: 待补 | 只读；小程序不扫码、不录入事实、不写库存 |
 
 ## 库存

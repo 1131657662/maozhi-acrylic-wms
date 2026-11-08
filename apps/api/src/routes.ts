@@ -13,6 +13,7 @@ import { journalRows } from './features/stock/journal.ts';
 import { stockSourceController } from './features/stock/source-controller.ts';
 import { stockAdjustmentController } from './features/stock/adjust-controller.ts';
 import { catalogRouter } from './features/catalog/router.ts';
+import { handoffRouter } from './features/handoff/router.ts';
 
 export function businessRouter(db:Database,origins:string[],catalogPublishEnabled=false):Router {
   const router=Router();
@@ -25,6 +26,7 @@ export function businessRouter(db:Database,origins:string[],catalogPublishEnable
   const stockSource=stockSourceController(db);
   router.use(requireAuth(db));
   router.use(catalogRouter(db,origins,catalogPublishEnabled));
+  router.use(handoffRouter(db,origins));
   router.get('/stock/by-source',requireChannel('web',origins),stockSource.stock);
   router.post('/stock/adjustments',requireChannel('web',origins),stockAdjustmentController(db));
   router.get('/stock/by-source/journal',requireChannel('web',origins),stockSource.journal);

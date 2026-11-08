@@ -9,6 +9,7 @@ import { CatalogOverview } from './overview';
 import { CatalogUpload } from './upload';
 import { CatalogCandidate } from './candidate';
 import { VersionHistory } from './version-history';
+import { HandoffPanel } from './handoff-panel';
 
 export function CatalogPage() {
   const [candidate, setCandidate] = useState<CatalogUploadResult | null>(null);
@@ -39,6 +40,7 @@ export function CatalogPage() {
           />
         )}
         {overview && <CatalogOverview overview={overview} />}
+        {overview && <HandoffPanel />}
         {candidate?.version && (
           <CatalogCandidate key={candidate.uploadId} upload={candidate} allowed={!!overview?.gate.allowed && !error} />
         )}

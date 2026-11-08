@@ -25,6 +25,7 @@ class ApiClient(private val session: SessionStore) {
         return session.endpoint + "/api/v1"
     }
     private fun execute(builder: Request.Builder): Any {
+        builder.header("X-Device-Id", session.deviceId)
         if (session.token().isNotEmpty()) builder.header("Authorization", "Bearer ${session.token()}")
         client.newCall(builder.build()).execute().use { response ->
             val body = JSONObject(response.body?.string() ?: error("服务返回空响应"))

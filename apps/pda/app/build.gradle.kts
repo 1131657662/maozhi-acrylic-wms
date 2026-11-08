@@ -7,11 +7,11 @@ android {
     namespace = "cn.maozhi.wms.pda"
     compileSdk = 36
     defaultConfig {
-        applicationId = "cn.maozhi.wms.pda"
+        applicationId = providers.gradleProperty("validationApplicationId").orElse("cn.maozhi.wms.pda").get()
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0-local"
+        versionCode = 2
+        versionName = "0.2.0-local"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }

@@ -1,5 +1,15 @@
 # 基础迁移执行记录
 
+## 007_pda_handoff 与 Room 1→2（B1c-2，2026-11-08）
+
+- MySQL up 仅新增 `pda_handoffs/pda_handoff_records/pda_handoff_clients`；记录完整队列 SHA、原始 JSON/SHA、不可变 context、旧协议活动水位。旧业务表及 006 目录不改写；启动须 007 applied 且三表齐备。
+- 已在本机 3307 样本库执行：备份 `.local/backups/maozhi-1794114891092.sql`，SHA-256 `06D35EEDD29B261D859CEE33ECBE4A7F6D98536F8DE617F98A29AD176799DA48`；先恢复独立 `maozhi_restore_3593d0dca20da020` 并逐表核对（恢复库会话按既有规则清空，原库会话不动），再迁移。日志 `.local/evidence/b1c2-local-backup.log`、`b1c2-local-restore.log`、`b1c2-local-migration.log`。
+- 前后全表指纹一致：目录 9018、历史入库 115、出库 415、库存 122、流水 828；当前样本扫码事实 0，不能拿零行冒充旧队列验收。另用 M71 非空 60 条旧队列及混版事实验证。
+- MySQL 空交接表 down/up 实测成功；任一交接表非空，执行 DDL 前拒绝，原表与迁移记录不变。007 不完整时启动拒绝。保留 applying/reverting 状态，DDL 中断必须检查真实结构后修复，不自动删除迁移记录或重跑 seed。
+- Room 迁移只加新表，将旧缓存复制为未校验 v1；旧事实、原正文、原冻结 key 不改。原子目录切换另实测 head 写入故障，v2 条目/元数据/head 全回滚，原事实不变；Android 9/API28 可运行。
+- 中断恢复：独立恢复包在真实 Room 迁移写表之后、commit 之前被宿主 force-stop；装回原基线 APK 后，schema=1、原正文 60/60、待传 55/失败 5、原冻结 key 均不变，旧 UI 真正显示 60/61。原始输出 `b1c2-migration-interruption.log`，图片 `b1c2-old-queue.png`，脚本 `scripts/pda/verify-interruption.py`。
+- 回退边界：上述旧 APK 恢复只适用于未提交迁移。成功提交 Room 2 或产生 v2 事实后，不允许回到只识别 v1 的 APK，不执行破坏性 down；停止新发布、保全队列/备份并前向修复。服务端交接数据非空也禁止直接 down；不存在删除待传记录的恢复路径。
+
 ## 006_catalog_versioning（B1c-1，2026-11-08）
 
 - up：新增 `catalog_versions/catalog_entries/catalog_head/scan_fact_context/catalog_client_activity`；现有目录原样为 v1；仅精确且唯一匹配原单 ERP 行的旧事实允许补 context，原事实与摘要不 UPDATE。旧目录封存为 archive，旧名改不可更新 v1 视图；事实外键改为版本+条码。

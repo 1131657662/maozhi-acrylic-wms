@@ -1,8 +1,20 @@
 # 四端重建 / 第一里程碑
 
+## B1c-2 PDA 离线目录与交接（2026-11-08，当前增量）
+
+- 四组验收：①离线新扫、重启落盘、刷新失败继续扫；②版本事实回传、混版冻结/确认、版本差异提示；③旧队列完整交接、批量确认和发布门禁；④迁移中断后旧 APK 可恢复。仅本批范围，不进入 B1b/B2。
+- Room 1→2 只加本地版本/条目/head、事实上下文旁表和持久交接清单；不改旧 facts、plans、catalog、submissions。旧缓存作为未校验 v1 保留；首次完整同步核验后启用版本化。SHA 协议为排序后的 `[barcode,sourceSpec,weightGrams]` JSON，下载期间发布新版本不会混页。
+- 新事实本地原子写 UUID/正文与上下文；既存事实正文不重序列化、不改版本/重量/摘要。无可靠 ERP 键的旧记录由 Web 按原单明确选行，禁止模糊映射和跨单绑定；同批超过 100 条分段幂等提交，失败保留已完成的绑定及剩余可见记录。
+- `POST /scan/handoffs` 登记 deviceId/appVersion/expectedCount/manifestSha/catalogVersion/catalogSha/previousSessionHashes；`POST /scan/handoffs/:id/records` 每次最多 3 条原 JSON/原 SHA/本机状态；`GET` 分页返回收妥结果与不可变 context。PDA 通道与 X-Device-Id 校验；全部沿用会话认证，不能由 PDA 确认交接、出库或调整。
+- Web `/catalog/handoffs` 总览、`/:id` 明细、`/:id/bind`（每次最多 100 UUID）、`/:id/clients`（人工核实设备归属）、`/:id/confirm`。修改记审计；清单头/事实原文重试必须相同；已封存清单允许完全相同原记录重传，不能增加/覆盖。未收妥/正文不符/未归属/旧请求水位变化均阻止确认。
+- 发布门禁以 `outstandingClientsSql` 的未核验客户端水位 + 未确认交接清单 + 缺 context 的历史事实为准，叠加原有发布开关/候选完整性/base 校验。确认水位不删除旧活动，后来旧请求重新阻断。服务端无法证明从未联网设备的队列情况，必须保留人工设备范围确认；本轮未打开样本库发布开关。
+- 错误包括 `HANDOFF_INCOMPLETE / HANDOFF_CLIENT_CHANGED / HANDOFF_DEVICE_MISMATCH / HANDOFF_CONTEXT_SEALED / HANDOFF_SEALED / IDEMPOTENCY_CONFLICT`；422 表单/契约失败、403 通道不符、409 业务冲突。异常事实与网络失败均不清队列；一条真正冲突不妨碍其他合法事实补传。
+- 007 新增三张交接表，非空拒绝 down；006 只读目录契约保留。Room 成功升级后只能向前修复；仅中断且未提交的迁移可以启动旧 APK，已在 M71 实测，不推广为成功迁移后任意降级保证。
+- 未决/未测：141 SPEC ↔ 428 ERP 仍无全局映射；未做真实作业队列切换、厂商扫码枪/功能键、跨天弱网或生产。M71 初查无本项目包；隔离合成旧队列 60（待传 55、失败 5，丢响应 2 是其中子集）；75bdbbee 已排除。OpenAPI 仅更新源码，生成物仍留独立提交。
+
 日期：2026-11-07。来源：用户本轮指令优先于只读交接包中的旧技术/审批建议。
 
-## B1c-1 目录版本化（2026-11-08 最新状态）
+## B1c-1 目录版本化（2026-11-08，保留原批次记录）
 
 - A 方案：006 建立完整版本/条目、单行 head、不可变 fact context 与旧协议活动门禁。Web `/catalog` 提供全量 txt 上传、固定基线差异、整版发布、历史与刷新后候选恢复；未修改 PDA/小程序、B1b/B2。
 - 同一规范化 content hash 匹配任一完整版本，默认返回 `duplicate=true`、`matchedVersionId`、`message=与第 N 版内容一致`，版本数不增加。显式二次确认携 `rebuildOfVersionId`，后端核对内容一致才创建后继候选；不设 hash 全局 UNIQUE。
@@ -15,7 +27,7 @@
 
 ## 范围与决策
 
-当前增量状态以本文末尾“B1c-1 目录版本化”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
+当前增量状态以本文开头“B1c-2 PDA 离线目录与交接”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
 
 B1c-1 的已执行计划见 [B1C1_IMPLEMENTATION_PLAN.md](B1C1_IMPLEMENTATION_PLAN.md)：仅目录版本化服务端与 Web 上传，已完成本地实现与验证；PDA 留 B1c-2，列表壳/导出/打印留 B1b。计划保留离线本地同步版本与历史事实接收规则，并明确旧设备交接门禁。
 

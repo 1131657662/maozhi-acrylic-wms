@@ -1,8 +1,76 @@
 # 第一里程碑验收记录
 
+## B1c-2：PDA 本地目录版本、跨版本补传与旧队列交接（2026-11-08）
+
+本批仅 B1c-2。代码、构建和隔离实体 M71 验证分别记录；不宣称现场实际队列、生产或厂商扫码枪已验收。M71 初查无本项目包，没有可盘点的本项目现场队列（不能据此将其他应用的队列记为 0）；75bdbbee 已由用户明确排除。非空迁移使用独立应用包制造 60 条旧队列：待补传 55、失败 5，其中 2 条服务端已收到而本机未收到响应，丢响应数须联网比对，不是额外 2 条。
+
+### P 覆盖率（本批四组 4/4；不代表全项目/生产验收）
+
+| 组 | 实际结果 | 原始证据 |
+| --- | --- | --- |
+| G1 离线与刷新 | API 不可达下新扫 100；Room 重开后正文与 context 100/100；刷新失败后第 101 条可扫；坏 SHA / head 失败保持 v1 | `.local/evidence/b1c2-device-final-safety.log`；`OfflinePersistenceTest`、`CatalogSafetyTest` |
+| G2 历史版与同单混版 | 同一原单 60 条 v1 + 1 条 v2；原 60 正文逐字一致、61/61 收妥；冻结 18.3020 吨后由 Web 语义确认；另一单 101 条离线 v1 在 v2 发布后接收；未知版本冲突保留、不阻塞另一合法记录 | `b1c2-device-readback.log`、`b1c2-device-mixed.log`、`b1c2-device-output.log`、`b1c2-server-reconciliation.log` |
+| G3 旧队列与门禁 | 60 完整清单，2 已收妥/58 未收妥；58 条一次用户批量操作绑定原单行；60/60 收妥确认后门禁放行；新旧协议活动重新阻断；跨单绑定、改正文/context 均拒绝 | `b1c2-test-final.log`、`b1c2-e2e-final.log`、`catalog-handoff.spec.ts` |
+| G4 迁移与回退 | 实际 Room 写入后/commit 前强停，旧 APK 可开原队列、60/60 正文与原冻结 key 不变；007 空表 down/up，非空拒绝；006-only 启动被拦 | `b1c2-migration-interruption.log`、`b1c2-old-queue.png`、`b1c2-test-final.log` |
+
+### U 指标达成（只报告实测范围）
+
+| 指标 | 原状态/目标 | 本批实测与边界 |
+| --- | --- | --- |
+| 批量交接 | 逐条核验会随条数线性点击 | 58 条待归属按原单一次批量动作，自动按 100 条请求分片；未测万级人机耗时 |
+| 离线可靠性 | 刷新失败不得影响已扫/后续扫码 | 100/100 重开保留，失败后第 101 条成功；真实硬件扫码连续速度/焦点未测 |
+| 历史事实不变 | UUID/正文/版本/重量变化为 0 | M71 原 60 条原文逐字比对 60/60；同单增加 v2，无重建单据 |
+| 可恢复性 | 错误记录不能静默丢失 | 未知版本 409，原正文重开仍在；合法 v1 独立成功；错误 SHA/事务失败都不切本地 head |
+| 可解释门禁 | 能看到剩余设备和记录 | 1440/1280 截图显示设备、完整清单、已/未收妥、待归属、客户端活动与确认条件；从未联网设备仍需人工盘点 |
+
+### N 已批准清单
+
+| 项 | 结论 |
+| --- | --- |
+| 本轮新增能力 | 无；B1c-2 是已批准目录/PDA 对齐范围，未进入 B1b/B2 或其他 N |
+
+### 原始输出摘录（完整日志在 .local/evidence，不进 Git）
+
+```text
+B1C2_OFFLINE network=unreachable scans=100 durable_after_reopen=100/100 contexts=100/100 refresh_failed=true subsequent_scan=101 head=v1
+B1C2_LOCAL_TRANSACTION failed_head=rolled_back v2_entries=0 v2_metadata=0 head=v1 facts=unchanged
+B1C2_CATALOG corrupt_hash=refused active_version=1 subsequent_offline_scan=success concurrent_handoff_20=one_manifest
+B1C2_RECHECK incomplete_manifest=retained confirmed_manifest=new_snapshot
+B1C2_DEVICE_READBACK original_raw_payloads=60/60 identical=true received=61/61 pending=0 failed=0 conflict=0
+B1C2_CONFLICT unknown_version=409 retained_after_reopen=true original_body=unchanged other_valid_v1=accepted_after_v2
+B1C2_OLD_APK UI original_queue_text=60/61 rendered=true
+B1C2_OLD_APK reopened schema=1 total=60 pending=55 failed=5 raw_payloads=60/60 freeze_key=unchanged
+B1C2_DOWN_ACTUAL 拒绝回退：pda_handoff_clients 含有数据，禁止删除历史数据
+B1C2_MIGRATION 007 empty_down_up=success
+B1C2_HANDOFF rollback_registered=0 pda_miniapp_confirm_adjust=403
+```
+
+- `npm run test`：77 tests / 77 pass / 0 fail；原始 `b1c2-test-final.log`。
+- `npm run build`：严格类型检查与 Web 编译通过；原始 `b1c2-build-final.log`。
+- `npm run test:e2e`：16 passed + 9 passed（共 25），原始 `b1c2-e2e-final.log`；截图列宽微调另定向复跑交接用例，见 `b1c2-handoff-visual-final.log`。
+- Android `assembleDebug testDebugUnitTest lintDebug`：BUILD SUCCESSFUL；3 个单元测试，lint 0 errors / 25 warnings（主要既有硬编码显示文案等，未将警告写成零）；原始 `b1c2-android-final.log`。
+- 实体仪器：最终安全复测 `OK (3 tests)`；另按阶段实测升级、旧队列补传、离线、同单混版、冲突/UI、迁移中断。完整执行顺序见 `scripts/pda/README.md`，不能将有状态阶段测试随意在原队列上重跑。
+- `antd lint apps/web/src/features/catalog --format json`：0 issues；未引入依赖或 `.ant-*` 覆盖。OpenAPI 仅更新源操作定义，生成物不混入此提交。
+
+### SQL 与备份核验
+
+执行 `npx tsx scripts/pda/verify-server-sql.ts`，SQL 源为 `scripts/sql/verify-pda-handoff.sql`，完整实际输出 `b1c2-server-reconciliation.log`。隔离数据结果：原单 v1 60/18.0000 吨、v2 1/0.3020 吨；另一单 v1 102/30.6000 吨（101 离线记录 + 冲突验证中的 1 条合法记录），全部 context_mismatches=0。出库流水 500→439 包、150.0000→131.6980 吨，delta=-61/-18.3020，delta_matches=1。PDA 仅上传/冻结，扣减由独立 Web 确认服务测试产生。
+
+开发初测发现 worker 与手动交接竞态，产生两份对应相同 60 UUID 的清单；修复为共享 mutex + Room 原子 firstHandoff。历史清单均保留并收妥确认，未删证据；SQL 按事实 UUID 统计仍是 60，不按两份清单重复加总。20 并发本地回归实际仅一份，后续已确认清单只能明确重新清点产生新的头。
+
+本地样本库 007 前先备份并恢复到新库逐表比对，迁移后原表指纹完全一致：目录 9018、入库 115、出库 415、库存 122、流水 828；原库会话不变。样本事实为 0，非空兼容由实体合成队列另证。证据 `b1c2-local-backup.log / b1c2-local-restore.log / b1c2-local-migration.log`，备份 SHA 与回退边界见 `FOUNDATION_MIGRATION.md`。
+
+### 截图与验收限制
+
+- Web：`b1c2-handoff-blocked-{1440,1280}.png`、`b1c2-handoff-records-{1440,1280}.png`、`b1c2-handoff-ready-{1440,1280}.png`，页面级无横滚断言；交接表仅内部滚动且操作列固定。
+- M71：`b1c2-mixed-pda.png`（原单混版）、`b1c2-version-notice-pda.png`（已接受 v1、当前 v2 改重提示）、`b1c2-old-queue.png`（中断后真正运行的旧 APK）。都是隔离合成数据截图，存 `.local/evidence/`。
+- 未验收：真实生产队列、厂商扫码枪/广播/功能键、真实现场网络切换与跨天弱网、生产上线。100 包是实体设备上的仓储层自动录入与落盘测试，不冒称人工扫码枪 100 次测试。
+- 成功 Room 2 迁移后不得安装只识别 schema1 的旧 APK；已承载交接数据的 MySQL 不得 down。只能保全队列后前向修复；未提交迁移回退是另一明确边界。
+
+
 ## B1c-1：目录版本化服务端与 Web 上传（2026-11-08）
 
-本节为最新增量验收。A 方案落地为不可变整版目录、当前指针和不可变事实上下文；只验收服务端与 Web，PDA 客户端仍属 B1c-2。未进入 B1b/B2；未新增依赖；未连接生产、3306 或 warehouse。目录重量只用于解析/核对，不计库存、单据计划或经营统计。
+本节保留 B1c-1 原批次验收记录。A 方案落地为不可变整版目录、当前指针和不可变事实上下文；只验收服务端与 Web，PDA 客户端仍属 B1c-2。未进入 B1b/B2；未新增依赖；未连接生产、3306 或 warehouse。目录重量只用于解析/核对，不计库存、单据计划或经营统计。
 
 ### P 覆盖率（本批 6/6；不代表完整 PDA 功能或全项目完成）
 

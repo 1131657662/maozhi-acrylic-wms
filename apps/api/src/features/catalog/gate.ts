@@ -1,5 +1,6 @@
 import type { Database } from '../../db/mysql.ts';
 import { ensure } from '../../shared/errors.ts';
+import { outstandingClientsSql } from '../handoff/read.ts';
 
 export async function publicationGate(db: Database, enabled: boolean) {
   const reasons: string[] = [];
@@ -11,13 +12,16 @@ export async function publicationGate(db: Database, enabled: boolean) {
   );
   if (Number(missing?.n) > 0) reasons.push('存在尚未完成 ERP 归属核验的历史事实');
   const clients = await db.get(
-    'SELECT COALESCE(SUM(legacy_requests),0) AS requests,COUNT(*) AS clients FROM catalog_client_activity WHERE legacy_requests>0 OR queue_verified=0',
+    `SELECT COALESCE(SUM(legacy_requests),0) AS requests,COUNT(*) AS clients FROM (${outstandingClientsSql}) pending`,
   );
+  const handoffs = await db.get('SELECT COUNT(*) AS n FROM pda_handoffs WHERE confirmed_at IS NULL');
+  if (Number(handoffs?.n) > 0)
+    reasons.push(`还有 ${Number(handoffs?.n)} 份设备交接清单待收妥和确认，请查看下方交接明细`);
   const legacyRequests = Number(clients?.requests ?? 0),
     unverifiedClients = Number(clients?.clients ?? 0);
   if (unverifiedClients)
     reasons.push(
-      `发现 ${unverifiedClients} 个未交接旧协议客户端，旧协议请求 ${legacyRequests} 次；须在 B1c-2 核实待补传队列，不能自动清零`,
+      `发现 ${unverifiedClients} 个未交接旧协议客户端，旧协议请求 ${legacyRequests} 次；须核实并确认设备待补传队列，不能自动清零`,
     );
   return { allowed: reasons.length === 0, reasons, legacyRequests, unverifiedClients };
 }

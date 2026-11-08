@@ -17,7 +17,7 @@ test('006 启动校验拒绝未迁移库；已发布零条版本也禁止 down',
   const { db, dispose } = await createTestDatabase('005_inventory_posting');
   try {
     await assert.rejects(assertCatalogReady(db), /拒绝启动写服务/);
-    await migrateUp(db);
+    await migrateUp(db, '006_catalog_versioning');
     await assertCatalogReady(db);
     await initializeCatalogV1(db, []);
     const before = await db.all('SELECT * FROM catalog_versions');
@@ -34,10 +34,10 @@ test('006 启动校验拒绝未迁移库；已发布零条版本也禁止 down',
 });
 
 test('006 空库 down/up；旧目录任何 DML 均被数据库拒绝', async () => {
-  const { db, dispose } = await createTestDatabase();
+  const { db, dispose } = await createTestDatabase('006_catalog_versioning');
   try {
     await migrateDown(db);
-    await migrateUp(db);
+    await migrateUp(db, '006_catalog_versioning');
     console.log('B1C1_MIGRATION empty_down_up=success');
     await seedDemo(db, 'test-only-password');
     const before = await db.all('SELECT * FROM scan_catalog ORDER BY barcode');

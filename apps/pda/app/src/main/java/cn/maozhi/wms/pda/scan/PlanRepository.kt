@@ -20,11 +20,5 @@ class PlanRepository(private val dao: ScanDao, private val api: ApiClient) {
             }
             page++
         } while ((page - 1) * 50 < result.getInt("total"))
-        val rows = api.get("/scan/catalog") as JSONArray
-        val items = (0 until rows.length()).map { i ->
-            val row = rows.getJSONObject(i)
-            CatalogItem(row.getString("barcode"), row.getString("productCode"), row.getLong("weightGrams"), row.getInt("catalogVersion"))
-        }
-        dao.saveCatalog(items)
     }
 }
