@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { stockAdjustmentSchema, stockAdjustmentResultSchema, type StockAdjustment } from '@wms/contracts';
 import { request } from '../../api/client';
 import { stockKeys } from './keys';
+import { webListKeys } from '../web-lists/keys';
 
 export function useAdjustStock() {
   const client = useQueryClient();
@@ -19,6 +20,7 @@ export function useAdjustStock() {
     },
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: stockKeys._def });
+      await client.invalidateQueries({ queryKey: webListKeys._def });
     },
   });
 }

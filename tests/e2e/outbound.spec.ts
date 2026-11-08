@@ -68,7 +68,7 @@ test('1280 布局、空态和退出登录', async ({ page }) => {
   await page.screenshot({ path: '.local/evidence/web-list-1280.png', fullPage: true });
   await page.getByRole('searchbox', { name: '搜索出库单' }).fill('NO-MATCH');
   await page.getByRole('searchbox', { name: '搜索出库单' }).press('Enter');
-  await expect(page.locator('.ant-empty-description')).toHaveText('暂无数据');
+  await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.getByRole('button', { name: '退出登录' }).click();
   await expect(page.getByRole('button', { name: /登\s*录/ })).toBeVisible();

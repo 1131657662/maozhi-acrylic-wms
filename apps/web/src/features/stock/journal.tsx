@@ -30,9 +30,10 @@ export function StockJournal() {
       search={false}
       options={false}
       pagination={false}
+      scroll={{ x: 1100 }}
       locale={{ emptyText: '暂无库存流水' }}
       columns={[
-        { title: '类型', render: (_, row) => <JournalTypeTag type={row.type} /> },
+        { title: '类型', width: 180, render: (_, row) => <JournalTypeTag type={row.type} /> },
         { title: '仓库', dataIndex: 'warehouseCode' },
         { title: '商品', dataIndex: 'productCode' },
         { title: '包数变化', render: (_, row) => <span data-testid="journal-row-packages">{row.packagesDelta}</span> },

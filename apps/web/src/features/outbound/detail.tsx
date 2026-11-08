@@ -7,6 +7,7 @@ import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { Facts } from './facts';
 import { Confirm } from './confirm';
 import { formatTime } from '../../lib/format-time';
+import { ListBackLink } from '../../components/BusinessList/navigation';
 
 export function OrderDetail() {
   const { id = '' } = useParams();
@@ -22,7 +23,7 @@ export function OrderDetail() {
     );
   return (
     <section>
-      <Link to="/">← 返回出库工作台</Link>
+      <ListBackLink fallback="/">← 返回出库工作台</ListBackLink>
       <div className="page-title">
         <div>
           <span className="eyebrow">OUTBOUND DETAIL</span>

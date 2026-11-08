@@ -23,7 +23,7 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   const stockRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
-    if (request.url().includes('/api/v1/stock')) stockRequests.push(request.url());
+    if (request.url().includes('/api/v1/stock') || request.url().includes('/api/v1/web/lists/stock')) stockRequests.push(request.url());
   });
   await openStock(page);
   const expected = await expectedErpStock(page);
@@ -35,7 +35,7 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(tonnes(expected.subtotal.weightGrams));
   await expect(page.getByTestId('stock-row-packages')).toHaveCount(expected.items.length);
   for (const row of expected.items) {
-    const tableRow = page.getByTestId('source-stock').getByRole('row').filter({ hasText: row.productCode });
+    const tableRow = page.getByTestId('stock-list').getByRole('row').filter({ hasText: row.productCode });
     await expect(tableRow.getByTestId('stock-row-packages')).toHaveText(String(row.packages));
     await expect(tableRow.getByTestId('stock-row-tonnes')).toHaveText(tonnes(row.weightGrams));
   }
@@ -55,7 +55,7 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
     stockRequests.every((url) => {
       const request = new URL(url);
       return (
-        request.pathname.startsWith('/api/v1/stock/by-source') && request.searchParams.get('source') === 'erp-product'
+        (request.pathname.startsWith('/api/v1/stock/by-source') || request.pathname === '/api/v1/web/lists/stock') && request.searchParams.get('source') === 'erp-product'
       );
     }),
   ).toBeTruthy();
@@ -71,7 +71,7 @@ test('ERP 库存加载及错源重试：非 ERP 响应不显示、不残留数�
     release = resolve;
   });
   let incorrect = true;
-  await page.route('**/api/v1/stock/by-source?source=erp-product', async (route) => {
+  await page.route('**/api/v1/web/lists/stock?**', async (route) => {
     await waiting;
     const response = await route.fetch();
     const body = await response.json();
@@ -86,7 +86,7 @@ test('ERP 库存加载及错源重试：非 ERP 响应不显示、不残留数�
   await expect(page.locator('.ant-skeleton')).toBeVisible();
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
   release?.();
-  await expect(page.getByText('ERP 库存加载失败，已停止展示旧数据')).toBeVisible();
+  await expect(page.getByText('列表加载失败，已停止展示旧数据')).toBeVisible();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveCount(0);
   incorrect = false;
   await page.getByRole('button', { name: /重\s*试/ }).click();
@@ -97,24 +97,24 @@ test('ERP 库存加载及错源重试：非 ERP 响应不显示、不残留数�
 
 test('ERP 库存空态与无权限：不出现其他用途入口或占位', async ({ page }) => {
   let forbidden = false;
-  await page.route('**/api/v1/stock/by-source?source=erp-product', (route) =>
+  await page.route('**/api/v1/web/lists/stock?**', (route) =>
     route.fulfill({
       status: forbidden ? 403 : 200,
       json: {
         code: forbidden ? 'FORBIDDEN' : 'OK',
         message: '验收拒绝',
         traceId: 'source-state',
-        data: forbidden ? null : { source: 'erp-product', items: [], subtotal: { packages: 0, weightGrams: 0 } },
+        data: forbidden ? null : { source: 'erp-product', items: [], total: 0, page: 1, pageSize: 20, viewToken: 'empty', subtotal: { packages: 0, weightGrams: 0 } },
       },
     }),
   );
   await openStock(page);
-  await expect(page.getByText('暂无 ERP 商品库存；请核对入库单据')).toBeVisible();
+  await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveText('0');
   await expect(page.getByRole('tab')).toHaveCount(0);
   forbidden = true;
   await page.reload();
-  await expect(page.getByText('无权查看 ERP 库存')).toBeVisible();
+  await expect(page.getByText('无权查看此列表')).toBeVisible();
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
   await expect(page.getByRole('tab')).toHaveCount(0);
 });

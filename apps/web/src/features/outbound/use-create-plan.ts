@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { createOutboundPlanSchema, detailSchema, type OutboundPlanFields } from '@wms/contracts';
 import { request } from '../../api/client';
 import { outboundKeys } from './keys';
+import { webListKeys } from '../web-lists/keys';
 
 export function useCreatePlan() {
   const client = useQueryClient();
@@ -18,6 +19,7 @@ export function useCreatePlan() {
     },
     onSuccess: () => {
       pending.current = null;
+      void client.invalidateQueries({ queryKey: webListKeys._def });
       return client.invalidateQueries({ queryKey: outboundKeys._def });
     },
   });

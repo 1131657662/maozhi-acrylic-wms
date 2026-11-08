@@ -4,6 +4,7 @@ import { detailSchema, type Detail } from '@wms/contracts';
 import { request } from '../../api/client';
 import { outboundKeys } from './keys';
 import { stockKeys } from '../stock/keys';
+import { webListKeys } from '../web-lists/keys';
 export function useConfirm() {
   const client = useQueryClient();
   const pending = useRef<{ input: string; key: string } | null>(null);
@@ -22,6 +23,7 @@ export function useConfirm() {
       await Promise.all([
         client.invalidateQueries({ queryKey: outboundKeys._def }),
         client.invalidateQueries({ queryKey: stockKeys._def }),
+        client.invalidateQueries({ queryKey: webListKeys._def }),
       ]);
     },
   });

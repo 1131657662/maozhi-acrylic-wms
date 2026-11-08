@@ -4,11 +4,13 @@
 
 ## DD-01 统一列表壳
 
-- 问题：旧入库/出库列表分别维护筛选抽屉和批量逻辑；当前原型入库 `search={false}`（[inbound/list.tsx（44–69 行）](../apps/web/src/features/inbound/list.tsx#L44)），出库也只有关键词和状态（[outbound/list.tsx（61–108 行）](../apps/web/src/features/outbound/list.tsx#L61)）。
-- 方案：统一 ProTable 壳，日期/状态/仓库/往来单位/单号服务端筛选，关键列左固定、操作列右固定，筛选和列显隐版本化持久化。
-- 备选：每个页面独立设计；否决原因是重复学习和字段漂移，导出/打印无法共享 schema。
-- U 指标与基线：旧路径至少 4 次打开/填写/查询动作，目标 2 次；当前仅有单号关键词基线，完整流程和 10k 行 p95 均待实测。测量用 Playwright 事件计数和本地 MySQL 10k 行 API p50/p95。
-- 回退：接口参数按版本兼容，前端壳层异常时回到原列表路由，不改数据。
+- 问题：B1b-1 前原型各页独立筛选，库存全量取回、日志只取最近 100 条；旧入库读取每条明细造成多次查询。旧实现保存在父提交 f7a8c070；当前实现为 [BusinessList](../apps/web/src/components/BusinessList/index.tsx)、[分页查询](../apps/api/src/features/web-lists/query.ts)，不再引用已改写文件的旧行号。
+- 方案：四页共用 PageContainer + QueryFilter + ProTable，URL 保留筛选/排序/页码，列设置按页版本化存 localStorage；日期按上海时区整日边界；新 Web 只读端点独立，旧移动端契约不改。计划与实扫分开聚合，库存小计只认相同筛选的 ERP 有效行。
+- 布局决策：单号/商品名称/动作左固定，单据原始状态与行操作右固定；包数/吨数前置，避免窄屏先看到辅助字段。内边距使用 token.paddingLG，减少嵌套容器的横向留白；表体最大高 480px（4 的倍数），让 200 行在表内滚动，未重写默认行高/密度或 .ant-*。
+- 备选：四套独立列表或一次拉全量前端筛选；否决理由为口径/列设置漂移及数据量增长。选中不等于批量确认，跨页保留选择、筛选变化清空；导出/打印在 B1b-2/3 使用已稳定的查询与列配置，当前没有伪按钮。
+- U 指标与基线：同机临时 MySQL 10k 行各 30 次，旧入库 50 行查询 p95 303.62ms → 新 35.04ms；新第 200 页 37.27ms。旧库存全量查询 12.43ms、新带筛选小计 84.88ms，不能声称 SQL 全面提速；收益为传输/渲染上限 200 行。日志由截断 100 条改完整分页。生产构建浏览器首屏/翻页 30 次 p95 与运行条件见 ACCEPTANCE，本批不杜撰旧人机点击/耗时。
+- 验证方法：E2E [web-lists](../tests/e2e/web-lists.spec.ts)、[四态](../tests/e2e/web-list-states.spec.ts)、[列设置/跨页选择](../tests/e2e/web-list-preferences.spec.ts)；[SQL/旧新读模型计时](../scripts/verify-list-performance.ts)、[生产构建浏览器计时](../scripts/verify-list-browser-performance.ts)。1440/1280 图片存 .local/evidence/b1b1-{inbound,outbound,stock,audit}-{width}.png；这是合成隔离数据验收，不代替生产/真人计时。
+- 回退：单独 revert B1b-1 提交即可撤回新 Web 路径与只读端点；没有新增依赖、迁移或业务写入；保留 B1a/B1c 的库存/目录事务与旧 API。首次扩充测试触发登录限流后，仅列表测试改用临时库专用会话，保留登录 UI 测试和真实限流。
 
 ## DD-02 入库重量独立录入
 

@@ -52,7 +52,7 @@ test('B1a3 调整空原因 422、库存不足 409；错误保留输入且数据�
     expect(empty.status()).toBe(422);
     await page.goto('/stock');
     await page
-      .getByTestId('source-stock')
+      .getByTestId('stock-list')
       .getByRole('row')
       .filter({ hasText: cell.productCode })
       .getByRole('button', { name: '调整库存' })
@@ -106,7 +106,7 @@ test('B1a3 跨单调整：不改两张单据，调整前后值与 SQL delta 一�
     expect((await post(page, `/inbound/${first.id}/confirm`, {})).status()).toBe(200);
     await page.goto('/stock');
     await page
-      .getByTestId('source-stock')
+      .getByTestId('stock-list')
       .getByRole('row')
       .filter({ hasText: cell.productCode })
       .getByRole('button', { name: '调整库存' })

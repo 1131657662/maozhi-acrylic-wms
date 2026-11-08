@@ -1,6 +1,18 @@
 # 四端重建 / 第一里程碑
 
-## B1c-2 PDA 离线目录与交接（2026-11-08，当前增量）
+## B1b-1 四个 Web 列表与只读分页（2026-11-08，当前增量）
+
+- 用户批准 B1b 分三批、每批一个 commit 后停下：本批仅入库/出库/库存/日志统一查询、分页、列设置、布局与读接口；B1b-2 导出、B1b-3 打印未开始。不改 PDA/小程序、库存确认/调整、目录版本化或 B2 撤销。
+- 前端使用 `components/BusinessList`、`features/web-lists` 共用 QueryFilter/ProTable/四态与返回上下文；旧详情仅接入安全的列表返回链接，创建/确认/调整成功额外失效新列表缓存，命令正文和幂等键不改。包数/吨数优先显示、单号/商品与操作固定，页面不通过隐藏溢出来掩盖内容。
+- 新增 `GET /api/v1/web/lists/{inbound,outbound,stock,audit}`，返回 `items,total,page,pageSize,viewToken`；库存另有字面量 `source=erp-product` 和同筛选范围全分页 `subtotal`。列表项为轻量摘要，不传包级事实或日志大 JSON。`viewToken` 仅为本次响应摘要，不承诺跨请求数据库快照或导出能力。
+- 入库支持单号、上海时区登记日、原始 nullable status/statusMissing、postingState、供应商、仓库；出库支持单号、建单日、原始状态、客户、仓库、车牌；库存支持 ERP 商品/仓库；日志支持时间、action、target、traceId。日志表没有独立结果码，不猜测“成功/失败”；如需失败请求检索另行建模，不改历史审计。
+- `GET /web/lists/{inbound,outbound}/statuses` 返回有效单据的原始状态选项；`GET /web/lists/audit/:id` 按需读取 beforeJson/afterJson。全部仅 Web 会话；匿名 401、PDA/小程序 403、非法参数 422 `VALIDATION_ERROR`、日志不存在 404 `NOT_FOUND`。
+- 所有查询严格白名单；分页20/50/100/200、页号1..100000、每个文本最多200字符；排序字段枚举且以主键稳定兜底。日期统一转 UTC，LIKE 转义通配符并参数化。拒绝未知字段、all、多来源和总计参数；响应逐行 ERP 字面量验证，校验失败不展示旧数字。
+- 计数/页面/摘要在同一个 REPEATABLE READ 只读业务事务中查询；入库按页批量聚合有效明细，出库计划和事实分别分组，避免 JOIN 相乘；事实重量来自 scan_facts，不依赖当前扫码目录。未归属库存仅调用原诊断日志。旧 `/stock`、`/outbound`、`/scan/*`、`/audit` 和移动契约保持不变。
+- 本批不建008：万级临时数据实测现有 inbound_created 排序索引及主数据主键 eq_ref 可用；日志仍有 filesort，但10k读模型p95为12.71ms。没有证据支持本批加索引/迁移；更大规模或新查询形态需重新 EXPLAIN。回滚仅 revert 本批提交，不执行 down、不改历史数据。
+- 验证使用3307随机临时库和合成夹具，行数/精度/状态/ERP守卫与旧契约一起回归；生产构建浏览器30次计时与截图见 ACCEPTANCE。列表E2E复用临时库专用会话，原登录UI测试/限流保留。无新增依赖；OpenAPI只改源码声明，生成物按原约定独立提交，不混本批。
+
+## B1c-2 PDA 离线目录与交接（2026-11-08，保留原批次记录）
 
 - 四组验收：①离线新扫、重启落盘、刷新失败继续扫；②版本事实回传、混版冻结/确认、版本差异提示；③旧队列完整交接、批量确认和发布门禁；④迁移中断后旧 APK 可恢复。仅本批范围，不进入 B1b/B2。
 - Room 1→2 只加本地版本/条目/head、事实上下文旁表和持久交接清单；不改旧 facts、plans、catalog、submissions。旧缓存作为未校验 v1 保留；首次完整同步核验后启用版本化。SHA 协议为排序后的 `[barcode,sourceSpec,weightGrams]` JSON，下载期间发布新版本不会混页。
@@ -27,7 +39,7 @@
 
 ## 范围与决策
 
-当前增量状态以本文开头“B1c-2 PDA 离线目录与交接”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
+当前增量状态以本文开头“B1b-1 四个 Web 列表与只读分页”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
 
 B1c-1 的已执行计划见 [B1C1_IMPLEMENTATION_PLAN.md](B1C1_IMPLEMENTATION_PLAN.md)：仅目录版本化服务端与 Web 上传，已完成本地实现与验证；PDA 留 B1c-2，列表壳/导出/打印留 B1b。计划保留离线本地同步版本与历史事实接收规则，并明确旧设备交接门禁。
 

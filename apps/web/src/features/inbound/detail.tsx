@@ -1,5 +1,5 @@
 import { Alert, Button, Result, Skeleton } from 'antd';
-import { Link, useParams } from '@umijs/max';
+import { useParams } from '@umijs/max';
 import { ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
@@ -7,6 +7,7 @@ import { useReceipt } from './use-receipt';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { InboundConfirmation } from './confirm';
 import { ApiError } from '../../api/client';
+import { ListBackLink } from '../../components/BusinessList/navigation';
 
 export function InboundDetail() {
   const { id = '' } = useParams();
@@ -29,7 +30,7 @@ export function InboundDetail() {
   ];
   return (
     <section>
-      <Link to="/inbound">← 返回入库记录</Link>
+      <ListBackLink fallback="/inbound">← 返回入库记录</ListBackLink>
       <div className="page-title">
         <div>
           <span className="eyebrow">INBOUND DETAIL</span>

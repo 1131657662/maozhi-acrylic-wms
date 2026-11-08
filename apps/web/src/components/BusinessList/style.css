@@ -1,0 +1,14 @@
+.business-list,
+.business-list-filter,
+.business-list-results {
+  min-width: 0;
+  max-width: 100%;
+}
+.business-list-results {
+  width: 100%;
+}
+.business-list-json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}

@@ -4,6 +4,7 @@ import { createInboundSchema, inboundReceiptSchema, type CreateInbound } from '@
 import { request } from '../../api/client';
 import { stockKeys } from '../stock/keys';
 import { inboundKeys } from './keys';
+import { webListKeys } from '../web-lists/keys';
 
 export function useCreateReceipt() {
   const client = useQueryClient();
@@ -21,6 +22,7 @@ export function useCreateReceipt() {
       pending.current = null;
       void client.invalidateQueries({ queryKey: inboundKeys._def });
       void client.invalidateQueries({ queryKey: stockKeys._def });
+      void client.invalidateQueries({ queryKey: webListKeys._def });
     },
   });
 }

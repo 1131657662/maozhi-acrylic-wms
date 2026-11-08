@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { webListOperations } from './features/web-lists/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
@@ -42,6 +43,7 @@ export interface Operation {
   idempotent?: boolean;
 }
 export const operations: Operation[] = [
+  ...webListOperations,
   ...catalogOperations,
   ...handoffOperations,
   { method: 'post', path: '/inbound/{id}/confirm', summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务', body: confirmInboundSchema, response: inboundReceiptSchema, channel: 'web', idempotent: true },

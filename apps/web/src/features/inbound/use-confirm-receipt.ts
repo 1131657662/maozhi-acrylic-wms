@@ -4,6 +4,7 @@ import { inboundReceiptSchema } from '@wms/contracts';
 import { request } from '../../api/client';
 import { inboundKeys } from './keys';
 import { stockKeys } from '../stock/keys';
+import { webListKeys } from '../web-lists/keys';
 
 export function useConfirmReceipt(id: string) {
   const client = useQueryClient();
@@ -19,6 +20,7 @@ export function useConfirmReceipt(id: string) {
       await Promise.all([
         client.invalidateQueries({ queryKey: inboundKeys._def }),
         client.invalidateQueries({ queryKey: stockKeys._def }),
+        client.invalidateQueries({ queryKey: webListKeys._def }),
       ]);
     },
   });

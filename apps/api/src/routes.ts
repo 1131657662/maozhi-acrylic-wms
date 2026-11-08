@@ -14,6 +14,7 @@ import { stockSourceController } from './features/stock/source-controller.ts';
 import { stockAdjustmentController } from './features/stock/adjust-controller.ts';
 import { catalogRouter } from './features/catalog/router.ts';
 import { handoffRouter } from './features/handoff/router.ts';
+import { webListRouter } from './features/web-lists/router.ts';
 
 export function businessRouter(db:Database,origins:string[],catalogPublishEnabled=false):Router {
   const router=Router();
@@ -25,6 +26,7 @@ export function businessRouter(db:Database,origins:string[],catalogPublishEnable
   const numbering=numberingController(db);
   const stockSource=stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(webListRouter(db,origins));
   router.use(catalogRouter(db,origins,catalogPublishEnabled));
   router.use(handoffRouter(db,origins));
   router.get('/stock/by-source',requireChannel('web',origins),stockSource.stock);

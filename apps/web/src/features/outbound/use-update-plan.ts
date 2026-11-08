@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { detailSchema, type OutboundPlanFields } from '@wms/contracts';
 import { request } from '../../api/client';
 import { outboundKeys } from './keys';
+import { webListKeys } from '../web-lists/keys';
 
 interface UpdatePlanInput {
   id: string;
@@ -19,6 +20,10 @@ export function useUpdatePlan() {
         headers: { 'Idempotency-Key': crypto.randomUUID() },
         body: JSON.stringify({ revision, digest, plan }),
       }),
-    onSuccess: () => client.invalidateQueries({ queryKey: outboundKeys._def }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: outboundKeys._def }),
+        client.invalidateQueries({ queryKey: webListKeys._def }),
+      ]),
   });
 }

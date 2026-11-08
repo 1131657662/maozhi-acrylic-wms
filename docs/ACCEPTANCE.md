@@ -1,5 +1,97 @@
 # 第一里程碑验收记录
 
+## B1b-1：四个 Web 列表的统一查询与布局（2026-11-08）
+
+仅实现三批中的第一批：入库/出库/ERP库存/操作日志的共用查询壳、服务端分页和交互。B1b-2 导出、B1b-3 打印尚未实施，不以本节验收代替。没有新增依赖/迁移，不改库存、目录、PDA或小程序业务；所有写测试使用3307随机临时库。代码和本地浏览器已验证，公网、生产、打印机及实体设备不在本批。
+
+### P 覆盖率（本批4个列表查询范围4/4；不是全项目P完成率）
+
+| 页面 | 本批已跑通 | 仍未完成 | 证据 |
+| --- | --- | --- | --- |
+| 入库 | 单号/登记日期/状态/供应商/仓库/入账状态筛选、排序、分页、列设置、返回上下文 | 导出、打印；撤销/作废/更正属B2 | E2E: web-lists.spec.ts；web-list-preferences.spec.ts |
+| 出库 | 单号/建单日期/状态/客户/仓库/车牌；计划与实扫独立摘要，选择和原上下文返回 | 导出、打印；无批量库存确认 | E2E: web-lists.spec.ts |
+| ERP库存 | 商品/仓库筛选、稳定分页、同筛选全量小计；原调整及最近流水保留；拒绝错源 | 导出、逐行流水过滤；预警后置 | E2E: stock-source.spec.ts；inventory-posting.spec.ts；web-lists.spec.ts |
+| 操作日志 | 时间/action/对象/traceId、完整分页、前后值详情；Esc关闭 | 导出、在线会话页；没有结果码字段，不推测成功/失败 | E2E: web-lists.spec.ts；API: web-lists.test.ts |
+
+四页统一使用 BusinessList + QueryFilter + ProTable：20/50/100/200行，列设置按页持久化；跨页/排序保留选择，筛选改变清空；未知/null状态保留原文。日期查询采用上海业务日的含首尾边界。统计/页面/摘要在同一数据库快照中读取；两组出库聚合不相乘。
+
+### U 指标达成
+
+| 指标 | 原型基线 | 本批实测/边界 |
+| --- | --- | --- |
+| 读查询成本 | 旧入库50行逐条取明细，10k数据p95 303.62ms | 新按页批量摘要p95 35.04ms；第200页37.27ms；每项30次，同机临时库 |
+| 库存大列表 | 旧接口一次返回所有库存，查询p95 12.43ms | 新带同范围小计查询p95 84.88ms，查询成本增加；屏幕每次最多200行，不能称所有SQL提速 |
+| 日志可达性 | 旧接口只返回最近100条 | 240条夹具分页200+40，万级完整查询p95 12.71ms；详情按需取JSON |
+| 布局 | 旧原型四套做法、窄屏宽表 | 四页共用1套壳；四页200行、1440/1280页面横滚均0、pageerror均0；横滚仅限表内 |
+| 操作连续性 | 旧返回列表丢上下文/列设置各自实现 | 详情返回URL筛选/页码/排序逐字一致；隐藏车牌刷新后保留；跨页选择2条、改筛选清空；Enter查询/Esc关抽屉已断言 |
+| 恢复与口径 | 错误可能残留先前结果 | 四页加载/空态/错误重试/403均通过；ERP错源响应不展示记录/小计；原确认/调整故障回滚E2E全绿 |
+
+最终生产构建 + 本机回环网络 + 3307 MySQL + 每列表10000条合成数据；1440×960、每页50行，每项30次新浏览器上下文（空缓存，复用已登录状态，不计手工登录时间）。首屏从导航开始到首行可见，翻页从点击到首行ID变化。脚本对p95 <1500ms / <500ms作硬断言；不代表公网或生产机器。
+
+| 页面 | 首屏 p95（ms） | 翻页 p95（ms） |
+| --- | ---: | ---: |
+| 入库 | 1121.71 | 287.42 |
+| 出库 | 1067.71 | 274.99 |
+| 库存 | 1071.36 | 336.33 |
+| 日志 | 1063.34 | 320.16 |
+
+原始计时：`.local/evidence/b1b1-browser-performance-final.log`、`b1b1-browser-performance.json`；SQL计时和EXPLAIN：`b1b1-query-performance.log/json`。入库使用既有inbound_created、主数据eq_ref；日志仍filesort但10k p95 12.71ms，本批无008。真人步骤/耗时和更大数据量待实测，不捏造旧UI计时。
+
+### N 已批准清单
+
+| 项 | 本批结论 |
+| --- | --- |
+| 新增业务能力 | 无；仅已批准B1b-1共用列表能力，未开始导出、打印或其他N |
+
+### 原始输出与SQL证据
+
+```text
+npm run test
+ℹ tests 82
+ℹ pass 82
+ℹ fail 0
+
+npm run test:e2e
+29 passed (2.8m)
+9 passed (1.3m)
+
+npm run build
+√ Webpack: Compiled successfully in 12.23s
+
+B1B1_QUERY inbound=240 pages=200+40 unique=240 soft_deleted_lines_excluded=true status_raw=79 null=1
+B1B1_AGGREGATION planned=3/0.7000 actual=2/0.6000 fanout=0 business_writes=0
+B1B1_STOCK erp_rows=3 subtotal=24/7.2460 filtered_rows=1 source_guards=5x422
+B1B1_AUDIT total=240 page2=40 before_after_detail=matched
+B1B1_AUTH invalid=4x422 anonymous=401 mobile=10x403 legacy_contracts=unchanged
+B1B1_PREFERENCES hidden_column_reload=preserved cross_page_selection=2 filter_change_selection=0
+B1B1_STATUS unknown_raw=visible null_status=1 combined_filter=0
+B1B1_SQL [{"rows_count":"10000","packages":"20000","tonnes":"6000.0000"}]
+```
+
+完整日志：`.local/evidence/b1b1-test.log`、`b1b1-e2e-final.log`、`b1b1-build-final.log`。首次全套新增用例重复登录触发429，原失败日志保留为`b1b1-e2e-login-limit.log`；仅列表测试改用临时库专用会话后全套38项通过，登录UI与限流代码未改。审查记录`b1b1-review.md`，新增代码文件均<200行，未增加.ant-*覆盖。
+
+可复现SQL（由 `scripts/verify-list-performance.ts` 在隔离夹具库执行）：
+
+```sql
+SELECT COUNT(*) AS rows_count,SUM(packages) AS packages,SUM(weight_tonnes) AS tonnes
+FROM stock
+WHERE source_del_flag=0 AND product_code LIKE 'WL-P%';
+-- rows_count=10000, packages=20000, tonnes=6000.0000
+```
+
+这组数字是合成夹具对账，不替代生产样本基线；没有重跑样本seed或写业务库。新端点的计划/事实汇总与原详情逐字段一致，库存来源守卫和旧/stock、/scan/plans契约另有实际断言。
+
+### 截图与回退
+
+| 页面 | 1440 | 1280 |
+| --- | --- | --- |
+| 入库 | [.local/evidence/b1b1-inbound-1440.png](../.local/evidence/b1b1-inbound-1440.png) | [.local/evidence/b1b1-inbound-1280.png](../.local/evidence/b1b1-inbound-1280.png) |
+| 出库 | [.local/evidence/b1b1-outbound-1440.png](../.local/evidence/b1b1-outbound-1440.png) | [.local/evidence/b1b1-outbound-1280.png](../.local/evidence/b1b1-outbound-1280.png) |
+| 库存 | [.local/evidence/b1b1-stock-1440.png](../.local/evidence/b1b1-stock-1440.png) | [.local/evidence/b1b1-stock-1280.png](../.local/evidence/b1b1-stock-1280.png) |
+| 日志 | [.local/evidence/b1b1-audit-1440.png](../.local/evidence/b1b1-audit-1440.png) | [.local/evidence/b1b1-audit-1280.png](../.local/evidence/b1b1-audit-1280.png) |
+
+八图均已逐张查看；截图不进Git，不用toHaveScreenshot。当前提交独立revert即可撤回新列表与只读接口，不执行down，B1a/B1c数据及事务保持原状。OpenAPI仅更新定义源码，生成物未混入；B1b-2/3与其屏幕/导出/打印一致性验收待下一批。
+
 ## B1c-2：PDA 本地目录版本、跨版本补传与旧队列交接（2026-11-08）
 
 本批仅 B1c-2。代码、构建和隔离实体 M71 验证分别记录；不宣称现场实际队列、生产或厂商扫码枪已验收。M71 初查无本项目包，没有可盘点的本项目现场队列（不能据此将其他应用的队列记为 0）；75bdbbee 已由用户明确排除。非空迁移使用独立应用包制造 60 条旧队列：待补传 55、失败 5，其中 2 条服务端已收到而本机未收到响应，丢响应数须联网比对，不是额外 2 条。
