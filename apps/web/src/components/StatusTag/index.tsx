@@ -1,23 +1,12 @@
 import { Alert, Tag } from 'antd';
 
-const states = new Map([
-  ['open', { text: '待扫码', color: 'processing' }],
-  ['frozen', { text: '待出库确认', color: 'warning' }],
-  ['confirmed', { text: '已出库', color: 'success' }],
-  ['audited', { text: '已审核', color: 'default' }],
-]);
-
-function knownState(status: string | null, kind: 'inbound' | 'outbound') {
-  if (kind === 'inbound' && status === 'pending') return { text: '待入库确认', color: 'warning' };
-  return status === null ? undefined : states.get(status);
-}
+import { knownStatus as knownState, statusText } from '@wms/contracts';
 
 export function StatusTag({ status, kind = 'outbound' }: { status: string | null; kind?: 'inbound' | 'outbound' }) {
   const known = knownState(status, kind);
-  const text = kind === 'inbound' && status === 'confirmed' ? '已入库' : (known?.text ?? status ?? '未记录');
   return (
     <Tag color={known?.color ?? 'default'} data-testid="status-tag">
-      {known ? text : `状态待识别：${text === '' ? '空值' : text}`}
+      {statusText(status, kind)}
     </Tag>
   );
 }

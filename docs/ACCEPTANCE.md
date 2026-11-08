@@ -1,5 +1,112 @@
 # 第一里程碑验收记录
 
+## B1b-2：四个 Web 列表 XLSX 导出（2026-11-08）
+
+本节为本批当前状态，下方B1b-1等记录保留当时范围。仅Web四列表导出；CSV未做（可选）、打印留B1b-3；无库存/目录逻辑或迁移改动。全部写测试使用3307随机临时库、合成夹具；未访问生产、3306或warehouse。WPS实开不等同Microsoft Excel实开；后者本机未发现，明确未测。
+
+### P 覆盖率（本批导出4/4，不等于全项目P完成率）
+
+| 页面 | 已跑通的导出范围 | 内容与边界 | 证据 |
+| --- | --- | --- | --- |
+| 入库 | 全筛选240 / 当前页40 / 跨页选择2 | 单据一行、明细摘要；包数/吨数独立；原状态与入账状态并列 | E2E: `tests/e2e/web-exports.spec.ts` |
+| 出库 | 240 / 40 / 2 | 计划与实扫分列，未知状态保留说明及原文 | E2E: `tests/e2e/web-exports.spec.ts` |
+| ERP库存 | 240 / 40 / 2 | 只认erp-product，合计为本次范围，不把全筛选小计混成当前页/选中合计 | E2E + API: `apps/api/tests/web-export-integrity.test.ts` |
+| 操作日志 | 240 / 40 / 2 | 只导出可见数据列；前后JSON仍在详情，未冒充屏幕字段导出 | E2E: `tests/e2e/web-exports.spec.ts` |
+
+### U 指标达成
+
+| 指标 | 基线 | 本批证据/结果 |
+| --- | --- | --- |
+| 逐字段一致 | 原型无导出 | 浏览器真实DOM读取，再打开下载XLSX逐格独立比对；四页三范围12组 + 列隐藏重排1组，目标及实测0差异；各组文件/JSON保存在`.local/evidence/b1b2-*-verified.xlsx/json` |
+| 字段顺序与格式 | 无统一导出 | 首列身份保留，按实际可见列顺序；中文、前导零、换行、公式前缀按文本；包数number、吨数`0.0000`、日期Date+上海时间；所有合计与面板/逐行求和一致 |
+| 操作与恢复 | 无导出流程 | 默认全部范围：打开→生成→下载3次点击，改范围另加1次；非模态面板可关闭，UUID同键复用；第二任务409明示；失败/取消不开放部分文件 |
+| 响应式 | 原查询壳基线保留 | 4页×1440/1280截图及页面横滚0断言；下载按钮在两档首屏内，预览表仅表内滚动；原列表E2E回归结果见下方 |
+| 大数据完整性 | 无10万行导出基线 | 10k和100k四页均流式读回每条标识符，顺序正确、末条命中、重复0、截断false；耗时与内存见下表 |
+| 应用实开 | 无真实文件 | WPS 12.1.0.29690打开四类实际导出，中文/日期/四位吨数/合计可读；入库40条=80包/24.0000吨；Microsoft Excel未测 |
+
+### N 已批准清单
+
+| 项 | 本批结论 |
+| --- | --- |
+| 新增业务能力 | 无；仅已批准B1b-2导出。最新授权允许新增一个服务端XLSX依赖，不推进其他N、B1b-3或移动端导出 |
+
+### 逐字段对比与故障原始输出
+
+| 页面 | all / page / selected 比较单元格数 | 各组差异 | 合计示例（all / page / selected） |
+| --- | --- | --- | --- |
+| 入库 | 2160 / 360 / 18 | 0 / 0 / 0 | 包数480/80/4；吨数144.0000/24.0000/1.2000 |
+| 出库 | 2400 / 400 / 20 | 0 / 0 / 0 | 计划包数480/80/4、吨数144.0000/24.0000/1.2000；实扫均0 |
+| 库存 | 1200 / 200 / 10 | 0 / 0 / 0 | 包数480/80/4；吨数144.0000/24.0000/1.2000 |
+| 日志 | 1200 / 200 / 10 | 0 / 0 / 0 | 仅记录条数，不虚造数值合计 |
+| 隐藏/重排 | 出库180 | 0 | 隐藏客户、时间前移，文件表头/每格跟随实际DOM |
+
+以下摘自`.local/evidence/b1b2-test.log`；write为第1000条之后异常注入，并非声称物理磁盘已写满。测试只开放代码级钩子，HTTP没有故障注入开关。
+
+```text
+B1B2_CONCURRENT {"busyStatus":409,"busyMessage":"已有导出在进行，请查看进度或取消后再试","snapshotLastPackages":2,"databaseLastPackages":99,"rows":1200,"retrySameSha":true}
+B1B2_FAILURE {"failure":"write","state":"failed","processed":1000,"total":1200,"downloadStatus":409,"bytes":0}
+B1B2_FAILURE {"failure":"cancel","state":"cancelled","processed":1000,"total":1200,"downloadStatus":409,"bytes":0}
+B1B2_RECOVERY {"readySurvivesRestart":true,"interrupted":"EXPORT_INTERRUPTED","partialRemoved":true,"corruptRejected":true,"downloadStatus":200}
+B1B2_GUARDS {"illegalColumn":422,"crossSource":422,"changedRetry":409,"empty":"EXPORT_EMPTY"}
+B1B2_TEXT {"formulaCount":0,"leadingZeroPreserved":true,"unicodeAndNewlinePreserved":true}
+```
+
+重启恢复验证通过重建导出服务、载入持久任务和未完成part进行，不冒充真实断电演练。并发更新在首1000条之后，将末条库存从2包改成99包；文件仍为原快照2包。无效/匿名/移动端分别422/401/403，旧业务接口回归保留。
+
+### 性能实测
+
+生产构建、Windows本机回环、3307 MySQL、同进程API+测试驱动；每批1000条，前端最多预览20条。heap/RSS为整个Node进程（含测试驱动），每20ms采样，不是纯writer内存，也不含浏览器/数据库进程。每类规模各跑一次，生成中实际翻页次数见表；少于30次的p95只代表小样本，不能当稳态容量承诺。文件下载另计，毫秒；每份完整文件仅数MiB，生产代码没有全量rows数组。验收reader逐行读回全部记录。
+
+| 记录数 | 页面 | 生成秒 | 下载ms | heap起点→峰值MiB | RSS峰值MiB | 翻页次数 | 翻页p95 ms | 已核对末条 |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 10,000 | 入库 | 1.343 | 11 | 132→139 | 303 | 5 | 372 | WL-RK-009999 |
+| 10,000 | 出库 | 1.404 | 8 | 108→156 | 311 | 5 | 517 | WL-CK-009999 |
+| 10,000 | ERP库存 | 0.853 | 6 | 124→183 | 332 | 3 | 535 | WL-P009999 |
+| 10,000 | 日志 | 0.421 | 5 | 153→184 | 341 | 1 | 203 | WL-R009999 |
+| 100,000 | 入库 | 36.054 | 24 | 164→268 | 465 | 30 | 481 | WL-RK-099999 |
+| 100,000 | 出库 | 23.428 | 20 | 183→233 | 464 | 30 | 432 | WL-CK-099999 |
+| 100,000 | ERP库存 | 33.947 | 14 | 175→248 | 464 | 30 | 1112 | WL-P099999 |
+| 100,000 | 日志 | 6.174 | 14 | 250→306 | 499 | 30 | 265 | WL-R099999 |
+
+10k生成<10秒、100k生成<60秒、行数与逐条顺序硬断言全部通过。**不宣称所有场景翻页<500ms**：100k库存p95=1112ms，10k出库/库存小样本分别517/535ms；生成期间可继续操作，但上述响应目标未完全达成。此前B1b-1万级稳态基线与本轮并行导出压力不同。库存首次122.351秒未达生成目标；定位为每批重复总数/库存小计后，仅在同一导出快照内复用这些值，降为33.947秒；保留`b1b2-performance-100000-before-cache.log/json`，不覆盖失败证据。
+
+原始数据：`.local/evidence/b1b2-performance-10000.log/json`、`b1b2-performance-100000.log/json`。复现：`npm run build`后分别运行 `npx tsx scripts/verify-export-performance.ts 10000` / `100000`，脚本只允许这两种规模并只写随机临时库。
+
+### 依赖与审查
+
+ExcelJS **4.4.0 / MIT**；npm压缩包4,716,975字节（约4.50MiB）、解包21,825,509字节（约20.81MiB）；当前完整依赖闭包（含复用包）194个物理包、36,376,316字节（约34.69MiB），不是全部新增体积。扫描无`.node`、binding.gyp或安装脚本；只加API依赖，浏览器不打包ExcelJS。使用stream.xlsx.WorkbookWriter、逐行commit、禁用sharedStrings，100k不整体读入内存。原始扫描`b1b2-exceljs-package.json`、`b1b2-dependencies.json`。
+
+`npm audit --omit=dev`记录3项moderate、0 high/critical：既有csv-parse、ExcelJS及其uuid传递告警（后两者同一链）。uuid告警针对v3/v5/v6外部buffer，ExcelJS源码仅在条件格式调用v4，本功能不写条件格式，也不解析用户上传XLSX；不宣称依赖已修复或零告警。审计输出`b1b2-npm-audit.json`，审查记录`b1b2-review.md`；未借本批升级无关依赖。
+
+### 测试、截图与回滚
+
+`npm run test`原始摘要：tests 93 / pass 93 / fail 0（`.local/evidence/b1b2-test.log`）。全量E2E 34+9=43项全部通过；最后仅将下载按钮移至预览上方、增加首屏可见断言，再跑全部5项导出E2E和构建。13组共1148条记录、8358个单元格，差异0。以下为实际原始摘要，不把重跑5项累计成48个不同用例。
+
+```text
+npm run test
+ℹ tests 93
+ℹ pass 93
+ℹ fail 0
+
+npm run test:e2e
+34 passed (3.5m)
+9 passed (1.4m)
+
+npx playwright test tests/e2e/web-exports.spec.ts
+5 passed (52.3s)
+
+npm run build
+√ Webpack: Compiled successfully in 15.43s
+```
+
+完整日志：`.local/evidence/b1b2-test.log`、`b1b2-e2e-final.log`、`b1b2-e2e-export-final.log`、`b1b2-build-final.log`。最终导出E2E更新全部8张浏览器截图及13组verified文件；构建包含API/Web严格类型检查。Browserslist数据库过期提示仍存在，本批未升级无关依赖。
+
+- 浏览器：`.local/evidence/b1b2-{inbound,outbound,stock,audit}-preview-{1440,1280}.png`，包含三范围、字段、预览及范围合计。
+- WPS实开：`b1b2-wps-inbound.png`、`b1b2-wps-inbound-total.png`、`b1b2-wps-outbound.png`、`b1b2-wps-stock.png`、`b1b2-wps-audit.png`；实际文件为对应不带verified后缀的早期验收产物，字段和格式与最终实现相同；避免覆盖用户正在WPS查看的文件，最终自动下载另存`*-verified.xlsx`并再次核对。
+- 截图/日志/XLSX均在`.local/evidence/`忽略目录，不入Git，没有更新docs/evidence已批准图片。
+- 无数据库迁移；revert本批源码/依赖提交即可撤回导出，已有库存/目录/作业队列不受影响。单进程锁不支持多API实例协调，多实例部署须另设计；文件24小时到期在启动/新建任务时清理。
+- OpenAPI只更新声明源码，生成物留独立提交。CSV未实现、B1b-3打印未开工、Microsoft Excel实开未测；不进入下一批。
+
 ## B1b-1：四个 Web 列表的统一查询与布局（2026-11-08）
 
 仅实现三批中的第一批：入库/出库/ERP库存/操作日志的共用查询壳、服务端分页和交互。B1b-2 导出、B1b-3 打印尚未实施，不以本节验收代替。没有新增依赖/迁移，不改库存、目录、PDA或小程序业务；所有写测试使用3307随机临时库。代码和本地浏览器已验证，公网、生产、打印机及实体设备不在本批。

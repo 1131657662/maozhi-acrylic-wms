@@ -10,7 +10,13 @@ export interface PageQuery {
   page: number;
   pageSize: number;
   direction: 'asc' | 'desc';
+  exportSnapshot?: ExportSnapshot;
 }
+export interface ExportSnapshot {
+  total: number;
+  subtotal?: { packages: number; weightGrams: number };
+}
+export type ListReadQuery<Q> = Omit<Q, 'pageSize'> & { pageSize: number; exportSnapshot?: ExportSnapshot };
 export function contains(value: string): string {
   return `%${value.replace(/[!%_]/g, '!$&')}%`;
 }
@@ -46,17 +52,31 @@ export async function readPage(
   query: PageQuery,
 ) {
   const { predicate } = input;
-  const count = await db.get(`SELECT COUNT(*) AS total ${predicate.sql}`, predicate.values);
+  const total =
+    query.exportSnapshot?.total ??
+    Number((await db.get(`SELECT COUNT(*) AS total ${predicate.sql}`, predicate.values))?.total ?? 0);
   const rows = await db.all(`SELECT ${input.fields} ${predicate.sql} ORDER BY ${input.order} LIMIT ? OFFSET ?`, [
     ...predicate.values,
     query.pageSize,
     (query.page - 1) * query.pageSize,
   ]);
-  return { rows, total: Number(count?.total ?? 0) };
+  return { rows, total };
 }
-export function pageResult<T>(items: T[], total: number, query: PageQuery) {
+export function rowToken(row: Record<string, unknown>): string {
+  return hash(
+    JSON.stringify(
+      Object.fromEntries(
+        Object.keys(row)
+          .sort()
+          .map((key) => [key, row[key]]),
+      ),
+    ),
+  );
+}
+export function pageResult<T extends Record<string, unknown>>(items: T[], total: number, query: PageQuery) {
   const result = { items, total, page: query.page, pageSize: query.pageSize };
-  return { ...result, viewToken: hash(JSON.stringify(result)) };
+  const rowTokens = Object.fromEntries(items.map((row) => [String(row.id), rowToken(row)]));
+  return { ...result, rowTokens, viewToken: hash(JSON.stringify(result)) };
 }
 export function aggregateGrams(value: unknown): number {
   const decimal = String(value);

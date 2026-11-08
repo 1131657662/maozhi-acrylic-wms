@@ -79,10 +79,10 @@
 ## DD-10 导出字段 schema
 
 - 问题：旧系统列表导出和详情导出各自维护（[InboundOrderList.vue（444–537 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderList.vue#L444)、[InboundOrderDetail.vue（107–148 行）](D:/wms-new/wms-frontend-pure/src/views/wms/InboundOrderDetail.vue#L107)），屏幕、Excel 和打印易漂移。
-- 方案：每个列表定义一份字段 schema，ProTable、CSV（UTF-8 BOM）、Excel 和打印模板共享字段顺序；大数据按服务端分页导出。
-- 备选：三处各写字段映射；否决原因是字段变更容易漏改。
-- U 指标与基线：屏幕/导出/打印字段差异 0，筛选到导出 ≤3 步；当前原型无导出基线，schema 对照、10k 行内存和耗时待实测。用脚本比较列定义和导出表头。
-- 回退：schema 生成失败时提供原始 CSV 下载；不影响查询和打印基础模板。
+- 方案：B1b-2 四列表与 XLSX 共用 `listFields/listCellText`；实际可见列顺序（含固定/隐藏/拖动）传给白名单接口。全部筛选/当前页/选中先显示数量，生成后展示独立范围合计；每1000条在同一只读快照内读取，复用该快照总数/库存小计。XLSX 写真实数字/日期、吨数四位、上海时间，标识符始终文本。CSV本批不做，打印仍留B1b-3，不能声称打印已同源验收。
+- 备选：浏览器一次拉全量，或边下载边生成；否决原因是内存随记录数增长、失败留下半份文件。采用服务端 ExcelJS 4.4.0 流式 writer、禁用共享字符串；完成后校验 SHA、原子改名才开放下载；第二任务409明确提示，不隐式排队。
+- U 指标与基线：原型无导出；四页×三范围及列重排共13组真实DOM→XLSX逐字段对比，目标/实测差异0（原始输出见ACCEPTANCE）；使用 `tests/e2e/web-exports.spec.ts` 和 `scripts/verify-export-performance.ts` 测量完整性、末条、生成耗时、内存、生成中翻页。选择默认全部时：打开面板→生成→下载共3次点击；改变范围另加1次。真人计时与Microsoft Excel实开待测，WPS实开不冒充Excel。
+- 风险与回退：不在失败后绕过字段/快照校验提供原始CSV；保留输入，显式重试。完整文件24小时有效；服务重启的运行中任务失败关闭，不跨快照续写。revert本批源码/依赖提交可回退，无迁移及业务数据重写；原列表仍可用。单进程任务锁符合当前部署，多实例部署前须另行设计协调。
 
 ## DD-11 打印模板
 

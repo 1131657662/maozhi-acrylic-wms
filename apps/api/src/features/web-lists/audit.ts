@@ -2,11 +2,11 @@ import { webAuditListSchema, webAuditDetailSchema, type WebAuditQuery } from '@w
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
 import { AppError } from '../../shared/errors.ts';
-import { dateFilter, pageResult, readPage, textFilter } from './query.ts';
+import { dateFilter, pageResult, readPage, textFilter, type ListReadQuery } from './query.ts';
 
 const fields = 'id,action,target_id AS targetId,actor,trace_id AS traceId,created_at AS createdAt';
 const sortColumns = { createdAt: 'created_at', id: 'id', action: 'action', targetId: 'target_id', actor: 'actor' };
-export function auditPredicate(query: WebAuditQuery) {
+export function auditPredicate(query: Omit<WebAuditQuery, 'pageSize'> & { pageSize: number }) {
   const parts = { sql: 'FROM operation_log WHERE 1=1', values: [] as string[] };
   textFilter(parts, ['action'], query.action);
   textFilter(parts, ['target_id'], query.target);
@@ -14,7 +14,7 @@ export function auditPredicate(query: WebAuditQuery) {
   dateFilter(parts, 'created_at', query);
   return parts;
 }
-export async function listWebAudit(db: Database, query: WebAuditQuery) {
+export async function listWebAudit(db: Database, query: ListReadQuery<WebAuditQuery>) {
   return db.transaction(async (tx) => {
     const page = await readPage(
       tx,

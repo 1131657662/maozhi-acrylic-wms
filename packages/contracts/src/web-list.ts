@@ -45,6 +45,7 @@ const envelope = {
   page: integer.positive(),
   pageSize: integer.positive(),
   viewToken: z.string(),
+  rowTokens: z.record(z.string(), z.string()).optional(),
 };
 export const webInboundListSchema = z.strictObject({ ...envelope, items: z.array(webInboundRowSchema) });
 export const webOutboundListSchema = z.strictObject({ ...envelope, items: z.array(webOutboundRowSchema) });

@@ -1,7 +1,15 @@
 import { webOutboundListSchema, type WebOutboundQuery } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
-import { aggregateGrams, dateFilter, pageResult, readPage, statusFilter, textFilter } from './query.ts';
+import {
+  aggregateGrams,
+  dateFilter,
+  pageResult,
+  readPage,
+  statusFilter,
+  textFilter,
+  type ListReadQuery,
+} from './query.ts';
 
 const fields = `o.id,o.order_no AS orderNo,o.customer_name AS customerName,o.warehouse_code AS warehouseCode,
   COALESCE(w.name,o.warehouse_code) AS warehouseName,o.vehicle_no AS vehicleNo,o.status,o.created_at AS createdAt`;
@@ -13,7 +21,7 @@ const sortColumns = {
   vehicleNo: 'o.vehicle_no',
   status: 'o.status',
 };
-export function outboundPredicate(query: WebOutboundQuery) {
+export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { pageSize: number }) {
   const parts = {
     sql: `FROM outbound_orders o LEFT JOIN master_warehouses w ON w.code=o.warehouse_code
     WHERE o.source_del_flag=0`,
@@ -46,7 +54,7 @@ async function summaries(db: Database, ids: string[]) {
     );
   return { planned: values(planned), actual: values(actual) };
 }
-export async function listWebOutbound(db: Database, query: WebOutboundQuery) {
+export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutboundQuery>) {
   return db.transaction(async (tx) => {
     const page = await readPage(
       tx,

@@ -1,4 +1,7 @@
-import type { Key } from 'react';
+import type { WebListKind } from '@wms/contracts';
+import { useListColumns } from './use-list-columns';
+import { ExportPanel } from '../../features/web-exports/panel';
+import { useMemo, type Key } from 'react';
 import { Button } from 'antd';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import type { ListState } from './use-list-state';
@@ -8,26 +11,33 @@ export interface ListData<Row> {
   total: number;
   page: number;
   pageSize: number;
+  viewToken?: string;
+  rowTokens?: Record<string, string>;
 }
 interface Props<Row> {
   columns: ProColumns<Row>[];
   data: ListData<Row>;
   state: ListState;
-  name: string;
+  name: WebListKind;
   refreshing: boolean;
   reload: () => unknown;
-  selection: { keys: Key[]; change: (keys: Key[]) => void };
+  selection: { tokens: Record<string, string>; keys: Key[]; change: (keys: Key[]) => void };
 }
 export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
   const { columns, data, state, name } = props;
-  const configured = columns.map((column) => ({
-    ...column,
-    sortOrder:
-      column.dataIndex === state.params.sortBy
-        ? ((state.params.direction === 'asc' ? 'ascend' : 'descend') as 'ascend' | 'descend')
-        : null,
-  }));
+  const columnPrefs = useListColumns(name, columns);
+  const configured = useMemo(
+    () =>
+      columnPrefs.configured.map((column) => ({
+        ...column,
+        sortOrder:
+          column.dataIndex === state.params.sortBy
+            ? ((state.params.direction === 'asc' ? 'ascend' : 'descend') as 'ascend' | 'descend')
+            : null,
+      })),
+    [columnPrefs.configured, state.params.sortBy, state.params.direction],
+  );
   return (
     <ProTable<Row>
       rowKey="id"
@@ -46,7 +56,22 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
         },
         setting: { draggable: true },
       }}
-      columnsState={{ persistenceKey: `b1b-${name}-columns-v1`, persistenceType: 'localStorage' }}
+      columnsState={columnPrefs.state}
+      toolBarRender={() => [
+        <ExportPanel
+          key="export"
+          refreshing={props.refreshing}
+          context={{
+            kind: name,
+            query: state.params,
+            columns: columnPrefs.visible,
+            viewToken: data.viewToken ?? '',
+            selected: selected.map((id) => ({ id: String(id), token: props.selection.tokens[String(id)] ?? '' })),
+            total: data.total,
+            pageCount: data.items.length,
+          }}
+        />,
+      ]}
       scroll={{ x: 'max-content', y: 480 }}
       locale={{ emptyText: '没有符合条件的记录，可调整筛选条件或重置后重试' }}
       rowSelection={{

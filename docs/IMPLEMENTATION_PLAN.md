@@ -218,3 +218,29 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 - 故障注入只在随机 `maozhi_test_*` 库使用 MySQL AFTER trigger；业务 API 没有测试开关或故障请求头。原始结果和可复跑命令见 `ACCEPTANCE.md`。
 - 来源新增/全局商品映射仍是未决能力：本轮没有把 `app` 或 `sku-spec` 自动改成 ERP，也未改主数据模型。真实商品使用原 ERP 主数据；测试合成商品显式标注为 ERP 用于单一库存流程。
 - 本轮只提交源码/迁移/测试/说明；OpenAPI 生成源码已更新，`docs/api` 生成物留独立提交，未混入本提交。没有新增依赖、修改生产配置或访问生产/3306/warehouse。
+
+## B1b-2：四列表 XLSX 导出（2026-11-08）
+
+- 最新授权以 XLSX 为主，允许一个服务端依赖；覆盖先前“本批仅CSV”的方案。本批只做Web入库/出库/ERP库存/操作日志导出，不做CSV、打印、PDA/小程序导出，不改库存/目录逻辑，无表结构迁移。
+- 字段权威：`packages/contracts/src/list-display.ts` 定义中文标题、类型、XLSX宽度与显示；BusinessList传实际可见列顺序，操作按钮/选择框不作为数据字段。文件每行对应列表一条记录，不把明细展开成更多行；未知状态原文回退一致，软删与ERP用途边界复用原列表查询。
+- 范围：all=同筛选全部记录；page=当前页；selected=同筛选内跨页选择且沿当前排序。每种先显示数量。页面viewToken和已选rowToken校验防旧视图误导出；变化返回明确错误，刷新核对后再生成，不静默更换选择。
+- 快照：先以RR只读事务读取当前页/总数/库存小计，验证viewToken，再在同一连接里按稳定排序+唯一键分页1000条。总数和库存小计只在该快照复用，不缓存给别的请求；页面HTTP仍严格拒绝额外字段。按整数克BigInt累计本次范围，文件末行和生成面板展示同一合计；只合计导出的数字列，不合计扫码目录。
+- 数值：XLSX包数写number、吨数number+`0.0000`、日期Date+`yyyy/mm/dd hh:mm:ss`（上海墙上时间），单号/编码写string以保留前导零并防公式注入。超过Excel精度/单元格容量明确失败，不截断或静默失真。
+- 发布：ExcelJS流式逐行commit、关闭共享字符串；`.part`→完成/哈希/大小校验→原子改名→持久化ready→开放下载。失败或取消删除本任务部分文件并禁止下载；下载再次核对大小/SHA。任务JSON、XLSX仅放忽略的`.local/exports/<database>/`，没有用户可控路径，下载须Web Cookie身份。
+- 任务：UUID requestId+请求hash，同键同正文复用任务/文件，异正文409；单进程每库一活动任务，第二任务409 `EXPORT_BUSY`。状态running/ready/failed/cancelled；页面可关闭非模态抽屉继续查询，sessionStorage保存任务ID，任务明确标页别、范围、创建时间。失败保留输入；下载在新标签处理错误，不替换原列表。
+- 生命周期：文件24小时过期；启动或新建任务时清理过期产物。启动将运行中任务标为 `EXPORT_INTERRUPTED` 并清理半成品，不继续不同快照。审计记录generated/failed/cancelled（generated表示完成生成，之后取消仍可另有cancelled）；日志导出自身审计在读取快照结束后写入，不污染本次数据集。
+- 限制透明：单任务最多100万记录、5分钟；选中最多5000条，超过时引导使用全部筛选结果；出口JSON上限6MiB覆盖最长合法选择正文。CSV为可选未实现。批次超限、空范围、视图变化都明确失败，不生成截断文件。
+
+| 端点（统一前缀 `/api/v1`） | 请求 | 返回/错误 |
+| --- | --- | --- |
+| POST `/web/exports` | requestId UUID、kind(inbound/outbound/stock/audit)、scope(all/page/selected)、原列表query字符串字典、columns、viewToken、selected[{id,token}] | 202任务；422字段/列非法、409 EXPORT_BUSY/IDEMPOTENCY_CONFLICT |
+| GET `/web/exports/active` | 无 | 活动任务或null，刷新/丢响应时找回 |
+| GET `/web/exports/:id` | UUID | state/processed/total/columns/totals/preview前20/createdAt/expiresAt/error/errorCode/sha256/bytes/elapsedMs/requestHash；404 EXPORT_EXPIRED |
+| POST `/web/exports/:id/cancel` | UUID | 标记取消请求，任务完成清理后变cancelled；已ready保持ready |
+| GET `/web/exports/:id/download` | UUID | 完整XLSX附件；409 EXPORT_NOT_READY/EXPORT_FILE_MISSING；认证401、移动端或跨源写入403 |
+
+异步任务错误码还包括 `EXPORT_VIEW_CHANGED/EXPORT_EMPTY/EXPORT_TOO_LARGE/EXPORT_TIMEOUT/EXPORT_CANCELLED/EXPORT_PRECISION/EXPORT_CELL_TOO_LONG/EXPORT_FAILED/EXPORT_INTERRUPTED`。接口已返回202后失败，通过任务errorCode展示，不伪造为成功下载。
+
+依赖：ExcelJS 4.4.0、MIT；npm包4,716,975字节，解包21,825,509字节；本机含复用传递依赖的完整闭包194个物理包、36,376,316字节，无`.node`/binding.gyp或install脚本。新增依赖只在API，未进入Web bundle。npm audit仍有3项moderate（既有csv-parse及ExcelJS→uuid）；uuid告警涉及v3/v5/v6外部buffer，本导出不调用该路径，不声称依赖零告警；详情/扫描见`.local/evidence/b1b2-dependencies.json`、`b1b2-npm-audit.json`。
+
+验收：固定合成夹具三范围逐格、列显隐重排、并发更新快照、二任务409、中途故障/取消、重启/损坏文件、中文/换行/前导零/公式文本，以及10k/100k完整末条核验。仅写3307随机临时库，不连接生产或3306，不重跑真实样本seed。完整输出与WPS实开边界记录在ACCEPTANCE；所有截图/文件不进Git。OpenAPI源码声明已更新，生成物不混入本批。revert本批提交即可撤回导出，不回滚业务数据；B1b-3仍等待放行。

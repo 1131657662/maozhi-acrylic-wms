@@ -26,7 +26,10 @@ export function createApp(db: Database, origins: string[] = localOrigins, catalo
     trace,
     helmet(),
     cors({ origin: origins, credentials: true }),
-    express.json({ limit: '10kb' }),
+    (req, res, next) =>
+      req.path === '/api/v1/web/exports'
+        ? express.json({ limit: '6mb' })(req, res, next)
+        : express.json({ limit: '10kb' })(req, res, next),
     cookieParser(),
   );
   app.use((req, _res, next) => {

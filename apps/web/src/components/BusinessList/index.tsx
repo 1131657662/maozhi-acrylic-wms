@@ -1,3 +1,4 @@
+import type { WebListKind } from '@wms/contracts';
 import type { Key, ReactNode } from 'react';
 import { PageContainer, type ProColumns } from '@ant-design/pro-components';
 import { Alert, Button, Result, Skeleton, theme } from 'antd';
@@ -9,7 +10,7 @@ import { useListSelection } from './use-list-selection';
 import './style.css';
 
 interface Props<Row> {
-  config: { name: string; title: string; description: string; extra?: ReactNode; columns: ProColumns<Row>[] };
+  config: { name: WebListKind; title: string; description: string; extra?: ReactNode; columns: ProColumns<Row>[] };
   state: ListState;
   query: { data?: ListData<Row>; error: Error | null; isPending: boolean; isFetching: boolean; refetch: () => unknown };
   filters: ReactNode;
@@ -40,7 +41,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
   const { config, query, state } = props;
   const { token } = theme.useToken();
   const { page: _page, pageSize: _size, sortBy: _sort, direction: _dir, ...scope } = state.params;
-  const selection = useListSelection(JSON.stringify(scope));
+  const selection = useListSelection(JSON.stringify(scope), query.data?.rowTokens);
   return (
     <PageContainer
       title={<h1 style={{ fontSize: token.fontSizeHeading3, margin: 0 }}>{config.title}</h1>}

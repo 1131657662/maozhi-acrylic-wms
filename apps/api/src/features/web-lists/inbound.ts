@@ -2,7 +2,15 @@ import { z } from 'zod';
 import { webInboundListSchema, type WebInboundQuery } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
-import { aggregateGrams, dateFilter, pageResult, readPage, statusFilter, textFilter } from './query.ts';
+import {
+  aggregateGrams,
+  dateFilter,
+  pageResult,
+  readPage,
+  statusFilter,
+  textFilter,
+  type ListReadQuery,
+} from './query.ts';
 
 const fields = `r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
   r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(s.name,r.supplier_code) AS supplierName,
@@ -16,7 +24,7 @@ const sortColumns = {
   status: 'r.status',
   postingState: 'r.posting_state',
 };
-export function inboundPredicate(query: WebInboundQuery) {
+export function inboundPredicate(query: Omit<WebInboundQuery, 'pageSize'> & { pageSize: number }) {
   const parts = {
     sql: `FROM inbound_receipts r LEFT JOIN master_suppliers s ON s.code=r.supplier_code
     LEFT JOIN master_warehouses w ON w.code=r.warehouse_code WHERE r.source_del_flag=0`,
@@ -56,7 +64,7 @@ async function lineSummaries(db: Database, ids: string[]) {
     ]),
   );
 }
-export async function listWebInbound(db: Database, query: WebInboundQuery) {
+export async function listWebInbound(db: Database, query: ListReadQuery<WebInboundQuery>) {
   return db.transaction(async (tx) => {
     const page = await readPage(
       tx,

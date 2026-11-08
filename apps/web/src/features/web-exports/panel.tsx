@@ -1,0 +1,117 @@
+import { useState } from 'react';
+import { Alert, Button, Drawer, Radio, Space } from 'antd';
+import { listFields, type ExportRequest, type WebListKind } from '@wms/contracts';
+import { useExportSession } from './use-export-session';
+import { ExportJobView } from './job-view';
+
+export interface ExportContext {
+  kind: WebListKind;
+  query: Record<string, string>;
+  columns: string[];
+  viewToken: string;
+  selected: { id: string; token: string }[];
+  total: number;
+  pageCount: number;
+}
+export function ExportPanel({ context, refreshing }: { context: ExportContext; refreshing: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button aria-label="导出" disabled={refreshing || !context.viewToken} onClick={() => setOpen(true)}>
+        导出
+      </Button>
+      <Drawer
+        title="导出当前列表"
+        open={open}
+        onClose={() => setOpen(false)}
+        size={640}
+        mask={false}
+        focusable={{ trap: false }}
+        styles={{ wrapper: { maxWidth: '100vw' } }}
+      >
+        <ExportControls context={context} />
+      </Drawer>
+    </>
+  );
+}
+function ExportControls({ context }: { context: ExportContext }) {
+  const [scope, setScope] = useState<ExportRequest['scope']>('all');
+  const session = useExportSession();
+  const { data: job } = session;
+  const generate = () =>
+    session.generate({
+      kind: context.kind,
+      query: context.query,
+      columns: context.columns,
+      viewToken: context.viewToken,
+      selected: scope === 'selected' ? context.selected : [],
+      scope,
+    });
+  return (
+    <Space orientation="vertical" style={{ width: '100%' }}>
+      <p>跟随当前筛选、排序及可见列。生成后可核对本次范围合计，再下载完整 XLSX。</p>
+      <ExportScope context={context} scope={scope} setScope={setScope} />
+      <Button
+        type={job?.state === 'ready' ? 'default' : 'primary'}
+        loading={session.starting}
+        disabled={
+          !context.total || (scope === 'selected' && (!context.selected.length || context.selected.length > 5000))
+        }
+        onClick={() => void generate()}
+      >
+        生成 XLSX
+      </Button>
+      <ExportErrors session={session} />
+      {job && <ExportJobView job={job} />}
+      <p>生成期间可关闭面板继续操作列表；重新打开可查看进度。一次只运行一个导出任务。</p>
+    </Space>
+  );
+}
+function ExportScope({
+  context,
+  scope,
+  setScope,
+}: {
+  context: ExportContext;
+  scope: ExportRequest['scope'];
+  setScope: (scope: ExportRequest['scope']) => void;
+}) {
+  return (
+    <>
+      <Radio.Group
+        aria-label="导出范围"
+        value={scope}
+        onChange={(e) => setScope(e.target.value)}
+        options={[
+          { value: 'all', label: `全部筛选结果 · ${context.total} 条`, disabled: !context.total },
+          { value: 'page', label: `当前页 · ${context.pageCount} 条`, disabled: !context.pageCount },
+          { value: 'selected', label: `选中记录 · ${context.selected.length} 条`, disabled: !context.selected.length },
+        ]}
+      />
+      <p data-testid="export-fields">
+        字段顺序：{context.columns.map((key) => listFields[context.kind].find((f) => f.key === key)?.label).join('、')}
+      </p>
+      <p>跨页选中最多 5000 条；更多记录请用全部筛选结果。单文件最多 100 万条，超限会提示缩小范围。</p>
+    </>
+  );
+}
+function ExportErrors({ session }: { session: ReturnType<typeof useExportSession> }) {
+  return (
+    <>
+      {session.startError && (
+        <Alert
+          type="error"
+          title={session.startError.message}
+          description="筛选和选择已保留。列表变化时请关闭面板，刷新核对后重试。"
+        />
+      )}
+      {session.error && (
+        <Alert
+          type="error"
+          title={session.error.message}
+          action={<Button onClick={() => void session.refetch()}>重试查询进度</Button>}
+        />
+      )}
+    </>
+  );
+}

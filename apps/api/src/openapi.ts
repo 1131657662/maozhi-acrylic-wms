@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { webListOperations } from './features/web-lists/openapi.ts';
+import { webExportOperations } from './features/web-exports/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
@@ -41,9 +42,12 @@ export interface Operation {
   rawBody?: boolean;
   channel?: 'web' | 'pda' | 'any' | 'web-pda';
   idempotent?: boolean;
+  responseMedia?: string;
+  successStatus?: number;
 }
 export const operations: Operation[] = [
   ...webListOperations,
+  ...webExportOperations,
   ...catalogOperations,
   ...handoffOperations,
   { method: 'post', path: '/inbound/{id}/confirm', summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务', body: confirmInboundSchema, response: inboundReceiptSchema, channel: 'web', idempotent: true },
@@ -232,7 +236,12 @@ function operationDocument(operation: Operation): object {
         }
       : {}),
     responses: {
-      200: { description: '成功', content: { 'application/json': { schema: z.toJSONSchema(envelope) } } },
+      [operation.successStatus ?? 200]: {
+        description: '成功',
+        content: operation.responseMedia
+          ? { [operation.responseMedia]: { schema: { type: 'string', format: 'binary' } } }
+          : { 'application/json': { schema: z.toJSONSchema(envelope) } },
+      },
       ...failures,
     },
   };

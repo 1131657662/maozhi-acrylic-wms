@@ -32,6 +32,20 @@ export class Database {
       catch (error) { await db.run('ROLLBACK'); throw error; }
     });
   }
+  async readSnapshot<T>(work: (db: Database) => Promise<T>): Promise<T> {
+    return this.withConnection(async (db) => {
+      await db.run('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+      await db.run('START TRANSACTION READ ONLY');
+      try {
+        const result = await work(db);
+        await db.run('COMMIT');
+        return result;
+      } catch (error) {
+        await db.run('ROLLBACK');
+        throw error;
+      }
+    });
+  }
   async close(): Promise<void> { if (this.pool) await this.pool.end(); }
 }
 
