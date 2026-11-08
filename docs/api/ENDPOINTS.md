@@ -4,6 +4,8 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/stock/by-source | web | 单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计 |
+| GET | /api/v1/stock/by-source/journal | web | 单一商品来源最近流水；来源必填，不提供合计 |
 | GET | /api/v1/document-numbering | web | RK/CK 编号规则与非占号预览（北京时间） |
 | PUT | /api/v1/document-numbering/{kind} | web | 修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数 |
 | GET | /api/v1/stock/journal | web | 最近库存流水；保留原始类型，排除软删 |
