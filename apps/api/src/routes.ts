@@ -7,6 +7,9 @@ import { masterDataController } from './features/master-data/controller.ts';
 import { outboundPlanController } from './features/outbound/plan-controller.ts';
 import { stockRows,auditRows } from './features/outbound/read-models.ts';
 import { ok,requireAuth,requireChannel } from './middleware/http.ts';
+import { journalQuerySchema } from '@wms/contracts';
+import { numberingController } from './features/document-numbering/controller.ts';
+import { journalRows } from './features/stock/journal.ts';
 
 export function businessRouter(db:Database,origins:string[]):Router {
   const router=Router();
@@ -15,7 +18,12 @@ export function businessRouter(db:Database,origins:string[]):Router {
   const inbound=inboundController(db);
   const master=masterDataController(db);
   const scan=scanController(db);
+  const numbering=numberingController(db);
   router.use(requireAuth(db));
+  router.get('/document-numbering',requireChannel('web',origins),numbering.list);
+  router.put('/document-numbering/:kind',requireChannel('web',origins),numbering.update);
+  router.get('/stock/journal',requireChannel('web',origins),async(req,res)=>
+    ok(res,await journalRows(db,journalQuerySchema.parse(req.query).limit)));
   router.get('/outbound',outbound.list);
   router.get('/outbound/:id',outbound.detail);
   router.post('/outbound',requireChannel('web',origins),outboundPlans.create);

@@ -8,6 +8,7 @@ import { AppError } from '../../shared/errors.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { activeMaster } from '../master-data/catalogs.ts';
 import { getInbound } from './repository.ts';
+import { allocateNumber } from '../document-numbering/service.ts';
 
 export async function createInbound(db: Database, input: CreateInbound, key: string, actor: Actor) {
   const payload = createInboundSchema.parse(input);
@@ -21,8 +22,9 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
       const products = await Promise.all(payload.lines.map((line) => activeMaster(tx, 'products', line.productCode)));
       const id = randomUUID();
       const createdAt = sqlDate(new Date().toISOString());
+      const receiptNo = await allocateNumber(tx, 'inbound', payload.receiptNo);
       await tx.run(`INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at)
-        VALUES(?,?,?,?,?,?,?)`, [id,payload.receiptNo,supplier.code,warehouse.code,payload.memo ?? null,actor.username,createdAt]);
+        VALUES(?,?,?,?,?,?,?)`, [id,receiptNo,supplier.code,warehouse.code,payload.memo ?? null,actor.username,createdAt]);
       await addLinesAndStock(tx, id, warehouse.code, payload, products, createdAt);
       const after = await getInbound(tx, id);
       await audit(tx, actor, { action: 'inbound.confirm', targetId: id, before: null, after });

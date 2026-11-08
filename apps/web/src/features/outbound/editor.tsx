@@ -8,7 +8,7 @@ import { useOrder } from './use-order';
 import { useCreatePlan } from './use-create-plan';
 import { useUpdatePlan } from './use-update-plan';
 
-interface PlanFormValues extends Omit<OutboundPlanFields, 'lines'> {
+interface PlanFormValues extends Omit<OutboundPlanFields, 'lines' | 'orderNo'> {
   lines: { productCode?: string; plannedPackages?: number; plannedWeightTonnes?: number }[];
 }
 
@@ -21,7 +21,6 @@ function options(items: { code: string; name: string; active: boolean }[] | unde
 function toInitialValues(order: Detail | undefined): PlanFormValues | undefined {
   if (!order) return undefined;
   return {
-    orderNo: order.orderNo,
     customerCode: order.customerCode,
     warehouseCode: order.warehouseCode,
     vehicleNo: order.vehicleNo,
@@ -72,8 +71,8 @@ export function OutboundPlanEditor() {
         : await create.mutateAsync(plan);
       navigate(`/outbound/${saved.id}`);
       return true;
-    } catch (reason) {
-      return Promise.reject(reason);
+    } catch {
+      return false;
     }
   }
   return (
@@ -87,6 +86,7 @@ export function OutboundPlanEditor() {
       </div>
       {(create.error || update.error) && <Alert type="error" title={(create.error ?? update.error)?.message} />}
       <ProForm<PlanFormValues>
+        loading={create.isPending || update.isPending}
         key={id || 'new-plan'}
         initialValues={toInitialValues(order)}
         onFinish={submit}
@@ -102,7 +102,7 @@ export function OutboundPlanEditor() {
           ),
         }}
       >
-        <ProFormText name="orderNo" label="出库单号" rules={[{ required: true }]} fieldProps={{ maxLength: 100 }} />
+        <ProForm.Item label="出库单号"><span>{order?.orderNo ?? '创建成功后自动生成 CK 单号'}</span></ProForm.Item>
         <ProFormSelect
           name="customerCode"
           label="客户"

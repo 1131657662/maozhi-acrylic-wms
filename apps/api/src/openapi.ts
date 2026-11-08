@@ -22,10 +22,12 @@ import {
   inboundReceiptSchema,
   createOutboundPlanSchema,
   editOutboundPlanSchema,
+  documentKindSchema, numberingRulesSchema, numberingRuleSchema, numberingUpdateSchema,
+  journalSchema, journalQuerySchema,
 } from '@wms/contracts';
 
 interface Operation {
-  method: 'get' | 'post' | 'patch';
+  method: 'get' | 'post' | 'patch' | 'put';
   path: string;
   summary: string;
   response: z.ZodType;
@@ -35,6 +37,9 @@ interface Operation {
   idempotent?: boolean;
 }
 export const operations: Operation[] = [
+  { method: 'get', path: '/document-numbering', summary: 'RK/CK 编号规则与非占号预览（北京时间）', response: numberingRulesSchema, channel: 'web' },
+  { method: 'put', path: '/document-numbering/{kind}', summary: '修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数', body: numberingUpdateSchema, response: numberingRuleSchema, channel: 'web', idempotent: true },
+  { method: 'get', path: '/stock/journal', summary: '最近库存流水；保留原始类型，排除软删', query: journalQuerySchema, response: journalSchema, channel: 'web' },
   {
     method: 'get',
     path: '/health',
@@ -165,6 +170,8 @@ export const operations: Operation[] = [
 ];
 function parameters(operation: Operation): object[] {
   const result: object[] = [];
+  if (operation.path.includes('{kind}'))
+    result.push({ in: 'path', name: 'kind', required: true, schema: z.toJSONSchema(documentKindSchema) });
   if (operation.path.includes('{id}'))
     result.push({ in: 'path', name: 'id', required: true, schema: { type: 'string' } });
   if (operation.path.includes('{catalog}'))

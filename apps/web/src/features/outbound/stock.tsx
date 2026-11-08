@@ -3,6 +3,7 @@ import { Alert } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import { tonnes } from '@wms/contracts';
 import { outboundKeys } from './keys';
+import { StockJournal } from '../stock/journal';
 export function Stock() {
   const {
     data: stock,
@@ -33,6 +34,7 @@ export function Stock() {
           { title: '库存总重量（吨）', render: (_, row) => tonnes(row.weightGrams) },
         ]}
       />
+      <StockJournal />
     </section>
   );
 }

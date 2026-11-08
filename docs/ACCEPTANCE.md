@@ -1,5 +1,83 @@
 # 第一里程碑验收记录
 
+## B1a 第 1 提交验收（2026-11-08）
+
+本轮仅 RK/CK 自动取号、编号配置预览、旧请求兼容与统一原文回退。以下为本地 MySQL 8 / 浏览器模拟验收，不代表实体 PDA、小程序真机或生产验收。测试只用 3307 上新建的 `maozhi_test_*` 库；未访问生产/3306/warehouse。
+
+### P 覆盖率（本提交范围）
+
+| 能力 | 本批结果 | 证据/未完成边界 |
+| --- | --- | --- |
+| RK/CK 自动号与配置预览 | 已通过 API 与浏览器验收 | `numbering.spec.ts`；两类各 50 并发；宽度 2..8；预览不占号 |
+| 未知状态/流水类型回退 | 已通过现有 Web 列表/详情/流水验收 | `numbering.spec.ts`；灰色原文；未知状态不画本地步骤；原始 null 保留 |
+| 旧请求兼容/幂等/保号 | 已通过 API 回归和丢响应专项验收 | `numbering-history.test.ts`、`retry-numbering.spec.ts`；显式旧号不被静默替换 |
+| 双来源不合计 | 未执行 | 第 2 提交，等用户放行 |
+| 入库审核/明确确认、出库确认、库存调整事务完善 | 未执行 | 第 3 提交，等用户放行；现有创建即入库行为未改变 |
+| 撤销审核/作废/更正 | 未执行 | B2，补偿流水及下游依赖检查；B1b 不处理状态机 |
+| 单用户权限体系 | N/A | 不实现多用户/RBAC，不计入 P 分母 |
+
+此表不把两个完成子项折算为整张 12 章矩阵已完成；其他 P 保持原缺口。
+
+### U 指标达成
+
+| 指标 | 基线 → 本轮结果 | 测量方法 |
+| --- | --- | --- |
+| 人工输入单号 | 每种表单 1 个 → 0 个 | `outbound.spec.ts` 实际创建/编辑；界面显示自动号说明 |
+| 并发唯一性 | 未验证 → 入库/出库分别 50/50 唯一 | 真 HTTP Promise.all 并发；再查 DB GROUP BY；全号列表在原始日志 |
+| 宽度碰撞 | 无保护 → 409、0 新增、0 重复组、原宽度/计数器不变 | `numbering-history.test.ts`；页面保存失败保留宽度输入 |
+| 未知值可见性 | 入库硬编码/仅出库局部映射 → 0 空白、0 页面异常 | 真实临时 MySQL 注入未知值；API 和 E2E 断言、截图人工检查 |
+| 丢响应后重试 | 基线未验证 → 保留表单，原键/原正文返回原单据 | Playwright 先让服务端提交再丢响应，断言按钮可用且非加载，再点击重试 |
+| 任务耗时、首屏性能 | 待实测 | 本提交不宣称 B1b 性能/查询壳达标 |
+
+### N 已批准清单
+
+| 本轮新增候选 | 批准/执行情况 |
+| --- | --- |
+| 无 | 未实施任何 N 功能；最近流水只作原文类型展示载体 |
+
+### 测试与截图
+
+- `npm run test`：35/35 通过；原始输出 `.local/evidence/b1a-test-output.txt`，包含全部并发单号、碰撞响应、down 拒绝输出。
+- `npm run build`：严格类型检查与 Umi 构建通过；`.local/evidence/b1a-build-output.txt`。
+- `npm run test:e2e`：8/8 通过（53.6s），最终全量结果 `.local/evidence/b1a-e2e-output.txt`；丢响应专项结果 `.local/evidence/b1a-retry-output.txt`。重试按钮同时断言可用且无 loading 状态，避免图标进入可访问名称使精确文字选择器误判。
+- AntD CLI：0 issues；`.local/evidence/b1a-antd-lint.json`。未新增依赖、未修改 UI 栈、未修改 `.ant-*` 样式。
+- 真实数据库未知状态/类型截图：`.local/evidence/b1a-unknown-status-1440.png`、`b1a-unknown-status-1280.png`、`b1a-unknown-inbound-1440.png`、`b1a-unknown-journal-1440.png`。
+- 编号配置截图：`.local/evidence/b1a-numbering-1440.png`、`b1a-numbering-1280.png`、`b1a-numbering-collision-1440.png`。已检查原文可见、主操作可见、无页面横滚；不是截图像素回归。
+- 编号配置四态采用模拟错误响应；未知状态/类型和宽度碰撞来自真实临时 MySQL fixture，不用 mock 成功响应充当业务验收。
+- 修改文档中的 83 个文件链接已核查存在；带行号引用未越界，均可点开复核。截图/原始日志/生产样本均留 `.local`，不进 Git。
+
+### SQL 对账与原始输出
+
+并发场景仅使用合成测试数据，以下语句由测试在临时库执行：
+
+```sql
+SELECT receipt_no, COUNT(*) AS n FROM inbound_receipts GROUP BY receipt_no HAVING COUNT(*) > 1;
+SELECT order_no, COUNT(*) AS n FROM outbound_orders GROUP BY order_no HAVING COUNT(*) > 1;
+SELECT COUNT(*) AS n FROM inbound_receipts;
+SELECT COUNT(*) AS n FROM outbound_orders;
+SELECT SUM(packages) AS packages, SUM(weight_tonnes) AS tonnes FROM inbound_lines;
+SELECT packages, weight_tonnes AS tonnes FROM stock
+ WHERE warehouse_code='DEMO-WH' AND product_code='ACR-032' AND source_del_flag=0;
+SELECT COUNT(*) AS n FROM stock_journal;
+SELECT COUNT(*) AS n FROM operation_log WHERE action='inbound.confirm';
+```
+
+实际输出（完整请求顺序单号见原始日志）：
+
+```text
+B1A_CONCURRENCY {"kind":"inbound","requested":50,"succeeded":50,"unique":50,"duplicates":0,"replaySame":true,"counter":50}
+B1A_CONCURRENCY {"kind":"outbound","requested":50,"succeeded":50,"unique":50,"duplicates":0,"replaySame":true,"counter":50}
+B1A_RECONCILIATION {"inboundRows":50,"outboundRowsIncludingFixtures":53,"inbound":{"packages":"50","tonnes":"15.1250"},"stock":{"packages":56,"tonnes":"16.9250"},"journal":50,"audit":50,"duplicateGroups":0}
+B1A_MIGRATION_DOWN {"nonempty":"rules","output":"拒绝回退：document_number_rules 含有数据，禁止删除历史数据","state":"applied","dataPreserved":true}
+B1A_MIGRATION_DOWN {"nonempty":"counters","output":"拒绝回退：document_number_counters 含有数据，禁止删除历史数据","state":"applied","dataPreserved":true}
+```
+
+碰撞 HTTP 返回 `409 / NUMBERING_COLLISION`；数据库出库表 beforeRows=5、afterRows=5、newRows=0、duplicateGroups=0；width=4、counter=1 未变。该 5 行包含 3 条初始 fixture、1 条自动号、1 条软删历史碰撞号。
+
+004 已仅应用到本地 `127.0.0.1:3307/maozhi_dev_sample`；规则/计数器各 0 行，历史入库 115、出库 415、流水 828 未新增/删改。迁移前后对入库及明细、出库及明细、库存、流水、商品、条码目录共 8 表执行 `CHECKSUM TABLE`，完全一致。证据：`.local/evidence/b1a-local-migration.json`。生产和 3306 未连接。
+
+回滚：空 004 表经迁移器 down；非空则只成套回退 Web/API 并保留表及数据，禁止为了 down 清表。入库审核/撤销归属见矩阵与提案；不把本轮号码事务等同第 3 提交的业务事务完善。
+
 ## 真实样本导入验收
 
 来源：`erp.nbsmzwl.cn` 的 `wms` 数据库只读事务与本地 `C:\Users\qq113\Desktop\sku.txt`。生产连接先执行 `SET SESSION TRANSACTION READ ONLY`，导出在 `START TRANSACTION READ ONLY ... COMMIT` 中完成；原始 CSV 只存于被 Git 忽略的 `.local/prod-sample/`。

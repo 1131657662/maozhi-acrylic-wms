@@ -5,7 +5,6 @@ import {
   ProFormDigit,
   ProFormList,
   ProFormSelect,
-  ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import type { CreateInbound } from '@wms/contracts';
@@ -13,7 +12,7 @@ import { tonnesToGrams } from '../../lib/weight-input';
 import { useMasterItems } from '../master-data/use-master-items';
 import { useCreateReceipt } from './use-create-receipt';
 
-interface ReceiptFormValues extends Omit<CreateInbound, 'lines'> {
+interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
   lines: { productCode?: string; packages?: number; weightTonnes?: number }[];
 }
 
@@ -42,8 +41,8 @@ export function InboundEditor() {
       const receipt = await create.mutateAsync(input);
       navigate(`/inbound/${receipt.id}`);
       return true;
-    } catch (error) {
-      return Promise.reject(error);
+    } catch {
+      return false;
     }
   }
   const loading = suppliers.isLoading || warehouses.isLoading || products.isLoading;
@@ -64,6 +63,7 @@ export function InboundEditor() {
       {loadError && <Alert type="error" title={loadError.message} />}
       {create.error && <Alert type="error" title={create.error.message} />}
       <ProForm<ReceiptFormValues>
+        loading={create.isPending}
         onFinish={submit}
         submitter={{
           searchConfig: { submitText: '确认入库', resetText: '取消' },
@@ -77,7 +77,7 @@ export function InboundEditor() {
           ),
         }}
       >
-        <ProFormText name="receiptNo" label="入库单号" rules={[{ required: true }]} fieldProps={{ maxLength: 100 }} />
+        <ProForm.Item label="入库单号"><span>确认保存后自动生成 RK 单号</span></ProForm.Item>
         <ProFormSelect
           name="supplierCode"
           label="供应商"

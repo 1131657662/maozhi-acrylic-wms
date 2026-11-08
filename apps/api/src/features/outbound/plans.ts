@@ -9,6 +9,7 @@ import { checkRevision, lockPlan } from '../../shared/command.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { activeMaster } from '../master-data/catalogs.ts';
 import { getOrder } from './repository.ts';
+import { allocateNumber } from '../document-numbering/service.ts';
 
 export async function createOutboundPlan(db: Database, input: OutboundPlanFields, key: string, actor: Actor) {
   const plan = createOutboundPlanSchema.parse(input);
@@ -19,9 +20,10 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
     const references = await validateReferences(tx, plan);
     const id = randomUUID();
     const createdAt = sqlDate(new Date().toISOString());
+    const orderNo = await allocateNumber(tx, 'outbound', plan.orderNo);
     try {
       await tx.run(`INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,created_at)
-        VALUES(?,?,?,?,?,?,?)`, [id,plan.orderNo,references.customer.name,references.customer.code,
+        VALUES(?,?,?,?,?,?,?)`, [id,orderNo,references.customer.name,references.customer.code,
         references.warehouse.code,plan.vehicleNo,createdAt]);
     } catch (error) { if (duplicate(error)) throw duplicateOrder(); throw error; }
     await insertLines(tx, id, plan, references.products);
@@ -38,11 +40,13 @@ export async function editOutboundPlan(db: Database, id: string, input: unknown,
     const replay = await replayCommand(tx, 'outbound.edit', key, [id,command], actor, detailSchema);
     if (replay) return replay;
     const before = await getOrder(tx, id);
+    ensure(command.plan.orderNo === undefined || command.plan.orderNo === before.orderNo,
+      'DOCUMENT_NUMBER_IMMUTABLE', '单号创建后不可修改；旧客户端可原样回传单号');
     checkRevision(before, command);
     ensure(before.status === 'open' && before.facts.length === 0, 'PLAN_NOT_EDITABLE', '待扫码且没有扫码事实时才可修改计划');
     const references = await validateReferences(tx, command.plan);
-    await tx.run(`UPDATE outbound_orders SET order_no=?,customer_name=?,customer_code=?,warehouse_code=?,vehicle_no=?,revision=revision+1
-      WHERE id=?`, [command.plan.orderNo,references.customer.name,references.customer.code,
+    await tx.run(`UPDATE outbound_orders SET customer_name=?,customer_code=?,warehouse_code=?,vehicle_no=?,revision=revision+1
+      WHERE id=?`, [references.customer.name,references.customer.code,
       references.warehouse.code,command.plan.vehicleNo,id]);
     await tx.run('DELETE FROM outbound_lines WHERE order_id=?', [id]);
     await insertLines(tx, id, command.plan, references.products);

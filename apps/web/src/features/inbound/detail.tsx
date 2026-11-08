@@ -4,6 +4,7 @@ import { ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-comp
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
 import { useReceipt } from './use-receipt';
+import { StatusTag } from '../../components/StatusTag';
 
 export function InboundDetail() {
   const { id = '' } = useParams();
@@ -31,7 +32,7 @@ export function InboundDetail() {
           <span className="eyebrow">INBOUND DETAIL</span>
           <h1>{data.receiptNo}</h1>
         </div>
-        <span className="demo-label">已入库</span>
+        <StatusTag status={data.status} kind="inbound" />
       </div>
       <ProDescriptions<InboundReceipt>
         title="入库信息"

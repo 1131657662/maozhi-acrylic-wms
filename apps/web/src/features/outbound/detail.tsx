@@ -3,7 +3,7 @@ import { Alert, Button, Card, Skeleton, Steps, Space } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { tonnes } from '@wms/contracts';
 import { useOrder } from './use-order';
-import { Status } from './status';
+import { StatusTag } from '../../components/StatusTag';
 import { Facts } from './facts';
 import { Confirm } from './confirm';
 import { formatTime } from '../../lib/format-time';
@@ -34,10 +34,10 @@ export function OrderDetail() {
               <Button>编辑计划</Button>
             </Link>
           )}
-          <Status status={order.status} />
+          <StatusTag status={order.status} />
         </Space>
       </div>
-      <Card>
+      {['open', 'frozen', 'confirmed'].includes(order.status) && <Card>
         <Steps
           current={{ open: 0, frozen: 1, confirmed: 2 }[order.status]}
           items={[
@@ -46,7 +46,7 @@ export function OrderDetail() {
             { title: 'Web 确认出库', description: '一次扣减并记录流水' },
           ]}
         />
-      </Card>
+      </Card>}
       <div className="metrics">
         <Card>
           <small>计划包数 / 扫码包数</small>

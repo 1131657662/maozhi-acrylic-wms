@@ -3,7 +3,7 @@ import { z } from 'zod';
 const codeSchema = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 const gramsSchema = z.number().int().positive().max(99_999_999_999_900).multipleOf(100);
 export const outboundPlanFieldsSchema = z.strictObject({
-  orderNo: z.string().trim().min(1).max(100),
+  orderNo: z.string().trim().min(1).max(100).optional(),
   customerCode: codeSchema,
   warehouseCode: codeSchema,
   vehicleNo: z.string().trim().min(1).max(100),

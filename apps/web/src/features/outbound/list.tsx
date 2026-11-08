@@ -4,7 +4,7 @@ import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import { Alert, Input, Select, Button, Space } from 'antd';
 import { tonnes, type Order } from '@wms/contracts';
 import { useOrders } from './use-orders';
-import { Status } from './status';
+import { StatusTag } from '../../components/StatusTag';
 import { PlusOutlined } from '@ant-design/icons';
 
 const columns: ProColumns<Order>[] = [
@@ -23,7 +23,7 @@ const columns: ProColumns<Order>[] = [
     dataIndex: 'status',
     fixed: 'right',
     width: 120,
-    render: (_, row) => <Status status={row.status} />,
+    render: (_, row) => <StatusTag status={row.status} />,
   },
   {
     title: '操作',

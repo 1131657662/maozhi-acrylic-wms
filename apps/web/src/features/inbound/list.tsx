@@ -5,6 +5,7 @@ import { Alert, Input, Button } from 'antd';
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
 import { useReceipts } from './use-receipts';
+import { StatusTag } from '../../components/StatusTag';
 
 export function InboundList() {
   const [filters, setFilters] = useState({ page: 1, pageSize: 10, keyword: '' });
@@ -18,6 +19,7 @@ export function InboundList() {
     },
     { title: '供应商', dataIndex: 'supplierName' },
     { title: '仓库', dataIndex: 'warehouseName' },
+    { title: '状态', render: (_, row) => <StatusTag status={row.status} kind="inbound" /> },
     {
       title: '商品明细',
       render: (_, row) => row.lines.map((line) => `${line.productName} × ${line.packages} 包`).join('；'),

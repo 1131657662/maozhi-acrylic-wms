@@ -10,7 +10,7 @@ const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
   packages: z.coerce.number().int(),
   weightGrams: z.string().transform(decimalToGrams),
 });
-const headerSql = `SELECT r.id,r.receipt_no AS receiptNo,r.supplier_code AS supplierCode,s.name AS supplierName,
+const headerSql = `SELECT r.id,r.receipt_no AS receiptNo,r.status,r.supplier_code AS supplierCode,s.name AS supplierName,
   r.warehouse_code AS warehouseCode,w.name AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt
   FROM inbound_receipts r JOIN master_suppliers s ON s.code=r.supplier_code AND s.source_del_flag=0
   JOIN master_warehouses w ON w.code=r.warehouse_code AND w.source_del_flag=0`;

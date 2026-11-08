@@ -9,7 +9,7 @@ export const inboundLineInputSchema = z.strictObject({
   weightGrams: gramsSchema,
 });
 export const createInboundSchema = z.strictObject({
-  receiptNo: z.string().trim().min(1).max(100),
+  receiptNo: z.string().trim().min(1).max(100).optional(),
   supplierCode: codeSchema,
   warehouseCode: codeSchema,
   memo: z.string().trim().max(500).optional(),
@@ -20,6 +20,7 @@ export const inboundLineSchema = inboundLineInputSchema.extend({ id: codeSchema,
 export const inboundReceiptSchema = z.object({
   id: codeSchema,
   receiptNo: z.string(),
+  status: z.string().nullable().default(null),
   supplierCode: codeSchema,
   supplierName: z.string(),
   warehouseCode: codeSchema,

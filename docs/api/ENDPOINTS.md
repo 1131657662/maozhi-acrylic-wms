@@ -4,6 +4,9 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/document-numbering | web | RK/CK 编号规则与非占号预览（北京时间） |
+| PUT | /api/v1/document-numbering/{kind} | web | 修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数 |
+| GET | /api/v1/stock/journal | web | 最近库存流水；保留原始类型，排除软删 |
 | GET | /api/v1/health | 公开 | 本地合成环境健康检查 |
 | POST | /api/v1/auth/login | 公开 | 单用户登录；web 使用 HttpOnly Cookie，其他端返回 Bearer |
 | GET | /api/v1/auth/me | any | 当前会话 |

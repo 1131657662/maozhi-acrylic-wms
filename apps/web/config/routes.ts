@@ -1,5 +1,11 @@
 export default [
   {
+    path: '/system/document-numbering',
+    name: '单据编号配置',
+    icon: 'setting',
+    component: './system/document-numbering',
+  },
+  {
     path: '/user/login',
     layout: false,
     component: './user/login',

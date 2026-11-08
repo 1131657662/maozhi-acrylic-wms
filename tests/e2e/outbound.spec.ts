@@ -77,7 +77,7 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
   await login(page);
   await page.goto('/inbound/new');
   await expect(page.getByRole('heading', { name: '登记入库' })).toBeVisible();
-  await page.getByLabel('入库单号').fill('IN-E2E-20261107-001');
+  await expect(page.getByText('确认保存后自动生成 RK 单号')).toBeVisible();
   await page.getByLabel('供应商').click();
   await page.getByText('DEMO-SUPPLIER · 合成供应商', { exact: true }).click();
   await page.getByLabel('仓库').click();
@@ -87,7 +87,7 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
   await page.getByLabel('包数').fill('2');
   await page.getByLabel('本次总重量（吨）').fill('0.7150');
   await page.getByRole('button', { name: '确认入库' }).click();
-  await expect(page.getByRole('heading', { name: 'IN-E2E-20261107-001' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^RK-\d{8}-\d+$/ })).toBeVisible();
   await expect(page.locator('.ant-table-tbody').getByRole('cell', { name: '0.7150', exact: true })).toBeVisible();
   await page.screenshot({ path: '.local/evidence/inbound-detail-1440.png', fullPage: true });
 
@@ -105,7 +105,7 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await login(page);
   await page.goto('/outbound/new');
   await expect(page.getByRole('heading', { name: '新建出库计划' })).toBeVisible();
-  await page.getByLabel('出库单号').fill('OUT-E2E-20261107-001');
+  await expect(page.getByText('创建成功后自动生成 CK 单号')).toBeVisible();
   await page.getByLabel('客户').click();
   await page.getByText('DEMO-CUST-1 · 合成客户 1', { exact: true }).click();
   await page.getByLabel('仓库').click();
@@ -116,10 +116,12 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await page.getByLabel('计划包数').fill('1');
   await page.getByLabel('计划重量（吨）').fill('0.3025');
   await page.getByRole('button', { name: '创建计划' }).click();
-  await expect(page.getByRole('heading', { name: 'OUT-E2E-20261107-001' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^CK-\d{8}-\d+$/ })).toBeVisible();
+  const orderNo = await page.getByRole('heading', { name: /^CK-\d{8}-\d+$/ }).innerText();
   await page.getByRole('button', { name: '编辑计划' }).click();
   await page.getByLabel('车牌 / 车辆标识').fill('E2E-VEHICLE-UPDATED');
   await page.getByRole('button', { name: '保存修改' }).click();
   await expect(page.getByText('E2E-VEHICLE-UPDATED', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: orderNo, exact: true })).toBeVisible();
   await page.screenshot({ path: '.local/evidence/outbound-plan-1440.png', fullPage: true });
 });

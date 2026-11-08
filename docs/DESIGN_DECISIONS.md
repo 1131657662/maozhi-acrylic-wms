@@ -28,11 +28,11 @@
 
 ## DD-04 RK/CK 自动单号
 
-- 问题：当前两个 ProForm 仍要求手填单号（[inbound/editor.tsx:80](../apps/web/src/features/inbound/editor.tsx#L80)、[outbound/editor.tsx:105](../apps/web/src/features/outbound/editor.tsx#L105)）；旧 ERP 已有事务序列生成器（[bill_no.js:11](D:/wms-new/wms-backend/utils/bill_no.js#L11)）。这里只引用已核实的函数入口，不引用文件末尾行号范围。
-- 方案：入库独立使用 `RK-YYYYMMDD-####`，出库独立使用 `CK-YYYYMMDD-####`；服务端事务取号，草稿显示只读预览，唯一约束拒绝重复。
-- 备选：前端计算预览、提交时再生成；否决原因是并发下预览与最终号不一致。
-- U 指标与基线：手工字段减少 1 个，50 个并发草稿单号唯一率 100%；当前 E2E 手填 `IN-E2E...`/`OUT-E2E...`（[outbound.spec.ts:80](../tests/e2e/outbound.spec.ts#L80)、[outbound.spec.ts:108](../tests/e2e/outbound.spec.ts#L108)），并发和时长待实测。用 API 并发脚本验证。
-- 回退：序列失败不写业务单且不复用已消耗号；规则开关可暂时允许历史编辑但不允许重复。
+- 问题：提案基线两个 ProForm 各需手填单号；旧 ERP 已有事务序列生成器（[bill_no.js:11](D:/wms-new/wms-backend/utils/bill_no.js#L11)）。B1a 第 1 提交已移除手填控件。
+- 方案：入库 `RK-YYYYMMDD-####`、出库 `CK-YYYYMMDD-####`；北京时间日序列、服务端事务取号，配置页非占号预览，最终号以创建成功响应为准；宽度只改补零。
+- 备选：前端独自计算预览；因无法校验历史占用及服务端业务日而否决。服务端预览同样不锁定未来单号，不把它承诺为预约号。
+- U 指标与基线：每单少 1 个手填字段；两类各 50 个并发 HTTP 创建 0 重复，[numbering-concurrency.test.ts](../apps/api/tests/numbering-concurrency.test.ts)；建单时长/键盘草稿仍待实测。
+- 回退：未提交事务同时回滚计数器；已提交号保留；Web/API 成套回退并保留非空 004 表；旧客户端原号兼容带弃用头，编辑仅可原样回传，不允许改单号。
 
 ## DD-05 双来源商品不合计
 
@@ -44,10 +44,10 @@
 
 ## DD-06 状态与流水类型原文回退
 
-- 问题：真实状态有 `audited`/`submit`，流水类型有 `check`/`import`；当前状态组件只覆盖部分已知值（[status.tsx（3–9 行）](../apps/web/src/features/outbound/status.tsx#L3)）。
-- 方案：数据库保留原字符串，统一状态/流水标签；已知值映射中文，未知值显示原文和来源提示。
+- 问题：真实状态有 `audited`/`submit`，流水类型有 `check`/`import`；基线只在出库部分映射。B1a 第 1 提交已统一为 [StatusTag](../apps/web/src/components/StatusTag/index.tsx#L1) 与 [JournalTypeTag](../apps/web/src/components/JournalTypeTag/index.tsx#L1)，不替历史猜含义。
+- 方案：数据库保留原字符串，统一状态/流水标签；已知值映射中文，未知值灰色原文；常驻双来源提示留第 2 提交。
 - 备选：导入时强制映射到有限枚举；否决原因是历史语义不可逆。
-- U 指标与基线：状态或流水空白 0 个、未知值报错 0 个；当前只对出库已知状态做回退，未知值全页覆盖待实测。用 `future_status`/`future_type` fixture 跑列表、详情、流水、报表 E2E。
+- U 指标与基线：B1a 第 1 提交已用真实测试库未知值验证入/出库列表、详情及最近流水：0 空白、0 页面异常；报表未实现，不纳入已完成范围。见 [numbering.spec.ts:52](../tests/e2e/numbering.spec.ts#L52)。
 - 回退：组件异常时显示纯原文字段，不修改数据库值。
 
 ## DD-07 库存调整与盘点回写
