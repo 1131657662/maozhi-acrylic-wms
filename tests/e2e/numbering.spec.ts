@@ -56,27 +56,31 @@ test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和
   await expect(page.getByTestId('status-tag').filter({ hasText: 'legacy_future_state' })).toBeVisible();
   await page.goto('/outbound/E2E-UNKNOWN-OUT');
   const tag = page.getByTestId('status-tag');
-  await expect(tag).toHaveText('legacy_future_state');
+  await expect(tag).toHaveText('状态待识别：legacy_future_state');
+  await expect(page.getByTestId('unknown-status-notice')).toContainText('不能据此判断是否已出库');
+  await expect(page.getByTestId('unknown-status-notice')).toContainText('请按单号核对原始单据');
   await expect(tag).toHaveClass(/ant-tag-default/);
   await expect(page.getByText('PDA 扫码', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '核对并确认出库' })).toBeDisabled();
-  await page.screenshot({ path: '.local/evidence/b1a-unknown-status-1440.png', fullPage: true });
+  await page.screenshot({ path: '.local/evidence/b1a2-unknown-status-1440.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   await noPageOverflow(page);
-  await page.screenshot({ path: '.local/evidence/b1a-unknown-status-1280.png', fullPage: true });
+  await page.screenshot({ path: '.local/evidence/b1a2-unknown-status-1280.png', fullPage: true });
   await page.goto('/inbound');
   await expect(page.getByTestId('status-tag').filter({ hasText: 'legacy_inbound_state' })).toBeVisible();
   await page.goto('/inbound/E2E-UNKNOWN-IN');
-  await expect(page.getByTestId('status-tag')).toHaveText('legacy_inbound_state');
+  await expect(page.getByTestId('status-tag')).toHaveText('状态待识别：legacy_inbound_state');
+  await expect(page.getByTestId('unknown-status-notice')).toContainText('不能据此判断是否已入库');
   await page.setViewportSize({ width: 1440, height: 960 });
-  await page.screenshot({ path: '.local/evidence/b1a-unknown-inbound-1440.png', fullPage: true });
+  await page.screenshot({ path: '.local/evidence/b1a2-unknown-inbound-1440.png', fullPage: true });
   await page.goto('/stock');
+  await page.getByRole('tab', { name: '未归属商品（仅明细）' }).click();
   const journal = page.getByTestId('journal-type-tag').filter({ hasText: 'legacy_journal_type' });
   await expect(journal).toBeVisible();
   await expect(journal).toHaveClass(/ant-tag-default/);
   await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
   await page.screenshot({
-    path: '.local/evidence/b1a-unknown-journal-1440.png',
+    path: '.local/evidence/b1a2-unknown-journal-1440.png',
     fullPage: true,
     animations: 'disabled',
   });

@@ -1,15 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { Alert } from 'antd';
-import { ProTable } from '@ant-design/pro-components';
-import { tonnes } from '@wms/contracts';
-import { outboundKeys } from './keys';
-import { StockJournal } from '../stock/journal';
+import { useState } from 'react';
+import { Alert, Tabs, Tag } from 'antd';
+import { stockSourceSchema, type StockSource } from '@wms/contracts';
+import { sourceLabels } from '../stock/source-labels';
+import { SourcePanel } from '../stock/source-panel';
 export function Stock() {
-  const {
-    data: stock,
-    isLoading: isLoadingStock,
-    error: stockError,
-  } = useQuery({ ...outboundKeys.stock, refetchInterval: 10000 });
+  const [source, setSource] = useState<StockSource>('erp-product');
   return (
     <section>
       <div className="page-title">
@@ -18,23 +13,22 @@ export function Stock() {
           <h1>库存概览</h1>
           <p>包数与总重量独立记录；只读查看确认后的库存。</p>
         </div>
+        <Tag color="default" data-testid="stock-source-label">
+          当前来源：{sourceLabels[source]}
+        </Tag>
       </div>
-      {stockError && <Alert type="error" title={stockError.message} />}
-      <ProTable
-        rowKey={(row) => `${row.warehouseCode}/${row.productCode}`}
-        dataSource={stock}
-        loading={isLoadingStock}
-        search={false}
-        options={false}
-        pagination={false}
-        columns={[
-          { title: '仓库', dataIndex: 'warehouseCode' },
-          { title: '商品', dataIndex: 'productCode' },
-          { title: '库存包数', dataIndex: 'packages' },
-          { title: '库存总重量（吨）', render: (_, row) => tonnes(row.weightGrams) },
-        ]}
+      <Alert
+        type="info"
+        showIcon
+        title="ERP 与 SPEC 未建立可靠映射，分别查看，不提供跨来源合计"
+        description="以下小计、明细和流水仅属于当前来源；切换来源不会累加。条码目录本身不计入库存。"
       />
-      <StockJournal />
+      <Tabs
+        activeKey={source}
+        onChange={(key) => setSource(stockSourceSchema.parse(key))}
+        items={stockSourceSchema.options.map((key) => ({ key, label: sourceLabels[key] }))}
+      />
+      <SourcePanel key={source} source={source} />
     </section>
   );
 }

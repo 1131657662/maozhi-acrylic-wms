@@ -1,17 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { createQueryKeys } from '@lukemorales/query-key-factory';
 import { Alert, Button, Result } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
-import { journalSchema, tonnes } from '@wms/contracts';
-import { ApiError, request } from '../../api/client';
+import { tonnes, type StockSource, type SourceJournalRow } from '@wms/contracts';
+import { ApiError } from '../../api/client';
 import { JournalTypeTag } from '../../components/JournalTypeTag';
 import { formatTime } from '../../lib/format-time';
 
-const keys = createQueryKeys('stock-journal', {
-  recent: { queryKey: null, queryFn: () => request('/stock/journal?limit=20', journalSchema) },
-});
-export function StockJournal() {
-  const query = useQuery(keys.recent);
+import { stockKeys } from './keys';
+import { sourceLabels } from './source-labels';
+
+export function StockJournal({ source }: { source: StockSource }) {
+  const query = useQuery(stockKeys.journal(source));
   if (query.error instanceof ApiError && query.error.status === 403)
     return <Result status="403" title="无权查看库存流水" />;
   if (query.error)
@@ -23,9 +22,9 @@ export function StockJournal() {
       />
     );
   return (
-    <ProTable
+    <ProTable<SourceJournalRow>
       rowKey="id"
-      headerTitle="最近 20 条库存流水"
+      headerTitle={`${sourceLabels[source]} · 最近 20 条库存流水`}
       dataSource={query.data}
       loading={query.isLoading}
       search={false}
@@ -36,8 +35,11 @@ export function StockJournal() {
         { title: '类型', render: (_, row) => <JournalTypeTag type={row.type} /> },
         { title: '仓库', dataIndex: 'warehouseCode' },
         { title: '商品', dataIndex: 'productCode' },
-        { title: '包数变化', dataIndex: 'packagesDelta' },
-        { title: '重量变化（吨）', render: (_, row) => tonnes(row.weightDeltaGrams) },
+        { title: '包数变化', render: (_, row) => <span data-testid="journal-row-packages">{row.packagesDelta}</span> },
+        {
+          title: '重量变化（吨）',
+          render: (_, row) => <span data-testid="journal-row-tonnes">{tonnes(row.weightDeltaGrams)}</span>,
+        },
         { title: '时间', render: (_, row) => formatTime(row.createdAt) },
       ]}
     />

@@ -24,6 +24,7 @@ import {
   editOutboundPlanSchema,
   documentKindSchema, numberingRulesSchema, numberingRuleSchema, numberingUpdateSchema,
   journalSchema, journalQuerySchema,
+  sourceStockSchema, stockSourceQuerySchema, sourceJournalSchema, sourceJournalQuerySchema,
 } from '@wms/contracts';
 
 interface Operation {
@@ -37,6 +38,8 @@ interface Operation {
   idempotent?: boolean;
 }
 export const operations: Operation[] = [
+  { method: 'get', path: '/stock/by-source', summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计', query: stockSourceQuerySchema, response: sourceStockSchema, channel: 'web' },
+  { method: 'get', path: '/stock/by-source/journal', summary: '单一商品来源最近流水；来源必填，不提供合计', query: sourceJournalQuerySchema, response: sourceJournalSchema, channel: 'web' },
   { method: 'get', path: '/document-numbering', summary: 'RK/CK 编号规则与非占号预览（北京时间）', response: numberingRulesSchema, channel: 'web' },
   { method: 'put', path: '/document-numbering/{kind}', summary: '修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数', body: numberingUpdateSchema, response: numberingRuleSchema, channel: 'web', idempotent: true },
   { method: 'get', path: '/stock/journal', summary: '最近库存流水；保留原始类型，排除软删', query: journalQuerySchema, response: journalSchema, channel: 'web' },

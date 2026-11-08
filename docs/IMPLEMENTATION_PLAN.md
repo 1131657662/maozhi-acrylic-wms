@@ -101,3 +101,24 @@ PDA 队列事实不可变且固定 UUID；离线保存、重试同一正文；�
 - down 必须经 `migrateDown` 执行，停服务后才允许空表回退；规则或计数器任一非空即拒绝，不删数据。非空时只回退整套 Web/API 代码，保留 004 表及编号记录，不手工执行 DROP 脚本。
 - 应用回退到上一提交时，新旧 Web/API 要成套切换；旧 API 不具备自动号，因此不能只退 API 而保留新表单。没有新增业务 feature flag，不宣称可一键关闭。
 - 本提交未承诺跨刷新/关闭页面后的草稿恢复；页面内丢响应重试已保留同键同正文。持久草稿属于后续批次。
+
+## B1a 第 2 提交：双来源不合计（2026-11-08）
+
+- 分组依据是 `master_products.source_kind`：`erp-product` 为 ERP 历史商品，`sku-spec` 为 SPEC 条码目录商品；不按名称、编码前缀、库存记录是否有 source_id 推断来源。两套商品不建立映射。
+- `app`、`test`、未知来源以及缺失主数据的库存归入 `unclassified`，保留明细及原始来源，**不提供小计**。有效库存不因商品停用而消失；来源关联保留停用/软删商品的来源信息，库存及流水本身的 `source_del_flag=1` 始终排除。
+- 新 Web 只调用 `GET /api/v1/stock/by-source?source=...` 与 `/stock/by-source/journal?source=...&limit=20`；source 必填且只允许上述三个值，遗漏、all、多值、额外 total 参数均 422。新入口只允许 Web 会话。
+- 响应 `source/items/subtotal` 仅属一个来源；逐行 source 必须与响应 source 一致，未归属 subtotal=null。契约严格拒绝额外 total 字段和混源行。库存小计由同一读取事务内的 SQL 生成，返回整数克；不累计 scan_catalog 重量。
+- 页面没有“全部”选项、总计字段、跨来源选择或 reduce 合计路径。每次只挂载一个来源面板；缓存键包含来源，切换时不沿用上一个来源数据；错源响应停止展示。流水也随来源切换，无流水合计。
+- `/stock` 原始数组契约与 `/stock/journal` 原接口保持不变。小程序仅调用出库查询，PDA 调用扫码计划/目录/事实，均未修改；测试仍验证三渠道读取旧 stock 的响应一致。新的查询代码不调整业务确认事务。
+- 当前没有报表页面或报表端点；本轮验证可供后续报表使用的单来源契约，不声称四类报表已完成。后续报表必须使用来源必填的查询，不得接回旧无来源数组做汇总。
+- 未知状态标签增加“状态待识别”文字，入/出库详情常驻说明原值、不能判断的含义和核对原单的下一步；出库确认继续禁用，不通过 tooltip 隐藏关键说明。
+- 浏览器回归发现 Umi MFSU 缓存旧工作区契约导出；仅将 `@wms/contracts` 从第三方依赖预编译排除，随源码编译，防止新增契约在开发环境为 undefined；不更换框架或依赖。
+- 不新增迁移、不改历史数据。回滚顺序为先回退独立 OpenAPI 生成物提交，再回退本批 Web/API/契约；旧查询可恢复，已有库存、商品、流水和 004 编号表不变。
+
+### 可执行证据与数学边界
+
+SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sources.sql)。命令 `npx tsx scripts/verify-stock-sources.ts` 仅以 READ ONLY 事务读取固定的本机 3307 样本库；`npx tsx --test apps/api/tests/stock-source.test.ts` 在独立临时库执行相同 SQL 并自动清理。
+
+真实样本 SPEC 只有目录、没有库存，因此 ERP+0 必然等于 ERP；不能伪造“不等式”或把目录重量当库存。真实输出保存 `.local/evidence/b1a2-sample-sql-output.txt`。隔离夹具同时设置非零 ERP/SPEC，SQL 比较小计、明细和最近流水的所有包数/吨数候选值，E2E 再比对实际 DOM；同时验证界面请求均含来源。数值巧合相等不能替代来源链路证据。
+
+源码、测试与说明为一个业务提交；`docs/api/openapi.json`、`docs/api/ENDPOINTS.md` 在独立生成物提交中。第 3 提交确认/审核/调整事务和 B1b 仍未执行。

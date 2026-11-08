@@ -10,6 +10,7 @@ import { ok,requireAuth,requireChannel } from './middleware/http.ts';
 import { journalQuerySchema } from '@wms/contracts';
 import { numberingController } from './features/document-numbering/controller.ts';
 import { journalRows } from './features/stock/journal.ts';
+import { stockSourceController } from './features/stock/source-controller.ts';
 
 export function businessRouter(db:Database,origins:string[]):Router {
   const router=Router();
@@ -19,7 +20,10 @@ export function businessRouter(db:Database,origins:string[]):Router {
   const master=masterDataController(db);
   const scan=scanController(db);
   const numbering=numberingController(db);
+  const stockSource=stockSourceController(db);
   router.use(requireAuth(db));
+  router.get('/stock/by-source',requireChannel('web',origins),stockSource.stock);
+  router.get('/stock/by-source/journal',requireChannel('web',origins),stockSource.journal);
   router.get('/document-numbering',requireChannel('web',origins),numbering.list);
   router.put('/document-numbering/:kind',requireChannel('web',origins),numbering.update);
   router.get('/stock/journal',requireChannel('web',origins),async(req,res)=>

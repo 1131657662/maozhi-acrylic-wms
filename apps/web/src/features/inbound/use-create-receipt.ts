@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { createInboundSchema, inboundReceiptSchema, type CreateInbound } from '@wms/contracts';
 import { request } from '../../api/client';
-import { outboundKeys } from '../outbound/keys';
+import { stockKeys } from '../stock/keys';
 import { inboundKeys } from './keys';
 
 export function useCreateReceipt() {
@@ -20,7 +20,7 @@ export function useCreateReceipt() {
     onSuccess: () => {
       pending.current = null;
       void client.invalidateQueries({ queryKey: inboundKeys._def });
-      void client.invalidateQueries({ queryKey: outboundKeys.stock.queryKey });
+      void client.invalidateQueries({ queryKey: stockKeys._def });
     },
   });
 }

@@ -3,7 +3,7 @@ import { Alert, Button, Card, Skeleton, Steps, Space } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { tonnes } from '@wms/contracts';
 import { useOrder } from './use-order';
-import { StatusTag } from '../../components/StatusTag';
+import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { Facts } from './facts';
 import { Confirm } from './confirm';
 import { formatTime } from '../../lib/format-time';
@@ -37,6 +37,7 @@ export function OrderDetail() {
           <StatusTag status={order.status} />
         </Space>
       </div>
+      <StatusNotice status={order.status} kind="outbound" />
       {['open', 'frozen', 'confirmed'].includes(order.status) && <Card>
         <Steps
           current={{ open: 0, frozen: 1, confirmed: 2 }[order.status]}

@@ -8,6 +8,8 @@ export default defineConfig({
   routes,
   proxy: proxy[UMI_ENV as keyof typeof proxy],
   fastRefresh: true,
+  // Workspace contracts change with the app; do not freeze their exports in the vendor cache.
+  mfsu: { exclude: ['@wms/contracts'] },
   esbuildMinifyIIFE: true,
   antd: {},
   layout: {

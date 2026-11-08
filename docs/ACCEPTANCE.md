@@ -1,5 +1,48 @@
 # 第一里程碑验收记录
 
+## B1a 第 2 提交验收：双来源不合计（2026-11-08）
+
+仅本地 MySQL 8 / 浏览器验收。没有迁移、重跑样本 seed 或历史数据改写；未连接生产、3306 或 warehouse。本批源码与 OpenAPI 生成物分开提交。第 3 批事务调整、B1b 及四类报表仍未完成。
+
+### P 覆盖率（本提交范围）
+
+| 能力 | 结果 | 证据及边界 |
+| --- | --- | --- |
+| 库存来源隔离 | 已通过 API/E2E | source_kind 分组；无全部/总计入口；只挂载一个来源；未知/缺失主数据仅明细 |
+| 来源内小计与流水 | 已通过 SQL/E2E | 来源必填、拒绝 all/多值/额外 total 参数；混源响应拒绝；软删事实排除；目录重量不入库存 |
+| 旧调用兼容 | 已通过回归 | `/stock` 原数组不变；三渠道契约；实际小程序模块回归、PDA 扫码/冻结/确认链路继续通过 |
+| 未知状态可理解性 | 已通过 E2E/截图 | 灰色“状态待识别：原文”及详情常驻解释/核对指引；出库确认禁用 |
+| 报表 | 未实现 | 新单来源契约可复用；不能把契约验收计成四类报表完成 |
+
+### U 指标达成
+
+| 指标 | 实际结果 | 测量方法 |
+| --- | --- | --- |
+| 非零双源夹具跨源数字误显示 | 0 次 | ERP 18 包/5.4460 吨；SPEC 30 包/9.1440 吨；错误相加 48 包/14.5900 吨，在 SQL 候选值和真实 DOM 均 0 命中 |
+| 来源切换时旧数字残留 | 0 | 延迟目标来源响应，断言旧数字已卸载；错源响应不显示；重试恢复本来源 |
+| 无来源库存请求 | 0 | E2E 捕获本页所有库存/流水请求，均为 by-source 且 source 必填 |
+| 四态与版面 | 通过 | 加载、空态、错误重试、403；1440/1280 截图检查，无页面横滚 |
+
+### N 已批准清单
+
+| 新增候选 | 本轮处理 |
+| --- | --- |
+| 无 | 无 N 能力实施 |
+
+### 可执行 SQL、测试与截图
+
+- [`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sources.sql)：第一条按来源出小计；第二条仅用于验收，计算禁止展示的跨源值并与库存明细/小计/最近流水的包数、吨数逐项比对。业务查询不引用该验收总计。
+- `npx tsx --test apps/api/tests/stock-source.test.ts`：在 3307 独立临时库建立两来源非零夹具，执行 SQL，打印 `B1A2_SQL`，结束后清理本次临时库。
+- `npx tsx scripts/verify-stock-sources.ts`：固定读取本机样本库，使用 READ ONLY 事务；真实输出留 `.local/evidence/b1a2-sample-sql-output.txt`。
+- **数学边界**：真实样本 SPEC 库存为零，因此 ERP+0 的数值必然等于 ERP 页面小计；真实 SQL 的 matches=1 是该巧合，不能宣称真实数据满足严格不等式。非零夹具 SQL 的两项 matches=0；来源参数、响应契约和实际 DOM 共同证明没有跨源计算路径。不把条码目录总重量伪装为 SPEC 库存。
+- `npm run test`：39/39 通过，`.local/evidence/b1a2-test-output.txt`；包含既有幂等/事务/编号及实际小程序模块回归。
+- `npm run test:e2e`：11/11 通过，`.local/evidence/b1a2-e2e-output.txt`；新的三个用例在 [`stock-source.spec.ts`](../tests/e2e/stock-source.spec.ts)，未知状态解释在 [`numbering.spec.ts`](../tests/e2e/numbering.spec.ts)。
+- `npm run build`：类型检查与生产构建通过，`.local/evidence/b1a2-build-output.txt`；AntD 检查 0 issues，`.local/evidence/b1a2-antd-lint.json`。
+- 首轮 E2E 发现旧 MFSU 缓存导致新增契约导出为 undefined；已排除工作区契约的依赖预编译，完整回归通过。失败日志保留 `.local/evidence/b1a2-e2e-before-cache-fix.txt`，不将首次失败隐去。
+- 截图：`.local/evidence/b1a2-stock-erp-product-1440.png`、`b1a2-stock-sku-spec-1440.png`、`b1a2-stock-spec-1280.png`、`b1a2-unknown-status-1440.png`、`b1a2-unknown-status-1280.png`、`b1a2-unknown-inbound-1440.png`、`b1a2-unknown-journal-1440.png`；均不进 Git。
+
+回滚：先回退独立 OpenAPI 生成物提交，再回退本批实现；无需 down，数据库事实完全保留。尚未验证实体 PDA/小程序真机和生产环境。
+
 ## B1a 第 1 提交验收（2026-11-08）
 
 本轮仅 RK/CK 自动取号、编号配置预览、旧请求兼容与统一原文回退。以下为本地 MySQL 8 / 浏览器模拟验收，不代表实体 PDA、小程序真机或生产验收。测试只用 3307 上新建的 `maozhi_test_*` 库；未访问生产/3306/warehouse。

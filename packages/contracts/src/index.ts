@@ -1,6 +1,7 @@
 import { z } from 'zod';
 export * from './document-numbering.ts';
 export * from './stock-journal.ts';
+export * from './stock-source.ts';
 export * from './master-data.ts';
 export * from './inbound.ts';
 export * from './outbound-plan.ts';
