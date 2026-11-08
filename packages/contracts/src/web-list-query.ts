@@ -30,7 +30,7 @@ export const webInboundQuerySchema = z
     keyword: text,
     supplier: text,
     warehouse: text,
-    postingState: z.enum(['legacy', 'pending', 'confirmed']).optional(),
+    postingState: z.enum(['legacy', 'pending', 'confirmed', 'reversed', 'voided']).optional(),
     sortBy: z
       .enum(['createdAt', 'receiptNo', 'supplierName', 'warehouseName', 'status', 'postingState'])
       .default('createdAt'),

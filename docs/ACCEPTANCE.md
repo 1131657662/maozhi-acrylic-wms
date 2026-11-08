@@ -1,5 +1,87 @@
 # 第一里程碑验收记录
 
+## B2a：误确认撤销与未入账作废（2026-11-08）
+
+本批仅Web本地新单纠错；撤销不代表实物退货，作废只允许可证未入账。原单、原流水、原号、扫码事实均保留；终态`cancelled/voided`不重新开放确认或扫码。115张历史入库、415张历史出库只读，原状态不回填。已下发/已扫/冻结/交接未收妥的出库作废留B2b，不把服务端0事实当成现场0队列。下方旧批次记录保留当时范围。
+
+### P 覆盖率（本批限定路径4/4，不是整个单据模块P完成率）
+
+| 路径 | 实测结果 | 证据 |
+| --- | --- | --- |
+| 入库误确认撤销 | confirmed→cancelled，posting_state=reversed；以原操作逐项delta取负，补偿净包数/净吨数均0 | `lifecycle-reverse.test.ts`、`document-lifecycle.spec.ts`及下方SQL |
+| 出库误确认撤销 | confirmed→cancelled，保留原冻结/事实；新扫码/再冻结/再确认被拒，已收UUID同正文重放可用 | 同上；事实全字段前后相等 |
+| 未入账入库作废 | pending→voided；无库存操作/流水，原号永久保留，新单不复用 | `lifecycle-guards.test.ts`及页面E2E |
+| 未入账出库作废 | 仅无入账证据/事实/冻结/交接/下发风险的open单→voided；下发竞争不泄漏可继续作业的open单 | `lifecycle-guards.test.ts`、`lifecycle-races.test.ts` |
+
+### U 指标达成
+
+| 指标 | 基线与方法 | 本批实测/限制 |
+| --- | --- | --- |
+| 自助纠错与恢复 | 原型无入口，旧ERP耗时待实测；浏览器原详情→核对抽屉→填原因→提交 | 不用重建原单；注入审计失败后原因保留、原键恢复200；不宣称提速百分比 |
+| 可核对的补偿 | 浏览器核对当前值/delta/后值；SQL独立算包数与DECIMAL吨数 | 原+补偿净0，每对操作数2；前后值、操作关联、终态、库存末值4组mismatches均0 |
+| 布局与终态可见 | 1440/1280截图与页面scrollWidth断言；截图关闭有限动画并回到页顶 | 预览、阻断、作废和终态均留证；常驻原因/原操作/补偿ID；不以截图替代业务断言 |
+
+### N 已批准清单
+
+| 项 | 结论 |
+| --- | --- |
+| 新增业务能力 | 无；未实现实物退货、更正、盘点、报表、打印或移动端新功能 |
+
+### 四条验收的原始证据
+
+两类各20个**首次**HTTP并发来自API测试；浏览器另验证提交成功后20并发重放，二者不混称为同一场景。
+
+```text
+B2A_CONCURRENCY kind=inbound requests=20 statuses=200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200 compensation=1 stock=6/1.8000
+B2A_CONCURRENCY kind=outbound requests=20 statuses=200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200 compensation=1 stock=6/1.8000
+B2A_UI_RECOVERY reason_preserved=true same_key=true failed_transaction_unchanged=true retry=200
+B2A_E2E dependency=409 all_tables_unchanged=true blocker_visible=true void_stock_unchanged=true void_journal=0
+B2A_MULTILINE second_product_failure=true first_product_rollback=true all_tables_unchanged=true same_key_recovery=success
+```
+
+原始日志：`.local/evidence/b2a-full-test.log`、`b2a-full-e2e.log`。故障通过随机临时MySQL库的真实AFTER触发器注入，生产代码没有故障开关。入/出库分别在`inventory_operations → stock → stock_journal → 单据 → document_closures → operation_log → idempotent_commands`七处失败，均500、`partial_writes=0 database_unchanged=true`，原键恢复200；多商品第二笔失败时第一笔也回滚。检查全部表行指纹，不仅比较行数。MySQL自增计数器允许留下未提交空隙，不将空隙冒充残留业务行。
+
+依赖验收覆盖后续入库/出库/手工调整、库存余额缺口、原证据缺失、预览过期、历史只读、空原因422、两个移动通道403。PDA四种计划读取路径均记下发，10轮“读取与作废”并发不会同时得到open计划与成功作废；仅Web读取不误标。各拒绝场景前后行指纹不变。
+
+### 可执行 SQL 与结果
+
+SQL：[`scripts/sql/verify-document-lifecycle.sql`](../scripts/sql/verify-document-lifecycle.sql)，由E2E逐条真实执行于3307随机临时库；命令`npx playwright test tests/e2e/document-lifecycle.spec.ts`可重建夹具、重跑SQL并保留JSON。不能拿没有补偿的样本库0行结果代替净零验收。
+
+| 核对 | 实际结果 |
+| --- | --- |
+| 原操作＋补偿，按原单/仓/商品汇总 | 所有行`packages_net=0, tonnes_net=0.0000, operation_count=2, balanced=1` |
+| 新流水前后值与delta | `mismatches=0` |
+| 补偿类型、原操作及原单关联 | `mismatches=0` |
+| 终态、作废无库存操作 | `mismatches=0` |
+| 库存与最后有效流水后值 | `mismatches=0` |
+
+逐行原始JSON：`.local/evidence/b2a-inbound-sql.json`、`b2a-outbound-sql.json`；只使用合成夹具，真实业务数据未写入断言或文档。
+
+### 008 迁移、恢复与回退
+
+```text
+B2A_RESTORE all_tables=30 fingerprints_equal=true
+B2A_MIGRATION business_tables_unchanged=29 missing_exposure=0 counts={"inbound_receipts":"115","outbound_orders":"415","stock":"122","stock_journal":"828","scan_facts":"0","catalog_entries":"9018"}
+B2A_SAMPLE_DOWN Error: 拒绝回退：outbound_plan_exposures 含有数据，禁止删除历史数据 unchanged=true
+B2A_LOCAL_008 applied=true
+```
+
+输出摘自`.local/evidence/b2a-local-migration.log`。停本地写服务后备份，先恢复独立库并核对30表指纹，再演练008、拒绝非空down，最后升级本地3307开发库；原29业务表未改。样本事实数0，不冒充非空真实队列验收。备份路径/SHA见FOUNDATION_MIGRATION；空库down/up及旧结构拒绝启动由`lifecycle-migration.test.ts`验证。有业务数据时只可保留兼容读取、禁用入口/前向修复，不直接down删记录或回退到可能重开原单的旧包。
+
+### 测试与审查
+
+`npm run test`原始摘要：`tests 104 / pass 104 / fail 0`，包括API及小程序既有测试；`npm run build`退出0，严格类型检查及Web构建通过（`Compiled successfully in 16.95s`）。日志分别为`.local/evidence/b2a-full-test.log`、`b2a-build.log`。Ant Design检查0 issues，审查记录`b2a-review.md`。
+
+`npm run test:e2e`完整运行退出0：主套39项、目录套9项，合计48项全部通过，无跳过。主套包含本批5项和全部既有列表/导出/编号/确认/用途隔离；目录套覆盖上传、混版原单续扫与交接门禁。完整原始输出见`.local/evidence/b2a-full-e2e.log`，重跑次数不累计为新用例数。
+
+回归中修正三处测试顺序耦合：新B2a复用隔离库会话，不消耗原登录UI套件额度；编号撞号按真实下一号构造，不写死0010；库存页按分页逐格对照独立ERP全量结果，不假设全量永远少于一页。007迁移用例显式固定007，仍验证其自身up/down。生产限流和库存查询业务均未修改，原失败日志另存`b2a-full-e2e-before-isolation-fix.log`、`b2a-full-e2e-before-pagination-fix.log`。
+
+### 截图与范围
+
+以下每项均有`-1440.png`和`-1280.png`，位于`.local/evidence/`，不进Git：`b2a-inbound-reverse-preview`、`b2a-inbound-cancelled`、`b2a-outbound-reverse-preview`、`b2a-outbound-cancelled`、`b2a-dependency-blocked`、`b2a-void-preview`、`b2a-voided`。
+
+仅更新OpenAPI声明源码，生成物留独立提交；未新增依赖、未改PDA APK/小程序代码、未连接生产/3306/warehouse、未清理真实队列。实体设备、生产验收未测。B2b更正、历史纠错、已扫出库作废、实物退货、盘点、报表仍未做；打印继续延后，依赖积木报表配置。
+
 ## B1b-2：四个 Web 列表 XLSX 导出（2026-11-08）
 
 本节为本批当前状态，下方B1b-1等记录保留当时范围。仅Web四列表导出；CSV未做（可选）、打印留B1b-3；无库存/目录逻辑或迁移改动。全部写测试使用3307随机临时库、合成夹具；未访问生产、3306或warehouse。WPS实开不等同Microsoft Excel实开；后者本机未发现，明确未测。

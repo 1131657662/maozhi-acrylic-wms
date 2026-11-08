@@ -31,6 +31,7 @@ export async function recordFact(db: Database, command: ScanCommand): Promise<De
       return getOrder(tx,planId);
     }
     const plan=await getOrder(tx,planId);
+    ensure(plan.status==='open','PLAN_CLOSED','计划已冻结、已确认或已终结，禁止新增扫码；原有事实保留');
     const context=await resolveContext(tx,command);
     await validateFact(tx,plan,fact,context.outboundLineId);
     try {await insertFact(tx,command,payloadHash);}

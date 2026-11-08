@@ -46,6 +46,8 @@ export function InboundList() {
             options={[
               { value: 'pending', label: '待确认入账' },
               { value: 'confirmed', label: '已确认入账' },
+              { value: 'reversed', label: '已反向补偿' },
+              { value: 'voided', label: '已作废（未入账）' },
               { value: 'legacy', label: '历史记录（只读）' },
             ]}
           />

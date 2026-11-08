@@ -4,6 +4,7 @@ import { useConfirmReceipt } from './use-confirm-receipt';
 
 export function InboundConfirmation({ receipt }: { receipt: InboundReceipt }) {
   const confirm = useConfirmReceipt(receipt.id);
+  if (['cancelled', 'voided'].includes(receipt.status ?? '')) return null;
   if (receipt.postingState === 'legacy')
     return (
       <Alert type="info" showIcon title="历史单据 · 仅供查阅" description="保留原始状态和库存，不在此重复确认入账。" />
@@ -36,7 +37,7 @@ export function InboundConfirmation({ receipt }: { receipt: InboundReceipt }) {
       )}
       <Popconfirm
         title="确认本单实物及总重量已核对？"
-        description="确认后增加库存并保存审计记录；撤销和更正暂未开放。"
+        description="确认后增加库存并保存审计记录；仅误确认可核对依赖后撤销，更正与退货另行处理。"
         okText="确认入账"
         cancelText="返回核对"
         onConfirm={() => confirm.mutateAsync()}

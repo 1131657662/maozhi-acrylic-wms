@@ -8,6 +8,7 @@ import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { InboundConfirmation } from './confirm';
 import { ApiError } from '../../api/client';
 import { ListBackLink } from '../../components/BusinessList/navigation';
+import { LifecyclePanel } from '../document-lifecycle/panel';
 
 export function InboundDetail() {
   const { id = '' } = useParams();
@@ -40,6 +41,7 @@ export function InboundDetail() {
       </div>
       <StatusNotice status={data.status} kind="inbound" />
       <InboundConfirmation key={data.id} receipt={data} />
+      <LifecyclePanel kind="inbound" id={data.id} />
       <ProDescriptions<InboundReceipt>
         title="入库信息"
         column={3}

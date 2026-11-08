@@ -4,6 +4,7 @@ import { useConfirm } from './use-confirm';
 export function Confirm({ order }: { order: Detail }) {
   const [modal, contextHolder] = Modal.useModal();
   const { mutate: confirm, isPending: isConfirming, error: confirmError } = useConfirm();
+  if (['cancelled', 'voided'].includes(order.status)) return null;
   function ask(): void {
     modal.confirm({
       title: '确认实际出库',

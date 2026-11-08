@@ -17,7 +17,7 @@ import { migrateDown, migrateUp } from '../src/db/migrate.ts';
 import { createTestDatabase } from '../../../scripts/mysql/test-database.ts';
 
 test('B1c2 60条交接批量绑定、丢响应核验、幂等重传、旧请求重新阻断', async () => {
-  const { db, dispose } = await fixture();
+  const { db, dispose } = await fixture('007_pda_handoff');
   try {
     const { header, records, facts } = await prepareHandoff(db);
     await startHandoff(db, header, actor);
@@ -101,12 +101,12 @@ test('B1c2 60条交接批量绑定、丢响应核验、幂等重传、旧请求�
   }
 });
 test('B1c2 007空表down/up；清单写入中途失败整批回滚；PDA不能确认交接或出库', async () => {
-  const empty = await createTestDatabase();
+  const empty = await createTestDatabase('007_pda_handoff');
   try {
     await assertHandoffReady(empty.db);
     await migrateDown(empty.db);
     await assert.rejects(assertHandoffReady(empty.db), /拒绝启动写服务/);
-    await migrateUp(empty.db);
+    await migrateUp(empty.db, '007_pda_handoff');
     await assertHandoffReady(empty.db);
     console.log('B1C2_MIGRATION 007 empty_down_up=success');
   } finally {

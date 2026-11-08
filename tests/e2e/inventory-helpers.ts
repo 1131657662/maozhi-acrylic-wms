@@ -53,7 +53,8 @@ export async function confirmReceipt(page: Page, id: string) {
 export async function screenshotWidths(page: Page, name: string) {
   for (const width of [1440, 1280]) {
     await page.setViewportSize({ width, height: 960 });
+    await page.evaluate(() => window.scrollTo(0, 0));
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-    await page.screenshot({ path: `.local/evidence/${name}-${width}.png`, fullPage: true });
+    await page.screenshot({ path: `.local/evidence/${name}-${width}.png`, fullPage: true, animations: 'disabled' });
   }
 }

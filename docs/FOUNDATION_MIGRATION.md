@@ -1,5 +1,14 @@
 # 基础迁移执行记录
 
+## 008_document_lifecycle（B2a，2026-11-08）
+
+- 新增单据终结关联`document_closures`、下发证据`outbound_plan_exposures`；扩大操作类型/入库入账状态CHECK，新增同仓商品流水序号与操作目标索引。原115入库/415出库状态、原流水、事实及目录不UPDATE，不用推测回填原确认。
+- 停止本地4310写服务后运行`npx tsx scripts/verify-lifecycle-migration.ts --apply-local`：仅白名单127.0.0.1:3307；先dump，恢复新临时库并比较30张表逐行指纹，再演练008与非空down拒绝，最后升级当前开发库。备份`.local/backups/b2a-before-008-1794131296574.sql`，SHA-256 `75fd42b0e44436d38aacf38d1e17d2e8b9b4dbf1532558be473745964aa603a4`。
+- 实际结果：原29业务表指纹均一致，入库115/出库415/库存122/流水828/事实0/版本目录条目9018，所有旧出库都有保守的未知下发标记。原样本事实为0，不代替非空合成事实的撤销保留测试。
+- 原始输出`.local/evidence/b2a-local-migration.log`、逐表指纹`b2a-migration-fingerprints.json`；EXPLAIN命中`journal_cell_sequence`，range/Using index（空命中探针，只证访问路径，不宣称真实查询p95）。未访问生产、3306或warehouse，未清理真实队列。
+- `lifecycle-migration.test.ts`实测空库down/up；样本恢复库实测`拒绝回退：outbound_plan_exposures 含有数据，禁止删除历史数据`，拒绝前后表指纹及schema_migrations不变。新增终态/补偿后只能保留兼容读取、禁用新入口或前向修复，不down删除记录。DDL非事务；applying/reverting残留须检查真实结构，不盲重跑。
+- 每条误确认补偿均关联原确认操作；新的业务事务逐写入点故障验证整体回滚，包括两商品第二笔失败时第一笔也回滚。MySQL失败事务可能留下自增序号空隙，不代表有残留流水或被复用的单号。
+
 ## 007_pda_handoff 与 Room 1→2（B1c-2，2026-11-08）
 
 - MySQL up 仅新增 `pda_handoffs/pda_handoff_records/pda_handoff_clients`；记录完整队列 SHA、原始 JSON/SHA、不可变 context、旧协议活动水位。旧业务表及 006 目录不改写；启动须 007 applied 且三表齐备。

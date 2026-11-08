@@ -8,6 +8,7 @@ import { Facts } from './facts';
 import { Confirm } from './confirm';
 import { formatTime } from '../../lib/format-time';
 import { ListBackLink } from '../../components/BusinessList/navigation';
+import { LifecyclePanel } from '../document-lifecycle/panel';
 
 export function OrderDetail() {
   const { id = '' } = useParams();
@@ -96,6 +97,7 @@ export function OrderDetail() {
         </div>
       </Card>
       <Facts order={order} />
+      <LifecyclePanel kind="outbound" id={order.id} />
       <Confirm order={order} />
     </section>
   );

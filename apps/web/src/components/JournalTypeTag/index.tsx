@@ -7,6 +7,8 @@ const types = new Map([
   ['inbound.confirm', '入库确认'],
   ['outbound.confirm', '出库确认'],
   ['stock.adjust', '库存调整'],
+  ['inbound.reverse', '入库误确认撤销'],
+  ['outbound.reverse', '出库误确认撤销'],
 ]);
 export function JournalTypeTag({ type }: { type: string | null }) {
   return (

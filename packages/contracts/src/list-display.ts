@@ -5,6 +5,8 @@ const states = new Map([
   ['frozen', { text: '待出库确认', color: 'warning' }],
   ['confirmed', { text: '已出库', color: 'success' }],
   ['audited', { text: '已审核', color: 'default' }],
+  ['cancelled', { text: '已撤销确认', color: 'default' }],
+  ['voided', { text: '已作废（未入账）', color: 'default' }],
 ]);
 export function knownStatus(status: string | null, kind: 'inbound' | 'outbound') {
   if (kind === 'inbound' && status === 'pending') return { text: '待入库确认', color: 'warning' };
@@ -15,7 +17,7 @@ export function statusText(status: string | null, kind: 'inbound' | 'outbound'):
   if (known) return kind === 'inbound' && status === 'confirmed' ? '已入库' : known.text;
   return `状态待识别：${status === '' ? '空值' : (status ?? '未记录')}`;
 }
-export const postingText = { legacy: '历史记录', pending: '待确认入账', confirmed: '已确认入账' };
+export const postingText = { legacy: '历史记录', pending: '待确认入账', confirmed: '已确认入账', reversed: '已反向补偿', voided: '已作废（未入账）' };
 const formatter = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai',
   year: 'numeric',

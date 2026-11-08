@@ -3,7 +3,7 @@ import type { Database } from '../../db/mysql.ts';
 import { ensure } from '../../shared/errors.ts';
 
 export async function validateFact(db: Database, plan: Detail, fact: FactInput,lineId:string): Promise<void> {
-  ensure(plan.status==='open','PLAN_CLOSED','计划已冻结或已确认，禁止新增扫码');
+  ensure(plan.status==='open','PLAN_CLOSED','计划已冻结、已确认或已终结，禁止新增扫码；原有事实保留');
   ensure(Date.parse(fact.scannedAt)<Date.now()+7*86400000,'INVALID_SCAN_TIME','扫码时间超出允许的未来时间范围');
   const line = plan.lines.find((entry)=>entry.id===lineId);
   ensure(line,'PRODUCT_MISMATCH','商品不属于此计划');

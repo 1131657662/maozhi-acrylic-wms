@@ -1,16 +1,26 @@
 import type { Request,Response } from 'express';
 import type { Database } from '../../db/mysql.ts';
-import { idSchema,listQuerySchema,listSchema,revisionSchema } from '@wms/contracts';
+import { idSchema,listQuerySchema,listSchema,revisionSchema,sessionSchema } from '@wms/contracts';
 import { z } from 'zod';
 import { getOrder,listOrders } from './repository.ts';
 import { confirmOutbound } from './confirm.ts';
 import { actorFrom,ok } from '../../middleware/http.ts';
+import { exposePlans } from './exposure.ts';
 
 export function outboundController(db:Database) {
   return {
-    list:async(req:Request,res:Response):Promise<void> =>
-      ok(res,listSchema.parse(await listOrders(db,listQuerySchema.parse(req.query)))),
-    detail:async(req:Request,res:Response):Promise<void> => ok(res,await getOrder(db,idSchema.parse(req.params.id))),
+    list:async(req:Request,res:Response):Promise<void> => {
+      const query=listQuerySchema.parse(req.query);
+      const result=sessionSchema.parse(res.locals.session).channel==='pda'
+        ? await exposePlans(db,async tx=>{const result=await listOrders(tx,query);return {result,ids:result.items.map(i=>i.id)};})
+        : await listOrders(db,query);
+      ok(res,listSchema.parse(result));
+    },
+    detail:async(req:Request,res:Response):Promise<void> => {
+      const id=idSchema.parse(req.params.id);
+      ok(res,sessionSchema.parse(res.locals.session).channel==='pda'
+        ? await exposePlans(db,async tx=>({result:await getOrder(tx,id),ids:[id]})) : await getOrder(db,id));
+    },
     confirm:async(req:Request,res:Response):Promise<void> => ok(res,await confirmOutbound(db,{
       planId:idSchema.parse(req.params.id),key:z.uuid().parse(req.get('idempotency-key')),
       expected:revisionSchema.parse(req.body),actor:actorFrom(res),

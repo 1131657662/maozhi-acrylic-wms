@@ -70,8 +70,8 @@ async function writeChange(db: Database, operation: InventoryOperation, warehous
     VALUES(?,?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(3))`,
     [
       operation.id,
-      operation.type === 'outbound.confirm' ? operation.targetId : null,
-      operation.type === 'inbound.confirm' ? operation.targetId : null,
+      operation.type.startsWith('outbound.') ? operation.targetId : null,
+      operation.type.startsWith('inbound.') ? operation.targetId : null,
       warehouse,
       change.productCode,
       change.packagesDelta,

@@ -1,5 +1,5 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { tonnes, type WebInboundRow } from '@wms/contracts';
+import { tonnes, postingText, type WebInboundRow } from '@wms/contracts';
 import { Tag } from 'antd';
 import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
@@ -37,7 +37,7 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     width: 120,
     sorter: true,
     render: (_, row) => (
-      <Tag>{{ legacy: '历史记录', pending: '待确认入账', confirmed: '已确认入账' }[row.postingState]}</Tag>
+      <Tag>{postingText[row.postingState]}</Tag>
     ),
   },
   {

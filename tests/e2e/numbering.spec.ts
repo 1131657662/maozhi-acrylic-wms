@@ -1,4 +1,30 @@
 import { test, expect, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { numberingRulesSchema } from '@wms/contracts';
+import { e2eDatabase } from './inventory-helpers';
+
+async function prepareCollision(page: Page) {
+  const response = await page.request.get('/api/v1/document-numbering');
+  expect(response.status()).toBe(200);
+  const rule = numberingRulesSchema.parse((await response.json()).data).find((row) => row.kind === 'outbound')!;
+  const next = rule.preview!;
+  expect(next).toMatch(/^CK-\d{8}-\d{4}$/);
+  const sequence = String(Number(next.split('-').at(-1)));
+  const narrow = next.replace(/-\d+$/, '-' + sequence.padStart(2, '0'));
+  const db = e2eDatabase();
+  try {
+    // Other tests legitimately consume numbers. Construct the collision at the actual next number.
+    if (!(await db.get('SELECT id FROM outbound_orders WHERE order_no=?', [narrow])))
+      await db.run(
+        `INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,status,created_at)
+        VALUES(?,?,'合成碰撞验收','DEMO-CUST-1','DEMO-WH','验收车辆','open',UTC_TIMESTAMP(3))`,
+        [randomUUID(), narrow],
+      );
+  } finally {
+    await db.close();
+  }
+  return { next, wide: next.replace(/-\d+$/, '-' + sequence.padStart(5, '0')) };
+}
 
 async function login(page: Page) {
   await page.goto('/user/login');
@@ -12,11 +38,12 @@ async function noPageOverflow(page: Page) {
 }
 test('B1a 编号配置预览、调窄撞号拒绝且保留输入，修改成功', async ({ page }) => {
   await login(page);
+  const expected = await prepareCollision(page);
   await page.goto('/system/document-numbering');
   await expect(page.getByText(/预览不占号/)).toBeVisible();
   await expect(page.getByText(/^RK-\d{8}-\d{4}$/)).toBeVisible();
   await page.getByText('出库 CK', { exact: true }).click();
-  await expect(page.getByText(/^CK-\d{8}-0010$/)).toBeVisible();
+  await expect(page.getByText(expected.next, { exact: true })).toBeVisible();
   await page.getByLabel('序号宽度', { exact: true }).fill('2');
   const collisionResponse = page.waitForResponse(
     (response) => response.url().endsWith('/document-numbering/outbound') && response.request().method() === 'PUT',
@@ -41,7 +68,7 @@ test('B1a 编号配置预览、调窄撞号拒绝且保留输入，修改成功'
   await page.getByLabel('序号宽度', { exact: true }).fill('5');
   await page.getByRole('button', { name: '保存编号规则' }).click();
   await expect(page.getByText('编号配置已保存')).toBeVisible();
-  await expect(page.getByText(/^CK-\d{8}-00010$/)).toBeVisible();
+  await expect(page.getByText(expected.wide, { exact: true })).toBeVisible();
   await noPageOverflow(page);
   await page.screenshot({ path: '.local/evidence/b1a-numbering-1440.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });

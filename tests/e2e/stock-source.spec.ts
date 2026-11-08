@@ -23,7 +23,8 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   const stockRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
-    if (request.url().includes('/api/v1/stock') || request.url().includes('/api/v1/web/lists/stock')) stockRequests.push(request.url());
+    if (request.url().includes('/api/v1/stock') || request.url().includes('/api/v1/web/lists/stock'))
+      stockRequests.push(request.url());
   });
   await openStock(page);
   const expected = await expectedErpStock(page);
@@ -33,9 +34,14 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveText(String(expected.subtotal.packages));
   await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(tonnes(expected.subtotal.weightGrams));
-  await expect(page.getByTestId('stock-row-packages')).toHaveCount(expected.items.length);
-  for (const row of expected.items) {
-    const tableRow = page.getByTestId('stock-list').getByRole('row').filter({ hasText: row.productCode });
+  // Other suites can populate more than one page. Check the current page against the independent full ERP view.
+  const visibleRows = page.getByTestId('stock-list').locator('tbody tr[data-row-key]');
+  await expect(visibleRows).toHaveCount(Math.min(expected.items.length, 20));
+  for (const tableRow of await visibleRows.all()) {
+    const identity = await tableRow.getAttribute('data-row-key');
+    const row = expected.items.find((item) => JSON.stringify([item.warehouseCode, item.productCode]) === identity);
+    expect(row, `Only ERP stock may appear: ${identity}`).toBeDefined();
+    if (!row) throw new Error('Visible stock is missing from the ERP-only result');
     await expect(tableRow.getByTestId('stock-row-packages')).toHaveText(String(row.packages));
     await expect(tableRow.getByTestId('stock-row-tonnes')).toHaveText(tonnes(row.weightGrams));
   }
@@ -55,13 +61,14 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
     stockRequests.every((url) => {
       const request = new URL(url);
       return (
-        (request.pathname.startsWith('/api/v1/stock/by-source') || request.pathname === '/api/v1/web/lists/stock') && request.searchParams.get('source') === 'erp-product'
+        (request.pathname.startsWith('/api/v1/stock/by-source') || request.pathname === '/api/v1/web/lists/stock') &&
+        request.searchParams.get('source') === 'erp-product'
       );
     }),
   ).toBeTruthy();
   expect(errors).toEqual([]);
   console.log(
-    `ERP_INVENTORY_ONLY ${JSON.stringify({ tabs: 0, source: expected.source, rows: expected.items.length, subtotal: expected.subtotal, nonErpRequests: 0 })}`,
+    `ERP_INVENTORY_ONLY ${JSON.stringify({ tabs: 0, source: expected.source, totalRows: expected.items.length, visibleRows: await visibleRows.count(), subtotal: expected.subtotal, nonErpRequests: 0 })}`,
   );
 });
 
@@ -104,7 +111,17 @@ test('ERP 库存空态与无权限：不出现其他用途入口或占位', asyn
         code: forbidden ? 'FORBIDDEN' : 'OK',
         message: '验收拒绝',
         traceId: 'source-state',
-        data: forbidden ? null : { source: 'erp-product', items: [], total: 0, page: 1, pageSize: 20, viewToken: 'empty', subtotal: { packages: 0, weightGrams: 0 } },
+        data: forbidden
+          ? null
+          : {
+              source: 'erp-product',
+              items: [],
+              total: 0,
+              page: 1,
+              pageSize: 20,
+              viewToken: 'empty',
+              subtotal: { packages: 0, weightGrams: 0 },
+            },
       },
     }),
   );

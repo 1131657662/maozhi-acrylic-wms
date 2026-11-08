@@ -5,6 +5,7 @@ import { logger } from './shared/logger.ts';
 import { assertCatalogReady } from './db/catalog-readiness.ts';
 
 import { assertHandoffReady } from './db/handoff-readiness.ts';
+import { assertLifecycleReady } from './db/lifecycle-readiness.ts';
 
 const db = openDatabase(developmentConfig());
 const meta = await db.get("SELECT value FROM app_meta WHERE meta_key='identity'");
@@ -20,6 +21,7 @@ if (!String(version?.version).startsWith('8.')) {
 try {
   await assertCatalogReady(db);
   await assertHandoffReady(db);
+  await assertLifecycleReady(db);
 } catch (error) {
   await db.close();
   throw error;

@@ -28,7 +28,7 @@ export const inboundReceiptSchema = z.object({
   id: codeSchema,
   receiptNo: z.string(),
   status: z.string().nullable().default(null),
-  postingState: z.enum(['legacy', 'pending', 'confirmed']).default('legacy'),
+  postingState: z.enum(['legacy', 'pending', 'confirmed', 'reversed', 'voided']).default('legacy'),
   confirmationOperationId: z.uuid().nullable().default(null),
   supplierCode: codeSchema,
   supplierName: z.string(),
