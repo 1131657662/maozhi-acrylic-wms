@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { detailSchema, type OutboundPlanFields } from '@wms/contracts';
+import { detailSchema, type EditOutboundPlan } from '@wms/contracts';
 import { request } from '../../api/client';
 import { outboundKeys } from './keys';
 import { webListKeys } from '../web-lists/keys';
@@ -8,7 +8,7 @@ interface UpdatePlanInput {
   id: string;
   revision: number;
   digest: string;
-  plan: OutboundPlanFields;
+  plan: EditOutboundPlan['plan'];
 }
 
 export function useUpdatePlan() {

@@ -39,7 +39,11 @@ for (const kind of ['inbound', 'outbound'] as const) {
       const response = page.waitForResponse(
         (r) => r.url().endsWith(`/${kind}/${doc.id}/reverse`) && r.request().method() === 'POST',
       );
-      await page.getByRole('button', { name: '确认撤销入账', exact: true }).click();
+      // AntD's outgoing loading icon can still contribute to the accessible name.
+      const submit = page.getByRole('button', { name: /确认撤销入账$/ });
+      await expect(submit).toBeEnabled();
+      await expect(submit).not.toHaveClass(/\bant-btn-loading\b/);
+      await submit.click();
       const saved = await response;
       expect(saved.status()).toBe(200);
       if (failedKey) {

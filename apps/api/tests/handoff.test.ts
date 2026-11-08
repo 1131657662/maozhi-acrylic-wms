@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
 import request from 'supertest';
 import { fixture, actor } from './fixture.ts';
@@ -17,7 +18,7 @@ import { migrateDown, migrateUp } from '../src/db/migrate.ts';
 import { createTestDatabase } from '../../../scripts/mysql/test-database.ts';
 
 test('B1c2 60条交接批量绑定、丢响应核验、幂等重传、旧请求重新阻断', async () => {
-  const { db, dispose } = await fixture('007_pda_handoff');
+  const { db, dispose } = await fixture();
   try {
     const { header, records, facts } = await prepareHandoff(db);
     await startHandoff(db, header, actor);
@@ -89,13 +90,36 @@ test('B1c2 60条交接批量绑定、丢响应核验、幂等重传、旧请求�
     await noteLegacyClient(db, `device:${header.deviceId}`);
     assert.equal((await publicationGate(db, true)).allowed, false);
     assert.equal((await handoffOverview(db)).clients.length, 1);
+    console.log(
+      'B1C2_HANDOFF pending=55 failed=5 lost_response_confirmed=2 manifest=60/60 batch_binding=58/58 received=60/60 duplicates=0 old_protocol_reblocks=true',
+    );
+  } finally {
+    await dispose();
+  }
+});
+
+test('007 非空交接表拒绝down：历史迁移保护独立于当前读模型', async () => {
+  const { db, dispose } = await fixture('007_pda_handoff');
+  try {
+    const version = await db.get('SELECT content_sha256 FROM catalog_versions WHERE version_id=1');
+    await startHandoff(
+      db,
+      {
+        id: randomUUID(),
+        deviceId: 'migration-device',
+        appVersion: 'test',
+        expectedCount: 0,
+        manifestSha: '0'.repeat(64),
+        catalogVersion: 1,
+        catalogSha: String(version?.content_sha256),
+        previousSessionHashes: [],
+      },
+      actor,
+    );
     await assert.rejects(migrateDown(db), (error: Error) => {
       console.log('B1C2_DOWN_ACTUAL', error.message);
-      return /含有数据/.test(error.message);
+      return /pda_handoff_clients 含有数据/.test(error.message);
     });
-    console.log(
-      'B1C2_HANDOFF pending=55 failed=5 lost_response_confirmed=2 manifest=60/60 batch_binding=58/58 received=60/60 duplicates=0 old_protocol_reblocks=true down_nonempty=refused',
-    );
   } finally {
     await dispose();
   }
@@ -120,14 +144,12 @@ test('B1c2 007空表down/up；清单写入中途失败整批回滚；PDA不能�
       registerRecords(
         db,
         header.id,
-        records
-          .slice(0, 2)
-          .map((r, i) => ({
-            planId: handoffPlan,
-            rawPayload: r.payload,
-            payloadSha: i === 0 ? hash(r.payload) : '0'.repeat(64),
-            localState: 'pending',
-          })),
+        records.slice(0, 2).map((r, i) => ({
+          planId: handoffPlan,
+          rawPayload: r.payload,
+          payloadSha: i === 0 ? hash(r.payload) : '0'.repeat(64),
+          localState: 'pending',
+        })),
       ),
       /摘要不符/,
     );

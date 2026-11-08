@@ -2,7 +2,7 @@
 
 状态只按当前代码与可定位证据填写；新现状无证据时按未完成处理。U 统一写作“旧痛点 → 新改法 → 量化收益”；无法说明收益的改动降为 P。P 覆盖率按非 N/A 的 P 行统计，权限按单用户边界明确记为 N/A，不纳入分母。P0 收敛为 8 项：仅纳入库存正确性、单据可追溯性、旧 ERP 高频路径或多个后续模块共同依赖的能力；其余功能按依赖和风险进入 P1–P3。
 
-2026-11-08状态同步：B1a、B1c-1/2、B1b-1/2、B2a按原批次验收；本批B3a仅Web盘点闭环，证据见ACCEPTANCE。B2b更正后置，待用户明确规则；报表与其他P缺口仍逐批放行。打印未完成且已延后，依赖积木报表配置。
+2026-11-08状态同步：B1a、B1c-1/2、B1b-1/2、B2a、B3a按原批次验收；B3b已本地验证，待用户验收。本批B4a仅修补R1/R2/R3/R5/R6，逐项证据见ACCEPTANCE与B4A_VALIDATION。B2b更正、B3c及其他P缺口仍逐批放行。打印未完成且已延后，依赖积木报表配置。
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
@@ -18,7 +18,7 @@
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 基础资料 | 商品新增、编辑、启停（2.1） | 新系统有简化主数据 CRUD | P：旧商品分类、字段、筛选/导入能力未全量对齐 | 字段分散且重复开页 → 按商品/仓库/往来单位统一列表壳和抽屉编辑 → 新增/编辑目标 ≤2 屏；待实测 | 记录一次商品编辑滚屏和点击数；失败率待实测 | 批量导入校验报告 | P1 | B2 | Product、ProductCategory | IMG: .local/evidence/master-data-1440.png | 不一次引入未被作业或报表引用的旧字段 |
+| 基础资料 | 商品新增、编辑、启停（2.1） | B4a：用户确认 ERP 商品只读，Web/API关闭新增/编辑/启停；分页搜索和按编码回显 | P：商品维护按业务决策留 ERP；旧分类/扩展字段/导入能力未全量对齐，不宣称 CRUD 完成 | 本地新增后无法入库 → 只读 ERP 来源并明示维护边界 → app/SPEC 建单请求全部拒绝 | 四类各605条分页/搜索与末条可达；商品写入口403，非ERP建单409 | 临时商品需求后置，未授权 | P1 | B4a | Product、ProductCategory | TEST: boundary-http/master.test.ts；E2E: [boundary.spec.ts](../tests/e2e/boundary.spec.ts) | 商品由 ERP 维护，此处只读；原app/SPEC资料保留 |
 | 基础资料 | 仓库新增、编辑、启停（2.2） | 简化 CRUD | P：旧字段与有效性约束未全量核对 | 同一资料结构在多页重复学习 → 复用编码/名称/状态布局 → 目标从每类学习 3 种布局降为 1 种 | 4 类主数据各完成 3 个任务，统计中位点击数；待实测 | 无 | P1 | B2 | Warehouse | IMG: .local/evidence/master-data-1440.png | 仓库编码被单据和库存引用，禁止直接改键 |
 | 基础资料 | 供应商新增、编辑、启停（2.3） | 简化 CRUD | P：供应商历史引用/搜索字段未全量对齐 | 列表与编辑上下文分离 → 行内显示状态、抽屉保存后回原筛选 → 目标启停 2 步完成 | Playwright 统计点击；待实测 | 导入校验报告 | P1 | B2 | Supplier | IMG: .local/evidence/master-data-1440.png | 编辑失败应保留表单值 |
 | 基础资料 | 客户新增、编辑、分级（2.4） | 简化 CRUD | P：客户完整字段、等级与历史快照未全量对齐 | 重复录入地址/联系人 → 选择客户时带出历史资料、单据保留快照 → 单据录入少填 3 个联系字段 | E2E 检查字段回填和历史快照；待实测实际省时 | 经营数据看板 | P1 | B2 | Customer | IMG: .local/evidence/master-data-1440.png | 客户资料变更须明确是否回写历史单据，建议不回写 |
@@ -36,7 +36,7 @@
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 出库 | 新建：仓库/客户/日期/车辆/明细、库存校验（4.1） | CK 自动号及编辑保号通过浏览器验收；不预占库存 | P：计划字段和审核/作废链仍未齐 | 手填号且商品信息需重复录入 → 服务端 CK 自动号、客户快照回填、后续库存预检 → 已少填 1 个字段；预检后置 | 50 并发出库 0 重复；时长待实测 | Web 摄像头扫码 | P1 | B1a | OutboundOrderForm、OutboundPlanEntry | E2E: [tests/e2e/outbound.spec.ts:105](../tests/e2e/outbound.spec.ts#L105) | 号码创建后不可改；本次仅纠正 ERP 库存视图，不改计划写入行为；单据只认 ERP 商品 |
+| 出库 | 新建：仓库/客户/日期/车辆/明细、库存校验（4.1） | CK 自动号；B4a本地open仅改车号/备注并保留行ID；单行重量≤1000吨；不预占库存 | P：字段更正与已下发/已扫作废仍后置；本批边界已修补 | 编辑重建行破坏离线归属 → 表头独立更新且明细409 → 下载后离线事实补传200，行ID/UUID/正文变化0 | 999.9999与1000吨200，1000.0001吨422；时序见B4A_VALIDATION | Web 摄像头扫码 | P1 | B1a / B4a | OutboundOrderForm、OutboundPlanEntry | E2E: [boundary.spec.ts](../tests/e2e/boundary.spec.ts)；TEST: boundary-http.test.ts | 号码/客户/仓库/明细创建后不可改；仅ERP商品；B2a作废保护保留 |
 | 出库 | 列表搜索、筛选、排序、导出（4.2） | B1b-1：单号/时间/状态/客户/仓库/车牌筛选、排序、列设置及返回上下文已验；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：查询对齐；XLSX导出已验，CSV不在本批 | 关键词和分散列设置 → 同一查询壳与URL状态、计划/实扫分开 → 详情返回额外重填0项；每页上限200行，双宽度页面横滚0 | E2E核对返回URL、排序响应、跨页选择；10k生产构建30次首屏/翻页p95见ACCEPTANCE | 批量动作（候选） | P1 | B1b-1 / B1b-2 | OutboundOrderList | E2E: [tests/e2e/web-lists.spec.ts](../tests/e2e/web-lists.spec.ts)；IMG: .local/evidence/b1b1-outbound-1280.png；DATA: [scripts/verify-list-browser-performance.ts](../scripts/verify-list-browser-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 无批量确认；计划明细/事实分别聚合，防JOIN放大；旧PDA/小程序契约不改；快照内分批、不混源，失败/取消不提供部分文件 |
 | 出库 | 详情审核、撤销审核、库存联动（4.3） | B2a：confirmed→cancelled补偿；可证未入账且未下发/未扫open→voided；原事实保留，终态不能再扫码/确认 | P：限定撤销/作废已验证；已下发/已扫/队列不明作废、更正留B2b；历史只读；打印已延后，依赖积木报表配置 | 误确认无法安全回退 → 详情核对补偿/下游证据并终结 → 原+补偿delta为0，事实正文变化0 | 20首次并发仅1补偿；7阶段故障全回滚；PDA读取/作废10轮竞争不同时成功；原事实幂等重放可用 | 差异放行/短装超发（本轮不做） | P0 | B1a / B2a / B2b | OutboundOrderDetail、OutboundVehicleConfirmation | E2E: [tests/e2e/document-lifecycle.spec.ts](../tests/e2e/document-lifecycle.spec.ts)；DATA: [scripts/sql/verify-document-lifecycle.sql](../scripts/sql/verify-document-lifecycle.sql)；IMG: .local/evidence/b2a-outbound-cancelled-1440.png | 只纠正误确认，不代表实物回库；已入账禁止作废；原号不复用；PDA/小程序无补偿权限；旧计划下发状态未知时保守阻断 |
 | 出库 | 未知状态/流水类型显示 | 统一标签；未知状态详情增加常驻释义与核对指引 | P：现有 Web 展示点已验收；后续页面须沿用 | 新值空白或只剩一串代码 → 灰色“状态待识别：原文”及详情说明，不画本地流程 → 0 空白、0 页面异常，下一步无需悬停查找 | E2E 真 MySQL 未知值逐页断言；1440/1280 截图 | 无 | P0 | B1a | OutboundOrderDetail、StockJournal | E2E: [tests/e2e/numbering.spec.ts](../tests/e2e/numbering.spec.ts)；IMG: .local/evidence/b1a2-unknown-status-1440.png | 保留原值；未确认语义不猜测；null 明示未记录；出库确认禁用 |

@@ -2,14 +2,12 @@ import { Alert, Button } from 'antd';
 import { PageContainer, ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { Link, useNavigate } from '@umijs/max';
 import { masterItemsSchema, type CreateStocktake } from '@wms/contracts';
-import { useMasterItems } from '../master-data/use-master-items';
+import { MasterSelect } from '../master-data/select';
 import { useCreateStocktake } from './use-create-stocktake';
-import { StocktakeQueryState } from './query-state';
 import { request } from '../../api/client';
 
 export function StocktakeCreate() {
-  const navigate = useNavigate(),
-    warehouses = useMasterItems('warehouses');
+  const navigate = useNavigate();
   const { mutateAsync: create, isPending: isCreating, error: createError } = useCreateStocktake();
   async function submit(values: CreateStocktake) {
     try {
@@ -39,41 +37,34 @@ export function StocktakeCreate() {
         title="开始后暂停该仓库存写入"
         description="暂停入库确认、出库确认、库存调整与误确认撤销；其他仓库、PDA 扫码和补传不受影响。请确认现场可以按快照时点实盘。"
       />
-      <StocktakeQueryState query={warehouses}>
-        {createError && <Alert type="error" title={createError.message} description="已填内容保留，可修正后重试。" />}
-        <ProForm<CreateStocktake>
-          onFinish={submit}
-          loading={isCreating}
-          disabled={isCreating}
-          submitter={{ resetButtonProps: false, searchConfig: { submitText: '生成快照并开始盘点' } }}
-        >
-          <ProFormSelect
-            name="warehouseCode"
-            label="盘点仓库"
-            rules={[{ required: true }]}
-            options={warehouses.data
-              ?.filter((w) => w.active)
-              .map((w) => ({ value: w.code, label: `${w.name}（${w.code}）` }))}
-          />
-          <ProFormSelect
-            name="productCodes"
-            label="ERP 商品范围（选填）"
-            mode="multiple"
-            showSearch
-            debounceTime={300}
-            request={async ({ keyWords }) =>
-              (
-                await request(
-                  `/stocktakes/options/products?keyword=${encodeURIComponent(keyWords ?? '')}`,
-                  masterItemsSchema,
-                )
-              ).map((p) => ({ value: p.code, label: `${p.code} · ${p.name}` }))
-            }
-            fieldProps={{ maxCount: 100 }}
-            extra="不选时盘点该仓全部 ERP 库存。指定商品即使当前无库存，也生成零库存快照；最多指定 100 个商品。"
-          />
-        </ProForm>
-      </StocktakeQueryState>
+      {createError && <Alert type="error" title={createError.message} description="已填内容保留，可修正后重试。" />}
+      <ProForm<CreateStocktake>
+        onFinish={submit}
+        loading={isCreating}
+        disabled={isCreating}
+        submitter={{ resetButtonProps: false, searchConfig: { submitText: '生成快照并开始盘点' } }}
+      >
+        <ProForm.Item name="warehouseCode" label="盘点仓库" rules={[{ required: true }]}>
+          <MasterSelect catalog="warehouses" />
+        </ProForm.Item>
+        <ProFormSelect
+          name="productCodes"
+          label="ERP 商品范围（选填）"
+          mode="multiple"
+          showSearch
+          debounceTime={300}
+          request={async ({ keyWords }) =>
+            (
+              await request(
+                `/stocktakes/options/products?keyword=${encodeURIComponent(keyWords ?? '')}`,
+                masterItemsSchema,
+              )
+            ).map((p) => ({ value: p.code, label: `${p.code} · ${p.name}` }))
+          }
+          fieldProps={{ maxCount: 100 }}
+          extra="不选时盘点该仓全部 ERP 库存。指定商品即使当前无库存，也生成零库存快照；最多指定 100 个商品。"
+        />
+      </ProForm>
     </PageContainer>
   );
 }

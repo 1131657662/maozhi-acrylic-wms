@@ -49,7 +49,7 @@ test('Web 同源会话可创建入库和出库计划并查询主数据', async (
       .expect(200);
     assert.equal(master.body.data.active, true);
     const masters = await web.get('/api/v1/master-data/customers').expect(200);
-    assert.ok(masters.body.data.some((item: { code: string }) => item.code === 'HTTP-CUST'));
+    assert.ok(masters.body.data.items.some((item: { code: string }) => item.code === 'HTTP-CUST'));
 
     const inbound = await web
       .post('/api/v1/inbound')

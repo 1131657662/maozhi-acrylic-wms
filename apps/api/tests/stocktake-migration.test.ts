@@ -9,11 +9,11 @@ import { businessFingerprint } from './lifecycle-fixture.ts';
 import { createStocktake } from '../src/features/stocktake/create.ts';
 
 test('B3a 009 空表down/up、历史逐表不变、任一盘点非空拒绝down', async () => {
-  const empty = await createTestDatabase();
+  const empty = await createTestDatabase('009_stocktake');
   try {
     await migrateDown(empty.db);
     await assert.rejects(assertStocktakeReady(empty.db), /009/);
-    await migrateUp(empty.db);
+    await migrateUp(empty.db, '009_stocktake');
     await assertStocktakeReady(empty.db);
     console.log('B3A_MIGRATION empty_down=success re_up=success old_schema_start=refused');
   } finally {
@@ -22,7 +22,7 @@ test('B3a 009 空表down/up、历史逐表不变、任一盘点非空拒绝down'
   const { db, dispose } = await fixture('008_document_lifecycle');
   try {
     const before = await businessFingerprint(db);
-    await migrateUp(db);
+    await migrateUp(db, '009_stocktake');
     const after = await businessFingerprint(db);
     for (const table of Object.keys(before).filter((t) => t !== 'schema_migrations'))
       assert.equal(after[table], before[table], table);

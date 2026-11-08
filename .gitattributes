@@ -1,0 +1,3 @@
+* text=auto
+*.png binary
+apps/api/migrations/010_outbound_memo.*.sql text eol=lf

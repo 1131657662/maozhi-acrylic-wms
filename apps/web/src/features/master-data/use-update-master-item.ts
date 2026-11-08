@@ -18,6 +18,6 @@ export function useUpdateMasterItem() {
         method: 'PATCH',
         body: JSON.stringify(body),
       }),
-    onSuccess: (_item, input) => client.invalidateQueries({ queryKey: masterDataKeys.list(input.catalog).queryKey }),
+    onSuccess: () => client.invalidateQueries({ queryKey: masterDataKeys._def }),
   });
 }

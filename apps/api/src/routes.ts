@@ -54,6 +54,7 @@ export function businessRouter(db:Database,origins:string[],catalogPublishEnable
   router.post('/inbound',requireChannel('web',origins),inbound.create);
   router.post('/inbound/:id/confirm',requireChannel('web',origins),inbound.confirm);
   router.get('/master-data/:catalog',requireChannel('web',origins),master.list);
+  router.get('/master-data/:catalog/:code', requireChannel('web', origins), master.read);
   router.post('/master-data/:catalog',requireChannel('web',origins),master.create);
   router.patch('/master-data/:catalog/:code',requireChannel('web',origins),master.update);
   router.get('/scan/plans',outbound.list);

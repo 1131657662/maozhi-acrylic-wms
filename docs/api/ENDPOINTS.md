@@ -4,6 +4,53 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/web/reports/details | web | ERP 入账明细（含撤销补偿），历史上海本地时间未核实；携带收发存对账与断点诊断 |
+| GET | /api/v1/web/reports/monthly | web | ERP 仓库商品月度收发存；未知边界为 null，调整与撤销分列，不补平差额 |
+| GET | /api/v1/stocktakes | web | 盘点分页查询；status=counting 为暂停窗口常驻入口 |
+| POST | /api/v1/stocktakes | web | 生成固定ERP库存快照并持久暂停同仓确认、调整、撤销 |
+| GET | /api/v1/stocktakes/options/products | web | 按编码或名称查询ERP盘点商品，最多100条 |
+| GET | /api/v1/stocktakes/{id} | web | 盘点头及固定快照/实盘摘要 |
+| GET | /api/v1/stocktakes/{id}/lines | web | 盘点行服务端分页，最大200行 |
+| PUT | /api/v1/stocktakes/{id}/lines/{product} | web | 按行实盘，版本校验及幂等，不改库存 |
+| GET | /api/v1/stocktakes/{id}/preview | web | 差异与快照后未入账收发货，token绑定完整清单 |
+| POST | /api/v1/stocktakes/{id}/post | web | 人工确认盘点回写，原因必填；未入账默认阻断，显式口径确认留审计；全事务释放窗口 |
+| POST | /api/v1/stocktakes/{id}/void | web | 作废进行中盘点并释放窗口；不改库存不写流水 |
+| GET | /api/v1/inbound/{id}/lifecycle | web | 误确认撤销/未入账作废预览；列出下游阻断证据 |
+| POST | /api/v1/inbound/{id}/reverse | web | 原流水反向补偿；保留原单与事实，不涉及实物退货 |
+| POST | /api/v1/inbound/{id}/void | web | 仅可证未入账且无现场下发风险单据作废；原号不复用 |
+| GET | /api/v1/outbound/{id}/lifecycle | web | 误确认撤销/未入账作废预览；列出下游阻断证据 |
+| POST | /api/v1/outbound/{id}/reverse | web | 原流水反向补偿；保留原单与事实，不涉及实物退货 |
+| POST | /api/v1/outbound/{id}/void | web | 仅可证未入账且无现场下发风险单据作废；原号不复用 |
+| GET | /api/v1/web/lists/inbound | web | Web 入库分页；登记时间、原始状态与入账状态独立筛选 |
+| GET | /api/v1/web/lists/outbound | web | Web 出库分页；计划与扫码实绩分别汇总 |
+| GET | /api/v1/web/lists/stock | web | Web ERP 库存分页与同筛选范围小计；拒绝其他来源及总计参数 |
+| GET | /api/v1/web/lists/audit | web | Web 操作日志分页；不再截断最近 100 条 |
+| GET | /api/v1/web/lists/audit/{id} | web | 操作日志详情与前后值 |
+| GET | /api/v1/web/lists/{kind}/statuses | web | 入库/出库原始状态选项，保留未知值和空值 |
+| POST | /api/v1/web/exports | web | 固定筛选、列与视图摘要，异步流式生成 XLSX；第二任务返回 EXPORT_BUSY |
+| GET | /api/v1/web/exports/active | web | 当前生成任务；没有任务返回 null |
+| GET | /api/v1/web/exports/{id} | web | 导出进度、预览与本次范围合计；有效期24小时 |
+| POST | /api/v1/web/exports/{id}/cancel | web | 取消生成；不提供部分文件 |
+| GET | /api/v1/web/exports/{id}/download | web | 下载校验完成的 XLSX；只读 Cookie 会话下载 |
+| GET | /api/v1/catalog | web | 当前目录与可执行发布门禁；仅扫码取重，不参与库存 |
+| POST | /api/v1/catalog/uploads | web | 整版校验 txt；相同内容默认不建版，重建须显式确认历史版本 |
+| GET | /api/v1/catalog/uploads/{id} | web | 按原上传 UUID 核验结果，支持响应丢失恢复 |
+| GET | /api/v1/catalog/versions | web | 不可变版本历史（包括完整未发布候选） |
+| GET | /api/v1/catalog/versions/{versionId}/diff | web | 固定基线版本的差异分页 |
+| POST | /api/v1/catalog/versions/{versionId}/publish | web | 门禁通过后原子发布；指针、审计、幂等结果同事务 |
+| GET | /api/v1/scan/catalog/manifest | web-pda | 当前已发布目录清单；不要求 PDA 在线扫码 |
+| GET | /api/v1/scan/catalog/versions/{versionId}/entries | web-pda | 固定历史版分页；同期发布不会混页 |
+| GET | /api/v1/scan/plans/{id}/fact-contexts | web-pda | 事实当时版本、ERP作业行、规格及当前版本差异；不改变事实或摘要 |
+| POST | /api/v1/scan/handoffs | pda | 上报不可变队列清单；X-Device-Id 必须匹配 deviceId |
+| POST | /api/v1/scan/handoffs/{id}/records | pda | 分块登记原 UUID/原正文/原 SHA；X-Device-Id 必须匹配交接设备 |
+| GET | /api/v1/scan/handoffs/{id} | pda | 设备分页拉取不可变上下文；须 X-Device-Id |
+| GET | /api/v1/catalog/handoffs | web | 设备、未收妥记录数、未核验旧协议活动 |
+| GET | /api/v1/catalog/handoffs/{id} | web | 分页核对原单、条码、版本、重量与收妥情况 |
+| POST | /api/v1/catalog/handoffs/{id}/bind | web | 按原单批量补齐 ERP 作业上下文；不改原事实 |
+| POST | /api/v1/catalog/handoffs/{id}/clients | web | 实物清点后审计关联旧会话/设备；不清零计数 |
+| POST | /api/v1/catalog/handoffs/{id}/confirm | web | 原正文全部收妥、清单完整且旧协议水位未变才确认交接 |
+| POST | /api/v1/inbound/{id}/confirm | web | 明确确认待确认入库单；库存、流水、审计和幂等结果同事务 |
+| POST | /api/v1/stock/adjustments | web | ERP 库存调整；原因必填，校验当前值，原子记账 |
 | GET | /api/v1/stock/by-source | web | 单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计 |
 | GET | /api/v1/stock/by-source/journal | web | 单一商品来源最近流水；来源必填，不提供合计 |
 | GET | /api/v1/document-numbering | web | RK/CK 编号规则与非占号预览（北京时间） |
@@ -15,18 +62,19 @@
 | POST | /api/v1/auth/logout | any | 撤销当前会话 |
 | GET | /api/v1/outbound | any | 出库列表；单号前缀筛选、服务端分页 |
 | POST | /api/v1/outbound | web | 创建待扫码出库计划；不预占库存 |
-| PATCH | /api/v1/outbound/{id} | web | 修改尚无扫码事实的待扫码计划 |
+| PATCH | /api/v1/outbound/{id} | web | 本地 open 计划仅修改车号/备注；保留明细行 ID，已下发或已扫码同样禁止改明细 |
 | GET | /api/v1/outbound/{id} | any | 出库详情与逐包实重 |
 | POST | /api/v1/outbound/{id}/confirm | web | Web 唯一库存扣减入口；单事务确认 |
 | GET | /api/v1/inbound | web | 入库记录分页查询 |
 | GET | /api/v1/inbound/{id} | web | 入库单详情及商品总重量 |
-| POST | /api/v1/inbound | web | 确认入库；包数、总吨数独立记录并一次增加库存 |
-| GET | /api/v1/master-data/{catalog} | web | 查询商品、仓库、客户或供应商目录 |
-| POST | /api/v1/master-data/{catalog} | web | 新增主数据 |
-| PATCH | /api/v1/master-data/{catalog}/{code} | web | 更新主数据名称或启停状态 |
+| POST | /api/v1/inbound | web | 创建待确认入库单；包数、总吨数独立记录，不增加库存 |
+| GET | /api/v1/master-data/{catalog} | web | 分页搜索主数据；商品只返回 ERP 来源 |
+| POST | /api/v1/master-data/{catalog} | web | 新增仓库、客户或供应商；商品只读，返回 PRODUCT_MASTER_READ_ONLY |
+| PATCH | /api/v1/master-data/{catalog}/{code} | web | 更新仓库、客户或供应商；商品禁止编辑/启停，返回 PRODUCT_MASTER_READ_ONLY |
+| GET | /api/v1/master-data/{catalog}/{code} | web | 按精确编码读取已选主数据；可回显停用项，商品仅 ERP 来源 |
 | GET | /api/v1/scan/plans | any | PDA 计划列表 |
 | GET | /api/v1/scan/plans/{id} | any | 扫码计划及事实摘要 |
-| GET | /api/v1/scan/catalog | any | 本地合成条码实重目录 |
+| GET | /api/v1/scan/catalog | any | 只读 v1 兼容目录；PDA 旧协议访问计入发布门禁 |
 | POST | /api/v1/scan/plans/{id}/facts | pda | 记录不可变扫码事实；同 UUID 同正文重试幂等 |
 | POST | /api/v1/scan/plans/{id}/submit | pda | 冻结事实；校验 revision/digest；不扣库存 |
 | GET | /api/v1/stock | any | 只读库存（包数、整数克） |

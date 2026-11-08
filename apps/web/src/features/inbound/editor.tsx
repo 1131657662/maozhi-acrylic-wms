@@ -1,26 +1,17 @@
 import { Alert, Button, Space } from 'antd';
 import { Link, useNavigate } from '@umijs/max';
-import { ProForm, ProFormDigit, ProFormList, ProFormSelect, ProFormTextArea } from '@ant-design/pro-components';
+import { ProForm, ProFormDigit, ProFormList, ProFormTextArea } from '@ant-design/pro-components';
 import type { CreateInbound } from '@wms/contracts';
 import { tonnesToGrams } from '../../lib/weight-input';
-import { useMasterItems } from '../master-data/use-master-items';
+import { MasterSelect } from '../master-data/select';
 import { useCreateReceipt } from './use-create-receipt';
 
 interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
   lines: { productCode?: string; packages?: number; weightTonnes?: number }[];
 }
 
-function options(items: { code: string; name: string; active: boolean }[] | undefined) {
-  return (items ?? [])
-    .filter((item) => item.active)
-    .map((item) => ({ value: item.code, label: `${item.code} · ${item.name}` }));
-}
-
 export function InboundEditor() {
   const navigate = useNavigate();
-  const suppliers = useMasterItems('suppliers');
-  const warehouses = useMasterItems('warehouses');
-  const products = useMasterItems('products');
   const create = useCreateReceipt();
   async function submit(values: ReceiptFormValues): Promise<boolean> {
     try {
@@ -39,8 +30,6 @@ export function InboundEditor() {
       return false;
     }
   }
-  const loading = suppliers.isLoading || warehouses.isLoading || products.isLoading;
-  const loadError = suppliers.error ?? warehouses.error ?? products.error;
   return (
     <section>
       <div className="page-title">
@@ -54,7 +43,6 @@ export function InboundEditor() {
         <strong>重量独立录入</strong>
         <span>逐项填写包数和该商品本次入库总吨数；不按统一件重换算。</span>
       </div>
-      {loadError && <Alert type="error" title={loadError.message} />}
       {create.error && <Alert type="error" title={create.error.message} />}
       <ProForm<ReceiptFormValues>
         loading={create.isPending}
@@ -74,22 +62,12 @@ export function InboundEditor() {
         <ProForm.Item label="入库单号">
           <span>确认保存后自动生成 RK 单号</span>
         </ProForm.Item>
-        <ProFormSelect
-          name="supplierCode"
-          label="供应商"
-          rules={[{ required: true }]}
-          options={options(suppliers.data)}
-          showSearch
-          fieldProps={{ loading }}
-        />
-        <ProFormSelect
-          name="warehouseCode"
-          label="仓库"
-          rules={[{ required: true }]}
-          options={options(warehouses.data)}
-          showSearch
-          fieldProps={{ loading }}
-        />
+        <ProForm.Item name="supplierCode" label="供应商" rules={[{ required: true }]}>
+          <MasterSelect catalog="suppliers" />
+        </ProForm.Item>
+        <ProForm.Item name="warehouseCode" label="仓库" rules={[{ required: true }]}>
+          <MasterSelect catalog="warehouses" />
+        </ProForm.Item>
         <ProFormTextArea name="memo" label="备注" fieldProps={{ maxLength: 500, rows: 2 }} />
         <ProFormList
           name="lines"
@@ -98,13 +76,9 @@ export function InboundEditor() {
           min={1}
           creatorButtonProps={{ creatorButtonText: '添加商品' }}
         >
-          <ProFormSelect
-            name="productCode"
-            label="商品"
-            rules={[{ required: true }]}
-            options={options(products.data)}
-            showSearch
-          />
+          <ProForm.Item name="productCode" label="商品" rules={[{ required: true }]}>
+            <MasterSelect catalog="products" />
+          </ProForm.Item>
           <ProFormDigit
             name="packages"
             label="包数"

@@ -31,7 +31,7 @@ export function OrderDetail() {
           <h1>{order.orderNo}</h1>
         </div>
         <Space>
-          {order.status === 'open' && order.facts.length === 0 && (
+          {order.status === 'open' && (
             <Link to={`/outbound/${order.id}/edit`}>
               <Button>编辑计划</Button>
             </Link>
@@ -40,16 +40,18 @@ export function OrderDetail() {
         </Space>
       </div>
       <StatusNotice status={order.status} kind="outbound" />
-      {['open', 'frozen', 'confirmed'].includes(order.status) && <Card>
-        <Steps
-          current={{ open: 0, frozen: 1, confirmed: 2 }[order.status]}
-          items={[
-            { title: 'PDA 扫码', description: '保存逐包实重' },
-            { title: '冻结待确认', description: '事实已锁定，库存未扣减' },
-            { title: 'Web 确认出库', description: '一次扣减并记录流水' },
-          ]}
-        />
-      </Card>}
+      {['open', 'frozen', 'confirmed'].includes(order.status) && (
+        <Card>
+          <Steps
+            current={{ open: 0, frozen: 1, confirmed: 2 }[order.status]}
+            items={[
+              { title: 'PDA 扫码', description: '保存逐包实重' },
+              { title: '冻结待确认', description: '事实已锁定，库存未扣减' },
+              { title: 'Web 确认出库', description: '一次扣减并记录流水' },
+            ]}
+          />
+        </Card>
+      )}
       <div className="metrics">
         <Card>
           <small>计划包数 / 扫码包数</small>
@@ -81,6 +83,7 @@ export function OrderDetail() {
           columns={[
             { title: '客户', dataIndex: 'customerName' },
             { title: '车牌', dataIndex: 'vehicleNo' },
+            { title: '备注', dataIndex: 'memo' },
             { title: '仓库', dataIndex: 'warehouseCode' },
             { title: '计划版本', dataIndex: 'planVersion' },
             { title: '事实修订号', dataIndex: 'revision' },

@@ -9,7 +9,7 @@ export function MasterDataPage() {
         <div>
           <span className="eyebrow">REFERENCE DATA</span>
           <h1>主数据</h1>
-          <p>维护业务单据使用的商品、仓库、客户和供应商。</p>
+          <p>查询 ERP 商品，维护业务单据使用的仓库、客户和供应商。</p>
         </div>
         <span className="demo-label">合成数据 · 本地验证</span>
       </div>

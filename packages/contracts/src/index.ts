@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { scanContextInputSchema } from './scan-context.ts';
+import { plannedWeightGramsSchema } from './outbound-plan.ts';
 export * from './catalog.ts';
 export * from './scan-context.ts';
 export * from './handoff.ts';
@@ -35,7 +36,7 @@ export const lineSchema = z.object({
   productCode: idSchema,
   productName: z.string(),
   plannedPackages: z.number().int(),
-  plannedWeightGrams: gramsSchema,
+  plannedWeightGrams: plannedWeightGramsSchema,
   actualPackages: z.number().int(),
   actualWeightGrams: z.number().int(),
 });
@@ -50,9 +51,9 @@ export const factInputSchema = z.strictObject({
   planVersion: z.literal(1),
 });
 export const factSchema = factInputSchema.extend({ planId: idSchema, recordedBy: z.string(), receivedAt: z.string() });
-export const scanRequestSchema=z.union([
-  factInputSchema.extend({catalogVersion:z.literal(1)}),
-  z.strictObject({schemaVersion:z.literal(2),fact:factInputSchema,context:scanContextInputSchema}),
+export const scanRequestSchema = z.union([
+  factInputSchema.extend({ catalogVersion: z.literal(1) }),
+  z.strictObject({ schemaVersion: z.literal(2), fact: factInputSchema, context: scanContextInputSchema }),
 ]);
 export const orderSchema = z.object({
   id: idSchema,
@@ -61,6 +62,7 @@ export const orderSchema = z.object({
   customerCode: idSchema,
   warehouseCode: z.string(),
   vehicleNo: z.string(),
+  memo: z.string().max(500).nullable().default(null),
   status: statusSchema,
   revision: z.number().int(),
   planVersion: z.literal(1),

@@ -6,19 +6,19 @@ import { objectJson, localIso, nullableInt, optionalGrams } from './source-value
 export { objectJson, localIso } from './source-values.ts';
 
 function classification(type: string): Pick<LedgerEvent, 'family' | 'reverse' | 'operationLabel' | 'directionLabel'> {
-  const labels: Record<string, [LedgerEvent['family'], string]> = {
-    inbound: ['inbound', '历史入库'],
-    outbound: ['outbound', '历史出库'],
-    check: ['count', '历史盘点'],
-    import: ['import', '历史导入'],
-    'inbound.confirm': ['inbound', '入库确认'],
-    'inbound.reverse': ['inbound', '入库撤销'],
-    'outbound.confirm': ['outbound', '出库确认'],
-    'outbound.reverse': ['outbound', '出库撤销'],
-    'stock.adjust': ['manual', '人工调整'],
-    'stocktake.post': ['count', '盘点回写'],
-  };
-  const [family, operationLabel] = labels[type] ?? ['unknown', `未分类：${type || '未记录'}`];
+  const labels = new Map<string, [LedgerEvent['family'], string]>([
+    ['inbound', ['inbound', '历史入库']],
+    ['outbound', ['outbound', '历史出库']],
+    ['check', ['count', '历史盘点']],
+    ['import', ['import', '历史导入']],
+    ['inbound.confirm', ['inbound', '入库确认']],
+    ['inbound.reverse', ['inbound', '入库撤销']],
+    ['outbound.confirm', ['outbound', '出库确认']],
+    ['outbound.reverse', ['outbound', '出库撤销']],
+    ['stock.adjust', ['manual', '人工调整']],
+    ['stocktake.post', ['count', '盘点回写']],
+  ]);
+  const [family, operationLabel] = labels.get(type) ?? ['unknown', `未分类：${type || '未记录'}`];
   return {
     family,
     reverse: type.endsWith('.reverse'),

@@ -20,7 +20,8 @@ import {
   stockSchema,
   auditSchema,
   masterCatalogSchema,
-  masterItemsSchema,
+  masterPageSchema,
+  masterListQuerySchema,
   masterItemSchema,
   createMasterItemSchema,
   updateMasterItemSchema,
@@ -30,9 +31,16 @@ import {
   inboundReceiptSchema,
   createOutboundPlanSchema,
   editOutboundPlanSchema,
-  documentKindSchema, numberingRulesSchema, numberingRuleSchema, numberingUpdateSchema,
-  journalSchema, journalQuerySchema,
-  sourceStockSchema, stockSourceQuerySchema, sourceJournalSchema, sourceJournalQuerySchema,
+  documentKindSchema,
+  numberingRulesSchema,
+  numberingRuleSchema,
+  numberingUpdateSchema,
+  journalSchema,
+  journalQuerySchema,
+  sourceStockSchema,
+  stockSourceQuerySchema,
+  sourceJournalSchema,
+  sourceJournalQuerySchema,
 } from '@wms/contracts';
 
 export interface Operation {
@@ -56,13 +64,64 @@ export const operations: Operation[] = [
   ...webExportOperations,
   ...catalogOperations,
   ...handoffOperations,
-  { method: 'post', path: '/inbound/{id}/confirm', summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务', body: confirmInboundSchema, response: inboundReceiptSchema, channel: 'web', idempotent: true },
-  { method: 'post', path: '/stock/adjustments', summary: 'ERP 库存调整；原因必填，校验当前值，原子记账', body: stockAdjustmentSchema, response: stockAdjustmentResultSchema, channel: 'web', idempotent: true },
-  { method: 'get', path: '/stock/by-source', summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计', query: stockSourceQuerySchema, response: sourceStockSchema, channel: 'web' },
-  { method: 'get', path: '/stock/by-source/journal', summary: '单一商品来源最近流水；来源必填，不提供合计', query: sourceJournalQuerySchema, response: sourceJournalSchema, channel: 'web' },
-  { method: 'get', path: '/document-numbering', summary: 'RK/CK 编号规则与非占号预览（北京时间）', response: numberingRulesSchema, channel: 'web' },
-  { method: 'put', path: '/document-numbering/{kind}', summary: '修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数', body: numberingUpdateSchema, response: numberingRuleSchema, channel: 'web', idempotent: true },
-  { method: 'get', path: '/stock/journal', summary: '最近库存流水；保留原始类型，排除软删', query: journalQuerySchema, response: journalSchema, channel: 'web' },
+  {
+    method: 'post',
+    path: '/inbound/{id}/confirm',
+    summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务',
+    body: confirmInboundSchema,
+    response: inboundReceiptSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
+    method: 'post',
+    path: '/stock/adjustments',
+    summary: 'ERP 库存调整；原因必填，校验当前值，原子记账',
+    body: stockAdjustmentSchema,
+    response: stockAdjustmentResultSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
+    method: 'get',
+    path: '/stock/by-source',
+    summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计',
+    query: stockSourceQuerySchema,
+    response: sourceStockSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/stock/by-source/journal',
+    summary: '单一商品来源最近流水；来源必填，不提供合计',
+    query: sourceJournalQuerySchema,
+    response: sourceJournalSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/document-numbering',
+    summary: 'RK/CK 编号规则与非占号预览（北京时间）',
+    response: numberingRulesSchema,
+    channel: 'web',
+  },
+  {
+    method: 'put',
+    path: '/document-numbering/{kind}',
+    summary: '修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数',
+    body: numberingUpdateSchema,
+    response: numberingRuleSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
+    method: 'get',
+    path: '/stock/journal',
+    summary: '最近库存流水；保留原始类型，排除软删',
+    query: journalQuerySchema,
+    response: journalSchema,
+    channel: 'web',
+  },
   {
     method: 'get',
     path: '/health',
@@ -98,7 +157,7 @@ export const operations: Operation[] = [
   {
     method: 'patch',
     path: '/outbound/{id}',
-    summary: '修改尚无扫码事实的待扫码计划',
+    summary: '本地 open 计划仅修改车号/备注；保留明细行 ID，已下发或已扫码同样禁止改明细',
     body: editOutboundPlanSchema,
     response: detailSchema,
     channel: 'web',
@@ -141,14 +200,15 @@ export const operations: Operation[] = [
   {
     method: 'get',
     path: '/master-data/{catalog}',
-    summary: '查询商品、仓库、客户或供应商目录',
-    response: masterItemsSchema,
+    summary: '分页搜索主数据；商品只返回 ERP 来源',
+    query: masterListQuerySchema,
+    response: masterPageSchema,
     channel: 'web',
   },
   {
     method: 'post',
     path: '/master-data/{catalog}',
-    summary: '新增主数据',
+    summary: '新增仓库、客户或供应商；商品只读，返回 PRODUCT_MASTER_READ_ONLY',
     body: createMasterItemSchema,
     response: masterItemSchema,
     channel: 'web',
@@ -156,8 +216,15 @@ export const operations: Operation[] = [
   {
     method: 'patch',
     path: '/master-data/{catalog}/{code}',
-    summary: '更新主数据名称或启停状态',
+    summary: '更新仓库、客户或供应商；商品禁止编辑/启停，返回 PRODUCT_MASTER_READ_ONLY',
     body: updateMasterItemSchema,
+    response: masterItemSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/master-data/{catalog}/{code}',
+    summary: '按精确编码读取已选主数据；可回显停用项，商品仅 ERP 来源',
     response: masterItemSchema,
     channel: 'web',
   },
@@ -170,7 +237,13 @@ export const operations: Operation[] = [
     channel: 'any',
   },
   { method: 'get', path: '/scan/plans/{id}', summary: '扫码计划及事实摘要', response: detailSchema, channel: 'any' },
-  { method: 'get', path: '/scan/catalog', summary: '只读 v1 兼容目录；PDA 旧协议访问计入发布门禁', response: catalogSchema, channel: 'any' },
+  {
+    method: 'get',
+    path: '/scan/catalog',
+    summary: '只读 v1 兼容目录；PDA 旧协议访问计入发布门禁',
+    response: catalogSchema,
+    channel: 'any',
+  },
   {
     method: 'post',
     path: '/scan/plans/{id}/facts',
@@ -193,8 +266,15 @@ export const operations: Operation[] = [
 ];
 function parameters(operation: Operation): object[] {
   const result: object[] = [];
-  if (operation.path.includes('{product}')) result.push({ in: 'path', name: 'product', required: true, schema: { type: 'string', minLength: 1, maxLength: 80 } });
-  if (operation.path.includes('{versionId}')) result.push({ in: 'path', name: 'versionId', required: true, schema: { type: 'integer', minimum: 1 } });
+  if (operation.path.includes('{product}'))
+    result.push({
+      in: 'path',
+      name: 'product',
+      required: true,
+      schema: { type: 'string', minLength: 1, maxLength: 80 },
+    });
+  if (operation.path.includes('{versionId}'))
+    result.push({ in: 'path', name: 'versionId', required: true, schema: { type: 'integer', minimum: 1 } });
   if (operation.path.includes('{kind}'))
     result.push({ in: 'path', name: 'kind', required: true, schema: z.toJSONSchema(documentKindSchema) });
   if (operation.path.includes('{id}'))
@@ -233,7 +313,18 @@ function operationDocument(operation: Operation): object {
     'x-client-channel': operation.channel ?? 'public',
     parameters: parameters(operation),
     security: operation.channel ? [{ cookieAuth: [] }, { bearerAuth: [] }] : [],
-    ...(operation.rawBody ? {requestBody:{required:true,content:{'application/octet-stream':{schema:{type:'string',format:'binary',description:'完整 txt，最多 5 MiB；零字节代表空快照'}}}}}:{}),
+    ...(operation.rawBody
+      ? {
+          requestBody: {
+            required: true,
+            content: {
+              'application/octet-stream': {
+                schema: { type: 'string', format: 'binary', description: '完整 txt，最多 5 MiB；零字节代表空快照' },
+              },
+            },
+          },
+        }
+      : {}),
     ...(operation.body
       ? {
           requestBody: {
