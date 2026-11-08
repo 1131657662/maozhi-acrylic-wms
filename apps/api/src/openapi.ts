@@ -3,6 +3,7 @@ import { webListOperations } from './features/web-lists/openapi.ts';
 import { webExportOperations } from './features/web-exports/openapi.ts';
 import { lifecycleOperations } from './features/document-lifecycle/openapi.ts';
 import { stocktakeOperations } from './features/stocktake/openapi.ts';
+import { reportOperations } from './features/reports/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
@@ -48,6 +49,7 @@ export interface Operation {
   successStatus?: number;
 }
 export const operations: Operation[] = [
+  ...reportOperations,
   ...stocktakeOperations,
   ...lifecycleOperations,
   ...webListOperations,

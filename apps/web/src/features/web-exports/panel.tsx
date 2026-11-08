@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Alert, Button, Drawer, Radio, Space } from 'antd';
-import { listFields, type ExportRequest, type WebListKind } from '@wms/contracts';
+import { listFields, type ExportRequest, type ExportKind } from '@wms/contracts';
 import { useExportSession } from './use-export-session';
 import { ExportJobView } from './job-view';
 
 export interface ExportContext {
-  kind: WebListKind;
+  kind: ExportKind;
   query: Record<string, string>;
   columns: string[];
   viewToken: string;
@@ -50,6 +50,9 @@ function ExportControls({ context }: { context: ExportContext }) {
   return (
     <Space orientation="vertical" style={{ width: '100%' }}>
       <p>跟随当前筛选、排序及可见列。生成后可核对本次范围合计，再下载完整 XLSX。</p>
+      {context.kind.startsWith('report-') && (
+        <p>附页“收发存对账”与屏幕的全部仓品日期区间一致，不受明细方向筛选影响；主表只合计所选方向及导出范围，期初、期末不跨月相加。</p>
+      )}
       <ExportScope context={context} scope={scope} setScope={setScope} />
       <Button
         type={job?.state === 'ready' ? 'default' : 'primary'}

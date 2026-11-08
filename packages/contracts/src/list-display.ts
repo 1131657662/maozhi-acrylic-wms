@@ -1,4 +1,5 @@
-import type { WebListKind } from './web-list-query.ts';
+import type { ExportKind } from './export-kind.ts';
+import { reportFields } from './report-fields.ts';
 
 const states = new Map([
   ['open', { text: '待扫码', color: 'processing' }],
@@ -17,7 +18,13 @@ export function statusText(status: string | null, kind: 'inbound' | 'outbound'):
   if (known) return kind === 'inbound' && status === 'confirmed' ? '已入库' : known.text;
   return `状态待识别：${status === '' ? '空值' : (status ?? '未记录')}`;
 }
-export const postingText = { legacy: '历史记录', pending: '待确认入账', confirmed: '已确认入账', reversed: '已反向补偿', voided: '已作废（未入账）' };
+export const postingText = {
+  legacy: '历史记录',
+  pending: '待确认入账',
+  confirmed: '已确认入账',
+  reversed: '已反向补偿',
+  voided: '已作废（未入账）',
+};
 const formatter = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai',
   year: 'numeric',
@@ -36,6 +43,8 @@ export interface ListField {
   label: string;
   width: number;
   type: 'text' | 'integer' | 'tonnes' | 'date';
+  total?: false;
+  defaultHidden?: boolean;
 }
 const f = (key: string, label: string, type: ListField['type'] = 'text', width = 24): ListField => ({
   key,
@@ -43,7 +52,8 @@ const f = (key: string, label: string, type: ListField['type'] = 'text', width =
   type,
   width,
 });
-export const listFields: Record<WebListKind, ListField[]> = {
+export const listFields: Record<ExportKind, ListField[]> = {
+  ...reportFields,
   inbound: [
     f('receiptNo', '入库单号'),
     f('packages', '包数', 'integer', 12),
@@ -82,10 +92,12 @@ export const listFields: Record<WebListKind, ListField[]> = {
     f('traceId', '请求编号', 'text', 42),
   ],
 };
-export function listCellText(kind: WebListKind, field: ListField, row: Record<string, unknown>): string {
+export function listCellText(kind: ExportKind, field: ListField, row: Record<string, unknown>): string {
   const value = row[field.key];
-  if (field.key === 'status')
-    return statusText(value === null ? null : String(value), kind === 'inbound' ? 'inbound' : 'outbound');
+  if (field.key === 'status' && !kind.startsWith('report-'))
+    return statusText(value == null ? null : String(value), kind === 'inbound' ? 'inbound' : 'outbound');
+  if (value == null || value === '') return '-';
+  if (field.key === 'reasons') return Array.isArray(value) ? value.join('；') || '-' : String(value);
   if (field.key === 'postingState') return postingText[value as keyof typeof postingText] ?? String(value);
   if (field.key === 'products') return Array.isArray(value) ? value.join('；') || '无有效明细' : '';
   if (kind === 'stock' && field.key === 'warehouseCode') return `${row.warehouseName}（${value}）`;

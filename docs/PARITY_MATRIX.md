@@ -61,7 +61,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 库存 | 查询、预警、流水（5.1） | B1b-1：ERP商品/仓库筛选、分页、同筛选小计、列设置已验；原调整和最近20条流水保留；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：查询对齐；逐行流水过滤/预警未做；XLSX导出已验，CSV不在本批 | 全量库存渲染 → 分页上限200行+筛选全量ERP小计 → 10k夹具单页200行、1280/1440页面横滚0 | SQL核对10000行/20000包/6000.0000吨；四态错源不残留数字；浏览器p95见ACCEPTANCE | 库存预警看板 | P1 | B1b-1 / B1b-2 / B2 | StockList、StockJournal | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；IMG: .local/evidence/b1b1-stock-1440.png；DATA: [scripts/verify-list-performance.ts](../scripts/verify-list-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 小计含全部匹配分页而非当前页；SPEC不计库存；增加汇总查询成本，不宣称SQL比旧全量读取更快；快照内分批、不混源，失败/取消不提供部分文件 |
 | 库存 | 手工库存调整、原因、流水（5.2） | ERP 行内调整抽屉：独立包数/吨数、原因、前后预览；流水/审计/幂等同事务 | P：调整已验证；B2a限定撤销/B3a盘点已另批验证，更正仍后置 | 直接改值难复核 → 调整抽屉展示调整前后值且原因必填 → 调整可追溯率 100% | 同键 20 并发只调整 1 次；空原因 422、不足 409 均无写入；5 阶段故障回滚；SQL chain_breaks=0 | 无 | P0 | B1a | StockList | E2E: [tests/e2e/inventory-posting.spec.ts](../tests/e2e/inventory-posting.spec.ts)；DATA: [scripts/sql/verify-inventory-posting.sql](../scripts/sql/verify-inventory-posting.sql)；IMG: .local/evidence/b1a3-stock-adjustment-1440.png | 当前值过期返回 STALE_STOCK，保留输入、明确刷新；不同单据共享库存格，调整不篡改单据 |
-| 库存 | 库存与扫码目录用途隔离 | 固定 ERP 汇总/明细/流水；未归属仅诊断日志，无入口 | P：库存只认 erp-product；四类报表尚未实现，须沿用 ERP 唯一口径 | 多个库存入口误导用户 → 删除 SPEC/未归属页签与占位，固定 ERP → 库存入口 3→1，非 ERP 请求/占位 0 | E2E 检查固定 ERP 请求、无页签、错源拒绝、四态；API 检查日志与原守卫 | 经营看板 | P1 | B1a | InventorySettlement | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；IMG: .local/evidence/erp-inventory-only-1440.png | sku-spec 只属于 B1c 目录页；保留 all/多来源/总计拒绝与旧 stock 契约；不改数据 |
+| 库存 | 库存与扫码目录用途隔离 | 固定 ERP 汇总/明细/流水；未归属仅诊断日志，无入口 | P：库存及B3b两报表只认 erp-product；周转/库龄留B3c | 多个库存入口误导用户 → 删除 SPEC/未归属页签与占位，固定 ERP → 库存入口 3→1，非 ERP 请求/占位 0 | E2E 检查固定 ERP 请求、无页签、错源拒绝、四态；API 检查日志与原守卫 | 经营看板 | P1 | B1a | InventorySettlement | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；IMG: .local/evidence/erp-inventory-only-1440.png | sku-spec 只属于 B1c 目录页；保留 all/多来源/总计拒绝与旧 stock 契约；不改数据 |
 
 ## 盘点
 
@@ -75,9 +75,9 @@
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 报表 | 月度出入库汇总（7.1） | 未实现 | P：月单数/包数/重量/净入库与导出未做 | 汇总需人工拼表 → 固定 ERP 口径，日期范围筛选后图表表格同步 → 每月人工合并 4 类表目标降为 1 次查询 | 用固定 CSV 对账合计；耗时待实测 | 经营看板 | P2 | B3b（建议） | MonthlySummary | E2E: 待补 | 用途隔离：仅 ERP 单据/库存，SPEC 目录不参与；明示软删口径 |
+| 报表 | 月度出入库汇总（7.1） | B3b：仓品月份、确认/撤销/调整分列、单数去重、对账/完整性和XLSX已本地验证 | P：本批月报可验收；正式上线T0/时区仍待核实，不宣称历史全可验证 | 业务日/流水日混算且手工拼表 → 同一入账口径与常驻包吨对账 → 3个月逐仓品SQL/明细计算差异0，未知/断点不伪造0 | 3月样本脚本和合成18单元；延迟与不可验证单元见ACCEPTANCE，真人耗时待测 | 经营看板 | P2 | B3b | MonthlySummary | E2E: [tests/e2e/reports.spec.ts](../tests/e2e/reports.spec.ts)；DATA: [scripts/verify-report-samples.ts](../scripts/verify-report-samples.ts)；IMG: .local/evidence/b3b-monthly-1280.png | 只认ERP；撤销按发生月负量，check/import不挤入收发；历史时间未核实；余额/单数不跨月/商品相加 |
 | 报表 | 商品周转率（7.2） | 未实现 | P：周期、平均库存、排序和导出未做 | 需手算周转率 → 明示公式并可排序 → 计算复核目标从逐行计算降到抽查 10 行 | SQL 与脚本对同一时间段交叉核验；待实测 | 无 | P2 | B3c（建议） | Turnover | E2E: 待补 | 口径需先确认库存时间点；不将推测公式当事实 |
-| 报表 | 入库/出库明细（7.3） | 未实现 | P：筛选字段、导出缺失 | 多页导出再拼接 → 查询结果与导出字段/顺序一致 → 导出复核从 2 份对照降为 1 份 | 对比 XLSX 表头和页面列定义；10k 行分页导出完整性 | 无 | P2 | B3b（建议） | InboundDetail、OutboundDetail | E2E: 待补 | Excel 格式需防公式注入，超大导出走分页 |
+| 报表 | 入库/出库明细（7.3） | B3b：已入账流水含补偿、日期/仓库/商品、分页排序、原单下钻、三范围XLSX已本地验证 | P：本批明细可验收；周转/库龄留B3c，不混未确认计划 | 旧导出1万行截断且字段来源不一 → 共用字段和固定快照流式导出 → 10万行全量唯一/末条命中，三范围逐字段差异0 | SQL、35字段API/XLSX和可见列浏览器比对；10万行耗时/内存见ACCEPTANCE | 无 | P2 | B3b | InboundDetail、OutboundDetail | E2E: [tests/e2e/reports.spec.ts](../tests/e2e/reports.spec.ts)；DATA: [scripts/verify-report-performance.ts](../scripts/verify-report-performance.ts)；IMG: .local/evidence/b3b-details-1440.png | 附页对账保留全部筛选区间；页面/选中仅主表缩小；失败/取消无部分文件；非单调时间大规模排序性能待测 |
 | 报表 | 库龄分析（7.4） | 未实现 | P：截止日、库龄分段、下钻和导出未做 | 靠记忆找久库存 → 固定截止日和分段，下钻原库存 → 过龄项目定位 ≤2 步 | 固定快照 SQL 对账；响应时延待实测 | 库龄看板 | P2 | B3c（建议） | StockAging | E2E: 待补 | 库龄起算规则需用真实入库/出库流水验证 |
 
 ## 权限

@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import type { ColumnsState, ProColumns } from '@ant-design/pro-components';
 import { z } from 'zod';
-import { listFields, listCellText, type WebListKind } from '@wms/contracts';
+import { listFields, listCellText, type ExportKind } from '@wms/contracts';
 
 const stateSchema = z.record(
   z.string(),
   z.object({ show: z.boolean().optional(), order: z.number().optional(), fixed: z.enum(['left', 'right']).optional() }),
 );
-export function useListColumns<Row extends { id: React.Key }>(kind: WebListKind, columns: ProColumns<Row>[]) {
+export function useListColumns<Row extends { id: React.Key }>(kind: ExportKind, columns: ProColumns<Row>[]) {
   const storageKey = `b1b-${kind}-columns-v1`;
   const [saved, setSaved] = useState<Record<string, ColumnsState>>(() => {
     try {
@@ -27,11 +27,11 @@ export function useListColumns<Row extends { id: React.Key }>(kind: WebListKind,
               : c.fixed === 'right' || c.fixed === 'end'
                 ? 'right'
                 : undefined;
-          const defaults = { show: true, fixed, order: index };
+          const defaults = { show: !listFields[kind].find((f) => f.key === key)?.defaultHidden, fixed, order: index };
           return [key, c.hideInSetting ? defaults : { ...defaults, ...saved[key] }];
         }),
       ),
-    [columns, saved],
+    [columns, saved, kind],
   );
   const change = (next: Record<string, ColumnsState>) => {
     setSaved((previous) => (JSON.stringify(previous) === JSON.stringify(next) ? previous : next));
@@ -53,7 +53,7 @@ export function useListColumns<Row extends { id: React.Key }>(kind: WebListKind,
     .map((c) => String(c.dataIndex));
   return { configured, visible, state: { value, onChange: change } };
 }
-function displayColumn<Row>(kind: WebListKind, column: ProColumns<Row>): ProColumns<Row> {
+function displayColumn<Row>(kind: ExportKind, column: ProColumns<Row>): ProColumns<Row> {
   const field = listFields[kind].find((f) => f.key === column.dataIndex);
   if (!field) return column;
   const preserve =

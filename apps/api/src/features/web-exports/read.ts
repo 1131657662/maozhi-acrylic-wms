@@ -3,7 +3,9 @@ import {
   webOutboundQuerySchema,
   webStockQuerySchema,
   webAuditQuerySchema,
-  type WebListKind,
+  type ExportKind,
+  reportQuerySchema,
+  type ReportMeta,
 } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { listWebInbound } from '../web-lists/inbound.ts';
@@ -11,6 +13,7 @@ import { listWebOutbound } from '../web-lists/outbound.ts';
 import { listWebStock } from '../web-lists/stock.ts';
 import { listWebAudit } from '../web-lists/audit.ts';
 import type { ExportSnapshot } from '../web-lists/query.ts';
+import { reportReader } from '../reports/read.ts';
 
 export interface ExportPage {
   items: Record<string, unknown>[];
@@ -18,14 +21,21 @@ export interface ExportPage {
   viewToken: string;
   rowTokens?: Record<string, string>;
   subtotal?: { packages: number; weightGrams: number };
+  report?: ReportMeta;
 }
 export interface ExportBatch {
   page: number;
   size: number;
   snapshot: ExportSnapshot;
 }
-export function exportReader(kind: WebListKind, input: Record<string, string>) {
+export function exportReader(
+  kind: ExportKind,
+  input: Record<string, string>,
+): (db: Database, batch?: ExportBatch) => Promise<ExportPage> {
   switch (kind) {
+    case 'report-monthly':
+    case 'report-details':
+      return reportReader(kind, reportQuerySchema.parse(input));
     case 'inbound': {
       const q = webInboundQuerySchema.parse(input);
       return (db: Database, batch?: ExportBatch) =>

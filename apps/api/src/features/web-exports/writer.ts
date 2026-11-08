@@ -1,8 +1,9 @@
 import ExcelJS from 'exceljs';
 import { createWriteStream } from 'node:fs';
 import { setImmediate as yieldLoop } from 'node:timers/promises';
-import { listCellText, type ListField, type WebListKind } from '@wms/contracts';
+import { listCellText, type ListField, type ExportKind, type ReportMeta } from '@wms/contracts';
 import { AppError } from '../../shared/errors.ts';
+import { writeReconciliation } from './report-sheet.ts';
 
 const formats = { text: '@', integer: '0', tonnes: '0.0000', date: 'yyyy/mm/dd hh:mm:ss' };
 const maxExcelInteger = 999_999_999_999_999;
@@ -12,7 +13,7 @@ export class XlsxWriter {
   private readonly sheet;
   private failure: Error | undefined;
   private sums = new Map<string, bigint>();
-  constructor(readonly config: { filename: string; kind: WebListKind; fields: ListField[] }) {
+  constructor(readonly config: { filename: string; kind: ExportKind; fields: ListField[] }) {
     this.output = createWriteStream(config.filename, { flags: 'wx' });
     this.output.on('error', (e) => {
       this.failure = e;
@@ -56,12 +57,13 @@ export class XlsxWriter {
     return display;
   }
   private value(field: ListField, row: Record<string, unknown>, text: string): string | number | Date {
+    if (row[field.key] == null || row[field.key] === '') return text;
     if (field.type === 'date') return new Date(Date.parse(String(row[field.key])) + 8 * 3600_000);
     if (field.type === 'text') return text;
     const raw = Number(row[field.key]);
     if (!Number.isSafeInteger(raw) || Math.abs(raw) > maxExcelInteger)
       throw new AppError('EXPORT_PRECISION', '数值超出 Excel 15 位精度，未生成失真文件', 422);
-    this.sums.set(field.key, (this.sums.get(field.key) ?? 0n) + BigInt(raw));
+    if (field.total !== false) this.sums.set(field.key, (this.sums.get(field.key) ?? 0n) + BigInt(raw));
     return field.type === 'tonnes' ? raw / 1_000_000 : raw;
   }
   totals(): Record<string, string> {
@@ -97,7 +99,7 @@ export class XlsxWriter {
         this.output.once('error', bad);
       });
   }
-  async finish(count: number): Promise<void> {
+  async finish(count: number, report?: ReportMeta): Promise<void> {
     const totals = this.totals();
     const row = this.sheet.addRow(
       this.config.fields.map((f, i) =>
@@ -107,6 +109,7 @@ export class XlsxWriter {
     row.font = { name: 'Microsoft YaHei', size: 11, bold: true };
     row.commit();
     this.sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: count + 1, column: this.config.fields.length } };
+    if (report) writeReconciliation(this.book, report);
     await this.book.commit();
     if (this.failure) throw this.failure;
   }

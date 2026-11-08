@@ -85,7 +85,14 @@ export class WebExports {
     const job = await this.get(id);
     if (job.state !== 'ready') throw new AppError('EXPORT_NOT_READY', job.error ?? '导出尚未完成', 409);
     await this.files.verify(job);
-    const names = { inbound: '入库', outbound: '出库', stock: 'ERP库存', audit: '操作日志' };
+    const names = {
+      inbound: '入库',
+      outbound: '出库',
+      stock: 'ERP库存',
+      audit: '操作日志',
+      'report-details': '出入库明细',
+      'report-monthly': '月度汇总',
+    };
     return {
       path: this.files.file(id, 'xlsx'),
       name: `${names[job.kind]}-${job.scope}-${job.createdAt.slice(0, 10)}.xlsx`,

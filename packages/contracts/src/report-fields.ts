@@ -1,0 +1,105 @@
+import type { ListField } from './list-display.ts';
+import type { ReportKind } from './reports.ts';
+
+const text = (key: string, label: string, width = 24): ListField => ({ key, label, width, type: 'text' });
+const date = (key: string, label: string): ListField => ({ key, label, width: 24, type: 'date' });
+function pair(key: string, label: string, total?: false): ListField[] {
+  return [
+    { key: key + 'Packages', label: label + '（包）', type: 'integer', width: 16, total },
+    { key: key + 'Grams', label: label + '（吨）', type: 'tonnes', width: 20, total },
+  ];
+}
+const dimensions = [
+  text('warehouseCode', '仓库编码'),
+  text('warehouseName', '仓库'),
+  text('productCode', 'ERP 商品编码'),
+  text('productName', 'ERP 商品名称', 40),
+];
+export const reportFields: Record<ReportKind, ListField[]> = {
+  'report-monthly': [
+    text('period', '入账月份'),
+    ...dimensions,
+    ...pair('opening', '期初', false),
+    ...pair('inbound', '入库净额'),
+    ...pair('outbound', '出库净额'),
+    ...pair('net', '净入库'),
+    ...pair('adjustment', '其他库存变化'),
+    ...pair('closing', '期末', false),
+    ...pair('difference', '对账差额', false),
+    text('checkState', '完整性'),
+    text('reasons', '差额与不可验证原因', 64),
+    ...pair('inboundConfirmed', '入库确认'),
+    ...pair('inboundReversed', '入库撤销'),
+    ...pair('outboundConfirmed', '出库确认'),
+    ...pair('outboundReversed', '出库撤销'),
+    ...pair('manual', '人工调整'),
+    ...pair('count', '盘点差异'),
+    ...pair('import', '导入调整'),
+    ...pair('unknown', '未分类变动'),
+    { key: 'inboundDocuments', label: '入库确认单数（不跨商品合计）', type: 'integer', width: 28, total: false },
+    { key: 'outboundDocuments', label: '出库确认单数（不跨商品合计）', type: 'integer', width: 28, total: false },
+    { key: 'inboundReversals', label: '入库撤销操作数', type: 'integer', width: 22, total: false },
+    { key: 'outboundReversals', label: '出库撤销操作数', type: 'integer', width: 22, total: false },
+    text('timeStatus', '时间口径'),
+  ],
+  'report-details': [
+    text('id', '流水 ID', 14),
+    date('postedAt', '入账时间（上海）'),
+    text('orderNo', '原单号'),
+    ...dimensions,
+    text('operationLabel', '操作'),
+    text('directionLabel', '方向'),
+    { key: 'packages', label: '业务包数', type: 'integer', width: 14 },
+    { key: 'weightGrams', label: '业务重量（吨）', type: 'tonnes', width: 20 },
+    ...pair('delta', '库存变化'),
+    ...pair('before', '变动前', false),
+    ...pair('after', '变动后', false),
+    text('businessDate', '原业务日期'),
+    date('createdAt', '制单时间'),
+    date('confirmedAt', '审核/确认时间'),
+    text('operationId', '操作 ID', 40),
+    text('originalOperationId', '原操作 ID', 40),
+    text('operationType', '原始类型'),
+    text('productModel', '型号'),
+    text('nameBasis', '名称依据', 40),
+    text('partner', '往来单位'),
+    text('vehicleNo', '车牌'),
+    text('containerNo', '柜号'),
+    text('billType', '单据类型'),
+    text('referenceNo', '参考号'),
+    text('status', '单据当前状态'),
+    text('actor', '操作人'),
+    text('reason', '原因/备注', 40),
+    text('timeStatus', '时间口径'),
+    text('checkState', '区间完整性'),
+  ],
+};
+const visible: Record<ReportKind, string[]> = {
+  'report-monthly': [
+    'period',
+    'warehouseName',
+    'productName',
+    'inboundPackages',
+    'inboundGrams',
+    'outboundPackages',
+    'outboundGrams',
+    'adjustmentGrams',
+    'closingGrams',
+    'differenceGrams',
+    'checkState',
+  ],
+  'report-details': [
+    'id',
+    'postedAt',
+    'orderNo',
+    'warehouseName',
+    'productName',
+    'operationLabel',
+    'packages',
+    'weightGrams',
+    'checkState',
+  ],
+};
+for (const kind of Object.keys(reportFields) as ReportKind[]) {
+  for (const field of reportFields[kind]) field.defaultHidden = !visible[kind].includes(field.key);
+}

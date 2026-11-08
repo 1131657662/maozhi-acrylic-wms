@@ -1,4 +1,6 @@
 export default [
+  { path: '/reports/details', name: '出入库明细', icon: 'profile', component: './reports/details' },
+  { path: '/reports/monthly', name: '月度汇总', icon: 'barChart', component: './reports/monthly' },
   { path: '/stocktakes', name: '库存盘点', icon: 'audit', component: './stocktakes/index' },
   { path: '/stocktakes/new', hideInMenu: true, component: './stocktakes/new' },
   { path: '/stocktakes/:id', hideInMenu: true, component: './stocktakes/detail' },

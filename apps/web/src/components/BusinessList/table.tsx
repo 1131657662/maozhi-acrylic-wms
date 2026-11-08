@@ -1,4 +1,4 @@
-import type { WebListKind } from '@wms/contracts';
+import type { ExportKind } from '@wms/contracts';
 import { useListColumns } from './use-list-columns';
 import { ExportPanel } from '../../features/web-exports/panel';
 import { useMemo, type Key } from 'react';
@@ -18,7 +18,7 @@ interface Props<Row> {
   columns: ProColumns<Row>[];
   data: ListData<Row>;
   state: ListState;
-  name: WebListKind;
+  name: ExportKind;
   refreshing: boolean;
   reload: () => unknown;
   selection: { tokens: Record<string, string>; keys: Key[]; change: (keys: Key[]) => void };

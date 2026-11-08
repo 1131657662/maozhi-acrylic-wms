@@ -7,7 +7,17 @@ export function ExportJobView({ job }: { job: ExportJob }) {
   return (
     <Space orientation="vertical" style={{ width: '100%' }}>
       <div>
-        本任务：{{ inbound: '入库', outbound: '出库', stock: 'ERP 库存', audit: '操作日志' }[job.kind]}
+        本任务：
+        {
+          {
+            inbound: '入库',
+            outbound: '出库',
+            stock: 'ERP 库存',
+            audit: '操作日志',
+            'report-details': '出入库明细',
+            'report-monthly': '月度汇总',
+          }[job.kind]
+        }
         {' · '}
         {{ all: '全部筛选结果', page: '当前页', selected: '选中记录' }[job.scope]}
         {' · '}

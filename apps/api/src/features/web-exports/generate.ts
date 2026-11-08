@@ -58,7 +58,7 @@ export async function generateSnapshot(db: Database, g: Generation): Promise<voi
     check(g);
     if (g.job.processed !== g.job.total)
       throw new AppError('EXPORT_VIEW_CHANGED', '选中记录已不在筛选结果中，请刷新核对', 409);
-    await g.writer.finish(g.job.processed);
+    await g.writer.finish(g.job.processed, current.report);
   });
 }
 async function appendBatches(

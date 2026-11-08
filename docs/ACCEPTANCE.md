@@ -1,5 +1,65 @@
 # 第一里程碑验收记录
 
+## B3b：出入库明细、月度汇总及 XLSX（2026-11-08，待用户验收）
+
+基线 `e37083c79dd81465aa84367f5a0bb2d00502d879`。用户已确认D1–D5及三条硬规则；本批仅Web/API读模型和既有XLSX通道。只用本机3307随机测试库，样本来自已存在的只读CSV；没有生产连接、迁移/回填、移动端改动或新依赖。D6/D7、打印、B2b未做。下列“可验证”是余额证据状态，不表示历史时区已核实。
+
+### P 覆盖率（本批限定路径3/3，不代表四类报表全部完成）
+
+| 路径 | 实测结果 | 证据 |
+| --- | --- | --- |
+| 月度汇总 | 仓品月份、入出确认/负向撤销、人工/盘点/导入/未知变动分列；单号/操作数去重，未知关联null；每页独立包/吨收发存与差额 | `reports.test.ts`、`report-integrity.test.ts`、`reports.spec.ts`；三月独立SQL |
+| 入账明细与质量提示 | 保留原确认及补偿，原单可下钻；可筛入/出方向且不缩减对账；历史上海原文与“时间未核实”；断点不可验证、缺边界null，合成差额1包/0.3000吨保留，调整列仍0 | `B3B_RECONCILIATION`、`B3B_GAP`、`B3B_DIRECTION_UI/EXPORT`；1280断链截图 |
+| XLSX三范围 | 明细35字段、月报42字段API逐格比对；浏览器实际可见列/顺序与对账附页比对；全部/当前页/选中均差异0，余额/单数不错误求和 | `report-export.test.ts`、`reports.spec.ts`；`B3B_XLSX`、`B3B_SCREEN_XLSX` |
+
+### U 指标达成
+
+| 指标 | 方法/基线 | 实测与限制 |
+| --- | --- | --- |
+| 数据覆盖与完整导出 | 旧明细服务LIMIT 10000；本机正式构建、单仓品、时间单调10万入库流水，逐行读取成品核ID | 100000/100000，重复0，末ID100001（ID1为期初导入锚点），不截断；生成中翻页成功 |
+| 生成耗时/内存 | 复用B1b-2 streaming writer，2000行投影/1000行写文件；Node每25ms采样 | 最终构建导出18.897秒；堆起始114/峰值170MiB，RSS峰值329MiB；文件3607065字节；单次本机实测，不是p95/SLA |
+| 查询延迟 | 正式构建空浏览器上下文首屏；导出中翻页；另测月报API | 最终构建首屏6788ms、翻页7263ms、月报5309ms；**未达原U目标1500/500ms**；非单调时间的大规模排序尚未单独压测 |
+| 可读性与恢复 | 1440/1280页面scrollWidth断言，核心数量固定列boundingBox；四态/原筛选重试 | 页面级横滚0，核心数量在可视宽内；空/403/网络失败可辨识、重试恢复；无真实用户人工耗时结论 |
+
+### N 已批准清单
+
+| 新增能力 | 本批状态 |
+| --- | --- |
+| 无 | 本批仅已批准基础报表；不借报表增加经营看板、库龄/周转规则或打印。 |
+
+### 随机三个月逐仓逐商品 SQL
+
+首次随机选到2026-05/07/08，随后固定同三个月复跑，避免挑选“好看”的月份。命令：`npx tsx scripts/verify-report-samples.ts --months=2026-05,2026-07,2026-08`。SQL文件 `scripts/report-reconciliation.sql` 在同一只读快照连接设置 `@report_start/@report_end` 后执行；仓品先聚合再JOIN，无多对多放大。SQL/hash/明细/原因保存在 `.local/evidence/b3b-sample-reconciliation.json`，不提交真实明细或吨位。
+
+| 月 | 仓品单元 | 明细行 | SQL/明细与报表差异 | 可验证 | 不可验证 | 非零或未知差额 | 排除软删 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2026-05 | 121 | 41 | 0 | 0 | 121 | 121 | 24 |
+| 2026-07 | 121 | 153 | 0 | 83 | 38 | 38 | 24 |
+| 2026-08 | 121 | 113 | 0 | 103 | 18 | 17 | 24 |
+
+合计363个仓品月单元计算一致，**不等于363个余额全部验证通过**：186可验证、177不可验证。原因包括区间前无可定位边界、流水衔接断点；差额即使恰为0，断点仍不可验证。所有非零/未知差额均有原因且无补平；24条软删包含缺主数据关联的行，不能因JOIN丢失而只报告20。原始导入库存锚点可核对，但正式上线T0/水位登记与历史时区仍未验。
+
+### 原始输出、复现与截图
+
+```text
+npm run test: tests 127, pass 127, fail 0, skipped 0
+npm run build: exit 0（严格TypeScript + Umi Webpack）
+npm run test:e2e: 45 passed (4.3m); 9 passed (1.4m)
+B3b页面/方向筛选修订后定向复跑: 4 passed (45.1s)
+B3B_RECONCILIATION months=3 cells=18 detailRows=48 mismatches=0
+B3B_GAP differencePackages=1 differenceGrams=300000 adjustment=0 state=不可验证 missingOpening=null
+B3B_EXPORT_GUARD missing=null/text stale=EXPORT_VIEW_CHANGED file=none
+B3B_DOCUMENT_COUNTS repeatedLines=2 distinctDocuments=1 missingReference=null reversalOperations=1
+B3B_KEYSET direction=asc/desc rows=2105 duplicates=0
+B3B_DIRECTION_UI rows=24 reconciliation=unchanged monthly=both-directions
+B3B_DIRECTION_EXPORT direction=inbound rows=24 mismatches=0 reconciliation=full-range
+```
+
+- 原始日志：`.local/evidence/b3b-test.log`、`b3b-build.log`、`b3b-e2e-full.log`、`b3b-e2e.log`；完整字段输出`B3B_XLSX`在test日志。既有四列表、盘点、撤销、目录E2E全绿；antd CLI检查0问题。
+- 性能复现：`npm run build`后`npx tsx scripts/verify-report-performance.ts`；原始JSON/log为`b3b-performance-100000.*`，完整文件`b3b-100000-details.xlsx`。这是本机合成验收，没有生产压测；本轮未追加Excel/WPS人工打开验收。
+- 三张截图均已实际查看，均为合成数据、不进Git：[明细1440](../.local/evidence/b3b-details-1440.png)、[月报1440](../.local/evidence/b3b-monthly-1440.png)、[月报1280断链及差额](../.local/evidence/b3b-monthly-1280.png)。没有视觉回归快照断言。
+- 回退为revert本批只读代码；不down009、不删除历史/事实/目录。OpenAPI更新声明源码，生成物按约定另批；本轮无生产、实体设备或B3c验收。
+
 ## B3a：Web 盘点闭环（2026-11-08）
 
 本批从B2a基线 `ef3eb06ca0755e123ca69903d24d37d94fecd7e1` 开始。仅本地MySQL 3307、Web与API；不做PDA盘点、B2b更正、报表或打印。入库不扫码，盘点独立填写包数与吨数；扫码目录不参与库存。用户已确认：**完成或作废释放暂停，进行中只有作废可提前释放**，没有手动或超时解锁。以下为本批实测记录，较早批次保留当时范围。

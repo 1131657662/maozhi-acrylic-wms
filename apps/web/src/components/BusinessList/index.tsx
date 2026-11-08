@@ -1,4 +1,4 @@
-import type { WebListKind } from '@wms/contracts';
+import type { ExportKind } from '@wms/contracts';
 import type { Key, ReactNode } from 'react';
 import { PageContainer, type ProColumns } from '@ant-design/pro-components';
 import { Alert, Button, Result, Skeleton, theme } from 'antd';
@@ -10,7 +10,7 @@ import { useListSelection } from './use-list-selection';
 import './style.css';
 
 interface Props<Row> {
-  config: { name: WebListKind; title: string; description: string; extra?: ReactNode; columns: ProColumns<Row>[] };
+  config: { name: ExportKind; title: string; description: string; extra?: ReactNode; columns: ProColumns<Row>[] };
   state: ListState;
   query: { data?: ListData<Row>; error: Error | null; isPending: boolean; isFetching: boolean; refetch: () => unknown };
   filters: ReactNode;
@@ -27,6 +27,7 @@ function ListError({ error, reload }: { error: Error; reload: () => unknown }) {
       description={error instanceof ZodError ? '返回数据未通过契约校验，未展示记录或小计。请重试。' : error.message}
       action={
         <Button
+          aria-label="重试"
           onClick={() => {
             reload();
           }}

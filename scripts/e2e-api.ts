@@ -3,6 +3,7 @@ import { seedDemo } from '../apps/api/src/db/seed-test.ts';
 import { createApp, localOrigins } from '../apps/api/src/app.ts';
 import { seedNumberingEvidence } from './e2e-numbering-fixtures.ts';
 import { seedSourceEvidence } from './e2e-source-fixtures.ts';
+import { seedReportEvidence } from './report-fixtures.ts';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const { db, name, dispose } = await createTestDatabase();
@@ -11,6 +12,7 @@ writeFileSync('.local/e2e-database.json', JSON.stringify({ name }));
 await seedDemo(db, 'e2e-only-password');
 await seedNumberingEvidence(db);
 await seedSourceEvidence(db);
+await seedReportEvidence(db);
 // This workflow fixture represents an ERP product; the database is disposable, never the sample database.
 await db.run("UPDATE master_products SET source_kind='erp-product' WHERE code='ACR-032'");
 const server = createApp(db, [...localOrigins, 'http://localhost:5174', 'http://127.0.0.1:5174']).listen(
