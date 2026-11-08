@@ -1,0 +1,100 @@
+import { z } from 'zod';
+import {
+  catalogOverviewSchema,
+  catalogUploadResultSchema,
+  catalogHistorySchema,
+  catalogDiffPageSchema,
+  catalogPublishInputSchema,
+  catalogPublishResultSchema,
+  catalogEntryPageSchema,
+  factContextPageSchema,
+} from '@wms/contracts';
+import type { Operation } from '../../openapi.ts';
+
+export const catalogOperations: Operation[] = [
+  {
+    method: 'get',
+    path: '/catalog',
+    summary: '当前目录与可执行发布门禁；仅扫码取重，不参与库存',
+    response: catalogOverviewSchema,
+    channel: 'web',
+  },
+  {
+    method: 'post',
+    path: '/catalog/uploads',
+    summary: '整版校验 txt；相同内容默认不建版，重建须显式确认历史版本',
+    rawBody: true,
+    query: z.object({
+      encoding: z.enum(['utf-8', 'gb18030']),
+      fileName: z.string(),
+      rebuildOfVersionId: z.number().int().positive().optional(),
+    }),
+    response: catalogUploadResultSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
+    method: 'get',
+    path: '/catalog/uploads/{id}',
+    summary: '按原上传 UUID 核验结果，支持响应丢失恢复',
+    response: catalogUploadResultSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/catalog/versions',
+    summary: '不可变版本历史（包括完整未发布候选）',
+    query: z.object({ page: z.number().int().positive().optional() }),
+    response: catalogHistorySchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/catalog/versions/{versionId}/diff',
+    summary: '固定基线版本的差异分页',
+    query: z.object({
+      kind: z.enum(['all', 'added', 'removed', 'weight', 'spec', 'changed', 'unchanged']).optional(),
+      afterBarcode: z.string().optional(),
+      limit: z.number().optional(),
+    }),
+    response: catalogDiffPageSchema,
+    channel: 'web',
+  },
+  {
+    method: 'post',
+    path: '/catalog/versions/{versionId}/publish',
+    summary: '门禁通过后原子发布；指针、审计、幂等结果同事务',
+    body: catalogPublishInputSchema,
+    response: catalogPublishResultSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
+    method: 'get',
+    path: '/scan/catalog/manifest',
+    summary: '当前已发布目录清单；不要求 PDA 在线扫码',
+    response: z.object({
+      versionId: z.number(),
+      entryCount: z.number(),
+      contentSha256: z.string(),
+      hashVersion: z.literal('json-entries-v1'),
+    }),
+    channel: 'web-pda',
+  },
+  {
+    method: 'get',
+    path: '/scan/catalog/versions/{versionId}/entries',
+    summary: '固定历史版分页；同期发布不会混页',
+    query: z.object({ afterBarcode: z.string().optional(), limit: z.number().optional() }),
+    response: catalogEntryPageSchema,
+    channel: 'web-pda',
+  },
+  {
+    method: 'get',
+    path: '/scan/plans/{id}/fact-contexts',
+    summary: '事实当时版本、ERP作业行、规格及当前版本差异；不改变事实或摘要',
+    query: z.object({ afterFactId: z.string().optional() }),
+    response: factContextPageSchema,
+    channel: 'web-pda',
+  },
+];

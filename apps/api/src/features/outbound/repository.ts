@@ -11,10 +11,10 @@ async function assemble(db: Database, headers: z.infer<typeof headerSchema>[]): 
   const slots = ids.map(()=>'?').join(',');
   const lines = z.array(rawLineSchema).parse(await db.all(`${lineSql} WHERE order_id IN (${slots}) AND source_del_flag=0 ORDER BY product_code`,ids));
   const facts = z.array(rawFactSchema).parse(await db.all(`${factSql} WHERE plan_id IN (${slots}) ORDER BY id`,ids));
-  const catalog = z.array(z.object({barcode:z.string(),productCode:z.string()})).parse(
-    await db.all(`SELECT barcode,product_code AS productCode FROM scan_catalog WHERE barcode IN
-      (SELECT barcode FROM scan_facts WHERE plan_id IN (${slots}))`,ids));
-  return assembleOrders(headers,{lines,facts,products:new Map(catalog.map((row)=>[row.barcode,row.productCode]))});
+  const contexts = z.array(z.object({factId:z.string(),lineId:z.string()})).parse(
+    await db.all(`SELECT c.fact_id AS factId,c.outbound_line_id AS lineId FROM scan_fact_context c
+      JOIN scan_facts f ON f.id=c.fact_id WHERE f.plan_id IN (${slots})`,ids));
+  return assembleOrders(headers,{lines,facts,products:new Map(contexts.map((row)=>[row.factId,row.lineId]))});
 }
 export async function getOrder(db: Database, id: string): Promise<Detail> {
   return db.transaction(async (tx) => {

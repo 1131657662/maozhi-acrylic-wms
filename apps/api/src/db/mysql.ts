@@ -2,7 +2,7 @@ import { createPool, type Pool, type PoolConnection, type ResultSetHeader, type 
 
 export interface DatabaseConfig { host: string; port: number; user: string; password: string; database?: string }
 export type Row = Record<string, unknown>;
-type Values = readonly (string | number | null)[];
+type Values = readonly (string | number | null | Buffer)[];
 
 export class Database {
   constructor(private readonly executor: Pool | PoolConnection, private readonly pool?: Pool) {}

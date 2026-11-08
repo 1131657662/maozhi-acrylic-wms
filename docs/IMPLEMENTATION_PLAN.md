@@ -2,11 +2,22 @@
 
 日期：2026-11-07。来源：用户本轮指令优先于只读交接包中的旧技术/审批建议。
 
+## B1c-1 目录版本化（2026-11-08 最新状态）
+
+- A 方案：006 建立完整版本/条目、单行 head、不可变 fact context 与旧协议活动门禁。Web `/catalog` 提供全量 txt 上传、固定基线差异、整版发布、历史与刷新后候选恢复；未修改 PDA/小程序、B1b/B2。
+- 同一规范化 content hash 匹配任一完整版本，默认返回 `duplicate=true`、`matchedVersionId`、`message=与第 N 版内容一致`，版本数不增加。显式二次确认携 `rebuildOfVersionId`，后端核对内容一致才创建后继候选；不设 hash 全局 UNIQUE。
+- `scan_catalog_v1_archive` 封存原行并有三种 DML 拒绝触发器；`scan_catalog` 是固定 v1、不可更新的视图。006 后 seed 只写版本表。启动须检查 006 applied 和视图不可更新，失败拒绝启动。
+- 发布须同时满足：`CATALOG_PUBLISH_ENABLED=true`、006 applied、所有事实有 context、head/base 未变、候选完整，以及 `SELECT COUNT(*) FROM catalog_client_activity WHERE legacy_requests>0 OR queue_verified=0` 为 0。任一不符返回 409 `CATALOG_PUBLISH_BLOCKED` 或基线/完整性错误，页面常驻原因。开关默认关闭；服务器无法推断断网设备队列，B1c-2 交接前不能因为零请求就开启。没有清零/绕过接口。
+- 旧 `/scan/catalog` 固定 v1，旧 PDA 请求/正文持久计入门禁。新 manifest/固定版本分页及 `schemaVersion=2` 事实上下文已提供。服务端接受合法历史版，包括过去七天以前的记录；当前版改重/移除只提示。冻结/确认按 `scan_facts.weight_tonnes` 与 context 中 ERP 行累计，原 digest 投影不变。
+- 本地样本已有目录原样封存，不使用最新 txt 覆盖旧值。v1 来源记录 `legacy-db` 数据库快照；不冒称原始上传文件。新上传原字节、SHA、原 kg 随完整候选同库保存。新规格直接存目录条目，不创建 ERP 商品、不建立 141↔428 全局映射。
+- 上传/发布接口仅 Web 同源 Cookie，PDA/小程序均 403。新版读取仅 Web/PDA；旧数组契约不改。空文件表示零条快照，坏文件整版 422；最多 5 MiB / 100000 有效行。失败保持输入与原幂等键，掉响应查询上传结果，已提交不再次发布。
+- 实际 SQL/恢复/测试与截图见 `ACCEPTANCE.md`。B1c-2 仍须实现本地目录原子切换、离线事实 envelope、冲突队列与设备交接；本轮 HTTP 驱动不是实体设备验收。
+
 ## 范围与决策
 
-当前增量状态以本文末尾“B1a 第 3 提交”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
+当前增量状态以本文末尾“B1c-1 目录版本化”及 `ACCEPTANCE.md` 最新验收节为准；较早批次记录保留为实施历史。
 
-下一批 B1c-1 的待确认计划见 [B1C1_IMPLEMENTATION_PLAN.md](B1C1_IMPLEMENTATION_PLAN.md)：仅目录版本化服务端与 Web 上传，尚未实施；PDA 留 B1c-2，列表壳/导出/打印留 B1b。计划保留离线本地同步版本与历史事实接收规则，并明确旧设备交接门禁。
+B1c-1 的已执行计划见 [B1C1_IMPLEMENTATION_PLAN.md](B1C1_IMPLEMENTATION_PLAN.md)：仅目录版本化服务端与 Web 上传，已完成本地实现与验证；PDA 留 B1c-2，列表壳/导出/打印留 B1b。计划保留离线本地同步版本与历史事实接收规则，并明确旧设备交接门禁。
 
 单用户模块化单体，无租户、组织权限、角色矩阵、多级审批。Web 一次确认出库。
 Web 使用官方 Ant Design Pro v6.0.3 工程结构、Umi Max、ProLayout、ProForm、ProTable 和 ProDescriptions；后端使用 Express 5 + TypeScript + Zod；原生微信小程序 + Vant；Kotlin + Room + WorkManager。

@@ -19,7 +19,7 @@ export const localOrigins = [
   'http://127.0.0.1:4311',
 ];
 
-export function createApp(db: Database, origins: string[] = localOrigins): express.Express {
+export function createApp(db: Database, origins: string[] = localOrigins, catalogPublishEnabled=process.env.CATALOG_PUBLISH_ENABLED==='true'): express.Express {
   const app = express();
   app.disable('x-powered-by');
   app.use(
@@ -36,7 +36,7 @@ export function createApp(db: Database, origins: string[] = localOrigins): expre
   });
   app.get('/api/v1/health', (_req, res) => ok(res, { status: 'ok', mode: 'local-development', database: 'mysql8' }));
   app.use('/api/v1/auth', authRouter(db));
-  app.use('/api/v1', businessRouter(db, origins));
+  app.use('/api/v1', businessRouter(db, origins,catalogPublishEnabled));
   app.use(() => {
     throw new AppError('NOT_FOUND', '接口不存在', 404);
   });

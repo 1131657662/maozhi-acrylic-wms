@@ -29,7 +29,7 @@ export async function createDevelopmentUser(): Promise<void> {
   try {
     await db.run("CREATE DATABASE IF NOT EXISTS maozhi_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin");
     await db.run("CREATE USER 'wms_dev'@'127.0.0.1' IDENTIFIED BY ?", [config.password]);
-    await db.run("GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES ON maozhi_dev.* TO 'wms_dev'@'127.0.0.1'");
+    await db.run("GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES,CREATE VIEW,SHOW VIEW,TRIGGER ON maozhi_dev.* TO 'wms_dev'@'127.0.0.1'");
     writeFileSync(path, JSON.stringify(config), { flag: 'wx', mode: 0o600 });
   } finally { await db.close(); }
 }

@@ -1,8 +1,83 @@
 # 第一里程碑验收记录
 
+## B1c-1：目录版本化服务端与 Web 上传（2026-11-08）
+
+本节为最新增量验收。A 方案落地为不可变整版目录、当前指针和不可变事实上下文；只验收服务端与 Web，PDA 客户端仍属 B1c-2。未进入 B1b/B2；未新增依赖；未连接生产、3306 或 warehouse。目录重量只用于解析/核对，不计库存、单据计划或经营统计。
+
+### P 覆盖率（本批 6/6；不代表完整 PDA 功能或全项目完成）
+
+| 本批范围 | 本地结果 | 证据与边界 |
+| --- | --- | --- |
+| 完整上传、差异预览、发布、版本历史 | API/E2E 通过 | 新增/消失/改重分别计数及明细；坏文件整版拒绝；候选与发布各自原子；当前版只由发布切换 |
+| 重复内容产品规则 | API/E2E 通过 | 与任一完整历史版本内容 hash 相同时默认不建版；页面“与第 2 版内容一致”；显式确认后才重建，hash 非全局唯一 |
+| v1 迁移与旧名只读 | SQL/真实 DML/启动校验通过 | 9018 逐行及重量一致；旧名不可更新视图、封存表三种写入触发器；旧接口固定 v1 |
+| 已扫事实与原单混版 | API/E2E 通过 | 同单 [1,1,2]；发布不改旧事实/摘要；发布零条 v3 后原单仍确认；冻结/确认查询中目录读取为 0 |
+| 可执行发布门禁与渠道限制 | API/E2E 通过 | 显式开关 + 006/context 完整 + 旧协议活动/待交接计数为 0；旧请求即持久阻断；PDA/小程序上传发布 403 |
+| 失败恢复及历史保全 | API/E2E/恢复演练通过 | 上传/发布各 4 个故障阶段整事务回滚；丢响应核验；空库 down/up，非空及已发布零条版均拒绝 down |
+
+### U 指标达成
+
+| 指标 | 实际结果 | 测量方法与边界 |
+| --- | --- | --- |
+| 重复上传版本增量 | 0；版本数 2→2 | 浏览器上传相同文件并查 MySQL；弹出二次确认之前及默认操作均不增版 |
+| 发布后的旧事实/摘要变更 | 0 | 同单混版用例逐列比较、旧 Detail 全字段比较；原单无需重建 |
+| 上传/发布故障留下半套数据 | 0 | 真实 MySQL 触发器故障注入，对照全表快照；失败原键可重试 |
+| 9018 行解析+差异+候选提交 p95 | 176.88ms（目标 <10s） | `scripts/verify-catalog-performance.ts`，本机 3307 独立库 20 次；不包含网络传输/PDA 同步 |
+| 发布事务 p95 | 25.97ms（目标 <500ms） | 同一脚本 20 次；不是生产并发/网络性能承诺 |
+| Web 1440 / 1280 | 无页面横向溢出；主发布按钮首屏可见 | Playwright DOM 断言及截图人工检查；抽屉等待完全展开后截图，不做视觉基准断言 |
+
+### N 已批准清单
+
+| 新增候选 | 本轮处理 |
+| --- | --- |
+| 无 | 本批为旧 PDA SKU 管理的服务端/Web 对齐基础，不将版本化另标 N；客户端尚未完成 |
+
+### 测试、SQL 与原始输出
+
+- `npm run test`：**75 passed / 0 failed**，`.local/evidence/b1c1-test-final.log`。含实际 MySQL、旧契约、小程序模块、历史事实、各阶段回滚和只读拒绝。
+- `npm run test:e2e`：既有 16 条 + 目录 8 条，原始输出 `.local/evidence/b1c1-e2e-final.log`；目录用例在 `tests/e2e/catalog-versioning.spec.ts`、`catalog-upload-errors.spec.ts`、`catalog-ui-states.spec.ts`。每例独立 3307 临时库；协议用 PDA 身份请求，不能等同 Android 离线验收。
+- `npm run build`：严格类型检查与 Web 构建通过，退出 0，`.local/evidence/b1c1-build-final.log`。AntD 检查 0 issues，`.local/evidence/b1c1-antd-lint-final.json`。OpenAPI 源码 9 个新路径校验通过，未写生成物，`.local/evidence/b1c1-openapi-check.log`。
+- 可执行 SQL：[verify-catalog-versioning.sql](../scripts/sql/verify-catalog-versioning.sql)。它用封存表 `scan_catalog_v1_archive` 双向核对 entries v1，不用迁移后的兼容视图做自比。`npx tsx scripts/verify-catalog-migration.ts` 从本地只读样本导入临时 005 库并执行 006，结果见 `.local/evidence/b1c1-sample-initial.log`。
+
+| 核对指标 | 迁移前 | 迁移后 |
+| --- | --- | --- |
+| v1 条目 / 规格 | 9018 / 141 | 9018 / 141 |
+| v1 校验用吨数 | 2707.9025 | 2707.9025 |
+| 缺失或变化 / 多出条目 | 基线 | 0 / 0 |
+| 样本事实 / 冻结记录 | 0 / 0 | 0 / 0 |
+| context 缺失或重量版本不符 | 基线 | 0 |
+| 旧业务行指纹 | 基线 | 全部相同，未重 seed |
+| 非空合成历史事实 | 2 / 0.6000 吨 | 2 / 0.6000 吨；原摘要、正文相同，原冻结凭据确认成功 |
+| 混版验收事实分布 | v1 两条 | v1 两条 + v2 一条；合计 0.9000 吨，仅为事实验收值 |
+
+以下为实际测试输出摘录；完整日志保留 `.local/evidence/`，不提交业务原始行或截图：
+
+```text
+B1C1_READ_ONLY INSERT Error: The target table scan_catalog of the INSERT is not insertable-into
+B1C1_READ_ONLY UPDATE Error: The target table scan_catalog of the UPDATE is not updatable
+B1C1_READ_ONLY DELETE Error: The target table scan_catalog of the DELETE is not updatable
+B1C1_MIGRATION empty_down_up=success
+B1C1_MIGRATION zero_entry_published_down=refused versions_unchanged=true readiness=passed
+B1C1_MIGRATION nonempty_down=refused unchanged=true
+B1C1_CONTEXT same_uuid_changed_context=409 cross_version_barcode=409 freeze_confirm_catalog_reads=0
+B1C1_E2E_DUPLICATE versions_before=2 versions_after=2 message=与第 2 版内容一致 explicit_confirmation_creates=3
+B1C1_E2E mixed=[1,1,2] old_facts_unchanged=true old_digest_unchanged=true empty_v3_confirm=success
+```
+
+- 封存表写入另断言 `SCAN_CATALOG_READ_ONLY`；没有开放绕过写入口。只读测试与非空事实迁移在 `apps/api/tests/catalog-migration.test.ts`，可单独 `npx tsx --test apps/api/tests/catalog-migration.test.ts` 复跑。
+- 本机样本库备份并恢复到新库核验后执行 006；中途触发器权限失败按实际结构续作，最终 applied。原始失败、结构检查与恢复记录见 `FOUNDATION_MIGRATION.md`；最终 `.local/evidence/b1c1-local-migration-recovered.log` 中 `all_old_rows_unchanged=true`，非空 down 输出“拒绝回退：catalog_entries 含有数据，禁止删除历史数据”。未改全局权限或 binlog。
+- `npx tsx scripts/verify-catalog-restore.ts`：`.local/evidence/b1c1-restore-drill.log` 记录 `versions=2 facts=2 mixed_versions=[1,2] source_bytes_sha=equal content_sha=equal all_rows=equal`。恢复目标始终是新隔离库，未覆盖开发库；已实际验证原文件字节、目录内容及上下文，而非仅检查备份文件存在。
+- `npx tsx scripts/verify-catalog-performance.ts C:\Users\qq113\Desktop\sku.txt`：原始输出 `.local/evidence/b1c1-performance.log`。该脚本仅在随机测试库运行，不在开发库发布样本目录。
+
+### 截图与未做项
+
+上传、差异、历史、重复提示、发布门禁、坏文件、故障恢复各有 **1440 / 1280**：`.local/evidence/b1c1-{upload,diff,history,duplicate,gate,invalid,rollback}-{1440,1280}.png`。均为合成验收数据，不进入 Git。初次历史截图处于抽屉动画中途，已改为等待完整进入视口并关闭截图动画，再重新截图；不把裁切图片当最终证据。
+
+开发样本库仍默认关闭 `CATALOG_PUBLISH_ENABLED`；零旧请求不能证明离线设备无待传队列，必须清点并在 B1c-2 交接后放开。旧协议活动不自动清零，本批无解除门禁接口。没有实施 PDA 客户端、B1b、B2，也没有模拟器/实体设备/生产验收。错版只能发布纠正版；非空库不可 down，已有 v2 事实后不可退回只理解 v1 的旧应用。OpenAPI 生成源码已更新，`docs/api` 生成物按约定留独立提交，本轮不混入。
+
 ## B1a 第 3 提交：确认入账与库存调整（2026-11-08）
 
-本节为最新增量验收；后续旧节保留当时证据，不代表本批仍未完成。仅正向入库确认、出库确认流水证据和 ERP 库存调整；未进入 B1b/B1c/B2。所有破坏性测试均使用 3307 随机临时库；真实数据只读取本地样本，不连接生产/3306/warehouse。
+本节保留该批次验收；仅正向入库确认、出库确认流水证据和 ERP 库存调整，该批未进入 B1b/B1c/B2。所有破坏性测试均使用 3307 随机临时库；真实数据只读取本地样本，不连接生产/3306/warehouse。
 
 ### P 覆盖率（本批 4/4，非全项目覆盖率）
 

@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p apps/web",
     "build": "npm run typecheck && npm run build -w @wms/web",
     "test": "tsx --test apps/api/tests/*.test.ts apps/miniapp/tests/*.test.cjs",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test && playwright test -c playwright.catalog.config.ts",
     "setup:demo": "tsx scripts/setup-demo.ts",
     "setup:sample": "tsx scripts/setup-sample.ts",
     "backup": "tsx scripts/backup.ts",

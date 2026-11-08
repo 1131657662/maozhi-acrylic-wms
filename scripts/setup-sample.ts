@@ -7,7 +7,7 @@ import { identity, seedFromSamples } from '../apps/api/src/db/seed.ts';
 const database = 'maozhi_dev_sample';
 const admin = await adminDatabase();
 await admin.run(`CREATE DATABASE IF NOT EXISTS ${quoteDatabase(database)} CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin`);
-await admin.run(`GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES ON ${quoteDatabase(database)}.* TO 'wms_dev'@'127.0.0.1'`);
+await admin.run(`GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,ALTER,DROP,INDEX,REFERENCES,CREATE VIEW,SHOW VIEW,TRIGGER ON ${quoteDatabase(database)}.* TO 'wms_dev'@'127.0.0.1'`);
 await admin.close();
 
 const db = openDatabase({ ...adminConfig(), database });

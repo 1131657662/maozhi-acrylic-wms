@@ -65,11 +65,13 @@ export function ok(res: Response, data: unknown): void {
 export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
   const known = error instanceof AppError;
   const invalid = error instanceof ZodError || (error instanceof SyntaxError && 'body' in error);
-  const status = known ? error.status : invalid ? 422 : 500;
+  const tooLarge=typeof error==='object'&&error!==null&&'type' in error&&error.type==='entity.too.large';
+  const catalogUpload=_req.path.endsWith('/catalog/uploads');
+  const status = known ? error.status : tooLarge?413:invalid ? 422 : 500;
   if (status === 500) logger.error({ err: error, traceId: res.locals.traceId }, 'unhandled');
   res.status(status).json({
-    code: known ? error.code : invalid ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR',
-    message: known ? error.message : invalid ? '请求字段或格式不正确' : '服务异常，请提供请求编号',
+    code: known ? error.code : tooLarge?(catalogUpload?'CATALOG_FILE_TOO_LARGE':'PAYLOAD_TOO_LARGE'):invalid ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR',
+    message: known ? error.message : tooLarge?(catalogUpload?'文件不能超过 5 MiB':'请求正文超出允许大小'):invalid ? '请求字段或格式不正确' : '服务异常，请提供请求编号',
     data: null,
     traceId: res.locals.traceId,
   });

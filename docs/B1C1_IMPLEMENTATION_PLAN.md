@@ -1,10 +1,18 @@
 # B1c-1 实施计划：目录版本化服务端与 Web 上传
 
-状态：**待用户确认，只交计划；未编写业务代码、迁移或测试，未执行迁移。**
+状态：**B1c-1 已按 A 实施；实际测试、迁移与恢复结果见 ACCEPTANCE.md 的 B1c-1 节。PDA 留 B1c-2。**
 基线：`ee25c0a7f12029c34999be84f8ef8d271a8fd5c0`；计划日期：2026-11-08。
 本批属于 P 对齐。范围为版本目录、Web 上传/差异/发布/历史、服务端事实兼容和冻结/确认解耦；PDA 实现与设备切换留 B1c-2，列表壳/导出/打印留 B1b，撤销/作废/更正留 B2。无新增依赖，不修改技术栈，不连接生产、3306 或 warehouse。
 
 ## 1. 选择与现状证据
+
+### 开工补充（已批准，2026-11-08）
+
+1. 重复内容比对所有已保存完整版本，不仅当前版：默认返回 `duplicate`、`matchedVersionId` 和“与第 N 版内容一致”，不创建版本。页面二次确认后才以新幂等键、`rebuildOfVersionId` 和同一文件显式重建；服务端核验目标版本内容 hash，不能仅传 force=true 跳过。content hash 不设全局唯一。
+2. 006 将原表重命名封存为 `scan_catalog_v1_archive`，加 INSERT/UPDATE/DELETE 拒绝触发器；原名 `scan_catalog` 改为 ALGORITHM=TEMPTABLE 的非可更新 v1 视图，只服务旧接口。空库 seed 只向版本表写入，不能再写旧名。测试实际执行三种 DML 并断言被数据库拒绝。非空 down 门禁也覆盖封存表。
+3. 发布必须同时满足部署开关开启、006 applied/context完整、存在活动基线、`catalog_client_activity` 中无未交接旧协议活动。旧目录/旧事实请求持久增加 legacy_requests；迁移时发现旧事实设备也记为队列未核实，任何 `legacy_requests>0 OR queue_verified=0` 即阻止发布。无超时自动清零、无本批清除接口；B1c-2 才能完成设备升级/队列交接。页面显示请求数及阻断原因。服务器看不到离线设备队列，不能把零请求宣称为设备已无待传；部署开关仍须完成设备清点后显式开启。
+
+以上规则已同步到下文；旧表完整封存，冻结/确认不读只读视图。
 
 推荐 **A：不可变整版快照 + 当前指针 + 不可变事实上下文**。同一张单不固定目录版本；“最新版”仍指 PDA 上次完整同步的本地版，不要求在线扫码。
 
@@ -16,17 +24,17 @@
 | 成本与回退 | 约 9k 条/版的额外存储；对账和恢复直观 | 少存未变条目，但差异、历史重建与回滚更复杂 |
 | 判断 | 当前按需上传规模下，正确性收益高于存储成本 | 没有证据表明需要为节省这部分空间引入区间模型 |
 
-当前需要实际修改的耦合点：
+以下为计划基线时识别的耦合点；原逻辑以计划基线 commit 为准，当前文件已改造：
 
 - [001_initial.up.sql:37](../apps/api/migrations/001_initial.up.sql#L37)：目录 barcode 单键；事实版本限制为 1，且外键引用旧目录。
-- [contracts/index.ts:42](../packages/contracts/src/index.ts#L42)、[rows.ts:20](../apps/api/src/features/outbound/rows.ts#L20)：事实/目录版本在契约和读取中写死为 1。
-- [repository.ts:15](../apps/api/src/features/outbound/repository.ts#L15)：从当前目录获取旧事实商品归属；[assemble.ts:22](../apps/api/src/features/outbound/assemble.ts#L22)：直接序列化事实数组生成摘要，扩展字段可能误伤旧摘要。
-- [validate.ts:8](../apps/api/src/features/scan/validate.ts#L8)：存在七天回传窗口，随后按当前目录验证重量和商品；不能直接用于新版发布后的离线旧版事实。
+- [contracts/index.ts](../packages/contracts/src/index.ts)、[rows.ts](../apps/api/src/features/outbound/rows.ts)：基线事实/目录版本在契约和读取中写死为 1；现已放宽。
+- [repository.ts](../apps/api/src/features/outbound/repository.ts)：基线从当前目录获取旧事实商品归属，现读取不可变 context；[assemble.ts](../apps/api/src/features/outbound/assemble.ts)：基线直接序列化事实数组生成摘要，现用保持旧字段顺序的稳定投影。
+- [validate.ts](../apps/api/src/features/scan/validate.ts)：基线七天回传窗口及当前目录验证不适用于离线历史版；现按历史版接收且无过去七天限制。
 - [PDA FactBuilder.kt:12](../apps/pda/app/src/main/java/cn/maozhi/wms/pda/scan/FactBuilder.kt#L12)：旧设备只支持 v1。本批只读检查，不改 Android 代码、不声称完成离线端验收。
 
 2026-11-08 计划阶段只读检查：显式连接 `127.0.0.1:3307`，先设会话只读并使用只读事务；目录 **9018 条 / 141 规格 / 2707.9025 吨 / 全部 v1**，扫码事实 **0**，冻结记录 **0**，出库单 **415（全部历史来源）**。目录吨数仅用于迁移校验，不是库存或经营统计。当前样本没有事实，必须另用非空合成历史夹具验证迁移，不能将零行核对当作历史冻结/确认通过。
 
-## 2. 表结构与不变量（拟 006）
+## 2. 表结构与不变量（006 已落地）
 
 沿用 MySQL 8、UTC `DATETIME(3)`、`DECIMAL(12,4)` 吨；外部重量是整数克且为 100g 的整数倍。版本 ID 采用正整数 INT AUTO_INCREMENT，允许空号、不复用；与现有事实 catalog_version 类型一致。
 
@@ -36,12 +44,13 @@
 | `catalog_entries` | `(version_id, barcode)` PK；`source_spec VARCHAR(255)`、`raw_weight_kg` 原字符串、`weight_tonnes`；v1 可保留 `legacy_product_code` | 版本 FK RESTRICT；重量正数；条码大小写/前导零保留，列类型及排序规则与事实一致。新版不创建 SPEC 商品、不建 ERP 映射；同码可存在多版 |
 | `catalog_head` | `id=1`、`active_version_id`、`revision` | 单行约束；版本 FK RESTRICT；只由发布事务切换；空的新库初始化前允许无行，不用虚假 v0 |
 | `scan_fact_context` | `fact_id` PK/FK、`catalog_version_id`、`barcode`、`outbound_line_id`、`erp_product_code`、`source_spec`、`weight_tonnes`、`resolved_at`、`binding_source`、`context_hash` | 事实、历史条目复合键、出库明细均 FK RESTRICT；插入后不可覆盖。版本/码/重量须与事实完全相同；ERP 行须属于原单。迁移无法知道本机解析时间时 resolved_at 留空并注明 provenance，不能编造时间 |
+| `catalog_client_activity` | `client_key` PK、`legacy_requests`、`queue_verified`、`last_seen_at` | 记录旧协议会话/设备活动与未核实队列；不自动过期或清零，作为发布阻断条件 |
 
 `scan_facts` 原 UUID、重量、版本、payload_hash、时间、记录人不改；只将 `catalog_version=1` 限制放宽为正整数，并把旧 barcode 外键替换为 `(catalog_version, barcode) → catalog_entries(version_id, barcode)`。旧 `scan_catalog` 暂保留为只读 v1 兼容快照，不由上传更新，不再用于冻结/确认。
 
 新上传的规格、原始 kg、重量均必填；迁移旧夹具中原本为空的 source_spec 时保留空值及 legacy 来源标识，不用商品名补造原规格。条目/context 中仅为历史未知信息保留的 nullable 字段不得成为新上传的校验豁免。
 
-原文件存储建议在 A 内采用 **数据库 MEDIUMBLOB**：先限制单文件 5 MiB、最多 100000 行，当前规模不需要另设对象存储。原文件、manifest、候选条目可同事务保存，现有 `mysqldump --hex-blob` 自动包含产物，避免引入文件系统与数据库双写/双备份。此为对 U-06“受管文件存储”的具体落地选择，待本计划确认后同步 DD-15；不改 U-06 的快照/事实/离线原则。读取列表不 SELECT 原文件字段，日志不输出文件正文；所有本地验证材料仍只存 `.local/`。
+原文件存储在 A 内采用 **数据库 MEDIUMBLOB**：先限制单文件 5 MiB、最多 100000 行，当前规模不需要另设对象存储。原文件、manifest、候选条目可同事务保存，现有 `mysqldump --hex-blob` 自动包含产物，避免引入文件系统与数据库双写/双备份。此为对 U-06“受管文件存储”的具体落地选择，已同步 DD-15；不改 U-06 的快照/事实/离线原则。读取列表不 SELECT 原文件字段，日志不输出文件正文；所有本地验证材料仍只存 `.local/`。
 
 源文件原摘要和规范化内容摘要分开：内容摘要按条码二进制稳定顺序，对 `[barcode, sourceSpec, weightGrams]` 的固定 JSON 投影计算 SHA-256，明确 UTF-8/字段顺序/无 locale 排序；不使用易被截断的 GROUP_CONCAT。只改换行或文件编码但内容相同，不重复发布。
 
@@ -51,7 +60,7 @@
 
 1. Web 选择全量 txt 和明确编码（默认沿用现有 gb18030，可选 UTF-8，服务端 fatal 解码）；使用专用 raw body 上传接口，不把全局 JSON 的 10kb 限额放大，不增加 multipart 依赖。鉴权、Web 来源检查后才解析文件；原文件名仅作展示，不能作为路径。
 2. 完整校验后才入候选表：缺列、乱码、非法条码、非数字/非正重量、超出既有整数克契约、不能精确到 0.1kg、重复条码（即使重量相同）整版拒绝；返回行号和原因，不跳过坏行、不四舍五入。规格内部文字/空格按原字段保留；60–389.5kg 不是校验上下界。
-3. 在一个候选事务中读取一致的 head/base，写版本 metadata/source bytes → 分批 INSERT 全量 entries（分批但不分事务）→ 校验条数/摘要及差异 → 标记 validated → 写上传审计和幂等结果 → COMMIT。中途失败整笔回滚，head 从未改动。同 upload UUID、相同原文件摘要/编码重放原结果；异正文同键拒绝。规范化内容已等于活动版时返回 noChange，不分配新版本，也不提供重复发布动作。
+3. 在一个候选事务中读取一致的 head/base，写版本 metadata/source bytes → 分批 INSERT 全量 entries（分批但不分事务）→ 校验条数/摘要及差异 → 标记 validated → 写上传审计和幂等结果 → COMMIT。中途失败整笔回滚，head 从未改动。同 upload UUID、相同原文件摘要/编码重放原结果；异正文同键拒绝。规范化内容与任一完整历史版相同时返回 duplicate/matchedVersionId 和“与第 N 版内容一致”；默认不建版。显式二次确认 rebuildOfVersionId 后可重建，重新预览及发布。
 4. 预览显示新增、消失、重量变化、规格变化、不变；总“变化”按条码去重，规格/重量可重叠。提供每类明细和旧→新重量，不能仅给总数。`旧条数 + 新增 - 消失 = 新条数` 必须成立。
 5. 明确选择的零字节/仅空白 txt 是可解析的零条快照：醒目提示“本版移除全部”，仍用同一次发布操作；缺少文件元信息/上传截断/解析失败不等同于零条有效目录。消失仅表示目录移除，不扣库存、不改单、不加逐条失效审批。
 
@@ -97,24 +106,24 @@
 
 | 端点 | 请求与关键响应 |
 |---|---|
-| `POST /catalog/uploads` | raw txt；query encoding/fileName；Idempotency-Key 即 upload UUID；返回 uploadId/versionId、state、baseVersion/baseRevision、source/content SHA、条目/规格数、diffCounts、noChange。坏文件 422 并给行号错误；无候选残留 |
-| `GET /catalog/uploads/:uploadId` | 返回校验/发布结果及发布操作 ID，用于掉响应恢复；不泄露原文件正文 |
+| `POST /catalog/uploads` | raw txt；query encoding/fileName/rebuildOfVersionId；Idempotency-Key 即 upload UUID；返回 uploadId/duplicate/matchedVersionId/message/version（重复默认 null；新候选内含 status/baseVersionId/baseRevision、source/content SHA、条目/规格数和 diffCounts）。坏文件 422 并给行号错误；无候选残留 |
+| `GET /catalog/uploads/:uploadId` | 返回同一上传结果，version 刷新为当前校验/发布状态，用于掉响应恢复；不返回原文件正文；发布操作 ID 由发布响应及审计保存 |
 | `GET /catalog/versions/:versionId/diff` | kind=added/removed/weight/spec/unchanged，按条码游标分页；返回冻结的 base 和旧/新规格、整数克，禁止随当前 head 静默改变预览 |
-| `POST /catalog/versions/:versionId/publish` | `{baseRevision,contentSha256}` + 独立 Idempotency-Key；返回 activeVersion/revision、publishedAt、diffCounts、operationId；同键重放优先于 base 冲突检查 |
+| `POST /catalog/versions/:versionId/publish` | `{baseRevision,contentSha256}` + 独立 Idempotency-Key；返回 activeVersion/revision/publishedAt/operationId；diffCounts 留在不可变版本记录；同键重放优先于 base 冲突检查 |
 | `GET /catalog/versions` | 简单版本历史分页；published/validated、当前标识、条数、来源/发布时间、hash；无通用查询壳、导出或打印 |
-| `GET /scan/catalog/manifest` | 当前已发布 versionId、条目数、contentSha256、parser/hash 规则版本；整版零条也有 manifest |
+| `GET /scan/catalog/manifest` | 当前已发布 versionId/entryCount/contentSha256/hashVersion（json-entries-v1）；整版零条也有 manifest |
 | `GET /scan/catalog/versions/:versionId/entries` | afterBarcode/limit；始终读取请求的已发布版，返回 barcode/sourceSpec/weightGrams/catalogVersion；发布并发不让分页混版 |
 | `POST /scan/plans/:id/facts` | 兼容旧正文与 schemaVersion=2 envelope；仍仅 PDA 身份可写；响应旧 Detail 结构不加会改变摘要的字段 |
 | `GET /scan/plans/:id/fact-contexts` | Web/PDA 按事实游标读取当时 ERP 行、版本/规格/实重和独立差异提示；不改原 Detail/digest，供 Web 追溯及 B1c-2 使用 |
 
-错误计划：401/403 延续；413 `CATALOG_FILE_TOO_LARGE`；415 `CATALOG_ENCODING_UNSUPPORTED`；422 `CATALOG_FILE_INVALID`（含行号）、`VALIDATION_ERROR`；409 `CATALOG_BASE_CHANGED`、`CATALOG_NOT_PUBLISHABLE`、`CATALOG_VERSION_UNAVAILABLE`、`CATALOG_MIGRATION_NOT_READY`、`FACT_CONTEXT_REQUIRED`、`FACT_CONTEXT_MISMATCH`、`IDEMPOTENCY_CONFLICT`；发布部署开关关闭返回 409 `CATALOG_PUBLISH_DISABLED`。既有 UNKNOWN_BARCODE/WEIGHT_MISMATCH/DUPLICATE_BARCODE/PLAN_CLOSED/PLAN_DIFFERENCE/STALE_PLAN 保留语义。失败展示明确中文和重试方式，不把当前版差异当错误。
+错误计划：401/403 延续；413 `CATALOG_FILE_TOO_LARGE`；415 `CATALOG_ENCODING_UNSUPPORTED`；422 `CATALOG_FILE_INVALID`（含行号）、`VALIDATION_ERROR`；409 `CATALOG_BASE_CHANGED`、`CATALOG_NOT_PUBLISHABLE`、`CATALOG_VERSION_UNAVAILABLE`、`CATALOG_MIGRATION_NOT_READY`、`FACT_CONTEXT_REQUIRED`、`FACT_CONTEXT_MISMATCH`、`IDEMPOTENCY_CONFLICT`；发布开关关闭、旧协议活动或迁移门禁不满足统一返回 409 `CATALOG_PUBLISH_BLOCKED`，message 列明原因。既有 UNKNOWN_BARCODE/WEIGHT_MISMATCH/DUPLICATE_BARCODE/PLAN_CLOSED/PLAN_DIFFERENCE/STALE_PLAN 保留语义。失败展示明确中文和重试方式，不把当前版差异当错误。
 
 ## 6. 006 迁移步骤与回退
 
 1. **停止本地写服务，备份并恢复到新隔离库核验。** 只用 3307；清点 v1 行/重量/内容 hash、所有事实各列与 payload_hash、全部出库明细实扫量/revision/digest、scan_submissions；基线材料只写 `.local/evidence/`。不重 seed、不清队列。
 2. **先跑只读预检再做 DDL。** 每个旧事实必须 version=1、v1 条码/重量一致，并能唯一精确关联原单 ERP 明细；发现缺失/歧义/非 ERP 归属就输出异常并拒绝迁移启用。不能修改事实去“适配”最新文件。当前样本事实为 0，非空条件用合成旧库测试覆盖。
 3. **006 创建新表并记录 applying。** 001–005 不改；MySQL DDL 不假装可事务回滚，沿用迁移锁和短 lock_wait_timeout。新增专用迁移前后置钩子，不重写通用迁移框架。
-4. **一个数据事务封存 v1、回填 context、初始化 head。** 从现有 scan_catalog 原样复制 barcode/已存规格/吨数/旧 SPEC 编码；不依据最新 txt 覆盖它。当前 sku.txt 仅在每码/重量全量核对一致时保存为 v1 来源文件和原始 kg；不一致则保留数据库快照来源标识并报告差异，不冒称该文件就是旧版。v1 来源可能是 legacy-db，不编造上传时间。context 仅 INSERT，旧事实/摘要/审计/幂等正文不 UPDATE。
+4. **一个数据事务封存 v1、回填 context、初始化 head。** 从现有 scan_catalog 原样复制 barcode/已存规格/吨数/旧 SPEC 编码；不依据最新 txt 覆盖它。实际选择保存数据库快照 JSON，source_kind=legacy-db，kg 从已存吨数精确换算；不冒称恢复了历史 txt 的字节或 kg 文本格式，不编造历史上传时间。此后 Web 上传才保留原文件字节与原始 kg 字符串。context 仅 INSERT，旧事实/摘要/审计/幂等正文不 UPDATE。
 5. **替换事实版本约束与外键，运行逐项对账。** 历史行及旧 frozen 摘要必须字节级/规范化 hash 相等；通过后标记 migration applied 和数据就绪。遇 DDL 中断保留 applying、停止新写入，人工核对实际结构后按明确步骤续作，不自动删迁移记录。
 6. **新空库路径。** 006 只创建结构，scan_catalog/facts 都空且没有项目身份时不造 v1/head；正常空库 seed 在其原事务内同时初始化 v1。样本 seed/合成 seed 保持非空拒绝覆盖，既有测试的旧建库版本路径单独保留。
 7. **空/非空 down。** 真正空库先解除事实对 entries 的新 FK，恢复事实 v1 CHECK/旧 FK，再按依赖逆序移除 context/head/entries/versions，随后 up 通过。任何版本、条目、context、扫码事实或旧目录非空就拒绝 down，拒绝前不执行 DDL；已发布零条版也属于非空历史，不能删。
@@ -122,13 +131,13 @@
 
 ## 7. 拟改文件清单
 
-以下是获准实施后的范围清单，标“新增”的文件目前不存在；本轮只写本计划及 IMPLEMENTATION_PLAN 索引。
+以下保留获准的范围清单；实际拆分以本批 git diff 为准。新增 catalog-readiness 启动校验、候选恢复、固定版本测试配置与恢复验证脚本均服务本批验收。
 
 | 区域 | 文件 | 本批修改 |
 |---|---|---|
 | 迁移 | 新增 `apps/api/migrations/006_catalog_versioning.up.sql`、`.down.sql`；修改 `apps/api/src/db/migrate.ts` | 表/FK/CHECK、前后置钩子与非空 down 门禁；不改 001–005 |
 | v1 迁移 | 新增 `apps/api/src/db/catalog-migration.ts`、`catalog-migration-checks.ts`；新增 `scripts/verify-catalog-migration.ts` | 预检、v1/context 回填、旧摘要/逐行对账、迁移报告；脚本只允许本地库 |
-| 空库初始化 | `apps/api/src/db/seed-catalog.ts`、`seed-test.ts`；必要时 `seed.ts` 的空库保护；`scripts/verify-sample-seed.ts` | 空库双写只读旧 v1 与新版表；实际迁移不调用 seed；9018 基线继续核对 |
+| 空库初始化 | `apps/api/src/db/seed-catalog.ts`、`seed-test.ts`；必要时 `seed.ts` 的空库保护；`scripts/verify-sample-seed.ts` | 006 后空库只写新版表；旧名由 v1 只读视图提供；实际迁移不调用 seed；9018 基线继续核对 |
 | 目录服务 | 新增 `apps/api/src/features/catalog/` 下 `controller.ts`、`parse.ts`、`repository.ts`、`diff.ts`、`upload.ts`、`publish.ts`、`hash.ts` | 单一职责实现解析、完整候选、差异、原子发布、历史读取和稳定摘要；原文件不泄漏到日志/普通响应 |
 | 路由/契约 | `apps/api/src/routes.ts`、`apps/api/src/openapi.ts`；新增 `packages/contracts/src/catalog.ts`、`scan-context.ts`，修改 `index.ts` | 专用 raw 上传路由（鉴权后）、版本/上传契约、新旧事实 union、明确错误；不放大全局 JSON 限额 |
 | 事实服务 | `apps/api/src/features/scan/catalog.ts`、`controller.ts`、`validate.ts`、`service.ts`；新增 `context.ts`、`notices.ts` | v1 兼容读/历史版解析、context 同事务、重放优先、七天旧限制修正；差异提示独立查询 |
@@ -151,7 +160,7 @@
 - 复用既定 max-width 1440、抽屉 min(720px,100%)，键盘能选择/校验/发布/返回；条码固定左、查看固定右，规格换行，允许表内滚动但 1440/1280 无页面横滚。
 - 上传页、差异预览、版本历史均产出 1440 截图；上传/差异关键页额外 1280，历史抽屉也检查 1280 溢出。截图只放 `.local/evidence/b1c1-*.png`，不用 toHaveScreenshot。
 
-## 9. 验收计划（全部待执行）
+## 9. 验收用例（实际执行见 ACCEPTANCE.md）
 
 | 用例/证据 | 必须断言 |
 |---|---|
@@ -167,11 +176,11 @@
 | SQL + 恢复 | v1逐行/总量、事实逐行/总量/版本分布、context完整性、全部单据旧投影摘要、冻结摘要逐项一致；新隔离库恢复后 source SHA 与 contents/事实关联一致 |
 | 权限/回归 | PDA/小程序上传、发布均403；原确认/调整端限制、/stock用途隔离、原事实/冻结幂等回归；npm run test、npm run test:e2e、npm run build通过 |
 
-所有测试写入仅随机 `maozhi_test_*` / `maozhi_restore_*` 的 3307 库；目录发布用例与既有 v1 E2E 夹具隔离。真实样本仅从本地只读文件导入临时库；不在主开发库造验收事实。性能只在测量后报告：9018 行解析/差异目标 <10s、发布短事务 p95 <500ms；当前没有实测结果。
+所有测试写入仅随机 `maozhi_test_*` / `maozhi_restore_*` 的 3307 库；目录发布用例与既有 v1 E2E 夹具隔离。真实样本仅从本地只读文件导入临时库；不在主开发库造验收事实。本机 9018 行共 20 次实测：解析+差异+候选提交 p95 176.88ms，发布事务 p95 25.97ms；脚本及原始输出见验收文档。这不是上传网络/PDA 现场性能。
 
 ## 10. 对账 SQL 与结果口径
 
-下面是计划交付的只读查询骨架；新增表目前不存在，**迁移后结果待实施时生成**，不把期望值冒充执行输出。计划阶段已执行的前置查询结果：`scan_catalog=9018 / 2707.9025吨 / 141规格`，`scan_facts=0 / 0吨`，`scan_submissions=0`。
+下面保留计划查询骨架；实际执行脚本为 `scripts/sql/verify-catalog-versioning.sql`，以封存的 scan_catalog_v1_archive 与新版双向核对。结果记录在 ACCEPTANCE.md 与 .local/evidence/，不把目录吨数作为库存。计划阶段已执行的前置查询结果：`scan_catalog=9018 / 2707.9025吨 / 141规格`，`scan_facts=0 / 0吨`，`scan_submissions=0`。
 
 ```sql
 -- 迁移前执行，并将结果及逐行/单据摘要基线存 .local/evidence/。
@@ -185,13 +194,13 @@ FROM scan_facts GROUP BY catalog_version;
 SELECT COUNT(*) AS entries, COUNT(DISTINCT source_spec) AS specifications,
        COALESCE(SUM(weight_tonnes),0) AS tonnes FROM catalog_entries WHERE version_id=1;
 SELECT COUNT(*) AS missing_or_changed
-FROM scan_catalog old
+FROM scan_catalog_v1_archive old
 LEFT JOIN catalog_entries e ON e.version_id=1 AND e.barcode=old.barcode
 WHERE e.barcode IS NULL OR e.weight_tonnes<>old.weight_tonnes
    OR NOT (e.source_spec <=> old.source_spec)
    OR NOT (e.legacy_product_code <=> old.product_code);
 SELECT COUNT(*) AS extra_v1
-FROM catalog_entries e LEFT JOIN scan_catalog old ON old.barcode=e.barcode
+FROM catalog_entries e LEFT JOIN scan_catalog_v1_archive old ON old.barcode=e.barcode
 WHERE e.version_id=1 AND old.barcode IS NULL;
 
 -- 迁移后与前置结果完全相同；混版用例另报告 [1,1,2] 的分布，不改旧行。

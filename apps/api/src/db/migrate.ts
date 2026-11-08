@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { Database } from './mysql.ts';
+import { preflightCatalog,migrateCatalogData } from './catalog-migration.ts';
 
 const migrations = [
   { id: '001_initial', guardedTables: ['idempotent_commands','operation_log','stock_journal','scan_submissions','scan_facts',
@@ -11,6 +12,7 @@ const migrations = [
     'outbound_lines','outbound_orders','master_suppliers','master_customers','master_warehouses','master_products'] },
   { id: '004_document_numbering', guardedTables: ['document_number_counters','document_number_rules'] },
   { id: '005_inventory_posting', guardedTables: ['inventory_operations','inbound_receipts','stock_journal'] },
+  { id: '006_catalog_versioning', guardedTables: ['scan_fact_context','catalog_entries','catalog_head','catalog_versions','catalog_client_activity','scan_facts','scan_catalog_v1_archive'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -34,9 +36,10 @@ async function lockMigration<T>(db: Database, work: (connection: Database) => Pr
     } finally { await connection.get('SELECT RELEASE_LOCK(?)', [`migrate:${name}`]); }
   });
 }
-export async function migrateUp(db: Database): Promise<void> {
+export async function migrateUp(db: Database, through?:string): Promise<void> {
   await lockMigration(db, async (connection) => {
     for (const migration of migrations) {
+      if(through && migration.id>through)break;
       const sql = migrationSql(migration.id, 'up');
       const checksum = createHash('sha256').update(sql).digest('hex');
       const previous = await connection.get('SELECT checksum,state FROM schema_migrations WHERE id=?', [migration.id]);
@@ -44,8 +47,12 @@ export async function migrateUp(db: Database): Promise<void> {
         if (previous.checksum !== checksum || previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 已变更或中断，须检查后恢复`);
         continue;
       }
+      if(migration.id==='006_catalog_versioning')await preflightCatalog(connection);
       await connection.run('INSERT INTO schema_migrations(id,checksum,state) VALUES(?,?,?)', [migration.id, checksum, 'applying']);
-      await statements(connection, sql);
+      if(migration.id==='006_catalog_versioning') {
+        const [structure,finalize]=sql.split('-- CATALOG_V1_FINALIZE');
+        await statements(connection,structure!); await migrateCatalogData(connection); await statements(connection,finalize!);
+      } else await statements(connection, sql);
       await connection.run("UPDATE schema_migrations SET state='applied',applied_at=UTC_TIMESTAMP(3) WHERE id=?", [migration.id]);
     }
   });

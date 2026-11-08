@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { scanContextInputSchema } from './scan-context.ts';
+export * from './catalog.ts';
+export * from './scan-context.ts';
 export * from './inventory-posting.ts';
 export * from './document-numbering.ts';
 export * from './stock-journal.ts';
@@ -39,13 +42,17 @@ export const factInputSchema = z.strictObject({
   id: z.uuid(),
   barcode: idSchema,
   weightGrams: gramsSchema,
-  catalogVersion: z.literal(1),
+  catalogVersion: z.number().int().positive().max(2_147_483_647),
   weightSource: z.literal('catalog'),
   deviceId: idSchema,
   scannedAt: z.iso.datetime(),
   planVersion: z.literal(1),
 });
 export const factSchema = factInputSchema.extend({ planId: idSchema, recordedBy: z.string(), receivedAt: z.string() });
+export const scanRequestSchema=z.union([
+  factInputSchema.extend({catalogVersion:z.literal(1)}),
+  z.strictObject({schemaVersion:z.literal(2),fact:factInputSchema,context:scanContextInputSchema}),
+]);
 export const orderSchema = z.object({
   id: idSchema,
   orderNo: z.string(),

@@ -5,8 +5,8 @@ import { createApp } from '../src/app.ts';
 import { createTestDatabase } from '../../../scripts/mysql/test-database.ts';
 import type { FactInput } from '@wms/contracts';
 
-export async function fixture() {
-  const {db,dispose}=await createTestDatabase();
+export async function fixture(through?:string) {
+  const {db,dispose}=await createTestDatabase(through);
   try { await seedDemo(db,'test-only-password'); }
   catch(error) { await dispose(); throw error; }
   const app=createApp(db);

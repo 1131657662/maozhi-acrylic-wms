@@ -1,4 +1,5 @@
 export default [
+  { path: '/catalog', name: '条码目录', icon: 'barcode', component: './catalog/index' },
   {
     path: '/system/document-numbering',
     name: '单据编号配置',

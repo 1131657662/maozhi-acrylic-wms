@@ -7,6 +7,7 @@ import { getOrder } from '../src/features/outbound/repository.ts';
 import { recordFact } from '../src/features/scan/service.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
 import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { addV1Fixture } from './catalog-fixture.ts';
 
 test('零重、负重、非100克精度与缺少来源被边界拒绝', () => {
   for (const grams of [0, -100, 302501, 0.5, NaN])
@@ -52,12 +53,7 @@ test('后续商品库存不足回滚此前商品的扣减与流水', async () =>
       VALUES(?,?,?,?,?,?)`,
       ['extra', 'DEMO-001', 'ACR-EXTRA', '合成第二商品', 1, '0.1000'],
     );
-    await db.run('INSERT INTO scan_catalog(barcode,product_code,weight_tonnes,catalog_version) VALUES(?,?,?,?)', [
-      'DEMO-EXTRA',
-      'ACR-EXTRA',
-      '0.1000',
-      1,
-    ]);
+    await addV1Fixture(db,{barcode:'DEMO-EXTRA',product:'ACR-EXTRA',tonnes:'0.1000'});
     await recordFact(db, { planId: 'DEMO-001', fact: fact(), actor });
     await recordFact(db, { planId: 'DEMO-001', fact: fact({ barcode: 'DEMO-032-12', weightGrams: 297500 }), actor });
     const plan = await recordFact(db, {

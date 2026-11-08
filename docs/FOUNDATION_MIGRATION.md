@@ -1,5 +1,16 @@
 # 基础迁移执行记录
 
+## 006_catalog_versioning（B1c-1，2026-11-08）
+
+- up：新增 `catalog_versions/catalog_entries/catalog_head/scan_fact_context/catalog_client_activity`；现有目录原样为 v1；仅精确且唯一匹配原单 ERP 行的旧事实允许补 context，原事实与摘要不 UPDATE。旧目录封存为 archive，旧名改不可更新 v1 视图；事实外键改为版本+条码。
+- 原数据校验：9018 条、141 规格、2707.9025 吨，前后完全一致；旧事实/冻结记录为 0。非空历史合成夹具另验证 2 条 / 0.6000 吨、旧冻结摘要不变并能确认；不以样本零行替代非空验收。
+- 本机 `127.0.0.1:3307/maozhi_dev_sample` 迁移前备份 `.local/backups/maozhi-1794108036690.sql`，已恢复到新库并比较全部业务表指纹；恢复库先演练 up，再操作开发库。不连接 3306/生产/warehouse，不重跑 seed 或清队列。
+- 执行中遇开发账号创建触发器缺少 binlog 所需权限，006 停在 applying。先检查实际结构、checksum、旧表封存和新版逐行一致，再用本地管理员仅补剩余三个触发器和视图；对账通过才标 applied。没有重跑已完成 DDL、删除迁移记录或修改全局 binlog/SUPER 授权。原始失败、检查、恢复输出分别为 `.local/evidence/b1c1-local-migration.log`、`b1c1-local-migration-inspection.log`、`b1c1-local-migration-recovered.log`。
+- 已补迁移前权限预检：binlog 开启且未信任触发器创建者时，无所需权限直接在 DDL 前失败；常规 setup 使用已验证的本机管理员。运行账号仅增加本库 CREATE VIEW/SHOW VIEW/TRIGGER，用于迁移兼容读/备份；不提升全局权限。启动期检查 006 applied 与只读视图。
+- down：真正空库 down/up 通过；任一版本/head/entry/context/fact/archive/client_activity 非空，DDL 前拒绝。实测 `拒绝回退：catalog_entries 含有数据，禁止删除历史数据`。已发布零条版也是历史，不靠删数据回退。
+- 错版通过显式重建正确完整内容、发布后继版本纠正；不能直接 down 删版本。出现 v2 事实后只关闭新发布，保留兼容查询/补传/冻结/确认；不能回退只懂 v1 的旧应用。
+- 恢复演练：`npx tsx scripts/verify-catalog-restore.ts` 在临时库创建 2 版和 2 条混版事实，再 mysqldump/新库恢复；所有相关表、source_bytes SHA、content SHA 一致。可执行对账 `scripts/sql/verify-catalog-versioning.sql`；本次无设备或生产验收。
+
 2026-11-07：暂停新增业务页面，先迁移官方 Pro 工程及 MySQL 8。
 
 用户已确认使用可核实的官方 Ant Design Pro **v6.0.3**，取代最初指定但官方仓库未发布的 v6.0.6。

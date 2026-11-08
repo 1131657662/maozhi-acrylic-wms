@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { catalogOperations } from './features/catalog/openapi.ts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
 import {
   loginSchema,
@@ -7,7 +8,7 @@ import {
   listSchema,
   listQuerySchema,
   detailSchema,
-  factInputSchema,
+  scanRequestSchema,
   revisionSchema,
   catalogSchema,
   stockSchema,
@@ -28,17 +29,19 @@ import {
   sourceStockSchema, stockSourceQuerySchema, sourceJournalSchema, sourceJournalQuerySchema,
 } from '@wms/contracts';
 
-interface Operation {
+export interface Operation {
   method: 'get' | 'post' | 'patch' | 'put';
   path: string;
   summary: string;
   response: z.ZodType;
   body?: z.ZodType;
   query?: z.ZodType;
-  channel?: 'web' | 'pda' | 'any';
+  rawBody?: boolean;
+  channel?: 'web' | 'pda' | 'any' | 'web-pda';
   idempotent?: boolean;
 }
 export const operations: Operation[] = [
+  ...catalogOperations,
   { method: 'post', path: '/inbound/{id}/confirm', summary: '明确确认待确认入库单；库存、流水、审计和幂等结果同事务', body: confirmInboundSchema, response: inboundReceiptSchema, channel: 'web', idempotent: true },
   { method: 'post', path: '/stock/adjustments', summary: 'ERP 库存调整；原因必填，校验当前值，原子记账', body: stockAdjustmentSchema, response: stockAdjustmentResultSchema, channel: 'web', idempotent: true },
   { method: 'get', path: '/stock/by-source', summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计', query: stockSourceQuerySchema, response: sourceStockSchema, channel: 'web' },
@@ -153,12 +156,12 @@ export const operations: Operation[] = [
     channel: 'any',
   },
   { method: 'get', path: '/scan/plans/{id}', summary: '扫码计划及事实摘要', response: detailSchema, channel: 'any' },
-  { method: 'get', path: '/scan/catalog', summary: '本地合成条码实重目录', response: catalogSchema, channel: 'any' },
+  { method: 'get', path: '/scan/catalog', summary: '只读 v1 兼容目录；PDA 旧协议访问计入发布门禁', response: catalogSchema, channel: 'any' },
   {
     method: 'post',
     path: '/scan/plans/{id}/facts',
     summary: '记录不可变扫码事实；同 UUID 同正文重试幂等',
-    body: factInputSchema,
+    body: scanRequestSchema,
     response: detailSchema,
     channel: 'pda',
   },
@@ -176,6 +179,7 @@ export const operations: Operation[] = [
 ];
 function parameters(operation: Operation): object[] {
   const result: object[] = [];
+  if (operation.path.includes('{versionId}')) result.push({ in: 'path', name: 'versionId', required: true, schema: { type: 'integer', minimum: 1 } });
   if (operation.path.includes('{kind}'))
     result.push({ in: 'path', name: 'kind', required: true, schema: z.toJSONSchema(documentKindSchema) });
   if (operation.path.includes('{id}'))
@@ -204,7 +208,7 @@ function operationDocument(operation: Operation): object {
     z.object({ code: z.string(), message: z.string(), data: z.null(), traceId: z.string() }),
   );
   const failures = Object.fromEntries(
-    [401, 403, 404, 409, 422, 429, 500].map((status) => [
+    [401, 403, 404, 409, 413, 415, 422, 429, 500].map((status) => [
       status,
       { description: '统一错误信封', content: { 'application/json': { schema: error } } },
     ]),
@@ -214,6 +218,7 @@ function operationDocument(operation: Operation): object {
     'x-client-channel': operation.channel ?? 'public',
     parameters: parameters(operation),
     security: operation.channel ? [{ cookieAuth: [] }, { bearerAuth: [] }] : [],
+    ...(operation.rawBody ? {requestBody:{required:true,content:{'application/octet-stream':{schema:{type:'string',format:'binary',description:'完整 txt，最多 5 MiB；零字节代表空快照'}}}}}:{}),
     ...(operation.body
       ? {
           requestBody: {

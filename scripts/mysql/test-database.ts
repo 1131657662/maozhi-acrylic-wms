@@ -3,7 +3,7 @@ import { openDatabase } from '../../apps/api/src/db/mysql.ts';
 import { migrateUp } from '../../apps/api/src/db/migrate.ts';
 import { adminDatabase,adminConfig,quoteDatabase } from './local-config.ts';
 
-export async function createTestDatabase() {
+export async function createTestDatabase(through?:string) {
   const name=`maozhi_test_${randomBytes(12).toString('hex')}`;
   const admin=await adminDatabase();
   await admin.run(`CREATE DATABASE ${quoteDatabase(name)} CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_bin`);
@@ -13,7 +13,7 @@ export async function createTestDatabase() {
     try { await admin.run(`DROP DATABASE ${quoteDatabase(name)}`); }
     finally { await admin.close(); }
   };
-  try { await migrateUp(db); }
+  try { await migrateUp(db,through); }
   catch(error) { await dispose(); throw error; }
   return {db,name,dispose};
 }

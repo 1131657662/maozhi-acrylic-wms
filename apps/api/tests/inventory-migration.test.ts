@@ -9,7 +9,7 @@ import { adjustStock } from '../src/features/stock/adjust.ts';
 import { randomUUID } from 'node:crypto';
 
 test('005 空表 down/up，历史非空无改状态地升级，非空 down 拒绝', async () => {
-  const { db, dispose } = await createTestDatabase();
+  const { db, dispose } = await createTestDatabase('005_inventory_posting');
   try {
     await migrateDown(db);
     assert.equal(await db.get("SELECT id FROM schema_migrations WHERE id='005_inventory_posting'"), undefined);
@@ -17,7 +17,7 @@ test('005 空表 down/up，历史非空无改状态地升级，非空 down 拒�
     await seedDemo(db, 'test-only-password');
     await db.run(`INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,created_by,created_at,status)
       VALUES('HISTORY','HISTORY','DEMO-SUPPLIER','DEMO-WH','owner',UTC_TIMESTAMP(3),'audited')`);
-    await migrateUp(db);
+    await migrateUp(db,'005_inventory_posting');
     assert.deepEqual(
       await db.get("SELECT status,posting_state,confirmation_operation_id FROM inbound_receipts WHERE id='HISTORY'"),
       { status: 'audited', posting_state: 'legacy', confirmation_operation_id: null },
@@ -42,7 +42,7 @@ test('005 空表 down/up，历史非空无改状态地升级，非空 down 拒�
 });
 
 test('005 非空调整操作禁止 down，库存/流水/审计完整保留', async () => {
-  const { db, dispose } = await fixture();
+  const { db, dispose } = await fixture('005_inventory_posting');
   try {
     await adjustStock(db, adjustment(), randomUUID(), actor);
     const before = await inventorySnapshot(db);

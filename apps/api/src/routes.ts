@@ -12,8 +12,9 @@ import { numberingController } from './features/document-numbering/controller.ts
 import { journalRows } from './features/stock/journal.ts';
 import { stockSourceController } from './features/stock/source-controller.ts';
 import { stockAdjustmentController } from './features/stock/adjust-controller.ts';
+import { catalogRouter } from './features/catalog/router.ts';
 
-export function businessRouter(db:Database,origins:string[]):Router {
+export function businessRouter(db:Database,origins:string[],catalogPublishEnabled=false):Router {
   const router=Router();
   const outbound=outboundController(db);
   const outboundPlans=outboundPlanController(db);
@@ -23,6 +24,7 @@ export function businessRouter(db:Database,origins:string[]):Router {
   const numbering=numberingController(db);
   const stockSource=stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(catalogRouter(db,origins,catalogPublishEnabled));
   router.get('/stock/by-source',requireChannel('web',origins),stockSource.stock);
   router.post('/stock/adjustments',requireChannel('web',origins),stockAdjustmentController(db));
   router.get('/stock/by-source/journal',requireChannel('web',origins),stockSource.journal);

@@ -17,7 +17,7 @@ export const rawLineSchema = lineSchema.omit({actualPackages:true, actualWeightG
     plannedWeightGrams:z.string().transform(decimalToGrams),
   });
 export const rawFactSchema = factSchema.extend({
-  catalogVersion:z.coerce.number().pipe(z.literal(1)),
+  catalogVersion:z.coerce.number().int().positive(),
   weightGrams:z.string().transform(decimalToGrams),
   scannedAt:z.string().transform(isoDate),receivedAt:z.string().transform(isoDate),
   planVersion:z.coerce.number().pipe(z.literal(1)),

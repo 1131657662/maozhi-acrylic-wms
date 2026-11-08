@@ -1,5 +1,7 @@
 import type { Database } from './mysql.ts';
 import { readSkuFile } from './sample-reader.ts';
+import { initializeCatalogV1 } from './catalog-bootstrap.ts';
+import { decimalToGrams } from './weight.ts';
 
 export function kilogramsToTonnes(value: string): string {
   const match = /^(\d+)(?:\.(\d))?$/.exec(value);
@@ -18,10 +20,11 @@ export async function seedScanCatalog(db: Database, now: string): Promise<void> 
       VALUES(?,?,?,?,?,?,?,?,?,?)`, [code, spec, 1, now, now, 'sku-spec', spec, 'authoritative', 0,
       JSON.stringify({ source: 'sku.txt', specification: spec })]);
   }
-  for (const row of rows) {
+  const entries=rows.map((row)=>{
     const productCode = codes.get(row.spec);
     if (!productCode) throw new Error(`规格未生成商品编码: ${row.spec}`);
-    await db.run(`INSERT INTO scan_catalog(barcode,product_code,weight_tonnes,catalog_version,source_spec)
-      VALUES(?,?,?,?,?)`, [row.barcode, productCode, kilogramsToTonnes(row.weightKg), 1, row.spec]);
-  }
+    return {barcode:row.barcode,sourceSpec:row.spec,rawWeightKg:row.weightKg,
+      weightGrams:decimalToGrams(kilogramsToTonnes(row.weightKg)),legacyProductCode:productCode};
+  });
+  await initializeCatalogV1(db,entries);
 }

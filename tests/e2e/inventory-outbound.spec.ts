@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { inventorySnapshot } from '../../apps/api/tests/inventory-fixture';
 import { e2eDatabase, loginInventory, inventoryCell, post } from './inventory-helpers';
+import { addV1Fixture } from '../../apps/api/tests/catalog-fixture';
 
 test('B1a3 出库不足 409 全回滚；PDA/小程序确认和调整全部 403', async ({ page }) => {
   const db = e2eDatabase();
@@ -10,11 +11,7 @@ test('B1a3 出库不足 409 全回滚；PDA/小程序确认和调整全部 403',
     const cell = await inventoryCell(db);
     await db.run('UPDATE stock SET packages=0,weight_tonnes=0 WHERE product_code=?', [cell.productCode]);
     const barcode = `TEST-${randomUUID()}`;
-    await db.run('INSERT INTO scan_catalog(barcode,product_code,weight_tonnes,catalog_version) VALUES(?,?,?,1)', [
-      barcode,
-      cell.productCode,
-      '0.3025',
-    ]);
+    await addV1Fixture(db,{barcode,product:cell.productCode,tonnes:'0.3025'});
     const planResponse = await post(page, '/outbound', {
       orderNo: `TX-OUT-${randomUUID()}`,
       warehouseCode: cell.warehouseCode,

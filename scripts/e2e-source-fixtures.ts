@@ -1,4 +1,5 @@
 import type { Database } from '../apps/api/src/db/mysql.ts';
+import { addV1Fixture } from '../apps/api/tests/catalog-fixture.ts';
 
 // Disposable adversarial fixtures: non-ERP stock is invalid business data used to prove exclusion.
 // Never creates inventory in the sample development database.
@@ -16,8 +17,7 @@ export async function seedSourceEvidence(db: Database): Promise<void> {
     VALUES('DEMO-WH','SRC-ERP-A',999,'299.7000',1)`);
   await db.run(`INSERT INTO stock_journal(warehouse_code,product_code,packages_delta,tonnes_delta,created_at,source_del_flag)
     VALUES('DEMO-WH','SRC-ERP-A',999,'299.7000',UTC_TIMESTAMP(3),1)`);
-  await db.run(`INSERT INTO scan_catalog(barcode,product_code,weight_tonnes,catalog_version)
-    VALUES('SRC-CATALOG-ONLY','SRC-SPEC-A','0.3895',1)`);
+  await addV1Fixture(db,{barcode:'SRC-CATALOG-ONLY',product:'SRC-SPEC-A',tonnes:'0.3895'});
 }
 interface ProductStock {
   code: string;
