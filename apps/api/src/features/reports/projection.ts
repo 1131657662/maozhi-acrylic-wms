@@ -22,6 +22,7 @@ interface ProjectionState {
   chronological: boolean;
   lastTime: string;
   movement: ReportQuery['movement'];
+  captureEvents: boolean;
 }
 function consumeRow(state: ProjectionState, row: Row): void {
   state.digest.update(JSON.stringify(row));
@@ -46,6 +47,7 @@ function consumeRow(state: ProjectionState, row: Row): void {
   const key = JSON.stringify([event.warehouseCode, event.productCode]);
   const cell = state.cells.get(key) ?? cellFor(event, state.periods);
   state.cells.set(key, cell);
+  if (state.captureEvents) cell.events!.push(event);
   consumeEvent(cell, event, state.periods);
 }
 async function readEvents(db: Database, state: ProjectionState, query: ReportQuery): Promise<void> {
@@ -61,7 +63,7 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
     for (const row of rows) consumeRow(state, row);
   }
 }
-export async function buildProjection(db: Database, query: ReportQuery): Promise<Projection> {
+export async function buildProjection(db: Database, query: ReportQuery, captureEvents = false): Promise<Projection> {
   const state: ProjectionState = {
     cells: new Map(),
     periods: reportPeriods(query),
@@ -73,6 +75,7 @@ export async function buildProjection(db: Database, query: ReportQuery): Promise
     chronological: true,
     lastTime: '',
     movement: query.movement,
+    captureEvents,
   };
   await readEvents(db, state, query);
   await documentCounts(db, state.cells, query);

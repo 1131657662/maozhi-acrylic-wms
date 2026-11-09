@@ -34,7 +34,7 @@ export function addMovement(row: ReportMonthlyRow, event: LedgerEvent): void {
     if (event.family === 'unknown') mark(row, `未分类流水类型：${event.operationType || '未记录'}`);
   }
 }
-function invalidEvent(event: LedgerEvent): string | null {
+export function invalidEvent(event: LedgerEvent): string | null {
   if (
     event.beforePackages === null ||
     event.beforeGrams === null ||

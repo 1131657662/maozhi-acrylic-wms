@@ -23,6 +23,9 @@ export interface Cell {
   firstTime: string | null;
   missingTime: boolean;
   boundaries: Map<string, { opening?: string; closing?: string }>;
+  events?: LedgerEvent[];
+  snapshotPackages?: number | null;
+  snapshotGrams?: number | null;
 }
 export interface Projection {
   cells: Map<string, Cell>;

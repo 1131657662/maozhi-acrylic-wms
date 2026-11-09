@@ -51,6 +51,8 @@ function observeStock(row: Row, state: Anchors): string {
       state.periods,
     );
   state.cells.set(key, cell);
+  cell.snapshotPackages = nullableInt(row.packages);
+  cell.snapshotGrams = optionalGrams(row.weight_tonnes);
   validateStock(cell, row, state.periods);
   return key;
 }

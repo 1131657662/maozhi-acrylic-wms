@@ -92,6 +92,8 @@ export class WebExports {
       audit: '操作日志',
       'report-details': '出入库明细',
       'report-monthly': '月度汇总',
+      'report-turnover': '周转率',
+      'report-aging': '库存库龄',
     };
     return {
       path: this.files.file(id, 'xlsx'),

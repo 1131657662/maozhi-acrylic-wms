@@ -212,6 +212,31 @@
         },
         "type": "array"
       },
+      "S_26cbc34fbf355c53": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_fb0e83ef5c195d53"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_27a690a677b2b267": {
         "default": "all",
         "enum": [
@@ -408,6 +433,19 @@
           "actualWeightGrams"
         ],
         "type": "object"
+      },
+      "S_3c9135158f98d651": {
+        "enum": [
+          "inbound",
+          "outbound",
+          "stock",
+          "audit",
+          "report-details",
+          "report-monthly",
+          "report-turnover",
+          "report-aging"
+        ],
+        "type": "string"
       },
       "S_3ed34299db40239d": {
         "additionalProperties": false,
@@ -619,6 +657,14 @@
         "minimum": 1,
         "type": "integer"
       },
+      "S_552e63170407d5d6": {
+        "default": "warehouseCode",
+        "enum": [
+          "warehouseCode",
+          "productCode"
+        ],
+        "type": "string"
+      },
       "S_5541c32e22d1d6e2": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -747,6 +793,14 @@
           "productName"
         ],
         "type": "object"
+      },
+      "S_6aef2449e2661cf8": {
+        "default": "asc",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string"
       },
       "S_6c1ea734b7eea9f4": {
         "maxLength": 32,
@@ -940,6 +994,14 @@
         "maximum": 8,
         "minimum": 2,
         "type": "integer"
+      },
+      "S_85d86a89c7f95b0c": {
+        "enum": [
+          "complete",
+          "incomplete",
+          "empty"
+        ],
+        "type": "string"
       },
       "S_87cfcb6c4ffe6c77": {
         "enum": [
@@ -1467,31 +1529,6 @@
         "minimum": 1,
         "type": "integer"
       },
-      "S_c43ddd94b9c8d41f": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_c79010fcf34b7f40"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
-      },
       "S_c586c266584d46ba": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -1521,82 +1558,6 @@
         "format": "date-time",
         "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
         "type": "string"
-      },
-      "S_c79010fcf34b7f40": {
-        "additionalProperties": false,
-        "properties": {
-          "bytes": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "columns": {
-            "$ref": "#/components/schemas/S_f36b924a373c642e"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "elapsedMs": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "error": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "errorCode": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "expiresAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_e4a85f04ec4b2865"
-          },
-          "preview": {
-            "$ref": "#/components/schemas/S_373c422304eb28d8"
-          },
-          "processed": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "requestHash": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/S_051114523dc3c550"
-          },
-          "sha256": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "state": {
-            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "totals": {
-            "$ref": "#/components/schemas/S_78a1736e4c355538"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "scope",
-          "state",
-          "createdAt",
-          "expiresAt",
-          "processed",
-          "total",
-          "columns",
-          "totals",
-          "preview",
-          "error",
-          "errorCode",
-          "sha256",
-          "bytes",
-          "elapsedMs",
-          "requestHash"
-        ],
-        "type": "object"
       },
       "S_c801bdba7e834ea4": {
         "additionalProperties": false,
@@ -1952,6 +1913,90 @@
         ],
         "type": "object"
       },
+      "S_e35d7f7381463f3a": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustmentCount": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "completeDays": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "countFromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "countToDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "days": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "excludedDeleted": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "formula": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "fromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "missingTime": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "reconciliation": {
+            "$ref": "#/components/schemas/S_3ed34299db40239d"
+          },
+          "scopeStatus": {
+            "$ref": "#/components/schemas/S_85d86a89c7f95b0c"
+          },
+          "source": {
+            "$ref": "#/components/schemas/S_8a11571d1ecfcf8f"
+          },
+          "stocktakeCount": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "timeStatus": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "toDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "totalCells": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "unassignedRows": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "unverifiedCells": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "watermark": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "source",
+          "fromDay",
+          "toDay",
+          "watermark",
+          "timeStatus",
+          "excludedDeleted",
+          "missingTime",
+          "unassignedRows",
+          "unverifiedCells",
+          "totalCells",
+          "reconciliation",
+          "days",
+          "completeDays",
+          "scopeStatus",
+          "formula",
+          "countFromDay",
+          "countToDay",
+          "adjustmentCount",
+          "stocktakeCount"
+        ],
+        "type": "object"
+      },
       "S_e48bc3464562b65b": {
         "anyOf": [
           {
@@ -1961,17 +2006,6 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
-      },
-      "S_e4a85f04ec4b2865": {
-        "enum": [
-          "inbound",
-          "outbound",
-          "stock",
-          "audit",
-          "report-details",
-          "report-monthly"
-        ],
-        "type": "string"
       },
       "S_e5ae5c0f5f1acc42": {
         "maximum": 9007199254740991,
@@ -2145,6 +2179,82 @@
           }
         ],
         "default": null
+      },
+      "S_fb0e83ef5c195d53": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "columns": {
+            "$ref": "#/components/schemas/S_f36b924a373c642e"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "elapsedMs": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "error": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "errorCode": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_3c9135158f98d651"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/S_373c422304eb28d8"
+          },
+          "processed": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "requestHash": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/S_051114523dc3c550"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "state": {
+            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/S_78a1736e4c355538"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scope",
+          "state",
+          "createdAt",
+          "expiresAt",
+          "processed",
+          "total",
+          "columns",
+          "totals",
+          "preview",
+          "error",
+          "errorCode",
+          "sha256",
+          "bytes",
+          "elapsedMs",
+          "requestHash"
+        ],
+        "type": "object"
       },
       "S_fc8e894ba12ab9e1": {
         "const": "true",
@@ -12905,7 +13015,7 @@
                     "type": "array"
                   },
                   "kind": {
-                    "$ref": "#/components/schemas/S_e4a85f04ec4b2865"
+                    "$ref": "#/components/schemas/S_3c9135158f98d651"
                   },
                   "query": {
                     "additionalProperties": {
@@ -12967,7 +13077,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_c43ddd94b9c8d41f"
+                  "$ref": "#/components/schemas/S_26cbc34fbf355c53"
                 }
               }
             },
@@ -13093,7 +13203,7 @@
                     "data": {
                       "anyOf": [
                         {
-                          "$ref": "#/components/schemas/S_c79010fcf34b7f40"
+                          "$ref": "#/components/schemas/S_fb0e83ef5c195d53"
                         },
                         {
                           "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -13239,7 +13349,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_c43ddd94b9c8d41f"
+                  "$ref": "#/components/schemas/S_26cbc34fbf355c53"
                 }
               }
             },
@@ -13365,7 +13475,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_c43ddd94b9c8d41f"
+                  "$ref": "#/components/schemas/S_26cbc34fbf355c53"
                 }
               }
             },
@@ -15178,6 +15288,412 @@
         "x-client-channel": "web"
       }
     },
+    "/web/reports/aging": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_8a11571d1ecfcf8f"
+            }
+          },
+          {
+            "in": "query",
+            "name": "warehouse",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_844bf0e81dce3e01"
+            }
+          },
+          {
+            "in": "query",
+            "name": "product",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_844bf0e81dce3e01"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_53ae93326f9389ef"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_1141380dbd74c7c3"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_552e63170407d5d6"
+            }
+          },
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_6aef2449e2661cf8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "fromDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "toDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cutoffDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "adjustmentCount": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "adjustmentSummary": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "age0To30Grams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "age181To365Grams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "age31To90Grams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "age91To180Grams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "ageOver365Grams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "checkState": {
+                                "$ref": "#/components/schemas/S_d1888830ffc6c831"
+                              },
+                              "closingGrams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "closingPackages": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "coverage": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "cutoffDay": {
+                                "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                              },
+                              "fifoBasis": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "fromDay": {
+                                "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                              },
+                              "id": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "productCode": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "productName": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "reasons": {
+                                "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                              },
+                              "source": {
+                                "$ref": "#/components/schemas/S_8a11571d1ecfcf8f"
+                              },
+                              "stocktakeCount": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "timeStatus": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "toDay": {
+                                "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                              },
+                              "unagedGrams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "warehouseCode": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "warehouseName": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "watermark": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "warehouseCode",
+                              "warehouseName",
+                              "productCode",
+                              "productName",
+                              "source",
+                              "timeStatus",
+                              "watermark",
+                              "checkState",
+                              "reasons",
+                              "adjustmentCount",
+                              "stocktakeCount",
+                              "adjustmentSummary",
+                              "fromDay",
+                              "toDay",
+                              "cutoffDay",
+                              "closingPackages",
+                              "closingGrams",
+                              "age0To30Grams",
+                              "age31To90Grams",
+                              "age91To180Grams",
+                              "age181To365Grams",
+                              "ageOver365Grams",
+                              "unagedGrams",
+                              "coverage",
+                              "fifoBasis"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "page": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "pageSize": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "report": {
+                          "$ref": "#/components/schemas/S_e35d7f7381463f3a"
+                        },
+                        "rowTokens": {
+                          "$ref": "#/components/schemas/S_78a1736e4c355538"
+                        },
+                        "total": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "totals": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "age0To30Grams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "age181To365Grams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "age31To90Grams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "age91To180Grams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "ageOver365Grams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "closingGrams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "closingPackages": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "unagedGrams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            }
+                          },
+                          "required": [
+                            "closingPackages",
+                            "age0To30Grams",
+                            "age31To90Grams",
+                            "age91To180Grams",
+                            "age181To365Grams",
+                            "ageOver365Grams",
+                            "unagedGrams",
+                            "closingGrams"
+                          ],
+                          "type": "object"
+                        },
+                        "viewToken": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "page",
+                        "pageSize",
+                        "viewToken",
+                        "rowTokens",
+                        "report",
+                        "items",
+                        "totals"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "截止水位吨数 FIFO 库龄五档，未知余额独立显示并提供对账诊断",
+        "x-client-channel": "web"
+      }
+    },
     "/web/reports/details": {
       "get": {
         "parameters": [
@@ -16013,6 +16529,368 @@
           }
         ],
         "summary": "ERP 仓库商品月度收发存；未知边界为 null，调整与撤销分列，不补平差额",
+        "x-client-channel": "web"
+      }
+    },
+    "/web/reports/turnover": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_8a11571d1ecfcf8f"
+            }
+          },
+          {
+            "in": "query",
+            "name": "warehouse",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_844bf0e81dce3e01"
+            }
+          },
+          {
+            "in": "query",
+            "name": "product",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_844bf0e81dce3e01"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_53ae93326f9389ef"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_1141380dbd74c7c3"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_552e63170407d5d6"
+            }
+          },
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_6aef2449e2661cf8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "fromDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "toDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "adjustmentCount": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "adjustmentSummary": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "averageInventory": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "checkState": {
+                                "$ref": "#/components/schemas/S_d1888830ffc6c831"
+                              },
+                              "completeDays": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "dailyClosingGramsSum": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "days": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "formula": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "fromDay": {
+                                "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                              },
+                              "id": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "netOutboundGrams": {
+                                "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                              },
+                              "productCode": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "productName": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "reasons": {
+                                "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                              },
+                              "source": {
+                                "$ref": "#/components/schemas/S_8a11571d1ecfcf8f"
+                              },
+                              "stocktakeCount": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "timeStatus": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "toDay": {
+                                "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                              },
+                              "turnoverDays": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "turns": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "warehouseCode": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "warehouseName": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "watermark": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "warehouseCode",
+                              "warehouseName",
+                              "productCode",
+                              "productName",
+                              "source",
+                              "timeStatus",
+                              "watermark",
+                              "checkState",
+                              "reasons",
+                              "adjustmentCount",
+                              "stocktakeCount",
+                              "adjustmentSummary",
+                              "fromDay",
+                              "toDay",
+                              "days",
+                              "completeDays",
+                              "netOutboundGrams",
+                              "dailyClosingGramsSum",
+                              "averageInventory",
+                              "turns",
+                              "turnoverDays",
+                              "formula"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "page": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "pageSize": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "report": {
+                          "$ref": "#/components/schemas/S_e35d7f7381463f3a"
+                        },
+                        "rowTokens": {
+                          "$ref": "#/components/schemas/S_78a1736e4c355538"
+                        },
+                        "total": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "totals": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "dailyClosingGramsSum": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "netOutboundGrams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            }
+                          },
+                          "required": [
+                            "netOutboundGrams",
+                            "dailyClosingGramsSum"
+                          ],
+                          "type": "object"
+                        },
+                        "viewToken": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "page",
+                        "pageSize",
+                        "viewToken",
+                        "rowTokens",
+                        "report",
+                        "items",
+                        "totals"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_59b9b757926c76a5"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "吨数净出库除以完整日逐日日终平均库存，含调整盘点说明和对账诊断",
         "x-client-channel": "web"
       }
     }

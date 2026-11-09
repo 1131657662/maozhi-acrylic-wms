@@ -5,7 +5,10 @@ import {
   webAuditQuerySchema,
   type ExportKind,
   reportQuerySchema,
+  reportTurnoverQuerySchema,
+  reportAgingQuerySchema,
   type ReportMeta,
+  type DerivedReportMeta,
 } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { listWebInbound } from '../web-lists/inbound.ts';
@@ -14,6 +17,7 @@ import { listWebStock } from '../web-lists/stock.ts';
 import { listWebAudit } from '../web-lists/audit.ts';
 import type { ExportSnapshot } from '../web-lists/query.ts';
 import { reportReader } from '../reports/read.ts';
+import { derivedReportReader } from '../reports/derived-read.ts';
 
 export interface ExportPage {
   items: Record<string, unknown>[];
@@ -21,7 +25,7 @@ export interface ExportPage {
   viewToken: string;
   rowTokens?: Record<string, string>;
   subtotal?: { packages: number; weightGrams: number };
-  report?: ReportMeta;
+  report?: ReportMeta | DerivedReportMeta;
 }
 export interface ExportBatch {
   page: number;
@@ -36,6 +40,10 @@ export function exportReader(
     case 'report-monthly':
     case 'report-details':
       return reportReader(kind, reportQuerySchema.parse(input));
+    case 'report-turnover':
+      return derivedReportReader(kind, reportTurnoverQuerySchema.parse(input));
+    case 'report-aging':
+      return derivedReportReader(kind, reportAgingQuerySchema.parse(input));
     case 'inbound': {
       const q = webInboundQuerySchema.parse(input);
       return (db: Database, batch?: ExportBatch) =>

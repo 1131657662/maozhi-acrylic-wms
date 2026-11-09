@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { createWriteStream } from 'node:fs';
 import { setImmediate as yieldLoop } from 'node:timers/promises';
-import { listCellText, type ListField, type ExportKind, type ReportMeta } from '@wms/contracts';
+import { listCellText, type ListField, type ExportKind, type ReportMeta, type DerivedReportMeta } from '@wms/contracts';
 import { AppError } from '../../shared/errors.ts';
 import { writeReconciliation } from './report-sheet.ts';
 
@@ -13,6 +13,7 @@ export class XlsxWriter {
   private readonly sheet;
   private failure: Error | undefined;
   private sums = new Map<string, bigint>();
+  private incompleteSums = new Set<string>();
   constructor(readonly config: { filename: string; kind: ExportKind; fields: ListField[] }) {
     this.output = createWriteStream(config.filename, { flags: 'wx' });
     this.output.on('error', (e) => {
@@ -57,7 +58,10 @@ export class XlsxWriter {
     return display;
   }
   private value(field: ListField, row: Record<string, unknown>, text: string): string | number | Date {
-    if (row[field.key] == null || row[field.key] === '') return text;
+    if (row[field.key] == null || row[field.key] === '') {
+      if (field.type !== 'text' && field.total !== false) this.incompleteSums.add(field.key);
+      return text;
+    }
     if (field.type === 'date') return new Date(Date.parse(String(row[field.key])) + 8 * 3600_000);
     if (field.type === 'text') return text;
     const raw = Number(row[field.key]);
@@ -69,7 +73,7 @@ export class XlsxWriter {
   totals(): Record<string, string> {
     return Object.fromEntries(
       this.config.fields
-        .filter((f) => this.sums.has(f.key))
+        .filter((f) => this.sums.has(f.key) && !this.incompleteSums.has(f.key))
         .map((f) => {
           const sum = this.sums.get(f.key)!;
           if (sum > BigInt(maxExcelInteger) || sum < -BigInt(maxExcelInteger))
@@ -99,7 +103,7 @@ export class XlsxWriter {
         this.output.once('error', bad);
       });
   }
-  async finish(count: number, report?: ReportMeta): Promise<void> {
+  async finish(count: number, report?: ReportMeta | DerivedReportMeta): Promise<void> {
     const totals = this.totals();
     const row = this.sheet.addRow(
       this.config.fields.map((f, i) =>

@@ -1,4 +1,12 @@
-import { reportQuerySchema, reportDetailsSchema, reportMonthlySchema } from '@wms/contracts';
+import {
+  reportQuerySchema,
+  reportDetailsSchema,
+  reportMonthlySchema,
+  reportTurnoverQuerySchema,
+  reportAgingQuerySchema,
+  reportTurnoverSchema,
+  reportAgingSchema,
+} from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
 export const reportOperations: Operation[] = [
   {
@@ -16,5 +24,21 @@ export const reportOperations: Operation[] = [
     channel: 'web',
     query: reportQuerySchema,
     response: reportMonthlySchema,
+  },
+  {
+    method: 'get',
+    path: '/web/reports/turnover',
+    summary: '吨数净出库除以完整日逐日日终平均库存，含调整盘点说明和对账诊断',
+    channel: 'web',
+    query: reportTurnoverQuerySchema,
+    response: reportTurnoverSchema,
+  },
+  {
+    method: 'get',
+    path: '/web/reports/aging',
+    summary: '截止水位吨数 FIFO 库龄五档，未知余额独立显示并提供对账诊断',
+    channel: 'web',
+    query: reportAgingQuerySchema,
+    response: reportAgingSchema,
   },
 ];

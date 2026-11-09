@@ -1,6 +1,8 @@
 export default [
   { path: '/reports/details', name: '出入库明细', icon: 'profile', component: './reports/details' },
   { path: '/reports/monthly', name: '月度汇总', icon: 'barChart', component: './reports/monthly' },
+  { path: '/reports/turnover', name: '周转率', icon: 'dashboard', component: './reports/turnover' },
+  { path: '/reports/aging', name: '库存库龄', icon: 'history', component: './reports/aging' },
   { path: '/stocktakes', name: '库存盘点', icon: 'audit', component: './stocktakes/index' },
   { path: '/stocktakes/new', hideInMenu: true, component: './stocktakes/new' },
   { path: '/stocktakes/:id', hideInMenu: true, component: './stocktakes/detail' },

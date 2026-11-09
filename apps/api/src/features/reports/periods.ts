@@ -85,6 +85,7 @@ export function cellFor(
     firstTime: null,
     missingTime: false,
     boundaries: new Map(),
+    events: [],
   };
 }
 export function mark(row: ReportMonthlyRow, reason: string): void {

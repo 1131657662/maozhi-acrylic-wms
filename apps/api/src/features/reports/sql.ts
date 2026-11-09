@@ -11,7 +11,7 @@ export const balanceFields = `s.id,s.warehouse_code AS warehouseCode,w.name AS w
   s.product_code AS productCode,p.name AS productName,p.source_model AS productModel,
   s.source_id,s.source_del_flag,s.source_business_type,s.source_row_json,
   s.packages_delta,s.tonnes_delta,s.packages_before,s.packages_after,s.tonnes_before,s.tonnes_after,
-  s.operation_id,o.operation_type,o.reason,o.actor,${postedLocal} AS reportLocalTime`;
+  s.operation_id,o.operation_type,o.reason,o.actor,c.original_operation_id AS originalOperationId,${postedLocal} AS reportLocalTime`;
 export const ledgerFields = `${balanceFields},
   COALESCE(i.receipt_no,hi.receipt_no,b.order_no,hb.order_no,s.source_order_no,'') AS orderNo,
   COALESCE(i.id,hi.id,b.id,hb.id) AS documentId,COALESCE(i.status,hi.status,b.status,hb.status,'') AS documentStatus,
@@ -23,14 +23,14 @@ export const ledgerFields = `${balanceFields},
 export const balanceFrom = `FROM stock_journal s
   JOIN master_products p ON p.code=s.product_code AND p.source_kind='erp-product'
   LEFT JOIN master_warehouses w ON w.code=s.warehouse_code
-  LEFT JOIN inventory_operations o ON o.id=s.operation_id`;
+  LEFT JOIN inventory_operations o ON o.id=s.operation_id
+  LEFT JOIN document_closures c ON c.compensation_operation_id=o.id`;
 export const ledgerFrom = `${balanceFrom}
   LEFT JOIN inbound_receipts i ON i.id=s.inbound_receipt_id
   LEFT JOIN inbound_receipts hi ON hi.receipt_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='inbound'
   LEFT JOIN outbound_orders b ON b.id=s.order_id
   LEFT JOIN outbound_orders hb ON hb.order_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='outbound'
-  LEFT JOIN master_suppliers su ON su.code=COALESCE(i.supplier_code,hi.supplier_code)
-  LEFT JOIN document_closures c ON c.compensation_operation_id=o.id`;
+  LEFT JOIN master_suppliers su ON su.code=COALESCE(i.supplier_code,hi.supplier_code)`;
 export function dimensionFilter(query: Pick<ReportQuery, 'warehouse' | 'product'>) {
   const clauses: string[] = [],
     values: string[] = [];
