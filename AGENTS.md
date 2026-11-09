@@ -12,6 +12,15 @@
 - 文档必须区分代码完成、构建通过、模拟器验证与实体设备/生产验收。
 - `docs/references/handoff/figma/` 为废弃设计，禁止引用、禁止作为视觉或布局依据；UI 以旧系统信息架构 + Ant Design Pro 设计语言为准。
 
+## 界面与文案约束
+
+- 界面只显示业务中文：状态、类型、结果、渠道、原因一律按 `docs/UX_STANDARDS.md` 的映射表显示，禁止直接展示库值（open/frozen/success/UUID/内部 ID）。
+- 不硬编码：颜色只用 theme token；阈值、分页、超时、导出上限只用常量；文案集中在文案表，不散落页面。
+- 页面标题左侧统一 16px 线性图标（`@ant-design/icons`），不使用 emoji、不放大、不加底色。
+- 每页最多 1 个主操作；危险操作不与主操作并排且需二次确认；勾选/批量切换不得造成表格位移。
+- 页面规范以 `docs/` 下的 `*_SPEC.md` 与 `docs/UX_STANDARDS.md` 为准；实现超出规格范围时先更新规格再写代码。
+- `docs/DOMAIN_RULES.md` 为业务规则总纲，优先级高于各批次实现方案。
+
 ## 开发命令
 
 - `npm run dev`：Web 5173、API 4310，本地合成库。

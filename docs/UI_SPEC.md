@@ -1,4 +1,8 @@
-# UI 规格
+# UI 规格（已废弃）
+
+> **本文档已被取代，仅作历史参考。** 现行依据：`docs/UX_STANDARDS.md`（文案/格式/无硬编码/操作舒适度）、`docs/WEB_UX_SPEC.md`（全局交互）与各页面 `*_SPEC.md`。请勿再按本文件实现。
+
+> 本文档中的状态、类型、结果等库值仅作实现标识；界面显示必须按 docs/UX_STANDARDS.md 映射为中文。
 
 页面统一使用 Ant Design Pro 的 ProLayout、ProTable、ProForm、ProDescriptions。每族均定义 4 态：加载、空态、错误可重试、无权限；页面不覆盖 `.ant-*` 内部样式，断点、列固定和文案按本文件执行。
 
