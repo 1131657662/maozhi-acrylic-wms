@@ -21,8 +21,8 @@
 | KPI ×4 | 今日入库、今日出库、待确认、进行中盘点（各带环比与迷你趋势） | 点击进对应列表/详情 |
 | 待我处理 | 待确认入库/出库、冻结超时、锁仓盘点 | 每行直达处理 |
 | 目录健康 | 当前版本、条码数、上次更新、本版新增/消失/重量变更 | 去上传 |
-| 设备数据 | 待补传事实数、冲突数 | 查看 |
-| 今日车辆 | 在装 / 待确认 / 已离场 | 进出库单 |
+| 交接证据 | 已登记作业未收齐事实数、已落库冲突数及时间；设备实时离线队列不支持 | 查看已登记清单 |
+| 今日车号关联单据 | 按车号汇总计划中/待确认/已确认单据，不代表车辆状态；在装/离场不支持 | 进入单据 |
 | 最近操作 | 最近 10 条 | 操作记录 |
 | 快捷入口 | 登记入库、新建出库、开始盘点、上传目录 | — |
 | 14 天迷你趋势 | 入库/出库两条线 | 进看板 |
@@ -62,31 +62,45 @@
 
 ## 5. 图表
 
-ECharts 按需注册（Line/Bar/Pie + Grid/Tooltip/Legend/CanvasRenderer），自封 <Chart> 组件（init + ResizeObserver + dispose），不用 echarts-for-react。
+ECharts 按需注册（Line/Bar/Pie/Heatmap + Grid/Tooltip/Legend/Calendar/VisualMap/CanvasRenderer），自封 <Chart> 组件（init + ResizeObserver + dispose），不用 echarts-for-react。
 迷你趋势线用 SVG 手写。
-配色：主色 #105957 + 中性灰蓝 #8aa3a0；网格线 colorBorderSecondary。
+配色取chartTheme.inbound/outbound与colorBorderSecondary等theme token，不用裸色值。
 
 ## 6. 接口
 
-GET /api/v1/web/dashboard → today、pending、stocktake、stale、stock、trend14d、topProducts、topCustomers、recent
-GET /api/v1/web/analysis?from=&to= → monthly、tops、aging、turnover、heatmap、duration
+GET /api/v1/web/dashboard → today、pending、stocktake、stale、stock、trend14d、topProducts、topCustomers、recent、catalogHealth、handoffEvidence、vehicleOrders、asOf、watermark、verification
+GET /api/v1/web/analysis?fromDay=&toDay= → monthly、tops、aging、turnover、heatmap、duration
 两接口均服务端聚合，缓存 30 秒。
 
 ## 7. 边界
 
 | 情况 | 处理 |
 |---|---|
-| 无数据 | 卡片显示 0 并给动作入口，不显示空白图表 |
+| 已核验无数据 | 显示0并给动作入口；未知/不可验证显示原因，不支持项明示不支持 |
 | 进行中盘点 | 必须显示，且显示锁仓时长 |
 | 图表数据缺失 | 显示「暂无数据」占位，不画空坐标轴 |
 | 聚合超时 | 显示部分数据 + 顶部提示「部分数据加载失败」 |
 
 ## 8. 验收
 
-1. KPI 数字与对应列表条数一致；
+1. 待办单数与同条件去重单数一致，吨/包KPI与同条件数量汇总一致，不能把吨数对列表条数；
 2. 进行中盘点与冻结超时首屏可见；
 3. 工作台只发一个请求，p95 < 1s；
 4. 看板 8 个区块均有数据或空态；
 5. 六条下钻路径可达且条件正确；
 6. 1440 一屏放下前两行，1280 无横向滚动；
 7. 1440/1280 截图。
+
+## 9. 聚合服务契约（需要新增服务能力）
+
+两个API与/dashboard页面当前不存在，B7b（UI-3）新增；/当前出库列表迁到/outbound需保留旧链接和登录跳转兼容。聚合复用B3c、B5d及B6f的服务端读模型，不由浏览器逐页拼统计，不必为聚合本身建新库存表。
+
+每个指标返回value、unit（单/包/克/次/天）、period、basis、verification/reason；日期统一上海自然日半开区间，今日只到asOf。入/出库KPI为确认减撤销净业务量，更正/调整/盘点/转移另列，不混入收发；样品出库含在出库，取样次数另列。环比同等时间窗，分母0/未知返回NULL及原因。Top排序用数值+业务编码稳定排序；缺历史快照不得拿当前名称假装原证据。
+
+dashboard一次读快照返回全部区块，共用asOf/watermark；analysis复用同basis和条件，默认入账口径，重述能力服从REPORT_SPEC。超时区块明确失败而非0；缓存30秒且写入后失效。只读值可为真实空0，车辆在装/离场、设备实时队列和全设备同步覆盖率均不支持，不能用确认时间推断。
+
+性能目标按WEB_UX_SPEC §11固定数据量/硬件/并发、冷/热30次样本验证；未取得原始输出前不承诺达标。前置B6f库存+B7a报表+B6d目录证据；不把未来设备事件表视为当前已有依赖。
+
+修订记录：C11 替换设备实时队列与车辆离场卡片，仅展示可核验单据/交接证据，不可推断项标不支持。
+修订记录：C12 明确新增聚合API、单位/归期/水位/空未知态、缺失响应与性能基准。
+修订记录：C17 图表颜色改token，补热力图注册依赖。

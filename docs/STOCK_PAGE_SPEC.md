@@ -22,20 +22,20 @@
 
 ## 3. 口径
 
-1. 只统计本系统商品（source_kind ≠ sku-spec）；
+1. 按 MASTER_DATA_SPEC §0 的 inventory_eligible + 来源证据统计；资格迁移前保持 erp-product 白名单，不以排除 sku-spec 放开未知来源；
 2. 在库 = stock 当前值；
-3. 待发 = 未完成出库计划剩余量（open / frozen / partially_shipped，排除撤销、作废、短关）；
-4. 可发 = 在库 − 待发，可为负（标红）；
+3. 待发 = DOMAIN_RULES §5.1 每个订单行未入账剩余量之和（open / frozen / partially_shipped；排除撤销、作废、短关）；包/克独立聚合，更正按有效已发量更新余额，不把冻结事实再扣一遍；
+4. 可发 = 在库 − 待发，包/吨分别计算；负值标「计划缺口」，不代表实际负库存或放行扣减；
 5. 库龄取库龄报表结果；不可归龄显示文字；
 6. 单位切换（吨/千克）只影响显示。
 
 ## 4. 主表字段
 
-展开箭头、仓库、商品编码、名称、在库包数、在库吨数、待发包数、待发吨数、可发包数、库龄（天数+色阶）、最近变动、操作。
+展开箭头、仓库、商品编码、名称、在库包数、在库吨数、待发包数、待发吨数、可发包数/吨数、库龄（五档吨数分布+无法归龄）、最近变动、操作。
 
-库龄色阶：0–30 绿 / 31–90 黄 / 91–180 橙 / >180 红 / 不可归龄 灰。
+库龄统一五档：0–30 / 31–90 / 91–180 / 181–365 / >365 天，另列无法归龄；颜色只用对应主题token。一个仓品可有多个FIFO层，不返回无定义的单一agingDays，不由吨数分桶反推包数。
 
-行操作：查看流水（主）、更多（调整库存、导出该商品流水、复制编码）。
+行操作：查看流水（普通行操作，不占页面primary）、更多（调整库存、导出该商品流水、复制编码）。
 批量：导出选中、打印占位、取消。
 
 ## 5. 行内展开（Peek）
@@ -54,24 +54,32 @@
 
 ## 8. 接口
 
-GET /api/v1/web/lists/stock（扩展参数：warehouse、productKeyword、productMode、hasPending、packagesMin/Max、tonnesMin/Max、zeroStock、agingBucket、hasUnaging、changedFrom/To、page、sort）
-响应：items（onHand/pending/available/agingDays/agingBucket/lastMovementAt）、summary、total。
+GET /api/v1/web/lists/stock：新增scope=inventory；旧source=erp-product仍仅返回历史ERP子集，二者互斥，详见MASTER_DATA_SPEC；保留现有warehouse/product、page/pageSize/sortBy等契约及viewToken/行token；新增productKeyword/productMode、hasPending、packagesMin/Max、tonnesMin/Max、zeroStock、agingBucket、hasUnaging、changedFrom/To，兼容规则见WEB_UX_SPEC §11。
+响应保留items/summary/total，扩展onHand、pending、available（各包/克）、agingBuckets、unagingGrams、lastMovementAt、asOf、watermark、verification；不改名rows。
 
 GET /api/v1/web/stock/:warehouse/:product/journal?limit=20
 
-汇总与列表同条件一次查询；待发聚合禁止 N+1。
+汇总与列表在同一读快照/水位返回，按仓×品先聚合库存、订单行余额、库龄再连接，禁止N+1或JOIN放大。summary是全部筛选结果；pageTotals只对当前页；品种数去重。流水下钻扩展类型/时间/单号/分页/导出，现有最近20条不能冒充全量读模型。
 
 ## 9. 边界
 
-零库存默认隐藏；负库存顶部红条告警；可发为负标红提示；不可归龄不进分段；历史导入库存流水不完整标「流水不完整」；条码目录商品不出现；打印占位。
+零库存默认隐藏；负库存顶部红条告警；可发为负标「计划缺口」；不可归龄不进分段；历史导入库存流水不完整标「流水不完整」；条码目录商品不出现；打印占位。
 
 ## 10. 验收
 
-1. 汇总 = 各行合计；
+1. 全筛选summary与独立全量聚合一致；pageTotals与本页可加项之和一致，品种数去重；
 2. 抽 3 个有计划的商品：可发 = 在库 − 待发；
 3. 行内展开、抽屉、流水页三处一致；
 4. 库龄色阶与报表分档一致；
 5. 单位切换换算正确；
 6. 勾选零位移；表底合计滚动可见；
 7. 保存视图后恢复条件、列、单位；
-8. 1440/1280 无横向滚动，筛选 p95 < 800ms。
+8. 1440/1280 无页面横向滚动；筛选p95目标<800ms，按WEB_UX_SPEC的同机数据/冷热点基准报告，未实测不得写通过。
+
+## 11. 实施依赖
+
+B6f（UI-4）需要新增上述库存/流水读模型，原列表仅有在库数。依赖B6a资格映射、B5c发货余额；库龄复用REPORT_SPEC D7及已实现B3c。不为只读投影新造库存表；索引由实现时EXPLAIN与基准决定。B5c未上线前，分批余额标「不支持」，不能用原计划总数伪造待发；本地普通单与legacy-open按各自未入账余额纳入，历史已发不重复计。查询抽屉、保存视图、分页和导出公共行为仅由WEB_UX_SPEC规定。
+
+修订记录：C01 改库存资格白名单，禁止以非sku-spec代替合法商品集合。
+修订记录：C06 定义包吨待发/可发、计划缺口、五档库龄及全筛选/本页汇总，补读模型依赖。
+修订记录：C16 引用公共查询/导出规则并保留现有契约和水位。
