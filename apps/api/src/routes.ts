@@ -17,6 +17,7 @@ import { handoffRouter } from './features/handoff/router.ts';
 import { webListRouter } from './features/web-lists/router.ts';
 import { webExportRouter } from './features/web-exports/router.ts';
 import { lifecycleRouter } from './features/document-lifecycle/router.ts';
+import { correctionRouter } from './features/corrections/router.ts';
 import { stocktakeRouter } from './features/stocktake/router.ts';
 import { reportRouter } from './features/reports/router.ts';
 
@@ -33,6 +34,7 @@ export function businessRouter(db:Database,origins:string[],catalogPublishEnable
   router.use(reportRouter(db, origins));
   router.use(stocktakeRouter(db, origins));
   router.use(lifecycleRouter(db,origins));
+  router.use(correctionRouter(db,origins));
   router.use(webListRouter(db,origins));
   router.use(webExportRouter(db,origins));
   router.use(catalogRouter(db,origins,catalogPublishEnabled));

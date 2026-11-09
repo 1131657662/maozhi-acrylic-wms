@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Database } from './mysql.ts';
 import { preflightCatalog, migrateCatalogData } from './catalog-migration.ts';
 import { prepareStocktakeDown } from './stocktake-migration.ts';
+import { guardCorrectionDown } from './correction-migration.ts';
 
 const migrations = [
   {
@@ -80,6 +81,7 @@ const migrations = [
     guardedTables: ['stocktakes', 'stocktake_snapshots', 'stocktake_readings', 'stocktake_windows'],
   },
   { id: '010_outbound_memo', guardedTables: [] },
+  { id: '011_corrections_business_date', guardedTables: [] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -145,6 +147,7 @@ export async function migrateDown(db: Database): Promise<void> {
       const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
       if (!previous) continue;
       if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+      if (migration.id === '011_corrections_business_date') await guardCorrectionDown(connection);
       if (
         migration.id === '010_outbound_memo' &&
         (await connection.get('SELECT id FROM outbound_orders WHERE memo IS NOT NULL LIMIT 1'))

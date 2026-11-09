@@ -10,6 +10,7 @@ import { activeMaster } from '../master-data/catalogs.ts';
 import { getInbound } from './repository.ts';
 import { allocateNumber } from '../document-numbering/service.ts';
 import { requireInventoryProduct } from '../inventory/posting.ts';
+import { validateBusinessDate } from '../business-date/policy.ts';
 
 export async function createInbound(db: Database, input: CreateInbound, key: string, actor: Actor) {
   const payload = createInboundSchema.parse(input);
@@ -18,6 +19,7 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
       await tx.get("SELECT value FROM app_meta WHERE meta_key='identity' FOR UPDATE");
       const replay = await replayCommand(tx, 'inbound.create', key, payload, actor, inboundReceiptSchema);
       if (replay) return replay;
+      const date = validateBusinessDate(payload);
       const supplier = await activeMaster(tx, 'suppliers', payload.supplierCode);
       const warehouse = await activeMaster(tx, 'warehouses', payload.warehouseCode);
       const products = await Promise.all(payload.lines.map((line) => activeMaster(tx, 'products', line.productCode)));
@@ -25,13 +27,27 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
       const createdAt = sqlDate(new Date().toISOString());
       const receiptNo = await allocateNumber(tx, 'inbound', payload.receiptNo);
       await tx.run(
-        `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at,status,posting_state)
-        VALUES(?,?,?,?,?,?,?,'pending','pending')`,
-        [id, receiptNo, supplier.code, warehouse.code, payload.memo ?? null, actor.username, createdAt],
+        `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at,business_date,status,posting_state)
+        VALUES(?,?,?,?,?,?,?,?,'pending','pending')`,
+        [
+          id,
+          receiptNo,
+          supplier.code,
+          warehouse.code,
+          payload.memo ?? null,
+          actor.username,
+          createdAt,
+          date.businessDate,
+        ],
       );
       await addLines(tx, id, payload, products);
       const after = await getInbound(tx, id);
-      await audit(tx, actor, { action: 'inbound.create', targetId: id, before: null, after });
+      await audit(tx, actor, {
+        action: 'inbound.create',
+        targetId: id,
+        before: null,
+        after: { ...after, businessDateConfirmation: date },
+      });
       await saveCommand(tx, 'inbound.create', key, payload, actor, after);
       return after;
     });

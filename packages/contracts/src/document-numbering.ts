@@ -1,13 +1,13 @@
 import { z } from 'zod';
 
-export const documentKindSchema = z.enum(['inbound', 'outbound']);
+export const documentKindSchema = z.enum(['inbound', 'outbound', 'correction']);
 export const numberingUpdateSchema = z.strictObject({
   width: z.number().int().min(2).max(8),
   expectedVersion: z.number().int().nonnegative(),
 });
 export const numberingRuleSchema = z.object({
   kind: documentKindSchema,
-  prefix: z.enum(['RK', 'CK']),
+  prefix: z.enum(['RK', 'CK', 'GZ']),
   width: z.number().int().min(2).max(8),
   version: z.number().int().nonnegative(),
   dateKey: z.string().regex(/^\d{8}$/),

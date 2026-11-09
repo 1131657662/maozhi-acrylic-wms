@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { businessDateFields } from './business-date.ts';
+import { correctionSummarySchema } from './corrections.ts';
 
 const codeSchema = z
   .string()
@@ -13,6 +15,7 @@ export const inboundLineInputSchema = z.strictObject({
   weightGrams: gramsSchema,
 });
 export const createInboundSchema = z.strictObject({
+  ...businessDateFields,
   receiptNo: z.string().trim().min(1).max(100).optional(),
   supplierCode: codeSchema,
   warehouseCode: codeSchema,
@@ -37,6 +40,8 @@ export const inboundReceiptSchema = z.object({
   memo: z.string().nullable(),
   createdBy: z.string(),
   createdAt: z.string(),
+  businessDate: z.string().nullable().default(null),
+  corrections: correctionSummarySchema.nullable().default(null),
   packages: z.number().int(),
   weightGrams: z.number().int(),
   lines: z.array(inboundLineSchema),

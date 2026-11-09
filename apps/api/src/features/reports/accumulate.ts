@@ -4,6 +4,12 @@ import { mark } from './periods.ts';
 import { addExact } from './arithmetic.ts';
 
 export function addMovement(row: ReportMonthlyRow, event: LedgerEvent): void {
+  // A corrected original reverses its effective quantity. Attribute the correction
+  // offset separately while preserving the journal's actual before/after balance.
+  row.correctionPackages = addExact(row.correctionPackages, event.correctionOffsetPackages);
+  row.correctionGrams = addExact(row.correctionGrams, event.correctionOffsetGrams);
+  row.adjustmentPackages = addExact(row.adjustmentPackages, event.correctionOffsetPackages);
+  row.adjustmentGrams = addExact(row.adjustmentGrams, event.correctionOffsetGrams);
   const q = event.packages,
     g = event.weightGrams;
   if (event.family === 'inbound') {

@@ -4,6 +4,13 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/corrections/{id} | web | 查询更正单与原单引用 |
+| POST | /api/v1/inbound/{id}/corrections | web | 只更正包数/吨数；原单版本互斥，历史/成环/盘点/负库存拒绝；原子写流水审计幂等 |
+| GET | /api/v1/inbound/{id}/corrections | web | 查询原单更正链及抵消标记 |
+| PATCH | /api/v1/inbound/{id}/business-date | web | 仅未锁定原单修改业务日期；未来/超期未确认/入账后修改422 |
+| POST | /api/v1/outbound/{id}/corrections | web | 只更正包数/吨数；原单版本互斥，历史/成环/盘点/负库存拒绝；原子写流水审计幂等 |
+| GET | /api/v1/outbound/{id}/corrections | web | 查询原单更正链及抵消标记 |
+| PATCH | /api/v1/outbound/{id}/business-date | web | 仅未锁定原单修改业务日期；未来/超期未确认/入账后修改422 |
 | GET | /api/v1/web/reports/details | web | ERP 入账明细（含撤销补偿），历史上海本地时间未核实；携带收发存对账与断点诊断 |
 | GET | /api/v1/web/reports/monthly | web | ERP 仓库商品月度收发存；未知边界为 null，调整与撤销分列，不补平差额 |
 | GET | /api/v1/web/reports/turnover | web | 吨数净出库除以完整日逐日日终平均库存，含调整盘点说明和对账诊断 |

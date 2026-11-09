@@ -8,6 +8,7 @@ import { assertHandoffReady } from './db/handoff-readiness.ts';
 import { assertLifecycleReady } from './db/lifecycle-readiness.ts';
 import { assertStocktakeReady } from './db/stocktake-readiness.ts';
 import { assertBoundaryReady } from './db/boundary-readiness.ts';
+import { assertCorrectionsReady } from './db/correction-migration.ts';
 
 const db = openDatabase(developmentConfig());
 const meta = await db.get("SELECT value FROM app_meta WHERE meta_key='identity'");
@@ -26,6 +27,7 @@ try {
   await assertLifecycleReady(db);
   await assertStocktakeReady(db);
   await assertBoundaryReady(db);
+  await assertCorrectionsReady(db);
 } catch (error) {
   await db.close();
   throw error;

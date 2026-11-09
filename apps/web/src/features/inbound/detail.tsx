@@ -9,6 +9,8 @@ import { InboundConfirmation } from './confirm';
 import { ApiError } from '../../api/client';
 import { ListBackLink } from '../../components/BusinessList/navigation';
 import { LifecyclePanel } from '../document-lifecycle/panel';
+import { CorrectionSummaryPanel } from '../corrections/summary';
+import { CorrectionDetailActions } from '../corrections/detail-actions';
 
 export function InboundDetail() {
   const { id = '' } = useParams();
@@ -59,6 +61,7 @@ export function InboundDetail() {
               { title: '总重量（吨）', render: () => tonnes(data.weightGrams) },
               { title: '登记人', dataIndex: 'createdBy' },
               { title: '登记时间', render: () => formatTime(data.createdAt) },
+              { title: '业务日期', render: () => data.businessDate ?? '未记录' },
               { title: '备注', dataIndex: 'memo', span: 3 },
             ]}
           />
@@ -71,7 +74,16 @@ export function InboundDetail() {
             options={false}
             pagination={false}
           />
+          {data.corrections && (
+            <CorrectionSummaryPanel summary={data.corrections} number={data.receiptNo} createdAt={data.createdAt} />
+          )}
           <LifecyclePanel kind="inbound" id={data.id} />
+          <CorrectionDetailActions
+            kind="inbound"
+            id={data.id}
+            number={data.receiptNo}
+            allowed={data.corrections?.allowed ?? false}
+          />
         </Space>
       )}
     </PageContainer>

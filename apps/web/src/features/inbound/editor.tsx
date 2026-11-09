@@ -6,6 +6,8 @@ import { ApiError } from '../../api/client';
 import { tonnesToGrams } from '../../lib/weight-input';
 import { MasterSelect } from '../master-data/select';
 import { useCreateReceipt } from './use-create-receipt';
+import { BusinessDateField } from '../business-date/field';
+import { useBackdateConfirmation } from '../business-date/use-backdate-confirmation';
 
 interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
   lines: { productCode?: string; packages?: number; weightTonnes?: number }[];
@@ -14,10 +16,13 @@ interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
 export function InboundEditor() {
   const navigate = useNavigate();
   const create = useCreateReceipt();
+  const confirmBackdate = useBackdateConfirmation();
   async function submit(values: ReceiptFormValues): Promise<boolean> {
     try {
+      if (!(await confirmBackdate(values.businessDate))) return false;
       const input: CreateInbound = {
         ...values,
+        backdateConfirmed: true,
         lines: values.lines.map((line) => ({
           productCode: line.productCode!,
           packages: line.packages!,
@@ -105,6 +110,9 @@ export function InboundEditor() {
                 colProps={{ span: 24 }}
                 fieldProps={{ maxLength: 500, rows: 2 }}
               />
+              <Col span={24}>
+                <BusinessDateField />
+              </Col>
             </ProForm.Group>
             <ProForm.Group title="商品明细">
               <ProFormList

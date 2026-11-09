@@ -11,11 +11,14 @@ export const balanceFields = `s.id,s.warehouse_code AS warehouseCode,w.name AS w
   s.product_code AS productCode,p.name AS productName,p.source_model AS productModel,
   s.source_id,s.source_del_flag,s.source_business_type,s.source_row_json,
   s.packages_delta,s.tonnes_delta,s.packages_before,s.packages_after,s.tonnes_before,s.tonnes_after,
-  s.operation_id,o.operation_type,o.reason,o.actor,c.original_operation_id AS originalOperationId,${postedLocal} AS reportLocalTime`;
+  s.operation_id,o.operation_type,o.reason,o.actor,c.original_operation_id AS originalOperationId,
+  COALESCE(co.packages,0) AS correctionOffsetPackages,COALESCE(co.tonnes,0) AS correctionOffsetTonnes,
+  ${postedLocal} AS reportLocalTime`;
 export const ledgerFields = `${balanceFields},
   COALESCE(i.receipt_no,hi.receipt_no,b.order_no,hb.order_no,s.source_order_no,'') AS orderNo,
   COALESCE(i.id,hi.id,b.id,hb.id) AS documentId,COALESCE(i.status,hi.status,b.status,hb.status,'') AS documentStatus,
   COALESCE(i.source_row_json,hi.source_row_json,b.source_row_json,hb.source_row_json) AS documentSource,
+  COALESCE(i.business_date,hi.business_date,b.business_date,hb.business_date) AS documentBusinessDate,
   COALESCE(i.created_at,hi.created_at,b.created_at,hb.created_at) AS documentCreated,
   COALESCE(i.created_by,hi.created_by,'') AS documentActor,COALESCE(b.vehicle_no,hb.vehicle_no,'') AS vehicleNo,
   COALESCE(i.memo,hi.memo,'') AS memo,COALESCE(b.customer_name,hb.customer_name,su.name,'') AS partner,
@@ -24,7 +27,13 @@ export const balanceFrom = `FROM stock_journal s
   JOIN master_products p ON p.code=s.product_code AND p.source_kind='erp-product'
   LEFT JOIN master_warehouses w ON w.code=s.warehouse_code
   LEFT JOIN inventory_operations o ON o.id=s.operation_id
-  LEFT JOIN document_closures c ON c.compensation_operation_id=o.id`;
+  LEFT JOIN document_closures c ON c.compensation_operation_id=o.id
+  LEFT JOIN (SELECT h.offset_operation_id,l.product_code,
+    SUM(CASE WHEN h.inbound_receipt_id IS NOT NULL THEN -l.packages_delta ELSE l.packages_delta END) AS packages,
+    SUM(CASE WHEN h.inbound_receipt_id IS NOT NULL THEN -l.tonnes_delta ELSE l.tonnes_delta END) AS tonnes
+    FROM document_corrections h JOIN document_correction_lines l ON l.correction_id=h.id
+    WHERE h.offset_operation_id IS NOT NULL GROUP BY h.offset_operation_id,l.product_code
+  ) co ON co.offset_operation_id=o.id AND co.product_code=s.product_code`;
 export const ledgerFrom = `${balanceFrom}
   LEFT JOIN inbound_receipts i ON i.id=s.inbound_receipt_id
   LEFT JOIN inbound_receipts hi ON hi.receipt_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='inbound'

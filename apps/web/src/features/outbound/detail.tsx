@@ -9,6 +9,8 @@ import { Confirm } from './confirm';
 import { formatTime } from '../../lib/format-time';
 import { ListBackLink } from '../../components/BusinessList/navigation';
 import { LifecyclePanel } from '../document-lifecycle/panel';
+import { CorrectionSummaryPanel } from '../corrections/summary';
+import { CorrectionDetailActions } from '../corrections/detail-actions';
 
 export function OrderDetail() {
   const { id = '' } = useParams();
@@ -88,6 +90,7 @@ export function OrderDetail() {
             { title: '计划版本', dataIndex: 'planVersion' },
             { title: '事实修订号', dataIndex: 'revision' },
             { title: '建单时间', dataIndex: 'createdAt', render: () => formatTime(order.createdAt) },
+            { title: '业务日期', render: () => order.businessDate ?? '未记录' },
           ]}
         />
         <div className="line-summary">
@@ -100,8 +103,17 @@ export function OrderDetail() {
         </div>
       </Card>
       <Facts order={order} />
+      {order.corrections && (
+        <CorrectionSummaryPanel summary={order.corrections} number={order.orderNo} createdAt={order.createdAt} />
+      )}
       <LifecyclePanel kind="outbound" id={order.id} />
       <Confirm order={order} />
+      <CorrectionDetailActions
+        kind="outbound"
+        id={order.id}
+        number={order.orderNo}
+        allowed={order.corrections?.allowed ?? false}
+      />
     </section>
   );
 }

@@ -3,7 +3,7 @@ import { inboundReceiptSchema } from './inbound.ts';
 
 const integer = z.number().int().safe();
 export const webInboundRowSchema = inboundReceiptSchema
-  .omit({ lines: true })
+  .omit({ lines: true, businessDate: true, corrections: true })
   .extend({ products: z.array(z.string()) })
   .strict();
 export const webOutboundRowSchema = z.strictObject({

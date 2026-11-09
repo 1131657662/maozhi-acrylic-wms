@@ -4,6 +4,7 @@ import type { Database } from '../../db/mysql.ts';
 import { decimalToGrams } from '../../db/weight.ts';
 import { isoDate } from '../../db/dates.ts';
 import { AppError } from '../../shared/errors.ts';
+import { correctionSummary } from '../corrections/summary.ts';
 
 const headerSchema = inboundReceiptSchema.omit({ packages: true, weightGrams: true, lines: true });
 const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
@@ -12,7 +13,8 @@ const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
 });
 const headerSql = `SELECT r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
   r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,s.name AS supplierName,
-  r.warehouse_code AS warehouseCode,w.name AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt
+  r.warehouse_code AS warehouseCode,w.name AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt,
+  r.business_date AS businessDate,r.source_id AS sourceId
   FROM inbound_receipts r JOIN master_suppliers s ON s.code=r.supplier_code AND s.source_del_flag=0
   JOIN master_warehouses w ON w.code=r.warehouse_code AND w.source_del_flag=0`;
 export async function getInbound(db: Database, id: string): Promise<InboundReceipt> {
@@ -29,6 +31,12 @@ export async function getInbound(db: Database, id: string): Promise<InboundRecei
   return inboundReceiptSchema.parse({
     ...headerSchema.parse({ ...header, createdAt: isoDate(header.createdAt) }),
     lines,
+    corrections: await correctionSummary(db, {
+      kind: 'inbound',
+      id,
+      lines,
+      eligible: header.sourceId === null && header.postingState === 'confirmed' && header.status === 'confirmed',
+    }),
     packages: lines.reduce((sum, line) => sum + line.packages, 0),
     weightGrams: lines.reduce((sum, line) => sum + line.weightGrams, 0),
   });

@@ -7,6 +7,8 @@ import { useOrder } from './use-order';
 import { useCreatePlan } from './use-create-plan';
 import { useUpdatePlan } from './use-update-plan';
 import { PlanLinesFields, PlanReadOnlyLines } from './plan-fields';
+import { BusinessDateField } from '../business-date/field';
+import { useBackdateConfirmation } from '../business-date/use-backdate-confirmation';
 
 interface PlanFormValues extends Omit<OutboundPlanFields, 'lines' | 'orderNo'> {
   lines: { productCode?: string; plannedPackages?: number; plannedWeightTonnes?: number }[];
@@ -18,6 +20,7 @@ export function OutboundPlanEditor() {
   const orderQuery = useOrder(id);
   const create = useCreatePlan();
   const update = useUpdatePlan();
+  const confirmBackdate = useBackdateConfirmation();
   const order = orderQuery.data;
   if (id && orderQuery.isLoading) return <Skeleton active />;
   if (orderQuery.error || (id && !order))
@@ -33,6 +36,7 @@ export function OutboundPlanEditor() {
 
   async function submit(values: PlanFormValues): Promise<boolean> {
     try {
+      if (!order && !(await confirmBackdate(values.businessDate))) return false;
       const saved = order
         ? await update.mutateAsync({
             id,
@@ -42,6 +46,7 @@ export function OutboundPlanEditor() {
           })
         : await create.mutateAsync({
             ...values,
+            backdateConfirmed: true,
             lines: values.lines.map((line) => ({
               productCode: line.productCode!,
               plannedPackages: line.plannedPackages!,
@@ -89,6 +94,7 @@ export function OutboundPlanEditor() {
           <span>{order?.orderNo ?? '创建成功后自动生成 CK 单号'}</span>
         </ProForm.Item>
         {order ? <PlanReadOnlyLines order={order} /> : <PlanLinesFields />}
+        {!order && <BusinessDateField />}
         <ProFormText
           name="vehicleNo"
           label="车牌 / 车辆标识"

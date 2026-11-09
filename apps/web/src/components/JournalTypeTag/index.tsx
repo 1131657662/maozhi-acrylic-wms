@@ -7,6 +7,8 @@ const types = new Map([
   ['inbound.confirm', '入库确认'],
   ['outbound.confirm', '出库确认'],
   ['stock.adjust', '库存调整'],
+  ['stock.correct', '数量更正'],
+  ['correction', '数量更正'],
   ['inbound.reverse', '入库误确认撤销'],
   ['outbound.reverse', '出库误确认撤销'],
   ['stocktake.post', '盘点差异回写'],

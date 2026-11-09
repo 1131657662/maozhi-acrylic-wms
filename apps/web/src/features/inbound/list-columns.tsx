@@ -4,6 +4,7 @@ import { Tag } from 'antd';
 import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
+import { CorrectionRowActions } from '../corrections/row-actions';
 
 export const inboundColumns: ProColumns<WebInboundRow>[] = [
   {
@@ -36,9 +37,7 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     dataIndex: 'postingState',
     width: 120,
     sorter: true,
-    render: (_, row) => (
-      <Tag>{postingText[row.postingState]}</Tag>
-    ),
+    render: (_, row) => <Tag>{postingText[row.postingState]}</Tag>,
   },
   {
     title: '商品明细',
@@ -60,9 +59,16 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     title: '操作',
     valueType: 'option',
     key: 'action',
-    width: 100,
+    width: 180,
     fixed: 'right',
     hideInSetting: true,
-    render: (_, row) => <ListDetailLink to={'/inbound/' + row.id}>查看详情</ListDetailLink>,
+    render: (_, row) => (
+      <CorrectionRowActions
+        kind="inbound"
+        id={row.id}
+        number={row.receiptNo}
+        eligible={row.postingState === 'confirmed'}
+      />
+    ),
   },
 ];

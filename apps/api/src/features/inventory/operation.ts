@@ -4,7 +4,13 @@ import type { Actor } from '../../shared/audit.ts';
 import { ensure } from '../../shared/errors.ts';
 
 export type OperationType =
-  'inbound.confirm' | 'outbound.confirm' | 'stock.adjust' | 'inbound.reverse' | 'outbound.reverse' | 'stocktake.post';
+  | 'inbound.confirm'
+  | 'outbound.confirm'
+  | 'stock.adjust'
+  | 'inbound.reverse'
+  | 'outbound.reverse'
+  | 'stocktake.post'
+  | 'stock.correct';
 export interface InventoryOperation {
   id: string;
   type: OperationType;

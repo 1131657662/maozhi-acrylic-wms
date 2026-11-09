@@ -9,7 +9,7 @@ export interface LedgerEvent extends ReportDetailRow {
   localTime: string | null;
   deleted: boolean;
   historical: boolean;
-  family: 'inbound' | 'outbound' | 'manual' | 'count' | 'import' | 'unknown';
+  family: 'inbound' | 'outbound' | 'manual' | 'count' | 'import' | 'correction' | 'unknown';
   reverse: boolean;
 }
 export interface Cell {

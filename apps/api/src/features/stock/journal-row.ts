@@ -28,18 +28,21 @@ export function journalItem(row: Record<string, unknown>) {
         after: { packages: Number(row.packages_after), weightGrams: decimalToGrams(row.tonnes_after) },
       }
     : historicalValues(row.source_row_json);
-  const type = historical
-    ? row.source_business_type
-    : (row.source_business_type ??
-      (row.inbound_receipt_id
-        ? 'inbound'
-        : row.order_id
-          ? 'outbound'
-          : row.operation_type === 'stocktake.post'
-            ? 'stocktake.post'
-            : row.operation_type === 'stock.adjust'
-              ? 'adjustment'
-              : null));
+  const type =
+    row.operation_type === 'stock.correct'
+      ? 'correction'
+      : historical
+        ? row.source_business_type
+        : (row.source_business_type ??
+          (row.inbound_receipt_id
+            ? 'inbound'
+            : row.order_id
+              ? 'outbound'
+              : row.operation_type === 'stocktake.post'
+                ? 'stocktake.post'
+                : row.operation_type === 'stock.adjust'
+                  ? 'adjustment'
+                  : null));
   return {
     id: String(row.id),
     type,

@@ -16,6 +16,7 @@ function classification(type: string): Pick<LedgerEvent, 'family' | 'reverse' | 
     ['outbound.confirm', ['outbound', '出库确认']],
     ['outbound.reverse', ['outbound', '出库撤销']],
     ['stock.adjust', ['manual', '人工调整']],
+    ['stock.correct', ['correction', '数量更正']],
     ['stocktake.post', ['count', '盘点回写']],
   ]);
   const [family, operationLabel] = labels.get(type) ?? ['unknown', `未分类：${type || '未记录'}`];
@@ -29,10 +30,14 @@ function classification(type: string): Pick<LedgerEvent, 'family' | 'reverse' | 
 function quantities(row: Row, source: Record<string, unknown>, cls: ReturnType<typeof classification>) {
   const historical = row.source_id != null,
     deltaPackages = Number(row.packages_delta),
-    deltaGrams = decimalToGrams(row.tonnes_delta);
+    deltaGrams = decimalToGrams(row.tonnes_delta),
+    correctionOffsetPackages = Number(row.correctionOffsetPackages ?? 0),
+    correctionOffsetGrams = decimalToGrams(row.correctionOffsetTonnes ?? '0');
   return {
-    packages: cls.family === 'outbound' ? -deltaPackages : deltaPackages,
-    weightGrams: cls.family === 'outbound' ? -deltaGrams : deltaGrams,
+    packages: (cls.family === 'outbound' ? -1 : 1) * (deltaPackages - correctionOffsetPackages),
+    weightGrams: (cls.family === 'outbound' ? -1 : 1) * (deltaGrams - correctionOffsetGrams),
+    correctionOffsetPackages,
+    correctionOffsetGrams,
     deltaPackages,
     deltaGrams,
     beforePackages: nullableInt(historical ? source.before_qty : row.packages_before),
@@ -45,7 +50,7 @@ function documentFields(row: Row, source: Record<string, unknown>, cls: ReturnTy
   const document = objectJson(row.documentSource),
     historical = row.source_id != null;
   return {
-    businessDate: String(document.inbound_date ?? document.outbound_date ?? '') || null,
+    businessDate: String(row.documentBusinessDate ?? document.inbound_date ?? document.outbound_date ?? '') || null,
     createdAt: historical
       ? localIso(document.create_time)
       : row.documentCreated

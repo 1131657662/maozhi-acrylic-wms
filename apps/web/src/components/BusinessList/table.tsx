@@ -76,6 +76,7 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
       scroll={{ x: 'max-content', y: 480 }}
       locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}
       rowSelection={{
+        alwaysShowAlert: true,
         selectedRowKeys: selected,
         onChange: setSelected,
         preserveSelectedRowKeys: true,

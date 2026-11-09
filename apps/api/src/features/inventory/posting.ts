@@ -67,8 +67,8 @@ async function writeChange(db: Database, operation: InventoryOperation, warehous
   );
   await db.run(
     `INSERT INTO stock_journal(operation_id,order_id,inbound_receipt_id,warehouse_code,product_code,
-    packages_delta,tonnes_delta,packages_before,packages_after,tonnes_before,tonnes_after,created_at)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(3))`,
+    packages_delta,tonnes_delta,packages_before,packages_after,tonnes_before,tonnes_after,correction_id,created_at)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP(3))`,
     [
       operation.id,
       operation.type.startsWith('outbound.') ? operation.targetId : null,
@@ -81,13 +81,13 @@ async function writeChange(db: Database, operation: InventoryOperation, warehous
       change.after.packages,
       gramsToDecimal(change.before.weightGrams),
       gramsToDecimal(change.after.weightGrams),
+      operation.type === 'stock.correct' ? operation.targetId : null,
     ],
   );
 }
 // Caller owns the transaction and has acquired lockInventoryWriter before any document locks.
-export async function postInventory(
+export async function prepareInventory(
   db: Database,
-  operation: InventoryOperation,
   warehouse: string,
   changes: StockChange[],
 ): Promise<PostedChange[]> {
@@ -96,8 +96,27 @@ export async function postInventory(
   const posted: PostedChange[] = [];
   for (const change of [...changes].sort((a, b) => a.productCode.localeCompare(b.productCode))) {
     const result = { ...change, ...(await balances(db, warehouse, change)) };
-    await writeChange(db, operation, warehouse, result);
     posted.push(result);
   }
+  return posted;
+}
+export async function postPreparedInventory(
+  db: Database,
+  input: {
+    operation: InventoryOperation;
+    warehouse: string;
+    changes: PostedChange[];
+  },
+): Promise<void> {
+  for (const change of input.changes) await writeChange(db, input.operation, input.warehouse, change);
+}
+export async function postInventory(
+  db: Database,
+  operation: InventoryOperation,
+  warehouse: string,
+  changes: StockChange[],
+) {
+  const posted = await prepareInventory(db, warehouse, changes);
+  await postPreparedInventory(db, { operation, warehouse, changes: posted });
   return posted;
 }

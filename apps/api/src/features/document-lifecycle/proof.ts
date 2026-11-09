@@ -2,6 +2,7 @@ import type { LifecycleBlocker, LifecyclePreview } from '@wms/contracts';
 import type { Database, Row } from '../../db/mysql.ts';
 import { decimalToGrams } from '../../db/weight.ts';
 import type { LifecycleDocument } from './document.ts';
+import { correctedReversalRows } from '../corrections/reversal.ts';
 
 const incomplete = {
   code: 'ORIGINAL_EVIDENCE_MISSING',
@@ -97,7 +98,9 @@ export async function reversalProof(db: Database, doc: LifecycleDocument) {
   );
   if (!matches(doc, rows) || unrelated || rows.some((r) => r[journalRef] !== doc.id))
     return { originalOperationId, lines, blockers: [incomplete] };
-  for (const row of rows) {
+  const expanded = await correctedReversalRows(db, doc, rows);
+  blockers.push(...expanded.blockers);
+  for (const row of expanded.rows) {
     const result = await inspectLine(db, row);
     lines.push(result.line);
     blockers.push(...result.blockers);

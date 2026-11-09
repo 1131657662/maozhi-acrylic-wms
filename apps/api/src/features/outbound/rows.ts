@@ -23,7 +23,7 @@ export const rawFactSchema = factSchema.extend({
   planVersion:z.coerce.number().pipe(z.literal(1)),
 });
 export const headerSql = `SELECT id,order_no AS orderNo,customer_name AS customerName,customer_code AS customerCode,warehouse_code AS warehouseCode,
-  vehicle_no AS vehicleNo,memo,status,revision,1 AS planVersion,created_at AS createdAt FROM outbound_orders`;
+  vehicle_no AS vehicleNo,memo,status,revision,1 AS planVersion,created_at AS createdAt,business_date AS businessDate FROM outbound_orders`;
 export const lineSql = `SELECT id,order_id AS orderId,product_code AS productCode,product_name AS productName,
   planned_packages AS plannedPackages,planned_weight_tonnes AS plannedWeightGrams FROM outbound_lines`;
 export const factSql = `SELECT id,plan_id AS planId,barcode,weight_tonnes AS weightGrams,catalog_version AS catalogVersion,

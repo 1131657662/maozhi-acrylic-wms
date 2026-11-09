@@ -1,11 +1,14 @@
--- Run only against local isolated MySQL 3307. Each warehouse/product must net to zero.
+-- Run only against local isolated MySQL 3307. Original + offset corrections + reversal must net to zero.
 SELECT c.id AS closure_id,o.operation_type,j.warehouse_code,j.product_code,
  SUM(j.packages_delta) AS packages_net,SUM(j.tonnes_delta) AS tonnes_net,
  COUNT(DISTINCT j.operation_id) AS operation_count,
- (SUM(j.packages_delta)=0 AND SUM(j.tonnes_delta)=0 AND COUNT(DISTINCT j.operation_id)=2) AS balanced
+ (SUM(j.packages_delta)=0 AND SUM(j.tonnes_delta)=0
+  AND COUNT(DISTINCT j.operation_id)=2+COUNT(DISTINCT j.correction_id)) AS balanced
 FROM document_closures c
 JOIN inventory_operations o ON o.id=c.original_operation_id
 JOIN stock_journal j ON j.operation_id=c.original_operation_id OR j.operation_id=c.compensation_operation_id
+ OR EXISTS (SELECT 1 FROM document_corrections dc WHERE dc.offset_operation_id=c.compensation_operation_id
+   AND dc.operation_id=j.operation_id)
 WHERE c.action='reverse'
 GROUP BY c.id,o.operation_type,j.warehouse_code,j.product_code;
 

@@ -57,7 +57,11 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
           submitter={{
             resetButtonProps: false,
             searchConfig: { submitText: initial.action === 'reverse' ? '确认撤销入账' : '确认作废' },
-            submitButtonProps: { danger: true, disabled: !preview.allowed || preview.action !== initial.action },
+            submitButtonProps: {
+              type: 'default',
+              danger: true,
+              disabled: !preview.allowed || preview.action !== initial.action,
+            },
           }}
         >
           <ProFormTextArea

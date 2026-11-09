@@ -10,7 +10,7 @@ test('B4a 010历史行保留、空备注可down/up；有备注拒绝down且无DD
   try {
     await assert.rejects(assertBoundaryReady(f.db), /010/);
     const before = await tableFingerprints(f.db);
-    await migrateUp(f.db);
+    await migrateUp(f.db, '010_outbound_memo');
     await assertBoundaryReady(f.db);
     const after = await tableFingerprints(f.db, before);
     for (const table of Object.keys(before).filter((name) => name !== 'schema_migrations'))
@@ -18,7 +18,7 @@ test('B4a 010历史行保留、空备注可down/up；有备注拒绝down且无DD
     assert.equal(Number((await f.db.get('SELECT COUNT(*) AS n FROM outbound_orders WHERE memo IS NOT NULL'))?.n), 0);
     await migrateDown(f.db);
     assert.deepEqual(await tableFingerprints(f.db), before);
-    await migrateUp(f.db);
+    await migrateUp(f.db, '010_outbound_memo');
     await f.db.run("UPDATE outbound_orders SET memo='必须保留的备注' WHERE id='DEMO-001'");
     const occupied = await tableFingerprints(f.db);
     await assert.rejects(migrateDown(f.db), /memo 含有数据/);

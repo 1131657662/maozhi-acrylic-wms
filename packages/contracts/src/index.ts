@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { scanContextInputSchema } from './scan-context.ts';
 import { plannedWeightGramsSchema } from './outbound-plan.ts';
+import { correctionSummarySchema } from './corrections.ts';
+export * from './business-date.ts';
+export * from './corrections.ts';
 export * from './catalog.ts';
 export * from './scan-context.ts';
 export * from './handoff.ts';
@@ -67,12 +70,14 @@ export const orderSchema = z.object({
   revision: z.number().int(),
   planVersion: z.literal(1),
   createdAt: z.string(),
+  businessDate: z.string().nullable().default(null),
   plannedPackages: z.number().int(),
   plannedWeightGrams: z.number().int(),
   actualPackages: z.number().int(),
   actualWeightGrams: z.number().int(),
 });
 export const detailSchema = orderSchema.extend({
+  corrections: correctionSummarySchema.nullable().default(null),
   lines: z.array(lineSchema),
   facts: z.array(factSchema),
   digest: z.string(),

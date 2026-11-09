@@ -19,7 +19,13 @@ export function Confirm({ order }: { order: Detail }) {
       {contextHolder}
       <span>冻结 ≠ 出库；确认后写入库存流水。</span>
       {confirmError && <Alert type="error" title={confirmError.message} />}
-      <Button type="primary" size="large" disabled={order.status !== 'frozen'} loading={isConfirming} onClick={ask}>
+      <Button
+        type={order.status === 'frozen' ? 'primary' : 'default'}
+        size="large"
+        disabled={order.status !== 'frozen'}
+        loading={isConfirming}
+        onClick={ask}
+      >
         {order.status === 'confirmed' ? '已确认出库' : '核对并确认出库'}
       </Button>
     </div>

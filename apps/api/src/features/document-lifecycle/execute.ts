@@ -44,6 +44,11 @@ async function compensate(db: Database, command: CloseCommand, before: Lifecycle
 }
 async function closeDocument(db: Database, command: CloseCommand, before: LifecyclePreview) {
   const compensationId = await compensate(db, command, before);
+  if (compensationId)
+    await db.run(
+      `UPDATE document_corrections SET offset_operation_id=? WHERE ${documentTables[command.kind].reference}=?`,
+      [compensationId, command.id],
+    );
   const status = command.action === 'reverse' ? 'cancelled' : 'voided';
   if (command.kind === 'inbound')
     await db.run('UPDATE inbound_receipts SET status=?,posting_state=? WHERE id=?', [

@@ -3,6 +3,7 @@ import { tonnes, type WebOutboundRow } from '@wms/contracts';
 import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
+import { CorrectionRowActions } from '../corrections/row-actions';
 
 export const outboundColumns: ProColumns<WebOutboundRow>[] = [
   {
@@ -52,9 +53,11 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     title: '操作',
     valueType: 'option',
     key: 'action',
-    width: 100,
+    width: 180,
     fixed: 'right',
     hideInSetting: true,
-    render: (_, row) => <ListDetailLink to={'/outbound/' + row.id}>查看详情</ListDetailLink>,
+    render: (_, row) => (
+      <CorrectionRowActions kind="outbound" id={row.id} number={row.orderNo} eligible={row.status === 'confirmed'} />
+    ),
   },
 ];

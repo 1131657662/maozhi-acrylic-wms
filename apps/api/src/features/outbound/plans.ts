@@ -18,6 +18,7 @@ import { allocateNumber } from '../document-numbering/service.ts';
 import { lockInventoryWriter } from '../inventory/operation.ts';
 import { requireInventoryProduct } from '../inventory/posting.ts';
 import { assertEditableHeader } from './edit-policy.ts';
+import { validateBusinessDate } from '../business-date/policy.ts';
 
 export async function createOutboundPlan(db: Database, input: OutboundPlanFields, key: string, actor: Actor) {
   const plan = createOutboundPlanSchema.parse(input);
@@ -25,14 +26,15 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
     await lockNewCommand(tx);
     const replay = await replayCommand(tx, 'outbound.create', key, plan, actor, detailSchema);
     if (replay) return replay;
+    const date = validateBusinessDate(plan);
     const references = await validateReferences(tx, plan);
     const id = randomUUID();
     const createdAt = sqlDate(new Date().toISOString());
     const orderNo = await allocateNumber(tx, 'outbound', plan.orderNo);
     try {
       await tx.run(
-        `INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,memo,created_at)
-        VALUES(?,?,?,?,?,?,?,?)`,
+        `INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,memo,created_at,business_date)
+        VALUES(?,?,?,?,?,?,?,?,?)`,
         [
           id,
           orderNo,
@@ -42,6 +44,7 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
           plan.vehicleNo,
           plan.memo ?? null,
           createdAt,
+          date.businessDate,
         ],
       );
     } catch (error) {
@@ -50,7 +53,12 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
     }
     await insertLines(tx, id, plan, references.products);
     const after = await getOrder(tx, id);
-    await audit(tx, actor, { action: 'outbound.plan.create', targetId: id, before: null, after });
+    await audit(tx, actor, {
+      action: 'outbound.plan.create',
+      targetId: id,
+      before: null,
+      after: { ...after, businessDateConfirmation: date },
+    });
     await saveCommand(tx, 'outbound.create', key, plan, actor, after);
     return after;
   });
