@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
-import { Button } from 'antd';
+import { Button, Empty } from 'antd';
 import { ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import { BusinessList } from '../../components/BusinessList';
 import { ListFilters, ListDateFilter, WarehouseFilter } from '../../components/BusinessList/filters';
@@ -21,6 +21,11 @@ export function InboundList() {
         title: '入库记录',
         columns: inboundColumns,
         description: '按登记时间查询。包数与总吨数独立记录；创建后须明确确认才入账。',
+        emptyText: (
+          <Empty description="没有符合条件的记录，可调整筛选条件或重置后重试">
+            <Link to="/inbound/new">登记入库</Link>
+          </Empty>
+        ),
         extra: (
           <Link to="/inbound/new">
             <Button type="primary">登记入库</Button>

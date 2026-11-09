@@ -10,7 +10,14 @@ import { useListSelection } from './use-list-selection';
 import './style.css';
 
 interface Props<Row> {
-  config: { name: ExportKind; title: string; description: string; extra?: ReactNode; columns: ProColumns<Row>[] };
+  config: {
+    name: ExportKind;
+    title: string;
+    description: string;
+    extra?: ReactNode;
+    columns: ProColumns<Row>[];
+    emptyText?: ReactNode;
+  };
   state: ListState;
   query: { data?: ListData<Row>; error: Error | null; isPending: boolean; isFetching: boolean; refetch: () => unknown };
   filters: ReactNode;
@@ -45,7 +52,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
   const selection = useListSelection(JSON.stringify(scope), query.data?.rowTokens);
   return (
     <PageContainer
-      title={<h1 style={{ fontSize: token.fontSizeHeading3, margin: 0 }}>{config.title}</h1>}
+      title={<h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>{config.title}</h1>}
       content={config.description}
       extra={config.extra}
       className="business-list"
@@ -83,6 +90,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
               refreshing={query.isFetching}
               reload={query.refetch}
               selection={selection}
+              emptyText={config.emptyText}
             />
           </section>
           {props.children}

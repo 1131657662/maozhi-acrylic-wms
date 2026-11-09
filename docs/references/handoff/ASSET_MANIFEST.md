@@ -1,7 +1,7 @@
 # 资产清单（只读参考）
 
 > 所有条目的源码都是**参考**，不是复制源。  
-> 新项目只复制文档、截图、设计图到 `docs/references/`；源码用绝对路径读取。
+> 新项目只复制文档与核准的运行验收截图到 `docs/references/`；源码用绝对路径读取。旧 Web 设计导出已废弃，不得作为视觉或布局依据。
 
 ---
 
@@ -9,10 +9,6 @@
 
 | 资产 | 路径 | 数量 | 用途 |
 |---|---|---:|---|
-| Web/PDA 设计 PNG | `D:\JingLunWMS\docs\handoff\figma\pages` | 82 | 页面视觉、布局、组件 |
-| 组件/文本样式 | `D:\JingLunWMS\docs\handoff\figma\components.json` | 38 组件 / 8 文本样式 | AntD 组件/尺寸对照 |
-| 页面清单 | `D:\JingLunWMS\docs\handoff\figma\manifest.json` | 82 | 页面 ID/尺寸/对应 PNG |
-| 设计索引 | `D:\JingLunWMS\docs\handoff\FIGMA_INDEX.md` | 82 行 | 快速找页面 |
 | PDA 截图 | `D:\JingLunWMS\docs\handoff\pda\screens` | 40 | V10 界面/离线/差异/完成 |
 | PDA 交接 | `D:\JingLunWMS\docs\handoff\pda\V10_HANDOFF_20261105.md` | 1 | V10 结构说明 |
 
@@ -154,7 +150,6 @@ PM2 + Nginx + MySQL + JimuReport
 
 ```text
 docs/handoff/*.md
-docs/handoff/figma/pages/*.png
 docs/handoff/pda/screens/*.png
 docs/production-scan/API_WMS.md
 docs/production-scan/API_SCAN.md

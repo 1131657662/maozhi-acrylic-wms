@@ -8,8 +8,6 @@
   --brand: #105957;
   --line: #dce7e3;
   --paper: #fff;
-  --space: 24px;
-  --radius: 12px;
 }
 * {
   box-sizing: border-box;
@@ -29,12 +27,14 @@ h2,
 p {
   margin-top: 0;
 }
-h1 {
+.page-title h1,
+.login-intro h1 {
   font-size: 28px;
   letter-spacing: -0.6px;
   margin-bottom: 10px;
 }
-h2 {
+.metrics h2,
+.login-card h2 {
   font-size: 30px;
   margin: 14px 0 0;
 }

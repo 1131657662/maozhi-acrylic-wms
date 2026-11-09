@@ -1,7 +1,7 @@
 import type { ExportKind } from '@wms/contracts';
 import { useListColumns } from './use-list-columns';
 import { ExportPanel } from '../../features/web-exports/panel';
-import { useMemo, type Key } from 'react';
+import { useMemo, type Key, type ReactNode } from 'react';
 import { Button } from 'antd';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import type { ListState } from './use-list-state';
@@ -22,6 +22,7 @@ interface Props<Row> {
   refreshing: boolean;
   reload: () => unknown;
   selection: { tokens: Record<string, string>; keys: Key[]; change: (keys: Key[]) => void };
+  emptyText?: ReactNode;
 }
 export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
@@ -73,7 +74,7 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
         />,
       ]}
       scroll={{ x: 'max-content', y: 480 }}
-      locale={{ emptyText: '没有符合条件的记录，可调整筛选条件或重置后重试' }}
+      locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}
       rowSelection={{
         selectedRowKeys: selected,
         onChange: setSelected,

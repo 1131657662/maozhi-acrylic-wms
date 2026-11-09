@@ -68,25 +68,10 @@ pure-admin 布局
 旧样式
 ```
 
-## 3. 设计资产
+## 3. Web 设计依据
 
 ```text
-docs/handoff/figma/pages/       82 张
-docs/handoff/figma/components.json
-docs/handoff/FIGMA_INDEX.md
-```
-
-优先参考页面：
-
-```text
-工作台/管理仪表台
-作业工作台
-入库列表/详情
-出库列表/详情
-库存
-盘点
-报表
-1280/1440 适配
+旧 Web 设计导出已废弃，不得引用或作为视觉、布局依据。新 UI 以旧系统信息架构和 Ant Design Pro 设计语言为准。
 ```
 
 ## 4. 目标结构

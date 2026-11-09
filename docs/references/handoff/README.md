@@ -34,10 +34,8 @@ docs/handoff/UPGRADE_DIRECTIONS.md
 7. docs/handoff/PDA_REFERENCE.md          PDA 界面/代码/边界
 8. docs/handoff/MINIAPP_REFERENCE.md      小程序现状与升级
 9. docs/handoff/SERVER_REFERENCE.md       服务器/API/数据库
-10. docs/handoff/FIGMA_INDEX.md           82 张设计页面索引
-11. docs/handoff/figma/pages/             设计 PNG
-12. docs/handoff/pda/screens/             PDA 截图
-13. docs/CODEX_GREENFIELD_PROMPT.md       主执行提示词
+10. docs/handoff/pda/screens/             PDA 截图
+11. docs/CODEX_GREENFIELD_PROMPT.md       主执行提示词
 ```
 
 ## 2. 已拍板，不要再问
@@ -72,8 +70,6 @@ PDA 冻结/提交不等于出库
 | 后端 | `D:\wms-new\wms-backend` | 生产接口/业务逻辑参考 |
 | 小程序 | `D:\wms-new\wms-miniapp` | 当前小程序源码 |
 | PDA | `D:\wms-new\wms-pda` | 当前 Kotlin/Room/V10 界面 |
-| 新 Web 设计导出 | `docs/handoff/figma/pages` | 82 张设计 PNG |
-| 组件/页面清单 | `docs/handoff/figma/components.json`、`manifest.json` | 设计组件与页面索引 |
 | PDA 截图 | `docs/handoff/pda/screens` | 40 张实机/验收截图 |
 | PDA 交接说明 | `docs/handoff/pda/` | V10 交接、README |
 | 服务器事实 | `docs/handoff/SERVER_REFERENCE.md` | 部署、API、DB，不含密码 |
@@ -164,21 +160,11 @@ D:\wms-new\wms-pda\app\src\main\java\com\jinglun\wmspda\scan
 不写库存
 ```
 
-## 7. 设计资产
+## 7. Web 设计依据
 
 ```text
-docs/handoff/figma/pages/       82 张
-docs/handoff/figma/components.json
-docs/handoff/figma/manifest.json
-docs/handoff/FIGMA_INDEX.md
+旧 Web 设计导出已废弃，不得引用或作为视觉、布局依据。新 UI 以旧系统信息架构和 Ant Design Pro 设计语言为准。
 ```
-
-使用方式：
-
-- 先看 `FIGMA_INDEX.md` 找页面。
-- 再看对应 PNG。
-- 组件 JSON 用于对照 AntD 组件和尺寸。
-- 设计稿是视觉参考，业务字段以 API/生产数据为准。
 
 ## 8. 只在这些情况下提问
 
