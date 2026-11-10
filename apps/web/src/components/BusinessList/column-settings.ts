@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import type { ColumnsState } from '@ant-design/pro-components';
+import { LIST_COLUMN_WIDTH } from '@wms/contracts';
 
-export const COLUMN_WIDTH = { fallback: 120, min: 80, max: 600, handle: 8, selection: 48, keyboardStep: 10 } as const;
+export const COLUMN_WIDTH = { ...LIST_COLUMN_WIDTH, handle: 8, selection: 48, keyboardStep: 10 } as const;
 export const columnText = {
   resetLabel: '重置',
   resetWidths: '重置列宽',

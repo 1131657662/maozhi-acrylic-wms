@@ -36,5 +36,13 @@ export const test = base.extend<{}, { listSession: ListSession }>({
     },
     { scope: 'worker' },
   ],
-  storageState: async ({ listSession }, use) => use(listSession),
+  storageState: async ({ listSession }, use) => {
+    const db = e2eDatabase();
+    try {
+      await db.run("DELETE FROM user_list_preferences WHERE user_id='owner'");
+    } finally {
+      await db.close();
+    }
+    await use(listSession);
+  },
 });

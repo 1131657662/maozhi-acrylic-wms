@@ -171,3 +171,17 @@ Step 3 本轮回归原始结果：`entries=link,double-click,enter displacement=
 每组先将包数列加宽 20px，再测单号列加宽 100px；后者其他列宽全部不变。默认隐藏的商品型号显示为 120px，总宽增加 120px，再隐藏即回落；改成 130px 后隐藏/刷新/显示仍为 130px。重排后各列宽度不变，刷新保留顺序；重置列宽包含隐藏列，重新显示为 120px；双击恢复单列默认，全重置恢复顺序和显隐。
 
 本机合成夹具的浏览器证据位于 `.local/evidence/b6b-followup/`：`{inbound|outbound}-{1440|1280}-columns.json`，以及同前缀的 `resized`、`hidden-shown`、`batch`、`export` PNG。列设置单元测试 2/2、严格类型检查 exit 0；定向回归日志为 `b6b-resize-e2e-final.log`。不等同于实体设备或生产验收。
+
+## 10. 服务端列偏好补充验收
+
+`013_list_preferences` 按 `(user_id,list_kind)` 唯一保存 schema 及 JSON 列设置；身份由已登录 Web 会话取得，拒绝 body/query 的 userId、未知字段、非法宽度、未来版本和非 Web 客户端。PUT 原子 upsert，重复保存不新增记录；空 columns 是重置标记。OpenAPI 已从契约生成，未暴露审计 raw 或内部偏好记录 ID。
+
+客户端默认值 → 本地缓存 → 服务端权威；未保存过的账号可迁移旧本地设置。旧版本按列 key 合并，新增列补默认、未知列丢弃。每次编辑保存本地待同步副本，500ms 防抖和单写者保证连续拖拽/重排不会并发覆盖；GET/PUT 迟到响应由编辑版本隔离。失败不循环请求、不清缓存，下次进入续传；离线重置暂留待同步空值，服务端确认后删除本地各版本列缓存。
+
+验证使用随机一次性 MySQL 测试库。013 空库 up→down→up 成功；非空 down 拒绝，DDL 执行数为 0，全部表数据指纹、表结构及迁移状态不变。为严格满足“任何 DDL 前检查”，down 的迁移锁流程不再执行初始化用的 `CREATE TABLE IF NOT EXISTS schema_migrations`；012 专项测试明确停在012，继续覆盖原回退行为。
+
+API/迁移/012 回归 7/7，列同步防抖与迟到响应测试 3/3；偏好、双分辨率列宽和导出联合 E2E 12/12，类型检查 exit 0。浏览器覆盖实际拖宽及重排后刷新、清 localStorage 后恢复、独立浏览器 context 重新登录恢复、偏好端点连接拒绝时使用缓存、离线修改/重置续传、schema 0 保留宽度 360px 且新增列默认 120px。连接拒绝在网络边界注入，未停止用户开发服务；“换浏览器”采用独立 Chromium context 与新登录会话，不声称已覆盖 Firefox/WebKit。
+
+证据：`.local/evidence/b6b-preferences-api.log`、`b6b-preferences-sync.log`、`b6b-preferences-e2e.log`、`b6b-preferences-typecheck.log`、`b6b-preferences-openapi.log`。最终完整验证另存 `b6b-followup-test.log`、`b6b-followup-build.log`、`b6b-followup-e2e.log`，实际 exit/计数以命令完成后的日志及本轮汇报为准。
+
+回退仅回退应用代码并保留 013 表；表非空禁止 down 或删除偏好。迁移尚未应用开发样本库/生产；开发部署须先运行既有迁移入口。没有改库存事务、逐单幂等或审计展示边界。§6 p95 与并发口径保持原样；反查翻页与库存导出深分页仍留给 B6b-perf。

@@ -406,7 +406,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 |---|---|---|
 | 011应用专项（非功能批次） | MIGRATION_011_APPLICATION_PLAN | 另轮按备份/指纹/副本演练/冒烟/非空拒绝回退执行，现有CLI足够，不等待维护UI |
 | B6a 主数据与单据快照 | MASTER_DATA_SPEC；C01/C03/C04/C05 | 已完成；012_M及快照迁移已应用本机开发库；逐项状态见B6A_ACCEPTANCE；顺序1 |
-| B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 批准范围代码与本地回归完成；性能部分超标，见 B6B_ACCEPTANCE；无新增迁移/索引；顺序2 |
+| B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 初始五步及后续选择/排序、列宽、服务端列偏好；新增 013_list_preferences，仅随机测试库验证，未应用开发样本库；性能另列 B6b-perf，不新增性能索引；见 B6B_ACCEPTANCE；顺序2 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |
 | B5c | DOMAIN §5–6，短溢发/分批/短关/取样 | M-SHIPMENTS、M-SAMPLE-MARKS；发货头/行/事实唯一归属、包吨独立剩余量；样品出库类型走普通扣库，取样不扣库；B6a之后、B6f之前 |

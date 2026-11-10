@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import { test } from './list-test';
 import { e2eDatabase } from './inventory-helpers';
 import { seedListEvidence } from '../../scripts/e2e-list-fixtures';
-import { columnMetrics, resizeColumn, toggleColumn, resetColumns } from './column-helpers';
+import { columnMetrics, resizeColumn, toggleColumn, resetColumns, reorderColumn } from './column-helpers';
 
 const root = '.local/evidence/b6b-followup';
 test.beforeAll(async () => {
@@ -67,32 +67,7 @@ for (const kind of ['inbound', 'outbound'])
       await toggleColumn(page, kind, '商品型号');
       expect((await columnMetrics(page, kind)).scrollWidth).toBe(resized.scrollWidth);
 
-      await list.getByRole('img', { name: 'setting', exact: true }).click();
-      await page.locator('.ant-tree-list-holder').evaluateAll((elements) =>
-        elements.forEach((element) => {
-          element.scrollTop = 0;
-        }),
-      );
-      const source = page
-        .getByRole('treeitem')
-        .filter({ hasText: kind === 'inbound' ? /^总重量（吨）$/ : /^实扫重量（吨）$/ })
-        .locator('.ant-tree-node-content-wrapper');
-      const target = page
-        .getByRole('treeitem')
-        .filter({ hasText: kind === 'inbound' ? /^供应商$/ : /^仓库$/ })
-        .locator('.ant-tree-node-content-wrapper');
-      const dragSource = source;
-      await dragSource.hover();
-      const start = (await dragSource.boundingBox())!;
-      const end = (await target.boundingBox())!;
-      await page.mouse.move(start.x + 40, start.y + start.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(start.x + 50, start.y + start.height / 2, { steps: 5 });
-      await page.mouse.move(end.x + 40, end.y + end.height - 2, { steps: 12 });
-      await page.mouse.move(end.x + 41, end.y + end.height - 2);
-      await expect(page.locator('.ant-tree-drop-indicator')).toBeVisible();
-      await page.mouse.up();
-      await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
+      await reorderColumn(page, kind);
       await expect.poll(async () => (await columnMetrics(page, kind)).order).not.toEqual(resized.order);
       const reordered = await columnMetrics(page, kind);
       expect(reordered.widths).toEqual(resized.widths);

@@ -9,6 +9,8 @@ import { stocktakeOperations } from './features/stocktake/openapi.ts';
 import { reportOperations } from './features/reports/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
+import { listPreferencesOperations } from './features/list-preferences/openapi.ts';
+import { exportKindSchema } from '@wms/contracts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
 import {
   loginSchema,
@@ -55,6 +57,7 @@ export interface Operation {
   successStatus?: number;
 }
 export const operations: Operation[] = [
+  ...listPreferencesOperations,
   ...masterOperations,
   ...correctionOperations,
   ...reportOperations,
@@ -245,7 +248,14 @@ function parameters(operation: Operation): object[] {
   if (operation.path.includes('{versionId}'))
     result.push({ in: 'path', name: 'versionId', required: true, schema: { type: 'integer', minimum: 1 } });
   if (operation.path.includes('{kind}'))
-    result.push({ in: 'path', name: 'kind', required: true, schema: z.toJSONSchema(documentKindSchema) });
+    result.push({
+      in: 'path',
+      name: 'kind',
+      required: true,
+      schema: z.toJSONSchema(
+        operation.path.startsWith('/me/list-preferences/') ? exportKindSchema : documentKindSchema,
+      ),
+    });
   if (operation.path.includes('{id}'))
     result.push({ in: 'path', name: 'id', required: true, schema: { type: 'string' } });
   if (operation.path.includes('{catalog}'))

@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { ColumnsState, ProColumns } from '@ant-design/pro-components';
-import { listFields, WEB_LIST_VIEW_SCHEMA_VERSION, type ExportKind } from '@wms/contracts';
-import { columnStateSchema, clampWidth, type ColumnStates } from './column-settings';
+import { listFields, type ExportKind } from '@wms/contracts';
+import { clampWidth, type ColumnStates } from './column-settings';
+import { usePreferences } from '../../features/list-preferences/use-preferences';
 import { columnKey, completeColumns, displayColumn, mergeColumns } from './column-config';
 
 export interface ListColumnPreferences<Row> {
@@ -15,35 +16,14 @@ export interface ListColumnPreferences<Row> {
   resetWidths: () => void;
   resetAll: () => void;
 }
-function loadState(storageKey: string): ColumnStates {
-  try {
-    return columnStateSchema.parse(JSON.parse(localStorage.getItem(storageKey) ?? '{}'));
-  } catch {
-    return {};
-  }
-}
 export function useListColumns<Row extends { id: React.Key }>(
   kind: ExportKind,
   columns: ProColumns<Row>[],
   identity: string,
 ): ListColumnPreferences<Row> {
-  const storageKey = `b6b-list-columns:${encodeURIComponent(identity)}:${kind}:v${WEB_LIST_VIEW_SCHEMA_VERSION}`;
-  const [stored, setStored] = useState(() => ({ key: storageKey, value: loadState(storageKey) }));
-  const saved = stored.key === storageKey ? stored.value : loadState(storageKey);
+  const { saved, change, reset } = usePreferences(identity, kind);
   const all = useMemo(() => completeColumns(kind, columns), [kind, columns]);
   const value = useMemo(() => mergeColumns(kind, all, saved), [kind, all, saved]);
-  const change = (next: ColumnStates) => {
-    setStored((previous) =>
-      previous.key === storageKey && JSON.stringify(previous.value) === JSON.stringify(next)
-        ? previous
-        : { key: storageKey, value: next },
-    );
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(next));
-    } catch {
-      /* Keep this session's settings when storage is unavailable. */
-    }
-  };
   const configured = useMemo(
     () => all.map((column) => ({ ...displayColumn(kind, column), width: value[columnKey(column)]!.width })),
     [kind, all, value],
@@ -65,12 +45,16 @@ export function useListColumns<Row extends { id: React.Key }>(
   const defaultWidth = (key: string) => Number(all.find((column) => columnKey(column) === key)!.width);
   const resize = (key: string, width: number) =>
     change({ ...value, [key]: { ...value[key], width: clampWidth(width) } });
-  const onChange = (next: Record<string, ColumnsState>) =>
-    change(
+  const onChange = (next: Record<string, ColumnsState>) => {
+    const merged = mergeColumns(
+      kind,
+      all,
       Object.fromEntries(
         Object.entries(next).map(([key, settings]) => [key, { width: value[key]?.width, ...settings }]),
       ),
     );
+    if (JSON.stringify(merged) !== JSON.stringify(value)) change(merged);
+  };
   return {
     configured,
     visible,
@@ -85,6 +69,6 @@ export function useListColumns<Row extends { id: React.Key }>(
           Object.entries(value).map(([key, settings]) => [key, { ...settings, width: defaultWidth(key) }]),
         ),
       ),
-    resetAll: () => change({}),
+    resetAll: reset,
   };
 }

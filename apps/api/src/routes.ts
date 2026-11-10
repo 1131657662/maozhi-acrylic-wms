@@ -20,6 +20,7 @@ import { lifecycleRouter } from './features/document-lifecycle/router.ts';
 import { correctionRouter } from './features/corrections/router.ts';
 import { stocktakeRouter } from './features/stocktake/router.ts';
 import { reportRouter } from './features/reports/router.ts';
+import { listPreferencesRouter } from './features/list-preferences/router.ts';
 
 export function businessRouter(db: Database, origins: string[], catalogPublishEnabled = false): Router {
   const router = Router();
@@ -30,6 +31,7 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   const numbering = numberingController(db);
   const stockSource = stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(listPreferencesRouter(db, origins));
   router.use(['/master', '/master-data'], masterRouter(db, origins));
   router.use(reportRouter(db, origins));
   router.use(stocktakeRouter(db, origins));

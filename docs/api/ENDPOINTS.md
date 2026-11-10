@@ -4,6 +4,8 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/me/list-preferences/{kind} | web | 当前登录身份的列偏好；未保存时返回空值 |
+| PUT | /api/v1/me/list-preferences/{kind} | web | 保存当前登录身份的列偏好；空 columns 重置；旧版本按列键保留 |
 | GET | /api/v1/master/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
 | GET | /api/v1/master/{catalog}/{code} | web | 按编码读取资料，含停用项 |
 | POST | /api/v1/master/{catalog} | web | 显式新增资料；商品固定本地来源与库存资格 |

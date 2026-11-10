@@ -53,3 +53,31 @@ export async function resetColumns(page: Page, kind: string, widthsOnly = false)
     .click({ timeout: 8000 });
   await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
 }
+
+export async function reorderColumn(page: Page, kind: string) {
+  await page.getByTestId(`${kind}-list`).getByRole('img', { name: 'setting', exact: true }).click();
+  await page.locator('.ant-tree-list-holder').evaluateAll((nodes) =>
+    nodes.forEach((node) => {
+      node.scrollTop = 0;
+    }),
+  );
+  const source = page
+    .getByRole('treeitem')
+    .filter({ hasText: kind === 'inbound' ? /^总重量（吨）$/ : /^实扫重量（吨）$/ })
+    .locator('.ant-tree-node-content-wrapper');
+  const target = page
+    .getByRole('treeitem')
+    .filter({ hasText: kind === 'inbound' ? /^供应商$/ : /^仓库$/ })
+    .locator('.ant-tree-node-content-wrapper');
+  await source.hover();
+  const start = (await source.boundingBox())!;
+  const end = (await target.boundingBox())!;
+  await page.mouse.move(start.x + 40, start.y + start.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(start.x + 50, start.y + start.height / 2, { steps: 5 });
+  await page.mouse.move(end.x + 40, end.y + end.height - 2, { steps: 12 });
+  await page.mouse.move(end.x + 41, end.y + end.height - 2);
+  await expect(page.locator('.ant-tree-drop-indicator')).toBeVisible();
+  await page.mouse.up();
+  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
+}
