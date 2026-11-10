@@ -1,42 +1,18 @@
-import { WEB_LIST_PAGE_SIZES, tonnes, type ExportKind, type WebMatchedTotals } from '@wms/contracts';
-import type { ListColumnPreferences } from './use-list-columns';
+import { WEB_LIST_PAGE_SIZES, tonnes } from '@wms/contracts';
+import type { ListTableProps } from './table-types';
+export type { ListData } from './table-types';
 import { ExportPanel } from '../../features/web-exports/panel';
-import { useMemo, type Key, type ReactNode, type KeyboardEvent, type MouseEvent } from 'react';
+import { useMemo, type Key, type KeyboardEvent, type MouseEvent } from 'react';
 import { Button, ConfigProvider, theme } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
-import type { ListState } from './use-list-state';
 import { MatchedLines } from './matched-lines';
 import type { WebMatchedLine } from '@wms/contracts';
 import { useLocation, useNavigate } from '@umijs/max';
 import { BatchReverseActions, type BatchRow } from './batch-actions';
 import type { ListSelectionRow } from './use-list-selection';
-import { documentNumber, isEligible, isInteractiveTarget, isTextEntry } from './table-helpers';
+import { documentNumber, isEligible, exclusionReason, isInteractiveTarget, isTextEntry } from './table-helpers';
 
-export interface ListData<Row> {
-  items: Row[];
-  total: number;
-  page: number;
-  pageSize: number;
-  viewToken?: string;
-  rowTokens?: Record<string, string>;
-  matchedTotals?: WebMatchedTotals;
-}
-interface Props<Row> {
-  data: ListData<Row>;
-  state: ListState;
-  name: ExportKind;
-  refreshing: boolean;
-  reload: () => unknown;
-  selection: {
-    tokens: Record<string, string>;
-    keys: Key[];
-    rows: Record<string, ListSelectionRow>;
-    change: (keys: Key[], rows?: ListSelectionRow[]) => void;
-  };
-  columnPrefs: ListColumnPreferences<Row>;
-  emptyText?: ReactNode;
-}
-export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
+export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
   const { data, state, name, columnPrefs } = props;
   const { token } = theme.useToken();
@@ -49,11 +25,17 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
         .map((column) => ({
           ...column,
           sortOrder:
-            column.dataIndex === state.params.sortBy
+            state.hasExplicitSort && column.dataIndex === state.params.sortBy
               ? ((state.params.direction === 'asc' ? 'ascend' : 'descend') as 'ascend' | 'descend')
               : null,
         })),
-    [columnPrefs.configured, state.params.productCodes, state.params.sortBy, state.params.direction],
+    [
+      columnPrefs.configured,
+      state.params.productCodes,
+      state.params.sortBy,
+      state.params.direction,
+      state.hasExplicitSort,
+    ],
   );
   const reverseLookup = name === 'inbound' || name === 'outbound';
   const lifecycleKind = reverseLookup ? name : null;
@@ -62,6 +44,7 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
     id: row.id,
     number: documentNumber(name, row),
     eligible: isEligible(name, row),
+    exclusionReason: exclusionReason(name, row),
   }));
   const batchRows: BatchRow[] = Object.values(props.selection.rows)
     .filter((row) => selected.some((id) => String(id) === String(row.id)) && row.eligible)
@@ -125,7 +108,7 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
           expandable={expandable}
           dataSource={data.items}
           search={false}
-          sortDirections={['ascend', 'descend', 'ascend']}
+          sortDirections={['ascend', 'descend', null]}
           headerTitle={
             data.matchedTotals
               ? `查询结果 · ${data.matchedTotals.documentCount} 单 · ${data.matchedTotals.lineCount} 行 · ${data.matchedTotals.packages} 包 · ${tonnes(data.matchedTotals.weightGrams)} 吨`
@@ -149,6 +132,13 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
                     key="batch-reverse"
                     kind={lifecycleKind!}
                     rows={batchRows}
+                    excluded={Object.values(props.selection.rows)
+                      .filter((row) => !row.eligible)
+                      .map((row) => ({
+                        id: String(row.id),
+                        number: row.number ?? '',
+                        reason: row.exclusionReason ?? '',
+                      }))}
                     selectedCount={selected.length}
                     onClear={() => setSelected([])}
                   />,
@@ -187,6 +177,10 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
                 pageSize: String(page.pageSize ?? WEB_LIST_PAGE_SIZES[0]),
               });
             if (extra.action === 'sort' && !Array.isArray(sorter)) {
+              if (!sorter.order) {
+                state.change({ page: '1', sortBy: '', direction: '' });
+                return;
+              }
               const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
               if (typeof field === 'string')
                 state.change({ page: '1', sortBy: field, direction: sorter.order === 'ascend' ? 'asc' : 'desc' });

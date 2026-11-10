@@ -19851,7 +19851,9 @@
                 "supplierName",
                 "warehouseName",
                 "status",
-                "postingState"
+                "postingState",
+                "packages",
+                "weightGrams"
               ],
               "type": "string"
             }
@@ -20233,7 +20235,11 @@
                 "customerName",
                 "warehouseName",
                 "vehicleNo",
-                "status"
+                "status",
+                "plannedPackages",
+                "plannedWeightGrams",
+                "actualPackages",
+                "actualWeightGrams"
               ],
               "type": "string"
             }

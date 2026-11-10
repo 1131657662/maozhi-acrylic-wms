@@ -46,7 +46,16 @@ export const webInboundQuerySchema = z
     warehouse: text,
     postingState: z.enum(['legacy', 'pending', 'confirmed', 'reversed', 'voided']).optional(),
     sortBy: z
-      .enum(['createdAt', 'receiptNo', 'supplierName', 'warehouseName', 'status', 'postingState'])
+      .enum([
+        'createdAt',
+        'receiptNo',
+        'supplierName',
+        'warehouseName',
+        'status',
+        'postingState',
+        'packages',
+        'weightGrams',
+      ])
       .default('createdAt'),
   })
   .refine(validRange, '时间范围或状态条件冲突');
@@ -61,7 +70,18 @@ export const webOutboundQuerySchema = z
     warehouse: text,
     vehicle: text,
     sortBy: z
-      .enum(['createdAt', 'orderNo', 'customerName', 'warehouseName', 'vehicleNo', 'status'])
+      .enum([
+        'createdAt',
+        'orderNo',
+        'customerName',
+        'warehouseName',
+        'vehicleNo',
+        'status',
+        'plannedPackages',
+        'plannedWeightGrams',
+        'actualPackages',
+        'actualWeightGrams',
+      ])
       .default('createdAt'),
   })
   .refine(validRange, '时间范围或状态条件冲突');

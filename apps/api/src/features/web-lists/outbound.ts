@@ -21,6 +21,12 @@ const sortColumns = {
   warehouseName: 'warehouseName',
   vehicleNo: 'o.vehicle_no',
   status: 'o.status',
+  plannedPackages:
+    '(SELECT COALESCE(SUM(sl.planned_packages),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
+  plannedWeightGrams:
+    '(SELECT COALESCE(SUM(sl.planned_weight_tonnes),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
+  actualPackages: '(SELECT COUNT(*) FROM scan_facts sf WHERE sf.plan_id=o.id)',
+  actualWeightGrams: '(SELECT COALESCE(SUM(sf.weight_tonnes),0) FROM scan_facts sf WHERE sf.plan_id=o.id)',
 };
 export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { pageSize: number }) {
   const parts = {

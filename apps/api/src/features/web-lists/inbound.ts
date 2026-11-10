@@ -23,6 +23,10 @@ const sortColumns = {
   warehouseName: 'warehouseName',
   status: 'r.status',
   postingState: 'r.posting_state',
+  packages:
+    '(SELECT COALESCE(SUM(sl.packages),0) FROM inbound_lines sl WHERE sl.receipt_id=r.id AND sl.source_del_flag=0)',
+  weightGrams:
+    '(SELECT COALESCE(SUM(sl.weight_tonnes),0) FROM inbound_lines sl WHERE sl.receipt_id=r.id AND sl.source_del_flag=0)',
 };
 export function inboundPredicate(query: Omit<WebInboundQuery, 'pageSize'> & { pageSize: number }) {
   const parts = {

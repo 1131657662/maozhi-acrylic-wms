@@ -4,6 +4,7 @@ export interface ListSelectionRow {
   id: Key;
   number?: string;
   eligible?: boolean;
+  exclusionReason?: string;
 }
 
 export function useListSelection(scope: string, rowTokens: Record<string, string> = {}) {

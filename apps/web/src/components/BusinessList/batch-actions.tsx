@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { Alert, Button, Input, Modal, Space, Spin, Typography, theme } from 'antd';
+import { Alert, Button, Input, Modal, Space, Spin, Tooltip, Typography, theme } from 'antd';
+import { batchText, type ExcludedBatchRow } from './batch-text';
 import type { LifecycleKind, BatchReverseResponse } from '@wms/contracts';
 import {
   BATCH_CONFIRM_DISPLAY_LIMIT,
@@ -17,6 +18,7 @@ export interface BatchRow {
 interface Props {
   kind: LifecycleKind;
   rows: BatchRow[];
+  excluded: ExcludedBatchRow[];
   selectedCount: number;
   onClear: () => void;
 }
@@ -28,7 +30,7 @@ function selectedNumbers(rows: BatchRow[]) {
   const suffix = rows.length > BATCH_CONFIRM_DISPLAY_LIMIT ? `，共 ${rows.length} 条` : '';
   return `${shown.join('、')}${suffix}`;
 }
-export function BatchReverseActions({ kind, rows, selectedCount, onClear }: Props) {
+export function BatchReverseActions({ kind, rows, excluded, selectedCount, onClear }: Props) {
   const { token } = theme.useToken();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('批量撤销误确认');
@@ -78,13 +80,24 @@ export function BatchReverseActions({ kind, rows, selectedCount, onClear }: Prop
     >
       {visible ? (
         <Space size="small">
-          <span role="status">已选择 {selectedCount} 条</span>
+          <Tooltip title={excluded.map((row) => `${row.number}：${row.reason}`).join('；')}>
+            <span role="status">
+              {batchText.counts(rows.length, excluded.length)}
+              {excluded.length > 0 && excluded.every((row) => row.reason === batchText.history)
+                ? `（${batchText.history}）`
+                : ''}
+            </span>
+          </Tooltip>
           <Button type="link" onClick={onClear}>
             清空选择
           </Button>
-          <Button danger disabled={!rows.length} onClick={() => void openModal()}>
-            批量撤销
-          </Button>
+          <Tooltip title={!rows.length ? batchText.none : undefined}>
+            <span>
+              <Button danger disabled={!rows.length} onClick={() => void openModal()}>
+                批量撤销
+              </Button>
+            </span>
+          </Tooltip>
         </Space>
       ) : (
         <span aria-hidden="true">&nbsp;</span>
@@ -108,6 +121,21 @@ export function BatchReverseActions({ kind, rows, selectedCount, onClear }: Prop
       >
         {preparing && <Spin description="正在核对单据状态" />}
         <Typography.Paragraph>受影响单据：{selectedNumbers(rows)}</Typography.Paragraph>
+        {excluded.length > 0 && (
+          <Alert
+            type="info"
+            title={`${batchText.excluded}（${excluded.length} 张）`}
+            description={
+              <div data-testid="batch-excluded">
+                {excluded.map((row) => (
+                  <div key={row.id}>
+                    {row.number}：{row.reason}
+                  </div>
+                ))}
+              </div>
+            }
+          />
+        )}
         {prepareError && <Alert type="error" showIcon title={prepareError} />}
         {mutation.error && <Alert type="error" showIcon title={mutation.error.message} />}
         {result && (

@@ -25,10 +25,11 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     hideInSetting: true,
     render: (_, row) => <span data-testid="matched-summary">{matchedSummary(row.matchedLines)}</span>,
   },
-  { title: '包数', dataIndex: 'packages', width: 100, align: 'right' },
+  { title: '包数', dataIndex: 'packages', sorter: true, width: 100, align: 'right' },
   {
     title: '总重量（吨）',
     dataIndex: 'weightGrams',
+    sorter: true,
     width: 140,
     align: 'right',
     render: (_, row) => tonnes(row.weightGrams),
@@ -38,14 +39,12 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     dataIndex: 'status',
     width: 240,
     fixed: 'right',
-    sorter: true,
     render: (_, row) => <StatusTag status={row.status} kind="inbound" />,
   },
   {
     title: '入账状态',
     dataIndex: 'postingState',
     width: 120,
-    sorter: true,
     render: (_, row) => <Tag>{postingText[row.postingState]}</Tag>,
   },
   {
