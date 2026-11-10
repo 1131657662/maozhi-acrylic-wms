@@ -32,5 +32,5 @@ export function useColumnLayout<Row>(columns: ProColumns<Row>[], preferences: Li
       }),
     };
   });
-  return { root, width, columns: configured, canResize: containerWidth > 0 && width > containerWidth };
+  return { root, width, columns: configured, canResize: containerWidth > 0 };
 }

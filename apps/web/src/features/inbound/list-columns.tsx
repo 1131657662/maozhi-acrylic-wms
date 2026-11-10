@@ -38,7 +38,6 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     title: '原始状态',
     dataIndex: 'status',
     width: 240,
-    fixed: 'right',
     render: (_, row) => <StatusTag status={row.status} kind="inbound" />,
   },
   {

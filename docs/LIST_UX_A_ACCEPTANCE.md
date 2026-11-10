@@ -11,7 +11,13 @@
 
 ## 2. 固定列与列宽
 
-待本批后续子项实施验证。
+- 入/出库单号左固定、操作右固定，状态不固定；旧服务端偏好中的状态右固定也忽略。容器可见即可拖，3000px 宽屏未溢出仍可拖；移除 table 的最小 100% 拉伸，保持数值列宽。
+- pointermove 只通过 rAF 预览 col/th/table 与 sticky 偏移；暂停 rc-table 隐藏测量行，避免其 ResizeObserver 触发逐帧 React 更新；松手一次提交，取消/卸载恢复 DOM 与滚动锁。500ms 保存防抖沿用既有服务。
+- 类型检查 exit 0。既有列宽/偏好定向 E2E 7/7；新增固定列/宽屏/性能 E2E 2/2，exit 0；AntD lint 0 问题。第一轮新增用例因测试写请求缺 Origin 失败，补齐后通过。
+- 入/出库单号均 220→320px，其他列不变，总宽 +100px；1280 视口表格 scrollWidth/clientWidth 分别 1868/848、1928/848（仅单号 +100 后）。既有四组勾选位移均 0px，页面宽度分别 1280/1280、1440/1440。
+- 连续 pointerdown→pointermove 采样入库 2921.3ms、出库 2910.1ms，PerformanceObserver >50ms 长任务均 0；采样截至 pointerup 前，松手后一次 React 提交不属于此指标。初次包含松手提交的采样检测到入库 236/65ms、出库 250/56ms 长任务，不能把“拖动期无长任务”解释为整个手势零长任务。
+- 拖动中 aria-valuenow 仍为原宽、保存请求为 0；松手后新宽生效、保存请求为 1；固定列间有正间距，头/体偏差 0。宽屏再拖 +100px，其他列仍不变。
+- 截图：`{inbound,outbound}-resized-batch-{1440,1280}.png`。原始数据 `{inbound,outbound}-resize.json`；日志 `step2-e2e.log`（7 通过、2 夹具失败）、`step2-resize-e2e.log`（修正后 2 通过）。
 
 ## 3. 排序反馈及完整验证
 

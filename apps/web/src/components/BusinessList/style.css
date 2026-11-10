@@ -7,6 +7,20 @@
 .business-list-results {
   width: 100%;
 }
+/* Numeric column widths must remain exact even when the viewport is wider. */
+.business-list .ant-table-header > table,
+.business-list .ant-table-body > table,
+.business-list .ant-table-content > table {
+  min-width: 0 !important;
+}
+.business-list-resize-handle {
+  opacity: 0;
+}
+.business-list th:hover > .business-list-resize-handle,
+.business-list-resize-handle:focus-visible,
+.business-list-resize-handle:active {
+  opacity: 1;
+}
 /* Keep virtual tree scroll content inside its panel, away from the reset controls. */
 .ant-pro-table-column-setting-list .ant-tree-list-holder {
   position: relative;
