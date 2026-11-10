@@ -50,6 +50,7 @@
 | GET | /api/v1/stocktakes/{id}/preview | web | 差异与快照后未入账收发货，token绑定完整清单 |
 | POST | /api/v1/stocktakes/{id}/post | web | 人工确认盘点回写，原因必填；未入账默认阻断，显式口径确认留审计；全事务释放窗口 |
 | POST | /api/v1/stocktakes/{id}/void | web | 作废进行中盘点并释放窗口；不改库存不写流水 |
+| POST | /api/v1/web/lifecycle/batch-reverse | web | 逐单事务撤销已确认单据；允许部分成功并返回每单原因 |
 | GET | /api/v1/inbound/{id}/lifecycle | web | 误确认撤销/未入账作废预览；列出下游阻断证据 |
 | POST | /api/v1/inbound/{id}/reverse | web | 原流水反向补偿；保留原单与事实，不涉及实物退货 |
 | POST | /api/v1/inbound/{id}/void | web | 仅可证未入账且无现场下发风险单据作废；原号不复用 |

@@ -18980,6 +18980,248 @@
         "x-client-channel": "web"
       }
     },
+    "/web/lifecycle/batch-reverse": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "items": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "expectedToken": {
+                          "$ref": "#/components/schemas/S_2bc7825d922e6db8"
+                        },
+                        "id": {
+                          "$ref": "#/components/schemas/S_8be39a00885cebc9"
+                        },
+                        "key": {
+                          "$ref": "#/components/schemas/S_118b3f027283832f"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "expectedToken",
+                        "key"
+                      ],
+                      "type": "object"
+                    },
+                    "maxItems": 50,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "kind": {
+                    "$ref": "#/components/schemas/S_ec263776b1517059"
+                  },
+                  "reason": {
+                    "$ref": "#/components/schemas/S_2ac3e7fadf2b1465"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "reason",
+                  "items"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "failed": {
+                          "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                        },
+                        "kind": {
+                          "$ref": "#/components/schemas/S_ec263776b1517059"
+                        },
+                        "results": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "id": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "message": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "number": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "success": {
+                                "$ref": "#/components/schemas/S_7cb541e84f226754"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "number",
+                              "success",
+                              "code",
+                              "message"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "succeeded": {
+                          "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                        },
+                        "total": {
+                          "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "total",
+                        "succeeded",
+                        "failed",
+                        "results"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "逐单事务撤销已确认单据；允许部分成功并返回每单原因",
+        "x-client-channel": "web"
+      }
+    },
     "/web/lists/audit": {
       "get": {
         "parameters": [

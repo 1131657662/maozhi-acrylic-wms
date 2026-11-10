@@ -12,3 +12,21 @@
   overflow-wrap: anywhere;
   max-width: 100%;
 }
+.business-list-batch-slot {
+  box-sizing: border-box;
+  height: 34px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.business-list-toolbar-slot {
+  box-sizing: border-box;
+  height: 34px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+}
