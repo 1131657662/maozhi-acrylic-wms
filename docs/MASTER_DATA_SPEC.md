@@ -33,11 +33,11 @@
 
 ## 4. 仓库
 
-code、name、address、status、memo。停用前要求库存为 0 且无进行中单据。
+code、name、address、status、memo。编码由系统生成（`W` + 2 位流水，如 `W01`），见 docs/NUMBERING_SPEC.md；停用前要求库存为 0 且无进行中单据。
 
 ## 5. 客户
 
-字段：code、name、default_contact、default_phone、default_address、status、memo。
+字段：code（系统生成，`C` + 5 位流水，如 `C00001`，见 docs/NUMBERING_SPEC.md，不可编辑）、name、default_contact、default_phone、default_address、status、memo。
 
 收货档案（party_contacts，party_type=customer）：name、phone、address、status；is_default由默认关联表投影，客户default_contact/default_phone/default_address同样为投影，不维护两套可变默认值。
 - 表字段：id、party_type、customer_code / supplier_code（恰有一个非空，分别为真实外键）、name、phone、address、status、created_at/updated_at；按归属检查类型一致。默认项由新增 `party_contact_defaults` 保存（客户/供应商互斥外键 + contact_id），每类往来单位唯一；设默认锁往来单位并校验同归属与启用，替换默认同事务审计，不能仅靠前端取消其他默认。
@@ -48,7 +48,7 @@ code、name、address、status、memo。停用前要求库存为 0 且无进行�
 
 ## 6. 供应商
 
-字段与客户对称；送货联系人共用 party_contacts（party_type=supplier）。
+字段与客户对称；编码由系统生成（`S` + 4 位流水，如 `S0001`，不可编辑）；送货联系人共用 party_contacts（party_type=supplier）。
 
 ## 7. 车辆
 
