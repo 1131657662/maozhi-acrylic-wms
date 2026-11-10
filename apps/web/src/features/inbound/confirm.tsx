@@ -1,5 +1,5 @@
 import { RequestError } from '../../components/RequestError';
-import { Alert, Button, Popconfirm, Space, Typography } from 'antd';
+import { Alert, Button, Popconfirm, Space } from 'antd';
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { useConfirmReceipt } from './use-confirm-receipt';
 
@@ -11,14 +11,7 @@ export function InboundConfirmation({ receipt }: { receipt: InboundReceipt }) {
       <Alert type="info" showIcon title="历史单据 · 仅供查阅" description="保留原始状态和库存，不在此重复确认入账。" />
     );
   if (receipt.postingState === 'confirmed')
-    return (
-      <Alert
-        type="success"
-        showIcon
-        title="已确认入库"
-        description={<Typography.Text copyable>操作 ID：{receipt.confirmationOperationId}</Typography.Text>}
-      />
-    );
+    return <Alert type="success" showIcon title="已确认入库" description="库存已更新，入账记录已保存。" />;
   const pending = receipt.status === 'pending';
   return (
     <Space orientation="vertical" size="middle">

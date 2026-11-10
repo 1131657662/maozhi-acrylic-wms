@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useFormErrors } from '../../components/use-form-errors';
 import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Form, Skeleton, Space } from 'antd';
@@ -33,7 +34,7 @@ export function OutboundPlanEditor() {
     return (
       <Alert
         type="warning"
-        title="当前计划已冻结或进入终态，不能编辑。"
+        title="当前计划已提交或处理完成，不能编辑。"
         action={<Link to={`/outbound/${id}`}>返回计划详情</Link>}
       />
     );
@@ -67,13 +68,9 @@ export function OutboundPlanEditor() {
     <section>
       <div className="page-title">
         <div>
-          <span className="eyebrow">OUTBOUND PLAN</span>
+          <span className="eyebrow">出库计划</span>
           <h1>{order ? '编辑出库计划' : '新建出库计划'}</h1>
-          <p>
-            {order
-              ? '只能修改车号和备注，客户、仓库及明细保持不变。'
-              : '计划不会预占库存；库存仅由 Web 出库确认事务扣减。'}
-          </p>
+          <p>{order ? '只能修改车号和备注，客户、仓库及明细保持不变。' : businessCopy.outboundEditor1}</p>
         </div>
       </div>
       {(create.error || update.error) && (

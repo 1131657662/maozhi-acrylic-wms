@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { Alert, Button, Drawer } from 'antd';
 import { ProForm, ProFormDigit } from '@ant-design/pro-components';
@@ -49,7 +50,8 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
       mask={{ closable: false }}
     >
       <p>
-        固定快照：{line.snapshot.packages} 包 / {tonnes(line.snapshot.weightGrams)} 吨
+        {businessCopy.stocktakeReadingDrawer1}
+        {line.snapshot.packages} 包 / {tonnes(line.snapshot.weightGrams)} 吨
       </p>
       <p>
         当前已保存：

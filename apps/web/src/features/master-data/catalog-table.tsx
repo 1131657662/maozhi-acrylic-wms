@@ -1,9 +1,9 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import { App, Popconfirm, Space, Tag, Button, Input } from 'antd';
 import type { MasterCatalog, MasterItem } from '@wms/contracts';
-import { hasGeneratedMasterCode } from '@wms/contracts';
 import { MasterLabel } from './master-label';
 import { useMasterItems } from './use-master-items';
 import { useUpdateMasterItem } from './use-update-master-item';
@@ -22,12 +22,7 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
   const { data, isLoading, error, refetch } = useMasterItems(catalog, query);
   const update = useUpdateMasterItem();
   const columns: ProColumns<MasterItem>[] = [
-    ...(hasGeneratedMasterCode(catalog)
-      ? [{ title: t.name, dataIndex: 'name', render: (_: unknown, row: MasterItem) => <MasterLabel item={row} /> }]
-      : [
-          { title: t.code, dataIndex: 'code', width: 180 },
-          { title: t.name, dataIndex: 'name' },
-        ]),
+    { title: t.name, dataIndex: 'name', render: (_, row) => <MasterLabel item={row} /> },
     ...(catalog === 'products'
       ? [
           { title: t.source, render: (_: unknown, row: MasterItem) => t.origin[row.originKind ?? 'unknown'] },
@@ -85,7 +80,7 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
   return (
     <>
       <Input.Search
-        aria-label="搜索主数据"
+        aria-label={businessCopy.masterDataCatalogTable1}
         placeholder="按编码或名称搜索"
         allowClear
         onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
@@ -110,10 +105,10 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
           onChange: (page, pageSize) => setQuery({ ...query, page: pageSize === query.pageSize ? page : 1, pageSize }),
         }}
         toolbar={{
-          title: '主数据目录',
+          title: businessCopy.masterDataCatalogTable2,
           actions: [<NewItemButton key="new" onClick={() => setCreating(true)} />],
         }}
-        locale={{ emptyText: '暂无主数据' }}
+        locale={{ emptyText: businessCopy.masterDataCatalogTable3 }}
       />
       {(creating || editing) && (
         <ItemEditor

@@ -1,6 +1,6 @@
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Space, Typography } from 'antd';
+import { Alert, Button, Drawer, Space } from 'antd';
 import { ProDescriptions, ProForm } from '@ant-design/pro-components';
 import { tonnes, type SourceStockRow } from '@wms/contracts';
 import { tonnesDeltaToGrams } from '../../lib/weight-input';
@@ -71,7 +71,6 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
                 <p>
                   {adjust.data.after.packages} 包 / {tonnes(adjust.data.after.weightGrams)} 吨
                 </p>
-                <Typography.Text copyable>操作 ID：{adjust.data.operationId}</Typography.Text>
               </>
             }
           />

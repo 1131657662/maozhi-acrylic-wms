@@ -128,17 +128,17 @@ test('B4a R2/R3 商品可维护；605条列表及单据选择器分页/搜索/�
       await page.getByRole('tab', { name: label, exact: true }).click();
       const panel = page.getByRole('tabpanel', { name: label, exact: true });
       if (catalog === 'products') {
-        await expect(panel.getByRole('button', { name: '新增主数据', exact: true })).toBeVisible();
+        await expect(panel.getByRole('button', { name: '新增基础资料', exact: true })).toBeVisible();
       }
-      await panel.getByLabel('搜索主数据').fill(prefix);
-      await panel.getByLabel('搜索主数据').press('Enter');
+      await panel.getByLabel('搜索基础资料').fill(prefix);
+      await panel.getByLabel('搜索基础资料').press('Enter');
       await expect(panel.getByText('共 605 条', { exact: true })).toBeVisible();
       await panel.getByTitle('2', { exact: true }).click();
       await expect(panel.getByText(`${prefix}0021`, { exact: true })).toBeVisible();
       await panel.getByTitle('31', { exact: true }).click();
       await expect(panel.getByText(last, { exact: true })).toBeVisible();
-      await panel.getByLabel('搜索主数据').fill('翻页验收-605');
-      await panel.getByLabel('搜索主数据').press('Enter');
+      await panel.getByLabel('搜索基础资料').fill('翻页验收-605');
+      await panel.getByLabel('搜索基础资料').press('Enter');
       await expect(panel.getByText('共 1 条', { exact: true })).toBeVisible();
       await expect(panel.getByText(last, { exact: true })).toBeVisible();
     }

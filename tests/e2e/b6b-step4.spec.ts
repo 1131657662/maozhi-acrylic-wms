@@ -32,10 +32,12 @@ test('B6b Step 4 1440 导出面板显示命中明细范围和条数', async ({ p
   await expect(page.getByRole('radio', { name: '当前页 · 2 行' })).toBeVisible();
   await expect(page.getByRole('radio', { name: '选中记录 · 1 单' })).toBeVisible();
   await expect(page.getByTestId('export-fields')).toHaveText(
-    '字段顺序：入库单号、商品编码、商品名称、包数、重量（吨）',
+    '导出列顺序：入库单号、商品编码、商品名称、包数、重量（吨）',
   );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await mkdir('.local/evidence', { recursive: true });
   await page.screenshot({ path: '.local/evidence/b6b-step4-export-panel-1440.png', fullPage: true });
-  console.log('B6B_STEP4_PANEL width=1440 schema=matched_lines allLines=2 pageLines=2 selectedDocuments=1 pageOverflow=0');
+  console.log(
+    'B6B_STEP4_PANEL width=1440 schema=matched_lines allLines=2 pageLines=2 selectedDocuments=1 pageOverflow=0',
+  );
 });

@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Button, Drawer, Radio, Space } from 'antd';
@@ -155,7 +156,10 @@ function ExportScope({
           },
         ]}
       />
-      <p data-testid="export-fields">字段顺序：{fields.map((field) => field.label).join('、')}</p>
+      <p data-testid="export-fields">
+        {businessCopy.webExportsPanel1}
+        {fields.map((field) => field.label).join('、')}
+      </p>
       <p>
         跨页选中最多 {WEB_EXPORT_SELECTED_MAX.toLocaleString('zh-CN')} 条；更多记录请用全部筛选结果。单文件最多{' '}
         {WEB_EXPORT_MAX_ROWS.toLocaleString('zh-CN')} 行，超限会提示实际条数。

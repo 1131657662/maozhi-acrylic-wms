@@ -74,7 +74,7 @@ test('1280 布局、空态和退出登录', async ({ page }) => {
   await expect(page.getByRole('button', { name: /登\s*录/ })).toBeVisible();
 });
 
-test('Web 可登记独立包数与总吨数的入库单并维护主数据', async ({ page }) => {
+test('Web 可登记独立包数与总吨数的入库单并维护基础资料', async ({ page }) => {
   await login(page);
   await page.goto('/inbound/new');
   await expect(page.getByRole('heading', { name: '登记入库' })).toBeVisible();
@@ -84,7 +84,7 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
   await page.getByLabel('仓库').click();
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品').click();
-  await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
+  await page.getByText('腈纶原料 · 合成样本 · ACR-032', { exact: true }).click();
   await page.getByLabel('包数').fill('2');
   await page.getByLabel('本次总重量（吨）').fill('0.7150');
   await page.getByRole('button', { name: '创建待确认入库单' }).click();
@@ -94,7 +94,7 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
 
   await page.goto('/master-data');
   await page.getByRole('tab', { name: '客户' }).click();
-  await page.getByRole('button', { name: '新增主数据' }).click();
+  await page.getByRole('button', { name: '新增基础资料' }).click();
   await expect(page.getByRole('dialog').getByText('编码由系统生成')).toBeVisible();
   await expect(page.getByRole('dialog').getByRole('textbox', { name: '编码', exact: true })).toHaveCount(0);
   await page.getByRole('dialog').getByLabel('名称', { exact: true }).fill('浏览器验收客户');
@@ -114,7 +114,7 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('车牌').fill('E2E-VEHICLE');
   await page.getByLabel('商品').click();
-  await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
+  await page.getByText('腈纶原料 · 合成样本 · ACR-032', { exact: true }).click();
   await page.getByLabel('计划包数').fill('1');
   await page.getByLabel('计划重量（吨）').fill('0.3025');
   await page.getByRole('button', { name: '创建计划' }).click();

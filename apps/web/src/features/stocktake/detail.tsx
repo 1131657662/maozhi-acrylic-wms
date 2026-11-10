@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@umijs/max';
@@ -30,7 +31,7 @@ export function StocktakeDetail() {
         {take && (
           <>
             <Tag color={take.status === 'counting' ? 'warning' : 'default'}>{stocktakeStatus[take.status]}</Tag>
-            <Tag>库存口径：库存商品</Tag>
+            <Tag>{businessCopy.stocktakeDetail1}</Tag>
             {take.status === 'counting' && <StocktakePostPanel id={id} />}
             {take.status === 'counting' && (
               <Alert
@@ -42,21 +43,20 @@ export function StocktakeDetail() {
             )}
             <ProDescriptions
               column={3}
-              title="盘点快照"
+              title={businessCopy.stocktakeDetail2}
               dataSource={take}
               columns={[
                 { title: '仓库', dataIndex: 'warehouseName' },
-                { title: '快照时间', render: () => listTime(take.snapshotAt) },
+                { title: businessCopy.stocktakeDetail3, render: () => listTime(take.snapshotAt) },
                 { title: '实盘进度', render: () => `${take.recordedCount} / ${take.lineCount} 行` },
-                { title: '快照包数', dataIndex: 'snapshotPackages' },
-                { title: '快照总吨数', render: () => tonnes(take.snapshotWeightGrams) },
+                { title: businessCopy.stocktakeDetail4, dataIndex: 'snapshotPackages' },
+                { title: businessCopy.stocktakeDetail5, render: () => tonnes(take.snapshotWeightGrams) },
                 { title: '差异行数', dataIndex: 'changedCount' },
                 ...(take.status === 'counting'
                   ? []
                   : [
                       { title: '结束时间', render: () => (take.closedAt ? listTime(take.closedAt) : '-') },
                       { title: '结束原因', dataIndex: 'closeReason' },
-                      { title: '库存操作 ID', dataIndex: 'operationId' },
                     ]),
               ]}
             />

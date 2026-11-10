@@ -41,7 +41,7 @@ export function AdjustmentFields({ before }: { before: StockBalance }) {
         type={afterPackages < 0 || afterWeight < 0 ? 'error' : 'info'}
         showIcon
         title="调整后预览（尚未提交）"
-        description={`${afterPackages} 包 / ${tonnes(afterWeight)} 吨；实际结果以事务提交为准。`}
+        description={`${afterPackages} 包 / ${tonnes(afterWeight)} 吨；保存成功后生效。`}
       />
       <ProFormTextArea
         name="reason"

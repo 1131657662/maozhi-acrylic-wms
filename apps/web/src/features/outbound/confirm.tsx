@@ -18,7 +18,7 @@ export function Confirm({ order }: { order: Detail }) {
   return (
     <div className="confirm-bar">
       {contextHolder}
-      <span>冻结 ≠ 出库；确认后写入库存流水。</span>
+      <span>已扫码不代表已出库；确认后才扣减库存。</span>
       {confirmError && <RequestError type="error" error={confirmError} />}
       <Button
         type={order.status === 'frozen' ? 'primary' : 'default'}

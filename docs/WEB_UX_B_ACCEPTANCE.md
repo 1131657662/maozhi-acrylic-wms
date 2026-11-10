@@ -12,3 +12,10 @@
 - 定向请求测试：exit 0，3/3。定向 E2E：exit 0，4/4（网关 502 模拟 API 不可用、浏览器断网、422、409）。API 不可用用 HTTP 边界故障注入，不停止开发样本服务做破坏性操作。
 - 日志：`.local/evidence/web-ux-b/errors-unit.log`、`errors-e2e.log`；1440 截图：`error-1440.png`（已检查）。
 - 四类实测主提示：服务暂时不可用，请稍后重试；网络连接中断，请检查网络后重试；填写有误，请检查标红的内容（重量必须大于零）；该单据已被修改，请刷新后重试。
+
+## 5. 业务文案
+
+- Web 手写源码禁止词出现次数 49 → 0；排除生成目录，菜单配置、报表服务与共享文案也同步检查。逐条原文/替换在 `WEB_UX_B_COPY_CHANGES.md`，机器清单在 `.local/evidence/web-ux-b/copy-replacements.json`。
+- 状态/类型中文显示，未知值不输出原始库值；基础资料列表及选择器统一名称优先、编码辅助小字并可复制。报表明确按入账日期统计。
+- 五页定向 E2E：exit 0，5/5。截图：`copy-master-1440.png`、`copy-inbound-1440.png`、`copy-report-1440.png`、`copy-stocktake-1440.png`、`copy-catalog-1440.png`；均位于 `.local/evidence/web-ux-b/`，已检查。
+- 本项只调整审计界面文案及原始信息的折叠显示，不改审计查询接口、数据模型或 B6c 的检索能力。

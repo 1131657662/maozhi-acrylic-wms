@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { Alert, App, Button, Card, Space, Tag } from 'antd';
 import type { CatalogUploadResult } from '@wms/contracts';
@@ -12,7 +13,7 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
   const confirm = () =>
     modal.confirm({
       title: `发布第 ${version.versionId} 版完整目录？`,
-      content: `发布后当前目录为 ${version.entryCount} 条。消失条码不需失效确认；已有事实仍保留原版本和重量。${version.entryCount === 0 ? '本次为零条快照，请确认没有遗漏文件内容。' : ''}`,
+      content: `发布后当前目录为 ${version.entryCount} 条。消失条码不需失效确认；已有事实仍保留原版本和重量。${version.entryCount === 0 ? businessCopy.catalogCandidate1 : ''}`,
       okText: '确认发布整版',
       cancelText: '返回核对',
       onOk: () => {

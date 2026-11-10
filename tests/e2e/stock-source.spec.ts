@@ -25,7 +25,7 @@ test('用途隔离：库存仅资格商品，无 SPEC 或未归属入口、空�
   });
   await openStock(page);
   const expected = await expectedErpStock(page);
-  await expect(page.getByTestId('stock-source-label')).toHaveText('库存口径：库存商品');
+  await expect(page.getByTestId('stock-source-label')).toHaveText('统计范围：库存商品');
   await expect(page.getByRole('tab')).toHaveCount(0);
   await expect(page.getByTestId('source-stock')).toHaveCount(1);
   await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
@@ -91,7 +91,7 @@ test('商品库存加载及错源重试：无资格 响应不显示、不残留�
   await expect(page.locator('.ant-skeleton')).toHaveCount(0);
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
   release?.();
-  await expect(page.getByText('列表加载失败，已停止展示旧数据')).toBeVisible();
+  await expect(page.getByText('系统出错了，已记录')).toBeVisible();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveCount(0);
   incorrect = false;
   await page.getByRole('button', { name: /重\s*试/ }).click();
@@ -129,7 +129,7 @@ test('商品库存空态与无权限：不出现其他用途入口或占位', as
   await expect(page.getByRole('tab')).toHaveCount(0);
   forbidden = true;
   await page.reload();
-  await expect(page.getByText('无权查看此列表')).toBeVisible();
+  await expect(page.getByText('没有权限执行此操作')).toBeVisible();
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
   await expect(page.getByRole('tab')).toHaveCount(0);
 });

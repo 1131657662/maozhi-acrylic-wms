@@ -19,7 +19,7 @@ test('B3a Web 新建/实盘/未入账确认/故障恢复/重复回写/SQL', asyn
     await page.getByTitle(`${cell.name} · ${cell.warehouseCode}`, { exact: true }).click();
     await screenshotWidths(page, 'b3a-new');
     const creation = page.waitForResponse((r) => r.url().endsWith('/stocktakes') && r.request().method() === 'POST');
-    await page.getByRole('button', { name: '生成快照并开始盘点' }).click();
+    await page.getByRole('button', { name: '开始盘点' }).click();
     const created = await creation;
     expect(created.status()).toBe(200);
     const take = stocktakeSchema.parse((await created.json()).data);
@@ -44,8 +44,8 @@ test('B3a Web 新建/实盘/未入账确认/故障恢复/重复回写/SQL', asyn
     await page.getByRole('button', { name: '核对差异并回写' }).click();
     const submit = page.getByRole('button', { name: '人工确认并回写库存', exact: true });
     await expect(submit).toBeDisabled();
-    await page.getByLabel('回写原因', { exact: true }).fill('按快照时点实盘，已排除后续未入账收货');
-    await page.getByRole('checkbox', { name: /按快照时点口径回写/ }).check();
+    await page.getByLabel('回写原因', { exact: true }).fill('按盘点开始时实盘，已排除后续未入账收货');
+    await page.getByRole('checkbox', { name: /按盘点开始时的数量回写/ }).check();
     await screenshotWidths(page, 'b3a-unposted-preview');
     const before = await businessFingerprint(db);
     await injectStocktakeFailure(db, 'operation_log', 'INSERT');
@@ -56,7 +56,7 @@ test('B3a Web 新建/实盘/未入账确认/故障恢复/重复回写/SQL', asyn
       const response = await failure;
       expect(response.status()).toBe(500);
       requestKey = response.request().headers()['idempotency-key']!;
-      await expect(page.getByLabel('回写原因', { exact: true })).toHaveValue('按快照时点实盘，已排除后续未入账收货');
+      await expect(page.getByLabel('回写原因', { exact: true })).toHaveValue('按盘点开始时实盘，已排除后续未入账收货');
       await expect(submit).toHaveAttribute('aria-busy', 'false');
       await expect(submit).toBeEnabled();
       await page.screenshot({ path: '.local/evidence/b3a-post-failure-retry.png' });

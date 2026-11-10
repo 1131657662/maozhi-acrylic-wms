@@ -61,7 +61,7 @@ export function ReportAging() {
         name: 'report-aging',
         title: '库存库龄',
         columns: agingColumns,
-        description: '截止日按入账顺序重放吨数 FIFO；年龄分五档，无法归龄余额单独列示，不推算包数分桶。',
+        description: '截至所选日期，按先进先出计算剩余库存的存放天数；分五档展示，无法确定存放天数的数量单独列示。',
       }}
       filters={<ReportFilters state={state} aging derived />}
       summary={

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { businessErrorText } from '@wms/contracts';
 import { errorCopy, errorUi } from '../text';
 
 export type ErrorKind = keyof typeof errorCopy;
@@ -18,7 +19,7 @@ export function errorKind(status: number): ErrorKind {
 export function safeBusinessMessage(message: string, fallback: string): string {
   // Never display exception text, embedded identifiers or a server stack.
   return message.length <= 240 && /^[\p{Script=Han}\d\s，。；：、！？（）《》【】“”‘’.,:+\-/%]+$/u.test(message)
-    ? message
+    ? businessErrorText(message)
     : fallback;
 }
 export class ApiError extends Error {

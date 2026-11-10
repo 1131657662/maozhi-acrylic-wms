@@ -43,7 +43,7 @@ export async function downloadAndCompare(
   expect(actual).toEqual(expected);
   const headers = page.getByTestId('export-fields');
   const labels = (sheet.getRow(1).values as string[]).slice(1);
-  expect(await headers.textContent()).toBe('字段顺序：' + labels.join('、'));
+  expect(await headers.textContent()).toBe('导出列顺序：' + labels.join('、'));
   const totals: Record<string, string> = {};
   for (let c = 1; c <= sheet.columnCount; c++)
     if (sheet.getColumn(c).numFmt === '0' || sheet.getColumn(c).numFmt === '0.0000') {

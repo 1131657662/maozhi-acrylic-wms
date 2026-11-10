@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -46,7 +47,7 @@ export function CatalogPage() {
           <CatalogCandidate key={candidate.uploadId} upload={candidate} allowed={!!overview?.gate.allowed && !error} />
         )}
         {overview && (
-          <Card title={candidate?.version ? '更换 / 上传下一份全量快照' : '上传全量快照'}>
+          <Card title={candidate?.version ? businessCopy.catalogPage1 : '上传全部条码'}>
             <CatalogUpload
               hasCandidate={!!candidate?.version && candidate.version.versionId !== overview.current?.versionId}
               onCandidate={(result) => setCandidate(result.version ? result : null)}

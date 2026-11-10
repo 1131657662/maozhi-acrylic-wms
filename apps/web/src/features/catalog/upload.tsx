@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Alert, App, Button, Space, Upload } from 'antd';
@@ -33,14 +34,7 @@ export function CatalogUpload({
         }}
       />
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
-        {error && (
-          <RequestError
-            type="error"
-            showIcon
-            error={error}
-            description="文件未丢失。核对编码或更换文件后可再次校验。"
-          />
-        )}
+        {error && <RequestError type="error" showIcon error={error} description={businessCopy.catalogUpload1} />}
         {result?.duplicate && <DuplicateNotice result={result} pending={isPending} onRebuild={run} />}
         <Button
           type={hasCandidate ? 'default' : 'primary'}
@@ -50,7 +44,7 @@ export function CatalogUpload({
             run();
           }}
         >
-          {isPending ? '校验中，当前版本仍可用' : '上传并校验'}
+          {isPending ? businessCopy.catalogUpload2 : businessCopy.catalogUpload3}
         </Button>
       </Space>
     </ProForm>
@@ -67,12 +61,7 @@ interface SnapshotFieldsProps {
 function SnapshotFields({ file, encoding, pending, onFile, onEncoding }: SnapshotFieldsProps) {
   return (
     <>
-      <ProForm.Item
-        label="全量条码文件（txt）"
-        htmlFor="catalog-snapshot"
-        required
-        extra="每行：规格描述、条码、重量 kg；支持 UTF-8 / GB18030，最大 5 MiB。空文件代表零条快照，发布前需确认。"
-      >
+      <ProForm.Item label="全量条码文件（txt）" htmlFor="catalog-snapshot" required extra={businessCopy.catalogUpload4}>
         <Upload
           id="catalog-snapshot"
           accept=".txt"

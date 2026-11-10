@@ -1,7 +1,7 @@
 export const masterCopy = {
-  title: '主数据',
+  title: '基础资料',
   description: '维护商品、分类与往来资料，单据保存后保留当时的资料。',
-  newItem: '新增主数据',
+  newItem: '新增基础资料',
   edit: '编辑',
   save: '保存',
   cancel: '取消',

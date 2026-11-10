@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { Alert, Table, Tag, theme } from 'antd';
 import { reconciliationLines, type ReportMeta, type ReportBalance } from '@wms/contracts';
 
@@ -62,7 +63,7 @@ export function Reconciliation({ report }: { report: ReportMeta }) {
       }}
     >
       <p style={{ marginTop: 0 }}>
-        <Tag>库存商品 · 唯一库存口径</Tag>
+        <Tag>{businessCopy.reportsReconciliation1}</Tag>
         <Tag color={report.timeStatus === '时间未核实' ? 'warning' : undefined}>{report.timeStatus}</Tag>
         <strong>全部筛选区间对账</strong> · {report.fromDay} 至 {report.toDay} · 水位 {report.watermark}
       </p>

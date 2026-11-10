@@ -20,7 +20,7 @@ for (const kind of ['inbound', 'outbound'] as const)
         .getByRole('button', { name: /打\s*印/ })
         .locator('..')
         .hover();
-      await expect(page.getByRole('tooltip')).toHaveText('待接入积木报表');
+      await expect(page.getByRole('tooltip')).toHaveText('打印暂不可用');
       await expect(page.locator('button.ant-btn-primary:visible')).toHaveCount(1);
       await footer.getByRole('button', { name: '数量更正' }).click();
       const drawer = page.getByRole('dialog', { name: /数量更正/ });

@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -81,7 +82,7 @@ function VersionRecord({ version }: { version: CatalogVersion }) {
         columns={[
           { title: '文件', dataIndex: 'sourceName' },
           { title: '条码 / 规格', render: () => `${version.entryCount} 条 / ${version.specCount} 种` },
-          { title: '校验时间', dataIndex: 'createdAt' },
+          { title: businessCopy.catalogVersionHistory1, dataIndex: 'createdAt' },
           { title: '发布时间', render: () => version.publishedAt ?? '尚未发布' },
           {
             title: '内容 SHA-256',

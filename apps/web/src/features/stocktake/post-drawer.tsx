@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { Alert, Button, Checkbox, Drawer, Space } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
@@ -48,7 +49,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
           type="info"
           showIcon
           title={`差异 ${take.changedCount} 行：${take.packagesDelta} 包 / ${tonnes(take.weightDeltaGrams)} 吨`}
-          description={`已录 ${take.recordedCount}/${take.lineCount} 行。差异始终按固定快照计算；包数与吨数分别核对。零差异也需人工完成，不写零变化流水。`}
+          description={`已录 ${take.recordedCount}/${take.lineCount} 行。差异始终按盘点开始时库存计算；包数与吨数分别核对。零差异也需人工完成，不写零变化流水。`}
         />
         {preview.blockers.map((b) => (
           <Alert key={b.code} type="error" title={b.message} />
@@ -59,7 +60,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
             type="warning"
             showIcon
             title="存在未入账收发货，默认禁止回写"
-            description="入库显示登记量，出库分别显示计划量与已扫量。先核对并处理这些单据；暂停期间不能直接确认入账。如按快照时点实盘，请确认实盘数已排除快照之后的收发影响。该选择连同清单留审计，不修改这些单据。"
+            description={businessCopy.stocktakePostDrawer1}
           />
         )}
         {preview.unposted.length > 0 && (
@@ -68,7 +69,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
             disabled={isPosting}
             onChange={(e) => setAckToken(e.target.checked ? preview.token : '')}
           >
-            按快照时点口径回写（已核对上述未入账收发货）
+            {businessCopy.stocktakePostDrawer2}
           </Checkbox>
         )}
         {(postError || refreshError) && (

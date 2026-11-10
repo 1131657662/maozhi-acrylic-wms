@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ProFormText } from '@ant-design/pro-components';
@@ -26,7 +27,7 @@ export function Stock() {
           title: '库存概览',
           columns: stockListColumns(setSelected),
           description: '库存与单据使用有库存资格的商品；扫码目录只用于现场核对，不计入库存。包数与重量独立记录。',
-          extra: <Tag data-testid="stock-source-label">库存口径：库存商品</Tag>,
+          extra: <Tag data-testid="stock-source-label">{businessCopy.outboundStock1}</Tag>,
         }}
         filters={
           <ListFilters state={state}>

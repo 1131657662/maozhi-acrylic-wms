@@ -21,7 +21,6 @@ export function StatusNotice({ status, kind }: { status: string | null; kind: 'i
       title="此单据的状态含义尚未确认"
       description={
         <>
-          原始状态：<strong>{status === '' ? '空值' : (status ?? '未记录')}</strong>。
           目前可以查看明细，不能据此判断是否已{kind === 'inbound' ? '入库' : '出库'}。
           请按单号核对原始单据；规则确认前不要重复建单或手工改库存。
           {kind === 'outbound' && '本页出库确认已禁用。'}

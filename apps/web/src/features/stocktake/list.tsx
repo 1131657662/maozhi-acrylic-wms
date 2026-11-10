@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation } from '@umijs/max';
@@ -32,7 +33,7 @@ const columns: ProColumns<Stocktake>[] = [
   },
   { title: '实盘进度', width: 140, render: (_, r) => `${r.recordedCount} / ${r.lineCount} 行` },
   { title: '差异行', dataIndex: 'changedCount', width: 90 },
-  { title: '快照时间', width: 180, render: (_, r) => listTime(r.snapshotAt) },
+  { title: businessCopy.stocktakeList1, width: 180, render: (_, r) => listTime(r.snapshotAt) },
   { title: '操作', width: 90, fixed: 'right', render: (_, r) => <Link to={`/stocktakes/${r.id}`}>查看</Link> },
 ];
 export function StocktakeList() {
@@ -47,7 +48,7 @@ export function StocktakeList() {
     <PageContainer
       title="库存盘点"
       className="business-list"
-      content="仅盘点 库存商品；快照固定，实盘包数与吨数独立记录。"
+      content={businessCopy.stocktakeList2}
       extra={
         <Link to="/stocktakes/new">
           <Button type="primary">新建盘点</Button>

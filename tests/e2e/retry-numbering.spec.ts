@@ -14,7 +14,7 @@ async function fillReceipt(page: Page) {
   await page.getByLabel('仓库').click();
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品').click();
-  await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
+  await page.getByText('腈纶原料 · 合成样本 · ACR-032', { exact: true }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');
   await page.getByLabel('本次总重量（吨）').fill('0.3025');
 }

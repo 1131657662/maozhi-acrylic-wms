@@ -29,7 +29,7 @@ export function OrderDetail() {
       <ListBackLink fallback="/">← 返回出库工作台</ListBackLink>
       <div className="page-title">
         <div>
-          <span className="eyebrow">OUTBOUND DETAIL</span>
+          <span className="eyebrow">出库详情</span>
           <h1>{order.orderNo}</h1>
         </div>
         <Space>
@@ -48,7 +48,7 @@ export function OrderDetail() {
             current={{ open: 0, frozen: 1, confirmed: 2 }[order.status]}
             items={[
               { title: 'PDA 扫码', description: '保存逐包实重' },
-              { title: '冻结待确认', description: '事实已锁定，库存未扣减' },
+              { title: '已扫码，待确认', description: '事实已锁定，库存未扣减' },
               { title: 'Web 确认出库', description: '一次扣减并记录流水' },
             ]}
           />

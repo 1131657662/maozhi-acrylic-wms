@@ -81,11 +81,11 @@ test('B3b gap, null, empty, denied and retry states are explicit', async ({ page
     }),
   );
   await page.reload();
-  await expect(page.getByText('无权查看此列表')).toBeVisible();
+  await expect(page.getByText('没有权限执行此操作')).toBeVisible();
   await page.unroute('**/web/reports/monthly?**');
   await page.route('**/web/reports/monthly?**', (route) => route.abort());
   await page.reload();
-  await expect(page.getByText('列表加载失败，已停止展示旧数据')).toBeVisible();
+  await expect(page.getByText('系统出错了，已记录')).toBeVisible();
   await page.unroute('**/web/reports/monthly?**');
   await page.getByRole('button', { name: '重试', exact: true }).click();
   await expect(balance).toBeVisible();
@@ -102,7 +102,7 @@ test('B3b detail direction filters rows while reconciliation retains both direct
   await page.getByRole('button', { name: /查\s*询/ }).click();
   await expect(page.getByTestId('report-details-list')).toContainText('查询结果 · 24 条');
   expect(await balance.innerText()).toBe(full);
-  await page.getByRole('link', { name: '同口径月度汇总' }).click();
+  await page.getByRole('link', { name: '查看对应月度汇总' }).click();
   await expect(recordRows(page, 'monthly')).toHaveCount(18);
   expect(await balance.innerText()).toBe(full);
   console.log('B3B_DIRECTION_UI rows=24 reconciliation=unchanged monthly=both-directions');

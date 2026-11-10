@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { ProDescriptions, ProTable, type ProColumns, type ProDescriptionsProps } from '@ant-design/pro-components';
 import { tonnes, type SourceStock, type SourceStockRow } from '@wms/contracts';
 import { Button } from 'antd';
@@ -9,7 +10,7 @@ type ErpStock = Extract<SourceStock, { source: 'inventory' }>;
 const stockColumns: ProColumns<SourceStockRow>[] = [
   { title: '仓库', dataIndex: 'warehouseCode' },
   { title: '商品编码', dataIndex: 'productCode' },
-  { title: '商品名称', dataIndex: 'productName', renderText: (name) => name ?? '未关联主数据' },
+  { title: '商品名称', dataIndex: 'productName', renderText: (name) => name ?? businessCopy.stockSourceTable1 },
   { title: '库存包数', render: (_, row) => <span data-testid="stock-row-packages">{row.packages}</span> },
   {
     title: '库存重量（吨）',

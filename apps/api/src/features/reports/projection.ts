@@ -95,7 +95,7 @@ function finishProjection(
     reconciliation = totalBalance(entries);
   if (diagnostics.unassignedRows) {
     reconciliation.checkState = '不可验证';
-    reconciliation.reasons.push('存在无法判定库存来源的流水，未混入有库存资格商品的发生额；需核实主数据');
+    reconciliation.reasons.push('存在无法判定库存来源的流水，未混入有库存资格商品的发生额；需核实基础资料');
   }
   return {
     cells: state.cells,

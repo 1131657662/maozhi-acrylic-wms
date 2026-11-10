@@ -79,7 +79,7 @@ function identityFields(row: Row, source: Record<string, unknown>) {
     productCode: String(row.productCode),
     productName: String(source.product_name ?? row.productName),
     productModel: String(source.product_model ?? row.productModel ?? ''),
-    nameBasis: `${source.product_name ? '商品：原流水快照' : '商品：当前主数据'}；${source.warehouse_name ? '仓库：原流水快照' : '仓库：当前主数据'}`,
+    nameBasis: `${source.product_name ? '商品：原流水开始时库存' : '商品：当前基础资料'}；${source.warehouse_name ? '仓库：原流水开始时库存' : '仓库：当前基础资料'}`,
     operationId: row.operation_id == null ? null : String(row.operation_id),
     originalOperationId: row.originalOperationId == null ? null : String(row.originalOperationId),
   };

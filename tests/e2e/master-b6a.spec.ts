@@ -6,7 +6,7 @@ async function choose(page: Page, label: string, code: string) {
   await page.getByLabel(label, { exact: true }).fill(code);
   await page.locator('.ant-select-item-option').filter({ hasText: code }).click();
 }
-test('B6a 新建商品立即回填入出库，改名后快照保留；1440/1280资料抽屉', async ({ page }) => {
+test('B6a 新建商品立即回填入出库，改名后开始时库存保留；1440/1280资料抽屉', async ({ page }) => {
   test.setTimeout(90000);
   const code = `UI-${randomUUID().slice(0, 8)}`;
   await page.goto('/inbound/new');
@@ -16,7 +16,7 @@ test('B6a 新建商品立即回填入出库，改名后快照保留；1440/1280�
     .locator('.ant-form-item')
     .filter({ has: page.getByLabel('商品', { exact: true }) })
     .first();
-  await productItem.getByRole('button', { name: '新增主数据' }).click();
+  await productItem.getByRole('button', { name: '新增基础资料' }).click();
   const drawer = page.getByRole('dialog');
   await drawer.getByLabel('编码', { exact: true }).fill(code);
   await drawer.getByLabel('名称', { exact: true }).fill('界面新建腈纶');
@@ -37,8 +37,8 @@ test('B6a 新建商品立即回填入出库，改名后快照保留；1440/1280�
     page.locator('.ant-select-content').filter({ has: page.getByLabel('商品', { exact: true }) }),
   ).toBeVisible();
   await page.goto('/master-data');
-  await page.getByLabel('搜索主数据').fill(code);
-  await page.getByLabel('搜索主数据').press('Enter');
+  await page.getByLabel('搜索基础资料').fill(code);
+  await page.getByLabel('搜索基础资料').press('Enter');
   await expect(page.getByRole('cell', { name: code, exact: true })).toBeVisible();
   for (const width of [1440, 1280]) {
     await page.setViewportSize({ width, height: 960 });

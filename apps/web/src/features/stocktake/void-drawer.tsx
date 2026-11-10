@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { Alert, Drawer } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
@@ -28,7 +29,7 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
         showIcon
         type="warning"
         title="作废不修改库存、不写库存流水"
-        description="原快照和实盘记录保留。作废后不能重开，需要时新建盘点；该仓恢复确认。"
+        description={businessCopy.stocktakeVoidDrawer1}
       />
       {voidError && (
         <RequestError

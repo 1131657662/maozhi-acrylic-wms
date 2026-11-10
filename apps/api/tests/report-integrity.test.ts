@@ -55,7 +55,7 @@ test('B3b: exact arithmetic and Shanghai calendar validation', () => {
       listFields.inbound.find((f) => f.key === 'status')!,
       { status: null },
     ),
-    '状态待识别：未记录',
+    '—',
   );
   assert.equal(localIso('2026-01-31 23:59:59.123456'), '2026-01-31T15:59:59.123Z');
   assert.equal(localIso('2026-02-30 10:00:00'), null);
