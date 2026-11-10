@@ -45,11 +45,11 @@ test('Web 同源会话可创建入库和出库计划并查询主数据', async (
     const master = await web
       .post('/api/v1/master-data/customers')
       .set('Origin', origin)
-      .send({ code: 'HTTP-CUST', name: 'HTTP 合成客户' })
+      .send({ name: 'HTTP 合成客户' })
       .expect(200);
     assert.equal(master.body.data.active, true);
     const masters = await web.get('/api/v1/master-data/customers').expect(200);
-    assert.ok(masters.body.data.items.some((item: { code: string }) => item.code === 'HTTP-CUST'));
+    assert.ok(masters.body.data.items.some((item: { code: string }) => item.code === master.body.data.code));
 
     const inbound = await web
       .post('/api/v1/inbound')

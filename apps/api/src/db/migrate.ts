@@ -104,6 +104,16 @@ const migrations = [
     ],
   },
   { id: '013_list_preferences', guardedTables: ['user_list_preferences'] },
+  {
+    id: '014_master_code_counters',
+    guardedTables: [
+      'master_code_counters',
+      'master_customers',
+      'master_suppliers',
+      'master_warehouses',
+      'document_number_rules',
+    ],
+  },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

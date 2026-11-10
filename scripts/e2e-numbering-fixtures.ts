@@ -14,7 +14,7 @@ export async function seedNumberingEvidence(db: Database): Promise<void> {
     VALUES('E2E-UNKNOWN-IN','E2E-LEGACY-IN','DEMO-SUPPLIER','DEMO-WH','owner',UTC_TIMESTAMP(3),'legacy_inbound_state')`);
   await db.run(`INSERT INTO stock_journal(warehouse_code,product_code,packages_delta,tonnes_delta,created_at,source_business_type)
     VALUES('DEMO-WH','ACR-032',0,'0.0000',UTC_TIMESTAMP(3),'legacy_journal_type')`);
-  await db.run("INSERT INTO document_number_rules(kind,sequence_width) VALUES('outbound',4)");
+  await db.run("INSERT INTO document_number_rules(kind) VALUES('outbound')");
   await db.run("INSERT INTO document_number_counters(kind,date_key,last_sequence) VALUES('outbound',?,9)", [
     businessDate(),
   ]);

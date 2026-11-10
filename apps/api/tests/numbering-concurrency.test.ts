@@ -88,7 +88,7 @@ test('自动取号事务失败不消耗号，重试同键同正文只建一张�
     const key = randomUUID();
     const rows = await Promise.all(Array.from({ length: 10 }, () => createOutboundPlan(db, newPlan(), key, actor)));
     assert.equal(new Set(rows.map((row) => row.id)).size, 1);
-    assert.match(rows[0]!.orderNo, /^CK-\d{8}-0001$/);
+    assert.match(rows[0]!.orderNo, /^CK-\d{8}-001$/);
     assert.equal(
       Number((await db.get("SELECT COUNT(*) AS n FROM operation_log WHERE action='outbound.plan.create'"))?.n),
       1,

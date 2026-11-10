@@ -111,7 +111,7 @@ export const operations: Operation[] = [
   {
     method: 'put',
     path: '/document-numbering/{kind}',
-    summary: '修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数',
+    summary: '已停用的写入口：固定 3 位，只读；任何修改返回 422 NUMBERING_READ_ONLY',
     body: numberingUpdateSchema,
     response: numberingRuleSchema,
     channel: 'web',

@@ -12,9 +12,9 @@ test('B5a 新建业务日期上海默认与超过三个月二次确认', async (
   const field = page.getByLabel('业务日期', { exact: true });
   await expect(field).toHaveValue(shanghaiToday());
   await page.getByLabel('供应商', { exact: true }).click();
-  await page.getByText('DEMO-SUPPLIER · 合成供应商', { exact: true }).click();
+  await page.getByTitle('合成供应商 · DEMO-SUPPLIER', { exact: true }).click();
   await page.getByLabel('仓库', { exact: true }).click();
-  await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
+  await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品', { exact: true }).click();
   await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');

@@ -1,14 +1,15 @@
 import { z } from 'zod';
+import { DOCUMENT_NUMBER_WIDTH } from './numbering-policy.ts';
 
 export const documentKindSchema = z.enum(['inbound', 'outbound', 'correction']);
 export const numberingUpdateSchema = z.strictObject({
-  width: z.number().int().min(2).max(8),
+  width: z.literal(DOCUMENT_NUMBER_WIDTH),
   expectedVersion: z.number().int().nonnegative(),
 });
 export const numberingRuleSchema = z.object({
   kind: documentKindSchema,
   prefix: z.enum(['RK', 'CK', 'GZ']),
-  width: z.number().int().min(2).max(8),
+  width: z.literal(DOCUMENT_NUMBER_WIDTH),
   version: z.number().int().nonnegative(),
   dateKey: z.string().regex(/^\d{8}$/),
   timeZone: z.literal('Asia/Shanghai'),

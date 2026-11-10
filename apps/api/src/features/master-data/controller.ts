@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { z } from 'zod';
 import { createMasterItemSchema, updateMasterItemSchema, masterItemSchema } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { actorFrom, ok } from '../../middleware/http.ts';
@@ -23,6 +24,7 @@ export function masterDataController(db: Database) {
           parseCatalog(req.params.catalog),
           createMasterItemSchema.parse(req.body),
           actorFrom(res),
+          z.uuid().optional().parse(req.get('idempotency-key')),
         ),
       ),
     update: async (req: Request, res: Response): Promise<void> =>

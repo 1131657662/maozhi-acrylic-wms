@@ -80,9 +80,9 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
   await expect(page.getByRole('heading', { name: '登记入库' })).toBeVisible();
   await expect(page.getByText('确认保存后自动生成 RK 单号')).toBeVisible();
   await page.getByLabel('供应商').click();
-  await page.getByText('DEMO-SUPPLIER · 合成供应商', { exact: true }).click();
+  await page.getByTitle('合成供应商 · DEMO-SUPPLIER', { exact: true }).click();
   await page.getByLabel('仓库').click();
-  await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
+  await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品').click();
   await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
   await page.getByLabel('包数').fill('2');
@@ -95,8 +95,9 @@ test('Web 可登记独立包数与总吨数的入库单并维护主数据', asyn
   await page.goto('/master-data');
   await page.getByRole('tab', { name: '客户' }).click();
   await page.getByRole('button', { name: '新增主数据' }).click();
-  await page.getByLabel('编码').fill('E2E-CUSTOMER');
-  await page.getByLabel('名称').fill('浏览器验收客户');
+  await expect(page.getByRole('dialog').getByText('编码由系统生成')).toBeVisible();
+  await expect(page.getByRole('dialog').getByRole('textbox', { name: '编码', exact: true })).toHaveCount(0);
+  await page.getByRole('dialog').getByLabel('名称', { exact: true }).fill('浏览器验收客户');
   await page.getByRole('button', { name: /保\s*存/ }).click();
   await expect(page.getByText('浏览器验收客户', { exact: true })).toBeVisible();
   await page.screenshot({ path: '.local/evidence/master-data-1440.png', fullPage: true });
@@ -108,9 +109,9 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '新建出库计划' })).toBeVisible();
   await expect(page.getByText('创建成功后自动生成 CK 单号')).toBeVisible();
   await page.getByLabel('客户').click();
-  await page.getByText('DEMO-CUST-1 · 合成客户 1', { exact: true }).click();
+  await page.getByTitle('合成客户 1 · DEMO-CUST-1', { exact: true }).click();
   await page.getByLabel('仓库').click();
-  await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
+  await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('车牌').fill('E2E-VEHICLE');
   await page.getByLabel('商品').click();
   await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();

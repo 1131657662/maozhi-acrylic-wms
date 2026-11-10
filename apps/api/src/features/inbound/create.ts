@@ -26,7 +26,7 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
       const products = await Promise.all(payload.lines.map((line) => activeMaster(tx, 'products', line.productCode)));
       const id = randomUUID();
       const createdAt = sqlDate(new Date().toISOString());
-      const receiptNo = await allocateNumber(tx, 'inbound', payload.receiptNo);
+      const receiptNo = await allocateNumber(tx, 'inbound', payload.receiptNo, date.businessDate.replaceAll('-', ''));
       await tx.run(
         `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at,business_date,status,posting_state)
         VALUES(?,?,?,?,?,?,?,?,'pending','pending')`,

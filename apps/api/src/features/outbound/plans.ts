@@ -31,7 +31,7 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
     const references = await validateReferences(tx, plan);
     const id = randomUUID();
     const createdAt = sqlDate(new Date().toISOString());
-    const orderNo = await allocateNumber(tx, 'outbound', plan.orderNo);
+    const orderNo = await allocateNumber(tx, 'outbound', plan.orderNo, date.businessDate.replaceAll('-', ''));
     try {
       await tx.run(
         `INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,memo,created_at,business_date)
