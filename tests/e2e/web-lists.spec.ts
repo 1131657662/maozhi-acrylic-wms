@@ -46,7 +46,7 @@ for (const item of pages) {
     await screenshotWidths(page, 'b1b1-' + item.kind);
     const table = page.getByTestId(item.kind + '-list');
     await table.locator('tbody tr[data-row-key]').first().getByRole('checkbox').check();
-    await expect(page.getByText(/已选择 1 条/)).toBeVisible();
+    await expect(table.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 1 条');
     const sorted = page.waitForResponse((res) => res.url().includes('/api/v1/web/lists/' + item.kind + '?'));
     await table.getByRole('columnheader', { name: item.sort, exact: true }).click();
     await expect(page).toHaveURL(/sortBy=/);
@@ -56,7 +56,7 @@ for (const item of pages) {
       'data-row-key',
       String(expected.data.items[0].id),
     );
-    await expect(page.getByText(/已选择 1 条/)).toBeVisible();
+    await expect(table.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 1 条');
     const input =
       item.field === 'keyword'
         ? page.getByRole('searchbox', { name: item.label })
@@ -86,7 +86,7 @@ for (const item of pages.slice(0, 2)) {
     await rowsReady(page, item.kind, 20);
     await page
       .getByTestId(item.kind + '-list')
-      .getByRole('link', { name: '查看详情' })
+      .locator('tbody tr[data-row-key] a')
       .first()
       .click();
     await page.getByRole('link', { name: /返回(入库记录|出库工作台)/ }).click();

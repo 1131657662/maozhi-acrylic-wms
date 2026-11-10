@@ -38,7 +38,7 @@ export function InboundList() {
         ),
       }}
       filters={
-        <ListFilters state={state}>
+        <ListFilters state={state} documentKind="inbound">
           <ProFormText
             name="keyword"
             label="入库单号"
@@ -48,7 +48,7 @@ export function InboundList() {
           <ListDateFilter key="dateRange" label="登记时间" />
           <ProFormText name="supplier" label="供应商" placeholder="名称或编码" />
           <WarehouseFilter key="warehouse" />
-          <ProductReverseFilters />
+          <ProductReverseFilters key="productCodes" />
           <StatusFilter key="statusChoice" kind="inbound" />
           <ProFormSelect
             name="postingState"

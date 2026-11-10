@@ -146,7 +146,7 @@ function ExportScope({
           },
           {
             value: 'selected',
-            label: `选中记录 · ${context.selected.length} 单`,
+            label: `选中记录 · ${context.selected.length} ${['inbound', 'outbound'].includes(context.kind) ? '单' : '条'}`,
             disabled: !context.selected.length,
           },
         ]}

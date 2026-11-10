@@ -2,7 +2,7 @@ import { WEB_LIST_PAGE_SIZES, tonnes, type ExportKind, type WebMatchedTotals } f
 import type { ListColumnPreferences } from './use-list-columns';
 import { ExportPanel } from '../../features/web-exports/panel';
 import { useMemo, type Key, type ReactNode, type KeyboardEvent, type MouseEvent } from 'react';
-import { Button } from 'antd';
+import { Button, ConfigProvider, theme } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import type { ListState } from './use-list-state';
 import { MatchedLines } from './matched-lines';
@@ -39,6 +39,7 @@ interface Props<Row> {
 export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
   const { data, state, name, columnPrefs } = props;
+  const { token } = theme.useToken();
   const location = useLocation();
   const navigate = useNavigate();
   const configured = useMemo(
@@ -113,81 +114,86 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
       : undefined;
   return (
     <div onKeyDown={handleEnter} tabIndex={-1} data-testid={`${name}-table-shell`}>
-      <ProTable<Row>
-        rowKey="id"
-        columns={configured}
-        expandable={expandable}
-        dataSource={data.items}
-        search={false}
-        sortDirections={['ascend', 'descend', 'ascend']}
-        headerTitle={
-          data.matchedTotals
-            ? `查询结果 · ${data.matchedTotals.documentCount} 单 · ${data.matchedTotals.lineCount} 行 · ${data.matchedTotals.packages} 包 · ${tonnes(data.matchedTotals.weightGrams)} 吨`
-            : `查询结果 · ${data.total} 条`
-        }
-        loading={props.refreshing}
-        size="middle"
-        options={{
-          density: false,
-          fullScreen: false,
-          reload: () => {
-            props.reload();
-          },
-          setting: { draggable: true },
+      <ConfigProvider
+        theme={{
+          components: { Table: { rowSelectedBg: token.colorBgLayout, rowSelectedHoverBg: token.colorBgLayout } },
         }}
-        columnsState={columnPrefs.state}
-        toolBarRender={() => [
-          ...(selected.length > 0 && reverseLookup
-            ? [
-                <BatchReverseActions
-                  key="batch-reverse"
-                  kind={lifecycleKind!}
-                  rows={batchRows}
-                  selectedCount={selected.length}
-                  onClear={() => setSelected([])}
-                />,
-              ]
-            : []),
-          exportPanel,
-        ]}
-        scroll={{ x: 'max-content', y: 480 }}
-        locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}
-        rowSelection={{
-          alwaysShowAlert: true,
-          selectedRowKeys: selected,
-          onChange: (keys) => setSelected(keys, currentSelectionRows),
-          preserveSelectedRowKeys: true,
-          columnWidth: 48,
-          getCheckboxProps: (row) => ({ disabled: !isEligible(name, row) }),
-        }}
-        tableAlertRender={() => <span role="status">已选择 {selected.length} 条；变更筛选将清空选择</span>}
-        tableAlertOptionRender={() => (
-          <Button type="link" onClick={() => setSelected([])}>
-            清空选择
-          </Button>
-        )}
-        onRow={onRow}
-        pagination={{
-          current: data.page,
-          pageSize: data.pageSize,
-          total: data.total,
-          showSizeChanger: true,
-          pageSizeOptions: WEB_LIST_PAGE_SIZES.map(String),
-          showTotal: (total) => `共 ${total} 条`,
-        }}
-        onChange={(page, _filters, sorter, extra) => {
-          if (extra.action === 'paginate')
-            state.change({
-              page: String(page.current ?? 1),
-              pageSize: String(page.pageSize ?? WEB_LIST_PAGE_SIZES[0]),
-            });
-          if (extra.action === 'sort' && !Array.isArray(sorter)) {
-            const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
-            if (typeof field === 'string')
-              state.change({ page: '1', sortBy: field, direction: sorter.order === 'ascend' ? 'asc' : 'desc' });
+      >
+        <ProTable<Row>
+          rowKey="id"
+          columns={configured}
+          expandable={expandable}
+          dataSource={data.items}
+          search={false}
+          sortDirections={['ascend', 'descend', 'ascend']}
+          headerTitle={
+            data.matchedTotals
+              ? `查询结果 · ${data.matchedTotals.documentCount} 单 · ${data.matchedTotals.lineCount} 行 · ${data.matchedTotals.packages} 包 · ${tonnes(data.matchedTotals.weightGrams)} 吨`
+              : `查询结果 · ${data.total} 条`
           }
-        }}
-      />
+          loading={props.refreshing}
+          size="middle"
+          options={{
+            density: false,
+            fullScreen: false,
+            reload: () => {
+              props.reload();
+            },
+            setting: { draggable: true },
+          }}
+          columnsState={columnPrefs.state}
+          toolBarRender={() => [
+            ...(selected.length > 0 && reverseLookup
+              ? [
+                  <BatchReverseActions
+                    key="batch-reverse"
+                    kind={lifecycleKind!}
+                    rows={batchRows}
+                    selectedCount={selected.length}
+                    onClear={() => setSelected([])}
+                  />,
+                ]
+              : []),
+            exportPanel,
+          ]}
+          scroll={{ x: 'max-content', y: 480 }}
+          locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}
+          rowSelection={{
+            alwaysShowAlert: true,
+            selectedRowKeys: selected,
+            onChange: (keys) => setSelected(keys, currentSelectionRows),
+            preserveSelectedRowKeys: true,
+            columnWidth: 48,
+          }}
+          tableAlertRender={() => <span role="status">已选择 {selected.length} 条；变更筛选将清空选择</span>}
+          tableAlertOptionRender={() => (
+            <Button type="link" onClick={() => setSelected([])}>
+              清空选择
+            </Button>
+          )}
+          onRow={onRow}
+          pagination={{
+            current: data.page,
+            pageSize: data.pageSize,
+            total: data.total,
+            showSizeChanger: true,
+            pageSizeOptions: WEB_LIST_PAGE_SIZES.map(String),
+            showTotal: (total) => `共 ${total} 条`,
+          }}
+          onChange={(page, _filters, sorter, extra) => {
+            if (extra.action === 'paginate')
+              state.change({
+                page: String(page.current ?? 1),
+                pageSize: String(page.pageSize ?? WEB_LIST_PAGE_SIZES[0]),
+              });
+            if (extra.action === 'sort' && !Array.isArray(sorter)) {
+              const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
+              if (typeof field === 'string')
+                state.change({ page: '1', sortBy: field, direction: sorter.order === 'ascend' ? 'asc' : 'desc' });
+            }
+          }}
+        />
+      </ConfigProvider>
     </div>
   );
 }

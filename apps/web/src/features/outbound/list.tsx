@@ -33,7 +33,7 @@ export function OrderList() {
         ),
       }}
       filters={
-        <ListFilters state={state}>
+        <ListFilters state={state} documentKind="outbound">
           <ProFormText
             name="keyword"
             label="出库单号"
@@ -43,7 +43,7 @@ export function OrderList() {
           <ListDateFilter key="dateRange" label="建单时间" />
           <ProFormText name="customer" label="客户" placeholder="名称或编码" />
           <WarehouseFilter key="warehouse" />
-          <ProductReverseFilters />
+          <ProductReverseFilters key="productCodes" />
           <ProFormText name="vehicle" label="车牌" placeholder="支持部分车牌" />
           <StatusFilter key="statusChoice" kind="outbound" />
         </ListFilters>

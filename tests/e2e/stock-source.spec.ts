@@ -37,7 +37,7 @@ test('用途隔离：库存仅资格商品，无 SPEC 或未归属入口、空�
   await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(tonnes(expected.subtotal.weightGrams));
   // Other suites can populate more than one page. Check the current page against the independent full ERP view.
   const visibleRows = page.getByTestId('stock-list').locator('tbody tr[data-row-key]');
-  await expect(visibleRows).toHaveCount(Math.min(expected.items.length, 20));
+  await expect(visibleRows).toHaveCount(Math.min(expected.items.length, 50));
   for (const tableRow of await visibleRows.all()) {
     const identity = await tableRow.getAttribute('data-row-key');
     const row = expected.items.find((item) => JSON.stringify([item.warehouseCode, item.productCode]) === identity);
@@ -119,7 +119,7 @@ test('商品库存空态与无权限：不出现其他用途入口或占位', as
               items: [],
               total: 0,
               page: 1,
-              pageSize: 20,
+              pageSize: 50,
               viewToken: 'empty',
               subtotal: { packages: 0, weightGrams: 0 },
             },

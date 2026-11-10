@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { QueryFilter, ProFormDateRangePicker, ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import type { ListParams } from '../../features/web-lists/keys';
 import type { ListState } from './use-list-state';
+import { AdvancedFilters } from './advanced-filters';
 
 function filterValues(params: ListParams): Record<string, unknown> {
   const date = (value: string) => new Date(value).toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
@@ -45,26 +46,46 @@ function toParams(values: Record<string, unknown>): ListParams {
   else if (typeof statusChoice === 'string') result.status = String(JSON.parse(statusChoice));
   return result;
 }
-export function ListFilters({ state, children }: { state: ListState; children: ReactNode }) {
+export function ListFilters({
+  state,
+  children,
+  documentKind,
+}: {
+  state: ListState;
+  children: ReactNode;
+  documentKind?: 'inbound' | 'outbound';
+}) {
   return (
-    <QueryFilter<Record<string, unknown>>
-      key={JSON.stringify(filterValues(state.params))}
-      initialValues={filterValues(state.params)}
-      labelWidth="auto"
-      span={{ xs: 24, sm: 12, md: 12, lg: 8, xl: 8, xxl: 6 }}
-      defaultCollapsed
-      onFinish={async (values) => {
-        state.searchFor(toParams(values));
-        return true;
-      }}
-      onReset={state.reset}
-      dateFormatter="string"
-      searchText="查询"
-      resetText="重置"
-      submitter={{ submitButtonProps: { type: 'default' } }}
-    >
-      {children}
-    </QueryFilter>
+    <>
+      <QueryFilter<Record<string, unknown>>
+        key={JSON.stringify(filterValues(state.params))}
+        initialValues={filterValues(state.params)}
+        labelWidth="auto"
+        span={{ xs: 24, sm: 12, md: 12, lg: 8, xl: 8, xxl: 6 }}
+        defaultCollapsed
+        onFinish={async (values) => {
+          state.searchFor(toParams(values));
+          return true;
+        }}
+        onReset={state.reset}
+        dateFormatter="string"
+        searchText="查询"
+        resetText="重置"
+        submitter={{ submitButtonProps: { type: 'default' } }}
+      >
+        {children}
+      </QueryFilter>
+      {documentKind && (
+        <AdvancedFilters
+          state={state}
+          kind={documentKind}
+          initialValues={filterValues(state.params)}
+          toParams={toParams}
+        >
+          {children}
+        </AdvancedFilters>
+      )}
+    </>
   );
 }
 export function ListDateFilter({ label, hidden }: { label: string; hidden?: boolean }) {
