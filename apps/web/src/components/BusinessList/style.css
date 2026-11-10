@@ -7,6 +7,15 @@
 .business-list-results {
   width: 100%;
 }
+/* Keep virtual tree scroll content inside its panel, away from the reset controls. */
+.ant-pro-table-column-setting-list .ant-tree-list-holder {
+  position: relative;
+  contain: paint;
+}
+.ant-pro-table-column-setting-title {
+  position: relative;
+  z-index: 1;
+}
 .business-list-json {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

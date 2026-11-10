@@ -102,7 +102,7 @@ test('B6b Step 2 商品反查摘要与命中行展开', async ({ page }) => {
   await rowsReady(page, 'inbound', 1);
   await expect(page.getByTestId('matched-summary')).toContainText('命中：');
   await expect(page.getByTestId('inbound-list')).toContainText('1 单 · 2 行 · 2 包 · 0.6000 吨');
-  await page.getByTestId('inbound-list').locator('.ant-table-row-expand-icon').first().click();
+  await page.getByTestId('inbound-list').getByRole('button', { name: '展开命中行' }).first().click();
   await expect(page.getByTestId('matched-lines-table')).toBeVisible();
   await expect(page.getByTestId('matched-lines-table').getByText('WL-P000001', { exact: true })).toHaveCount(2);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();

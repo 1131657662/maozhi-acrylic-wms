@@ -2,17 +2,10 @@ import { useState } from 'react';
 import type { ColumnsState } from '@ant-design/pro-components';
 import { WEB_LIST_VIEW_SCHEMA_VERSION } from '@wms/contracts';
 import { z } from 'zod';
+import { columnStateSchema } from './column-settings';
 import type { ListParams } from '../../features/web-lists/keys';
 import type { ListState } from './use-list-state';
 
-const columnStateSchema = z.record(
-  z.string(),
-  z.object({
-    show: z.boolean().optional(),
-    order: z.number().optional(),
-    fixed: z.enum(['left', 'right']).optional(),
-  }),
-);
 const viewSchema = z
   .strictObject({
     schemaVersion: z.literal(WEB_LIST_VIEW_SCHEMA_VERSION),
