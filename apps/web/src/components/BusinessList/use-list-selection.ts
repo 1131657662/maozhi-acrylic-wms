@@ -6,6 +6,7 @@ export interface ListSelectionRow {
   eligible?: boolean;
   exclusionReason?: string;
 }
+export type SelectionKeys = Key[] | ((current: Key[]) => Key[]);
 
 export function useListSelection(scope: string, rowTokens: Record<string, string> = {}) {
   const [selection, setSelection] = useState<{
@@ -26,10 +27,11 @@ export function useListSelection(scope: string, rowTokens: Record<string, string
     keys: selection.scope === scope ? selection.keys : [],
     tokens: selection.scope === scope ? selection.tokens : {},
     rows: selection.scope === scope ? selection.rows : {},
-    change: (keys: Key[], rows: ListSelectionRow[] = []) =>
+    change: (next: SelectionKeys, rows: ListSelectionRow[] = []) =>
       setSelection((current) => {
-        const selectedIds = new Set(keys.map(String));
         const previous = current.scope === scope ? current : { scope, keys: [], tokens: {}, rows: {} };
+        const keys = typeof next === 'function' ? next(previous.keys) : next;
+        const selectedIds = new Set(keys.map(String));
         const knownRows = { ...previous.rows, ...Object.fromEntries(rows.map((row) => [String(row.id), row])) };
         return {
           scope,

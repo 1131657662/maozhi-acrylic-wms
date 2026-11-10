@@ -9,7 +9,7 @@ import { ListTable, type ListData } from './table';
 import { ListViewToolbar } from './list-view-toolbar';
 import { useListColumns, type ListColumnPreferences } from './use-list-columns';
 import type { ListState } from './use-list-state';
-import { useListSelection, type ListSelectionRow } from './use-list-selection';
+import { useListSelection, type ListSelectionRow, type SelectionKeys } from './use-list-selection';
 import { useListViews } from './use-list-views';
 import './style.css';
 
@@ -37,7 +37,7 @@ interface ResultsProps<Row extends { id: Key }> {
     tokens: Record<string, string>;
     keys: Key[];
     rows: Record<string, ListSelectionRow>;
-    change: (keys: Key[], rows?: ListSelectionRow[]) => void;
+    change: (keys: SelectionKeys, rows?: ListSelectionRow[]) => void;
   };
   columnPrefs: ListColumnPreferences<Row>;
   refreshing: boolean;

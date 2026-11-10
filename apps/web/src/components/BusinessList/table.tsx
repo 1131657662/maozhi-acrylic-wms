@@ -7,13 +7,14 @@ import { useColumnLayout } from './use-column-layout';
 import { ResizeEnabled, ResizeHeader } from './resize-header';
 import { useMatchedExpansion } from './use-matched-expansion';
 import { COLUMN_WIDTH } from './column-settings';
-import { useMemo, type Key, type KeyboardEvent, type MouseEvent } from 'react';
+import { useMemo, type Key, type KeyboardEvent } from 'react';
 import { Button, ConfigProvider, theme } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import { useLocation, useNavigate } from '@umijs/max';
 import { BatchReverseActions, type BatchRow } from './batch-actions';
 import type { ListSelectionRow } from './use-list-selection';
-import { documentNumber, isEligible, exclusionReason, isInteractiveTarget, isTextEntry } from './table-helpers';
+import { documentNumber, isEligible, exclusionReason, isTextEntry } from './table-helpers';
+import { useRowInteractions } from './use-row-interactions';
 
 export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
@@ -61,13 +62,12 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
     event.preventDefault();
     openDetail(selectedRows[0]!);
   };
-  const onRow = reverseLookup
-    ? (row: Row) => ({
-        onDoubleClick: (event: MouseEvent<HTMLTableRowElement>) => {
-          if (!isInteractiveTarget(event.target)) openDetail(row);
-        },
-      })
-    : undefined;
+  const onRow = useRowInteractions({
+    scope: JSON.stringify(state.params),
+    selection: props.selection,
+    rows: currentSelectionRows,
+    open: openDetail,
+  });
   const expansion = useMatchedExpansion(configured, reverseLookup && Boolean(state.params.productCodes));
   const layout = useColumnLayout(expansion.columns, columnPrefs);
   return (
@@ -142,6 +142,11 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
               onChange: (keys) => setSelected(keys, currentSelectionRows),
               preserveSelectedRowKeys: true,
               columnWidth: COLUMN_WIDTH.selection,
+              renderCell: (_checked, _row, _index, node) => (
+                <span onClick={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
+                  {node}
+                </span>
+              ),
             }}
             tableAlertRender={() => <span role="status">已选择 {selected.length} 条；变更筛选将清空选择</span>}
             tableAlertOptionRender={() => (

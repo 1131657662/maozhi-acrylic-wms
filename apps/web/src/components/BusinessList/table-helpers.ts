@@ -24,7 +24,10 @@ export function exclusionReason<Row>(name: ExportKind, row: Row): string {
 }
 
 export function isInteractiveTarget(target: EventTarget | null): boolean {
-  return target instanceof HTMLElement && Boolean(target.closest('a,button,input,textarea,[role="button"]'));
+  return (
+    target instanceof Element &&
+    Boolean(target.closest('a,button,input,textarea,select,label,[role="button"],[contenteditable="true"]'))
+  );
 }
 
 export function isTextEntry(target: EventTarget | null): boolean {
