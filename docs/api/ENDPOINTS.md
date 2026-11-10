@@ -63,11 +63,11 @@
 | GET | /api/v1/web/lists/audit | web | Web 操作日志分页；不再截断最近 100 条 |
 | GET | /api/v1/web/lists/audit/{id} | web | 操作日志详情与前后值 |
 | GET | /api/v1/web/lists/{kind}/statuses | web | 入库/出库原始状态选项，保留未知值和空值 |
-| POST | /api/v1/web/exports | web | 固定筛选、列与视图摘要，异步流式生成 XLSX；第二任务返回 EXPORT_BUSY |
+| POST | /api/v1/web/exports | web | 固定筛选、列与视图摘要，异步生成 XLSX 或 CSV；第二任务返回 EXPORT_BUSY |
 | GET | /api/v1/web/exports/active | web | 当前生成任务；没有任务返回 null |
 | GET | /api/v1/web/exports/{id} | web | 导出进度、预览与本次范围合计；有效期24小时 |
 | POST | /api/v1/web/exports/{id}/cancel | web | 取消生成；不提供部分文件 |
-| GET | /api/v1/web/exports/{id}/download | web | 下载校验完成的 XLSX；只读 Cookie 会话下载 |
+| GET | /api/v1/web/exports/{id}/download | web | 下载校验完成的 XLSX 或 CSV；只读 Cookie 会话下载 |
 | GET | /api/v1/catalog | web | 当前目录与可执行发布门禁；仅扫码取重，不参与库存 |
 | POST | /api/v1/catalog/uploads | web | 整版校验 txt；相同内容默认不建版，重建须显式确认历史版本 |
 | GET | /api/v1/catalog/uploads/{id} | web | 按原上传 UUID 核验结果，支持响应丢失恢复 |

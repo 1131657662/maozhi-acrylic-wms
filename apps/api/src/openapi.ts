@@ -51,7 +51,7 @@ export interface Operation {
   rawBody?: boolean;
   channel?: 'web' | 'pda' | 'any' | 'web-pda';
   idempotent?: boolean;
-  responseMedia?: string;
+  responseMedia?: string | string[];
   successStatus?: number;
 }
 export const operations: Operation[] = [
@@ -317,7 +317,11 @@ function operationDocument(operation: Operation): object {
       [operation.successStatus ?? 200]: {
         description: '成功',
         content: operation.responseMedia
-          ? { [operation.responseMedia]: { schema: { type: 'string', format: 'binary' } } }
+          ? Object.fromEntries(
+              (Array.isArray(operation.responseMedia) ? operation.responseMedia : [operation.responseMedia]).map(
+                (media) => [media, { schema: { type: 'string', format: 'binary' } }],
+              ),
+            )
           : { 'application/json': { schema: z.toJSONSchema(envelope) } },
       },
       ...failures,

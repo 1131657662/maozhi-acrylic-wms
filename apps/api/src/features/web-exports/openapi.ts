@@ -5,7 +5,7 @@ export const webExportOperations: Operation[] = [
   {
     method: 'post',
     path: '/web/exports',
-    summary: '固定筛选、列与视图摘要，异步流式生成 XLSX；第二任务返回 EXPORT_BUSY',
+    summary: '固定筛选、列与视图摘要，异步生成 XLSX 或 CSV；第二任务返回 EXPORT_BUSY',
     body: exportRequestSchema,
     response: exportJobSchema,
     channel: 'web',
@@ -35,9 +35,9 @@ export const webExportOperations: Operation[] = [
   {
     method: 'get',
     path: '/web/exports/{id}/download',
-    summary: '下载校验完成的 XLSX；只读 Cookie 会话下载',
+    summary: '下载校验完成的 XLSX 或 CSV；只读 Cookie 会话下载',
     response: z.string(),
     channel: 'web',
-    responseMedia: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    responseMedia: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'],
   },
 ];

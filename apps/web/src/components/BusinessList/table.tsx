@@ -65,6 +65,27 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
   const batchRows: BatchRow[] = Object.values(props.selection.rows)
     .filter((row) => selected.some((id) => String(id) === String(row.id)) && row.eligible)
     .map((row) => ({ id: String(row.id), number: row.number ?? String(row.id) }));
+  const exportPanel = (
+    <div className="business-list-toolbar-slot" key="export">
+      <ExportPanel
+        refreshing={props.refreshing}
+        context={{
+          kind: name,
+          query: state.params,
+          columns: columnPrefs.visible,
+          viewToken: data.viewToken ?? '',
+          selected: selected.map((id) => ({ id: String(id), token: props.selection.tokens[String(id)] ?? '' })),
+          total: data.total,
+          pageCount: data.items.length,
+          matchedLineTotal: data.matchedTotals?.lineCount,
+          matchedLinePageCount: data.items.reduce(
+            (sum, row) => sum + Number((row as { matchedLineCount?: number }).matchedLineCount ?? 0),
+            0,
+          ),
+        }}
+      />
+    </div>
+  );
   const openDetail = (row: Row) => {
     if (!reverseLookup) return;
     navigate(`/${name}/${String(row.id)}`, { state: { listReturn: location.pathname + location.search } });
@@ -116,30 +137,18 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
         }}
         columnsState={columnPrefs.state}
         toolBarRender={() => [
-          selected.length > 0 && reverseLookup ? (
-            <BatchReverseActions
-              key="batch-reverse"
-              kind={lifecycleKind!}
-              rows={batchRows}
-              selectedCount={selected.length}
-              onClear={() => setSelected([])}
-            />
-          ) : (
-            <div className="business-list-toolbar-slot" key="export">
-              <ExportPanel
-                refreshing={props.refreshing}
-                context={{
-                  kind: name,
-                  query: state.params,
-                  columns: columnPrefs.visible,
-                  viewToken: data.viewToken ?? '',
-                  selected: selected.map((id) => ({ id: String(id), token: props.selection.tokens[String(id)] ?? '' })),
-                  total: data.total,
-                  pageCount: data.items.length,
-                }}
-              />
-            </div>
-          ),
+          ...(selected.length > 0 && reverseLookup
+            ? [
+                <BatchReverseActions
+                  key="batch-reverse"
+                  kind={lifecycleKind!}
+                  rows={batchRows}
+                  selectedCount={selected.length}
+                  onClear={() => setSelected([])}
+                />,
+              ]
+            : []),
+          exportPanel,
         ]}
         scroll={{ x: 'max-content', y: 480 }}
         locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}

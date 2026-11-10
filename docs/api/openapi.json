@@ -147,6 +147,14 @@
         ],
         "type": "string"
       },
+      "S_081c4797b6f407b0": {
+        "default": "xlsx",
+        "enum": [
+          "xlsx",
+          "csv"
+        ],
+        "type": "string"
+      },
       "S_098299344baa1906": {
         "additionalProperties": false,
         "properties": {
@@ -659,31 +667,6 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {},
-        "type": "object"
-      },
-      "S_26cbc34fbf355c53": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_fb0e83ef5c195d53"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
         "type": "object"
       },
       "S_27a690a677b2b267": {
@@ -1322,6 +1305,10 @@
           "traceId"
         ],
         "type": "object"
+      },
+      "S_55c9bc289f10b16f": {
+        "format": "binary",
+        "type": "string"
       },
       "S_56021dacef2594a9": {
         "items": {
@@ -1964,6 +1951,31 @@
         ],
         "type": "string"
       },
+      "S_86823722a418c35b": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_d26d7d879ca4250c"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_86ec77b1bd5c9e95": {
         "anyOf": [
           {
@@ -2452,6 +2464,14 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_ae946eb878ef6041": {
+        "default": "document_summary",
+        "enum": [
+          "document_summary",
+          "matched_lines"
+        ],
+        "type": "string"
       },
       "S_aebda1b66e945ce3": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -3148,6 +3168,90 @@
         ],
         "type": "object"
       },
+      "S_d26d7d879ca4250c": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "columns": {
+            "$ref": "#/components/schemas/S_f36b924a373c642e"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "elapsedMs": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "error": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "errorCode": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "format": {
+            "$ref": "#/components/schemas/S_081c4797b6f407b0"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_3c9135158f98d651"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/S_373c422304eb28d8"
+          },
+          "processed": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "requestHash": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/S_ae946eb878ef6041"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/S_051114523dc3c550"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "state": {
+            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/S_78a1736e4c355538"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scope",
+          "schema",
+          "format",
+          "state",
+          "createdAt",
+          "expiresAt",
+          "processed",
+          "total",
+          "columns",
+          "totals",
+          "preview",
+          "error",
+          "errorCode",
+          "sha256",
+          "bytes",
+          "elapsedMs",
+          "requestHash"
+        ],
+        "type": "object"
+      },
       "S_d66426f1d7997a59": {
         "format": "date",
         "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
@@ -3381,82 +3485,6 @@
           }
         ],
         "default": null
-      },
-      "S_fb0e83ef5c195d53": {
-        "additionalProperties": false,
-        "properties": {
-          "bytes": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "columns": {
-            "$ref": "#/components/schemas/S_f36b924a373c642e"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "elapsedMs": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "error": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "errorCode": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "expiresAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_3c9135158f98d651"
-          },
-          "preview": {
-            "$ref": "#/components/schemas/S_373c422304eb28d8"
-          },
-          "processed": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "requestHash": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/S_051114523dc3c550"
-          },
-          "sha256": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "state": {
-            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "totals": {
-            "$ref": "#/components/schemas/S_78a1736e4c355538"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "scope",
-          "state",
-          "createdAt",
-          "expiresAt",
-          "processed",
-          "total",
-          "columns",
-          "totals",
-          "preview",
-          "error",
-          "errorCode",
-          "sha256",
-          "bytes",
-          "elapsedMs",
-          "requestHash"
-        ],
-        "type": "object"
       },
       "S_fb2f1ad6a1e904c9": {
         "additionalProperties": false,
@@ -18283,6 +18311,9 @@
                     "minItems": 1,
                     "type": "array"
                   },
+                  "format": {
+                    "$ref": "#/components/schemas/S_081c4797b6f407b0"
+                  },
                   "kind": {
                     "$ref": "#/components/schemas/S_3c9135158f98d651"
                   },
@@ -18297,6 +18328,9 @@
                   },
                   "requestId": {
                     "$ref": "#/components/schemas/S_118b3f027283832f"
+                  },
+                  "schema": {
+                    "$ref": "#/components/schemas/S_ae946eb878ef6041"
                   },
                   "scope": {
                     "$ref": "#/components/schemas/S_051114523dc3c550"
@@ -18346,7 +18380,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_26cbc34fbf355c53"
+                  "$ref": "#/components/schemas/S_86823722a418c35b"
                 }
               }
             },
@@ -18451,7 +18485,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "固定筛选、列与视图摘要，异步流式生成 XLSX；第二任务返回 EXPORT_BUSY",
+        "summary": "固定筛选、列与视图摘要，异步生成 XLSX 或 CSV；第二任务返回 EXPORT_BUSY",
         "x-client-channel": "web"
       }
     },
@@ -18472,7 +18506,7 @@
                     "data": {
                       "anyOf": [
                         {
-                          "$ref": "#/components/schemas/S_fb0e83ef5c195d53"
+                          "$ref": "#/components/schemas/S_d26d7d879ca4250c"
                         },
                         {
                           "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -18618,7 +18652,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_26cbc34fbf355c53"
+                  "$ref": "#/components/schemas/S_86823722a418c35b"
                 }
               }
             },
@@ -18744,7 +18778,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_26cbc34fbf355c53"
+                  "$ref": "#/components/schemas/S_86823722a418c35b"
                 }
               }
             },
@@ -18870,8 +18904,12 @@
             "content": {
               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
                 "schema": {
-                  "format": "binary",
-                  "type": "string"
+                  "$ref": "#/components/schemas/S_55c9bc289f10b16f"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_55c9bc289f10b16f"
                 }
               }
             },
@@ -18976,7 +19014,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "下载校验完成的 XLSX；只读 Cookie 会话下载",
+        "summary": "下载校验完成的 XLSX 或 CSV；只读 Cookie 会话下载",
         "x-client-channel": "web"
       }
     },

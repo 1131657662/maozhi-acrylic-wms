@@ -107,6 +107,15 @@ export const listFields: Record<ExportKind, ListField[]> = {
     f('traceId', '请求编号', 'text', 42),
   ],
 };
+export function matchedLineFields(kind: 'inbound' | 'outbound'): ListField[] {
+  return [
+    f(kind === 'inbound' ? 'receiptNo' : 'orderNo', kind === 'inbound' ? '入库单号' : '出库单号', 'text', 24),
+    f('productCode', '商品编码', 'text', 24),
+    f('productName', '商品名称', 'text', 32),
+    f('packages', '包数', 'integer', 12),
+    f('weightGrams', '重量（吨）', 'tonnes', 18),
+  ];
+}
 export function listCellText(kind: ExportKind, field: ListField, row: Record<string, unknown>): string {
   const value = row[field.key];
   if (field.key === 'status' && !kind.startsWith('report-'))

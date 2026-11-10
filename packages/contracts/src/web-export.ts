@@ -2,19 +2,29 @@ import { z } from 'zod';
 import { exportKindSchema } from './export-kind.ts';
 
 export const exportScopeSchema = z.enum(['all', 'page', 'selected']);
+export const exportSchemaSchema = z.enum(['document_summary', 'matched_lines']);
+export const exportFormatSchema = z.enum(['xlsx', 'csv']);
+export const WEB_EXPORT_MAX_ROWS = 100_000;
+export const WEB_EXPORT_SELECTED_MAX = 5000;
 export const exportRequestSchema = z.strictObject({
   requestId: z.uuid(),
   kind: exportKindSchema,
   scope: exportScopeSchema,
+  schema: exportSchemaSchema.default('document_summary'),
+  format: exportFormatSchema.default('xlsx'),
   query: z.record(z.string().max(64), z.string().max(500)).refine((query) => Object.keys(query).length <= 16),
   columns: z.array(z.string().max(64)).min(1).max(64),
   viewToken: z.string().regex(/^[a-f0-9]{64}$/),
-  selected: z.array(z.strictObject({ id: z.string().max(300), token: z.string().regex(/^[a-f0-9]{64}$/) })).max(5000),
+  selected: z
+    .array(z.strictObject({ id: z.string().max(300), token: z.string().regex(/^[a-f0-9]{64}$/) }))
+    .max(WEB_EXPORT_SELECTED_MAX),
 });
 export const exportJobSchema = z.strictObject({
   id: z.uuid(),
   kind: exportKindSchema,
   scope: exportScopeSchema,
+  schema: exportSchemaSchema.default('document_summary'),
+  format: exportFormatSchema.default('xlsx'),
   state: z.enum(['running', 'ready', 'failed', 'cancelled']),
   createdAt: z.string(),
   expiresAt: z.string(),
@@ -30,5 +40,8 @@ export const exportJobSchema = z.strictObject({
   elapsedMs: z.number(),
   requestHash: z.string(),
 });
-export type ExportRequest = z.infer<typeof exportRequestSchema>;
+export type ExportRequest = Omit<z.infer<typeof exportRequestSchema>, 'schema' | 'format'> & {
+  schema?: z.infer<typeof exportSchemaSchema>;
+  format?: z.infer<typeof exportFormatSchema>;
+};
 export type ExportJob = z.infer<typeof exportJobSchema>;

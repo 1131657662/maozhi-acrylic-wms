@@ -7,14 +7,21 @@ import { writeReconciliation } from './report-sheet.ts';
 
 const formats = { text: '@', integer: '0', tonnes: '0.0000', date: 'yyyy/mm/dd hh:mm:ss' };
 const maxExcelInteger = 999_999_999_999_999;
-export class XlsxWriter {
+export interface ExportWriter {
+  append(row: Record<string, unknown>): string[];
+  totals(): Record<string, string>;
+  drain(): Promise<void>;
+  finish(count: number, report?: ReportMeta | DerivedReportMeta): Promise<void>;
+  abort(): Promise<void>;
+}
+export class XlsxWriter implements ExportWriter {
   private readonly output;
   private readonly book;
   private readonly sheet;
   private failure: Error | undefined;
   private sums = new Map<string, bigint>();
   private incompleteSums = new Set<string>();
-  constructor(readonly config: { filename: string; kind: ExportKind; fields: ListField[] }) {
+  constructor(readonly config: { filename: string; kind: ExportKind; fields: ListField[]; rowUnit?: '条' | '行' }) {
     this.output = createWriteStream(config.filename, { flags: 'wx' });
     this.output.on('error', (e) => {
       this.failure = e;
@@ -107,7 +114,11 @@ export class XlsxWriter {
     const totals = this.totals();
     const row = this.sheet.addRow(
       this.config.fields.map((f, i) =>
-        i === 0 ? `合计（${count} 条）` : totals[f.key] === undefined ? '' : Number(totals[f.key]),
+        i === 0
+          ? `合计（${count} ${this.config.rowUnit ?? '条'}）`
+          : totals[f.key] === undefined
+            ? ''
+            : Number(totals[f.key]),
       ),
     );
     row.font = { name: 'Microsoft YaHei', size: 11, bold: true };

@@ -25,6 +25,7 @@ export interface ExportPage {
   viewToken: string;
   rowTokens?: Record<string, string>;
   subtotal?: { packages: number; weightGrams: number };
+  matchedTotals?: { documentCount: number; lineCount: number; packages: number; weightGrams: number };
   report?: ReportMeta | DerivedReportMeta;
 }
 export interface ExportBatch {

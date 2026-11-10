@@ -8,13 +8,16 @@ import { logger } from '../../shared/logger.ts';
 import { ExportFiles } from './files.ts';
 import { exportReader } from './read.ts';
 import { generateSnapshot, requestedFields, type ExportHooks } from './generate.ts';
-import { XlsxWriter } from './writer.ts';
+import { CsvWriter } from './csv-writer.ts';
+import { XlsxWriter, type ExportWriter } from './writer.ts';
 import { newExportJob } from './job.ts';
+import { assertExportLimit } from './preflight.ts';
 
 export class WebExports {
   private jobs = new Map<string, ExportJob>();
   private cancellations = new Set<string>();
   private active: string | undefined;
+  private starting: { requestId: string; requestHash: string; promise: Promise<ExportJob> } | undefined;
   private ready: Promise<void>;
   private files: ExportFiles;
   constructor(
@@ -43,6 +46,8 @@ export class WebExports {
     await this.ready;
     await this.expire();
     requestedFields(request);
+    if (request.format === 'csv' && request.kind.startsWith('report-'))
+      throw new AppError('EXPORT_FORMAT', '报表导出仅支持 XLSX', 422);
     exportReader(request.kind, request.query);
     if (new Set(request.selected.map((r) => r.id)).size !== request.selected.length)
       throw new AppError('EXPORT_SELECTION', '选择记录重复', 422);
@@ -52,16 +57,35 @@ export class WebExports {
         throw new AppError('IDEMPOTENCY_CONFLICT', '同一请求键不能改变导出参数', 409);
       return this.get(existing.id);
     }
+    const requestHash = hash(JSON.stringify(request));
+    if (this.starting) {
+      if (this.starting.requestId === request.requestId) {
+        if (this.starting.requestHash !== requestHash)
+          throw new AppError('IDEMPOTENCY_CONFLICT', '同一请求键不能改变导出参数', 409);
+        return this.starting.promise;
+      }
+      throw new AppError('EXPORT_BUSY', '已有导出在进行，请查看进度或取消后再试', 409);
+    }
     if (this.active) throw new AppError('EXPORT_BUSY', '已有导出在进行，请查看进度或取消后再试', 409);
+    const promise = this.createReserved(request, actor);
+    this.starting = { requestId: request.requestId, requestHash, promise };
+    try {
+      return await promise;
+    } finally {
+      if (this.starting?.requestId === request.requestId) this.starting = undefined;
+    }
+  }
+  private async createReserved(request: ExportRequest, actor: Actor): Promise<ExportJob> {
+    await assertExportLimit(this.db, request);
     const job = newExportJob(request);
     this.active = job.id;
     this.jobs.set(job.id, job);
     try {
       await this.files.save(job);
-    } catch (e) {
+    } catch (error) {
       this.active = undefined;
       this.jobs.delete(job.id);
-      throw e;
+      throw error;
     }
     void this.run(request, job, actor);
     return job;
@@ -95,22 +119,25 @@ export class WebExports {
       'report-turnover': '周转率',
       'report-aging': '库存库龄',
     };
+    const extension = job.format;
     return {
-      path: this.files.file(id, 'xlsx'),
-      name: `${names[job.kind]}-${job.scope}-${job.createdAt.slice(0, 10)}.xlsx`,
+      path: this.files.file(id, extension),
+      name: `${names[job.kind]}-${job.scope}-${job.createdAt.slice(0, 10)}.${extension}`,
     };
   }
   private ensureNotCancelled(job: ExportJob): void {
     if (this.cancellations.has(job.id)) throw new AppError('EXPORT_CANCELLED', '导出已取消，未提供部分文件', 409);
   }
   private async run(request: ExportRequest, job: ExportJob, actor: Actor): Promise<void> {
-    let writer: XlsxWriter | undefined;
+    let writer: ExportWriter | undefined;
     try {
-      writer = new XlsxWriter({
+      const config = {
         filename: this.files.file(job.id, 'part'),
         kind: request.kind,
         fields: requestedFields(request),
-      });
+        rowUnit: job.schema === 'matched_lines' ? ('行' as const) : ('条' as const),
+      };
+      writer = (request.format ?? 'xlsx') === 'csv' ? new CsvWriter(config) : new XlsxWriter(config);
       await generateSnapshot(this.db, {
         request,
         job,
@@ -120,7 +147,7 @@ export class WebExports {
       });
       await this.hooks.beforePublish?.();
       this.ensureNotCancelled(job);
-      const artifact = await this.files.publish(job.id);
+      const artifact = await this.files.publish(job.id, job.format);
       this.ensureNotCancelled(job);
       await this.record(actor, job, 'export.generated');
       this.ensureNotCancelled(job);
@@ -141,7 +168,7 @@ export class WebExports {
       this.cancellations.delete(job.id);
     }
   }
-  private async fail(job: ExportJob, actor: Actor, error: unknown, writer?: XlsxWriter): Promise<void> {
+  private async fail(job: ExportJob, actor: Actor, error: unknown, writer?: ExportWriter): Promise<void> {
     const known = error instanceof AppError;
     Object.assign(job, {
       state: known && error.code === 'EXPORT_CANCELLED' ? 'cancelled' : 'failed',
