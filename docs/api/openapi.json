@@ -1270,6 +1270,20 @@
         "maxLength": 100,
         "type": "string"
       },
+      "S_50a6431f23c4c982": {
+        "items": {
+          "$ref": "#/components/schemas/S_7daff982052e5fd4"
+        },
+        "type": "array"
+      },
+      "S_53912b7f03a1cb6a": {
+        "default": "any",
+        "enum": [
+          "any",
+          "all"
+        ],
+        "type": "string"
+      },
       "S_53ae93326f9389ef": {
         "default": 1,
         "maximum": 100000,
@@ -1477,6 +1491,30 @@
         "maxLength": 32,
         "type": "string"
       },
+      "S_6ea2986d6eef502e": {
+        "additionalProperties": false,
+        "properties": {
+          "documentCount": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "lineCount": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "packages": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "weightGrams": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          }
+        },
+        "required": [
+          "documentCount",
+          "lineCount",
+          "packages",
+          "weightGrams"
+        ],
+        "type": "object"
+      },
       "S_6ee1e29cc769b310": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -1572,6 +1610,13 @@
         "maxLength": 200,
         "minLength": 1,
         "type": "string"
+      },
+      "S_71bd689a511b9373": {
+        "items": {
+          "$ref": "#/components/schemas/S_9eb0eb957a2a89f3"
+        },
+        "maxItems": 100,
+        "type": "array"
       },
       "S_74718fdbe8ea0fb7": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1733,6 +1778,34 @@
         "maxLength": 64,
         "type": "string"
       },
+      "S_7daff982052e5fd4": {
+        "additionalProperties": false,
+        "properties": {
+          "lineId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "packages": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "productCode": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "productName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "weightGrams": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          }
+        },
+        "required": [
+          "lineId",
+          "productCode",
+          "productName",
+          "packages",
+          "weightGrams"
+        ],
+        "type": "object"
+      },
       "S_81281f4799de3c29": {
         "additionalProperties": false,
         "properties": {
@@ -1817,6 +1890,12 @@
           "lines"
         ],
         "type": "object"
+      },
+      "S_836195ac4b977fb0": {
+        "default": 50,
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer"
       },
       "S_83f6485d0d169a84": {
         "maximum": 9007199254740991,
@@ -18917,7 +18996,7 @@
             "name": "pageSize",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/S_1141380dbd74c7c3"
+              "$ref": "#/components/schemas/S_836195ac4b977fb0"
             }
           },
           {
@@ -19382,7 +19461,7 @@
             "name": "pageSize",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/S_1141380dbd74c7c3"
+              "$ref": "#/components/schemas/S_836195ac4b977fb0"
             }
           },
           {
@@ -19423,6 +19502,22 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_fc8e894ba12ab9e1"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_71bd689a511b9373"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productMode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_53912b7f03a1cb6a"
             }
           },
           {
@@ -19524,6 +19619,12 @@
                               "id": {
                                 "$ref": "#/components/schemas/S_8be39a00885cebc9"
                               },
+                              "matchedLineCount": {
+                                "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                              },
+                              "matchedLines": {
+                                "$ref": "#/components/schemas/S_50a6431f23c4c982"
+                              },
                               "memo": {
                                 "$ref": "#/components/schemas/S_174e29b899b9ef91"
                               },
@@ -19582,6 +19683,9 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "matchedTotals": {
+                          "$ref": "#/components/schemas/S_6ea2986d6eef502e"
                         },
                         "page": {
                           "$ref": "#/components/schemas/S_9c3981b1e1b076db"
@@ -19746,7 +19850,7 @@
             "name": "pageSize",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/S_1141380dbd74c7c3"
+              "$ref": "#/components/schemas/S_836195ac4b977fb0"
             }
           },
           {
@@ -19787,6 +19891,22 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_fc8e894ba12ab9e1"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_71bd689a511b9373"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productMode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_53912b7f03a1cb6a"
             }
           },
           {
@@ -19872,6 +19992,12 @@
                               "id": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
+                              "matchedLineCount": {
+                                "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                              },
+                              "matchedLines": {
+                                "$ref": "#/components/schemas/S_50a6431f23c4c982"
+                              },
                               "orderNo": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
@@ -19928,6 +20054,9 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "matchedTotals": {
+                          "$ref": "#/components/schemas/S_6ea2986d6eef502e"
                         },
                         "page": {
                           "$ref": "#/components/schemas/S_9c3981b1e1b076db"
@@ -20092,7 +20221,7 @@
             "name": "pageSize",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/S_1141380dbd74c7c3"
+              "$ref": "#/components/schemas/S_836195ac4b977fb0"
             }
           },
           {

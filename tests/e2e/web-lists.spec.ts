@@ -96,6 +96,20 @@ for (const item of pages.slice(0, 2)) {
   });
 }
 
+test('B6b Step 2 商品反查摘要与命中行展开', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.goto('/inbound?productCodes=WL-P000001&pageSize=20');
+  await rowsReady(page, 'inbound', 1);
+  await expect(page.getByTestId('matched-summary')).toContainText('命中：');
+  await expect(page.getByTestId('inbound-list')).toContainText('1 单 · 2 行 · 2 包 · 0.6000 吨');
+  await page.getByTestId('inbound-list').locator('.ant-table-row-expand-icon').first().click();
+  await expect(page.getByTestId('matched-lines-table')).toBeVisible();
+  await expect(page.getByTestId('matched-lines-table').getByText('WL-P000001', { exact: true })).toHaveCount(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.screenshot({ path: '.local/evidence/b6b-step2-inbound-1440.png' });
+  console.log('B6B_STEP2_UI inbound=summary+expanded rows=1 width=1440 pageOverflow=0');
+});
+
 test('B1b1 日志历史分页与前后值抽屉', async ({ page }) => {
   await page.goto('/audit?action=list.fixture&page=2&pageSize=200');
   await rowsReady(page, 'audit', 40);

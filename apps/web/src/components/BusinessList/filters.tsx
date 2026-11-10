@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { QueryFilter, ProFormDateRangePicker, ProFormText } from '@ant-design/pro-components';
+import { QueryFilter, ProFormDateRangePicker, ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import type { ListParams } from '../../features/web-lists/keys';
 import type { ListState } from './use-list-state';
 
@@ -16,6 +16,8 @@ function filterValues(params: ListParams): Record<string, unknown> {
     'action',
     'target',
     'traceId',
+    'productCodes',
+    'productMode',
   ];
   const fields = Object.fromEntries(names.map((name) => [name, params[name]]));
   return {
@@ -70,4 +72,20 @@ export function ListDateFilter({ label, hidden }: { label: string; hidden?: bool
 }
 export function WarehouseFilter({ hidden }: { hidden?: boolean }) {
   return <ProFormText name="warehouse" label="仓库" hidden={hidden} placeholder="名称或编码" />;
+}
+export function ProductReverseFilters() {
+  return (
+    <>
+      <ProFormText name="productCodes" label="商品编码" placeholder="多个编码用逗号分隔" />
+      <ProFormSelect
+        name="productMode"
+        label="匹配方式"
+        placeholder="任一商品"
+        options={[
+          { value: 'any', label: '任一商品' },
+          { value: 'all', label: '全部商品' },
+        ]}
+      />
+    </>
+  );
 }

@@ -1,10 +1,12 @@
-import { WEB_LIST_PAGE_SIZES, type ExportKind } from '@wms/contracts';
+import { WEB_LIST_PAGE_SIZES, tonnes, type ExportKind, type WebMatchedTotals } from '@wms/contracts';
 import type { ListColumnPreferences } from './use-list-columns';
 import { ExportPanel } from '../../features/web-exports/panel';
 import { useMemo, type Key, type ReactNode } from 'react';
 import { Button } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import type { ListState } from './use-list-state';
+import { MatchedLines } from './matched-lines';
+import type { WebMatchedLine } from '@wms/contracts';
 
 export interface ListData<Row> {
   items: Row[];
@@ -13,6 +15,7 @@ export interface ListData<Row> {
   pageSize: number;
   viewToken?: string;
   rowTokens?: Record<string, string>;
+  matchedTotals?: WebMatchedTotals;
 }
 interface Props<Row> {
   data: ListData<Row>;
@@ -29,23 +32,40 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
   const { data, state, name, columnPrefs } = props;
   const configured = useMemo(
     () =>
-      columnPrefs.configured.map((column) => ({
-        ...column,
-        sortOrder:
-          column.dataIndex === state.params.sortBy
-            ? ((state.params.direction === 'asc' ? 'ascend' : 'descend') as 'ascend' | 'descend')
-            : null,
-      })),
-    [columnPrefs.configured, state.params.sortBy, state.params.direction],
+      columnPrefs.configured
+        .filter((column) => column.dataIndex !== 'matchedSummary' || Boolean(state.params.productCodes))
+        .map((column) => ({
+          ...column,
+          sortOrder:
+            column.dataIndex === state.params.sortBy
+              ? ((state.params.direction === 'asc' ? 'ascend' : 'descend') as 'ascend' | 'descend')
+              : null,
+        })),
+    [columnPrefs.configured, state.params.productCodes, state.params.sortBy, state.params.direction],
   );
+  const reverseLookup = name === 'inbound' || name === 'outbound';
+  const expandable =
+    reverseLookup && state.params.productCodes
+      ? {
+          rowExpandable: (row: Row & { matchedLineCount?: number }) => (row.matchedLineCount ?? 0) > 0,
+          expandedRowRender: (row: Row & { matchedLines?: WebMatchedLine[] }) => (
+            <MatchedLines lines={row.matchedLines ?? []} />
+          ),
+        }
+      : undefined;
   return (
     <ProTable<Row>
       rowKey="id"
       columns={configured}
+      expandable={expandable}
       dataSource={data.items}
       search={false}
       sortDirections={['ascend', 'descend', 'ascend']}
-      headerTitle={`查询结果 · ${data.total} 条`}
+      headerTitle={
+        data.matchedTotals
+          ? `查询结果 · ${data.matchedTotals.documentCount} 单 · ${data.matchedTotals.lineCount} 行 · ${data.matchedTotals.packages} 包 · ${tonnes(data.matchedTotals.weightGrams)} 吨`
+          : `查询结果 · ${data.total} 条`
+      }
       loading={props.refreshing}
       size="middle"
       options={{

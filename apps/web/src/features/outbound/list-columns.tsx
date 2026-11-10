@@ -4,6 +4,7 @@ import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
 import { CorrectionRowActions } from '../corrections/row-actions';
+import { matchedSummary } from '../../components/BusinessList/matched-lines';
 
 export const outboundColumns: ProColumns<WebOutboundRow>[] = [
   {
@@ -14,6 +15,14 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     sorter: true,
     hideInSetting: true,
     render: (_, row) => <ListDetailLink to={'/outbound/' + row.id}>{row.orderNo}</ListDetailLink>,
+  },
+  {
+    title: '商品反查',
+    dataIndex: 'matchedSummary',
+    key: 'matchedSummary',
+    width: 300,
+    hideInSetting: true,
+    render: (_, row) => <span data-testid="matched-summary">{matchedSummary(row.matchedLines)}</span>,
   },
   { title: '计划包数', dataIndex: 'plannedPackages', width: 100, align: 'right' },
   {

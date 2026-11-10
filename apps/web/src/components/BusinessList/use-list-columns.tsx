@@ -68,7 +68,12 @@ export function useListColumns<Row extends { id: React.Key }>(
   };
   const configured = useMemo(() => columns.map((c) => displayColumn(kind, c)), [kind, columns]);
   const visible = configured
-    .filter((c) => c.dataIndex && value[String(c.dataIndex)]?.show !== false)
+    .filter(
+      (c) =>
+        c.dataIndex &&
+        listFields[kind].some((field) => field.key === c.dataIndex) &&
+        value[String(c.dataIndex)]?.show !== false,
+    )
     .sort((a, b) => {
       const x = value[String(a.dataIndex)]!;
       const y = value[String(b.dataIndex)]!;
