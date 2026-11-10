@@ -24,7 +24,7 @@ export const ledgerFields = `${balanceFields},
   COALESCE(i.memo,hi.memo,'') AS memo,COALESCE(b.customer_name,hb.customer_name,su.name,'') AS partner,
   c.original_operation_id AS originalOperationId`;
 export const balanceFrom = `FROM stock_journal s
-  JOIN master_products p ON p.code=s.product_code AND p.source_kind='erp-product'
+  JOIN master_products p ON p.code=s.product_code AND p.inventory_eligible=1
   LEFT JOIN master_warehouses w ON w.code=s.warehouse_code
   LEFT JOIN inventory_operations o ON o.id=s.operation_id
   LEFT JOIN document_closures c ON c.compensation_operation_id=o.id
@@ -40,9 +40,10 @@ export const ledgerFrom = `${balanceFrom}
   LEFT JOIN outbound_orders b ON b.id=s.order_id
   LEFT JOIN outbound_orders hb ON hb.order_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='outbound'
   LEFT JOIN master_suppliers su ON su.code=COALESCE(i.supplier_code,hi.supplier_code)`;
-export function dimensionFilter(query: Pick<ReportQuery, 'warehouse' | 'product'>) {
+export function dimensionFilter(query: Pick<ReportQuery, 'warehouse' | 'product'> & { source?: string }) {
   const clauses: string[] = [],
     values: string[] = [];
+  if (query.source === 'erp-product') clauses.push("p.source_kind='erp-product'");
   if (query.warehouse) {
     clauses.push("(s.warehouse_code LIKE ? ESCAPE '!' OR w.name LIKE ? ESCAPE '!')");
     values.push(contains(query.warehouse), contains(query.warehouse));

@@ -7,12 +7,12 @@ export const masterDataKeys = createQueryKeys('masterData', {
     queryKey: [catalog, query],
     queryFn: () =>
       request(
-        `/master-data/${catalog}?${new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]))}`,
+        `/master/${catalog}?${new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]))}`,
         masterPageSchema,
       ),
   }),
   detail: (catalog: MasterCatalog, code: string) => ({
     queryKey: [catalog, code],
-    queryFn: () => request(`/master-data/${catalog}/${encodeURIComponent(code)}`, masterItemSchema),
+    queryFn: () => request(`/master/${catalog}/${encodeURIComponent(code)}`, masterItemSchema),
   }),
 });

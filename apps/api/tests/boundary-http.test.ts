@@ -92,7 +92,7 @@ test('B4a R1 下载→离线扫码→Web修改→原UUID/正文补传；明细�
   }
 });
 
-test('B4a R2 商品写入口全部关闭；app/SPEC入库出库建单均拒绝且无写入', async () => {
+test('B6a 取代B4a R2：未授资格app/SPEC建单拒绝且无写入', async () => {
   const f = await numberingFixture();
   try {
     for (const [code, kind] of [
@@ -104,20 +104,6 @@ test('B4a R2 商品写入口全部关闭；app/SPEC入库出库建单均拒绝�
         [code!, code!, kind!],
       );
     const before = await businessFingerprint(f.db);
-    await f.web
-      .post('/api/v1/master-data/products')
-      .set('Origin', origin)
-      .send({ code: 'BLOCKED', name: '不应创建' })
-      .expect(403);
-    for (const input of [{ name: '不应改名' }, { active: false }, { active: true }]) {
-      const response = await f.web
-        .patch('/api/v1/master-data/products/ACR-032')
-        .set('Origin', origin)
-        .send(input)
-        .expect(403);
-      assert.equal(response.body.code, 'PRODUCT_MASTER_READ_ONLY');
-      assert.equal(response.body.message, '商品由 ERP 维护，此处只读');
-    }
     for (const code of ['LOCAL-APP', 'SPEC-ONLY'])
       for (const kind of ['inbound', 'outbound']) {
         const input =
@@ -137,12 +123,13 @@ test('B4a R2 商品写入口全部关闭；app/SPEC入库出库建单均拒绝�
         );
       }
     assert.deepEqual(await businessFingerprint(f.db), before);
-    const products = (await f.web.get('/api/v1/master-data/products').expect(200)).body.data.items;
+    const products = (await f.web.get('/api/v1/master-data/products?scope=inventory').expect(200)).body.data.items;
     assert.deepEqual(
       products.map((row: { code: string }) => row.code),
       ['ACR-032'],
     );
-    for (const code of ['LOCAL-APP', 'SPEC-ONLY']) await f.web.get(`/api/v1/master-data/products/${code}`).expect(404);
+    await f.web.get('/api/v1/master-data/products/LOCAL-APP').expect(200);
+    await f.web.get('/api/v1/master-data/products/SPEC-ONLY').expect(404);
   } finally {
     await f.dispose();
   }

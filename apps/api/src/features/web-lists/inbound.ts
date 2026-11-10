@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { webInboundListSchema, type WebInboundQuery } from '@wms/contracts';
+import { webInboundListSchema, SNAPSHOT_MISSING_TEXT, type WebInboundQuery } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
 import {
@@ -13,9 +13,9 @@ import {
 } from './query.ts';
 
 const fields = `r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
-  r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(s.name,r.supplier_code) AS supplierName,
-  r.warehouse_code AS warehouseCode,COALESCE(w.name,r.warehouse_code) AS warehouseName,
-  r.memo,r.created_by AS createdBy,r.created_at AS createdAt`;
+  r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS supplierName,
+  r.warehouse_code AS warehouseCode,COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,
+  r.contact_id AS contactId,r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress,r.memo,r.created_by AS createdBy,r.created_at AS createdAt`;
 const sortColumns = {
   createdAt: 'r.created_at',
   receiptNo: 'r.receipt_no',
@@ -31,8 +31,8 @@ export function inboundPredicate(query: Omit<WebInboundQuery, 'pageSize'> & { pa
     values: [] as string[],
   };
   textFilter(parts, ['r.receipt_no'], query.keyword);
-  textFilter(parts, ['r.supplier_code', 's.name'], query.supplier);
-  textFilter(parts, ['r.warehouse_code', 'w.name'], query.warehouse);
+  textFilter(parts, ['r.supplier_code', 'r.supplier_name_snapshot'], query.supplier);
+  textFilter(parts, ['r.warehouse_code', 'r.warehouse_name_snapshot'], query.warehouse);
   statusFilter(parts, 'r.status', query);
   dateFilter(parts, 'r.created_at', query);
   if (query.postingState) {
@@ -42,10 +42,11 @@ export function inboundPredicate(query: Omit<WebInboundQuery, 'pageSize'> & { pa
   return parts;
 }
 async function lineSummaries(db: Database, ids: string[]) {
-  if (!ids.length) return new Map<string, { packages: number; weightGrams: number; products: string[] }>();
+  if (!ids.length)
+    return new Map<string, { packages: number; weightGrams: number; products: string[]; productModels: string[] }>();
   const rows = await db.all(
     `SELECT l.receipt_id,SUM(l.packages) AS packages,SUM(l.weight_tonnes) AS tonnes,
-    JSON_ARRAYAGG(COALESCE(p.name,l.product_code)) AS products FROM inbound_lines l
+    JSON_ARRAYAGG(COALESCE(NULLIF(l.product_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}')) AS products,JSON_ARRAYAGG(COALESCE(NULLIF(l.product_model_snapshot,''),'${SNAPSHOT_MISSING_TEXT}')) AS productModels FROM inbound_lines l
     LEFT JOIN master_products p ON p.code=l.product_code AND p.source_del_flag=0
     WHERE l.source_del_flag=0 AND l.receipt_id IN (${ids.map(() => '?').join(',')}) GROUP BY l.receipt_id`,
     ids,
@@ -56,6 +57,10 @@ async function lineSummaries(db: Database, ids: string[]) {
       {
         packages: Number(row.packages),
         weightGrams: aggregateGrams(row.tonnes),
+        productModels: z
+          .array(z.string())
+          .parse(typeof row.productModels === 'string' ? JSON.parse(row.productModels) : row.productModels)
+          .sort(),
         products: z
           .array(z.string())
           .parse(typeof row.products === 'string' ? JSON.parse(row.products) : row.products)
@@ -82,7 +87,7 @@ export async function listWebInbound(db: Database, query: ListReadQuery<WebInbou
     const items = page.rows.map((row) => ({
       ...row,
       createdAt: isoDate(row.createdAt),
-      ...(summaries.get(String(row.id)) ?? { packages: 0, weightGrams: 0, products: [] }),
+      ...(summaries.get(String(row.id)) ?? { packages: 0, weightGrams: 0, products: [], productModels: [] }),
     }));
     return webInboundListSchema.parse(pageResult(items, page.total, query));
   });

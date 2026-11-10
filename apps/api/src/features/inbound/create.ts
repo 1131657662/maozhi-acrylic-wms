@@ -11,6 +11,7 @@ import { getInbound } from './repository.ts';
 import { allocateNumber } from '../document-numbering/service.ts';
 import { requireInventoryProduct } from '../inventory/posting.ts';
 import { validateBusinessDate } from '../business-date/policy.ts';
+import { captureInboundSnapshots } from './snapshots.ts';
 
 export async function createInbound(db: Database, input: CreateInbound, key: string, actor: Actor) {
   const payload = createInboundSchema.parse(input);
@@ -41,6 +42,7 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
         ],
       );
       await addLines(tx, id, payload, products);
+      await captureInboundSnapshots(tx, id, payload);
       const after = await getInbound(tx, id);
       await audit(tx, actor, {
         action: 'inbound.create',

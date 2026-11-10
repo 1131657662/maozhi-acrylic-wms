@@ -4,7 +4,7 @@ import { Button } from 'antd';
 import { useState } from 'react';
 import { AdjustmentDrawer } from './adjustment-drawer';
 
-type ErpStock = Extract<SourceStock, { source: 'erp-product' }>;
+type ErpStock = Extract<SourceStock, { source: 'inventory' }>;
 
 const stockColumns: ProColumns<SourceStockRow>[] = [
   { title: '仓库', dataIndex: 'warehouseCode' },
@@ -38,7 +38,7 @@ const subtotalColumns: ProDescriptionsProps<NonNullable<SourceStock['subtotal']>
 function SourceSubtotal({ data }: { data: ErpStock }) {
   if (!data.subtotal) return null;
   return (
-    <ProDescriptions title="ERP 商品 · 库存汇总" column={2} dataSource={data.subtotal} columns={subtotalColumns} />
+    <ProDescriptions title="库存商品 · 库存汇总" column={2} dataSource={data.subtotal} columns={subtotalColumns} />
   );
 }
 
@@ -50,11 +50,11 @@ export function SourceStockTable({ data }: { data: ErpStock }) {
       <ProTable<SourceStockRow>
         rowKey={(row) => `${row.warehouseCode}/${row.productCode}`}
         dataSource={data.items}
-        headerTitle="ERP 商品 · 库存明细"
+        headerTitle="库存商品 · 库存明细"
         search={false}
         options={false}
         pagination={false}
-        locale={{ emptyText: '暂无 ERP 商品库存；请核对入库单据' }}
+        locale={{ emptyText: '暂无 库存商品库存；请核对入库单据' }}
         columns={[
           ...stockColumns,
           {

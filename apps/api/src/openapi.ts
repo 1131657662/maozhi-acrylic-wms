@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { masterOperations } from './features/master-data/openapi.ts';
 import { shareSchemas, type OpenApiPaths } from './openapi-schemas.ts';
 import { webListOperations } from './features/web-lists/openapi.ts';
 import { webExportOperations } from './features/web-exports/openapi.ts';
@@ -22,11 +23,6 @@ import {
   stockSchema,
   auditSchema,
   masterCatalogSchema,
-  masterPageSchema,
-  masterListQuerySchema,
-  masterItemSchema,
-  createMasterItemSchema,
-  updateMasterItemSchema,
   createInboundSchema,
   inboundListQuerySchema,
   inboundListSchema,
@@ -46,7 +42,7 @@ import {
 } from '@wms/contracts';
 
 export interface Operation {
-  method: 'get' | 'post' | 'patch' | 'put';
+  method: 'get' | 'post' | 'patch' | 'put' | 'delete';
   path: string;
   summary: string;
   response: z.ZodType;
@@ -59,6 +55,7 @@ export interface Operation {
   successStatus?: number;
 }
 export const operations: Operation[] = [
+  ...masterOperations,
   ...correctionOperations,
   ...reportOperations,
   ...stocktakeOperations,
@@ -79,7 +76,7 @@ export const operations: Operation[] = [
   {
     method: 'post',
     path: '/stock/adjustments',
-    summary: 'ERP 库存调整；原因必填，校验当前值，原子记账',
+    summary: '有资格商品库存调整；原因必填，校验当前值，原子记账',
     body: stockAdjustmentSchema,
     response: stockAdjustmentResultSchema,
     channel: 'web',
@@ -88,7 +85,7 @@ export const operations: Operation[] = [
   {
     method: 'get',
     path: '/stock/by-source',
-    summary: '单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计',
+    summary: '单一商品来源库存与小计；source或scope=inventory二选一，无跨源合计；未归属不小计',
     query: stockSourceQuerySchema,
     response: sourceStockSchema,
     channel: 'web',
@@ -96,7 +93,7 @@ export const operations: Operation[] = [
   {
     method: 'get',
     path: '/stock/by-source/journal',
-    summary: '单一商品来源最近流水；来源必填，不提供合计',
+    summary: '单一商品来源最近流水；source或scope=inventory二选一，不提供合计',
     query: sourceJournalQuerySchema,
     response: sourceJournalSchema,
     channel: 'web',
@@ -202,37 +199,6 @@ export const operations: Operation[] = [
   },
   {
     method: 'get',
-    path: '/master-data/{catalog}',
-    summary: '分页搜索主数据；商品只返回 ERP 来源',
-    query: masterListQuerySchema,
-    response: masterPageSchema,
-    channel: 'web',
-  },
-  {
-    method: 'post',
-    path: '/master-data/{catalog}',
-    summary: '新增仓库、客户或供应商；商品只读，返回 PRODUCT_MASTER_READ_ONLY',
-    body: createMasterItemSchema,
-    response: masterItemSchema,
-    channel: 'web',
-  },
-  {
-    method: 'patch',
-    path: '/master-data/{catalog}/{code}',
-    summary: '更新仓库、客户或供应商；商品禁止编辑/启停，返回 PRODUCT_MASTER_READ_ONLY',
-    body: updateMasterItemSchema,
-    response: masterItemSchema,
-    channel: 'web',
-  },
-  {
-    method: 'get',
-    path: '/master-data/{catalog}/{code}',
-    summary: '按精确编码读取已选主数据；可回显停用项，商品仅 ERP 来源',
-    response: masterItemSchema,
-    channel: 'web',
-  },
-  {
-    method: 'get',
     path: '/scan/plans',
     summary: 'PDA 计划列表',
     query: listQuerySchema,
@@ -303,7 +269,18 @@ function operationDocument(operation: Operation): object {
     traceId: z.string(),
   });
   const error = z.toJSONSchema(
-    z.object({ code: z.string(), message: z.string(), data: z.null(), traceId: z.string() }),
+    z.object({
+      code: z.string(),
+      message: z.string(),
+      data: z
+        .object({
+          references: z.array(z.object({ kind: z.string(), documentNo: z.string() })),
+          total: z.number(),
+          truncated: z.boolean(),
+        })
+        .nullable(),
+      traceId: z.string(),
+    }),
   );
   const failures = Object.fromEntries(
     [401, 403, 404, 409, 413, 415, 422, 429, 500].map((status) => [

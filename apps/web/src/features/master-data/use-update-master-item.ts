@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { masterItemSchema, type MasterCatalog } from '@wms/contracts';
+import { masterItemSchema, type MasterCatalog, type UpdateMasterItem } from '@wms/contracts';
 import { request } from '../../api/client';
 import { masterDataKeys } from './keys';
 
-interface UpdateMasterItemInput {
+interface UpdateMasterItemInput extends UpdateMasterItem {
   catalog: MasterCatalog;
   code: string;
   name?: string;
@@ -14,7 +14,7 @@ export function useUpdateMasterItem() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ catalog, code, ...body }: UpdateMasterItemInput) =>
-      request(`/master-data/${catalog}/${encodeURIComponent(code)}`, masterItemSchema, {
+      request(`/master/${catalog}/${encodeURIComponent(code)}`, masterItemSchema, {
         method: 'PATCH',
         body: JSON.stringify(body),
       }),

@@ -61,7 +61,7 @@ export async function validateAnchors(db: Database, state: Anchors): Promise<voi
   const rows = await db.all(
     `SELECT s.warehouse_code,s.product_code,s.packages,s.weight_tonnes,s.source_row_json,
     p.name AS productName,COALESCE(w.name,s.warehouse_code) AS warehouseName
-    FROM stock s JOIN master_products p ON p.code=s.product_code AND p.source_kind='erp-product'
+    FROM stock s JOIN master_products p ON p.code=s.product_code AND p.inventory_eligible=1
     LEFT JOIN master_warehouses w ON w.code=s.warehouse_code WHERE s.source_del_flag=0 ${filter.sql}`,
     filter.values,
   );

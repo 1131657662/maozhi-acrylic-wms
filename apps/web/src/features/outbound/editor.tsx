@@ -1,12 +1,13 @@
 ﻿import { Alert, Button, Skeleton, Space } from 'antd';
 import { Link, useNavigate, useParams } from '@umijs/max';
-import { ProForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import type { OutboundPlanFields } from '@wms/contracts';
 import { tonnesToGrams } from '../../lib/weight-input';
 import { useOrder } from './use-order';
 import { useCreatePlan } from './use-create-plan';
 import { useUpdatePlan } from './use-update-plan';
 import { PlanLinesFields, PlanReadOnlyLines } from './plan-fields';
+import { VehicleField } from '../master-data/vehicle-field';
 import { BusinessDateField } from '../business-date/field';
 import { useBackdateConfirmation } from '../business-date/use-backdate-confirmation';
 
@@ -95,12 +96,7 @@ export function OutboundPlanEditor() {
         </ProForm.Item>
         {order ? <PlanReadOnlyLines order={order} /> : <PlanLinesFields />}
         {!order && <BusinessDateField />}
-        <ProFormText
-          name="vehicleNo"
-          label="车牌 / 车辆标识"
-          rules={[{ required: true }]}
-          fieldProps={{ maxLength: 100 }}
-        />
+        <VehicleField />
         <ProFormTextArea name="memo" label="备注" fieldProps={{ maxLength: 500, rows: 2 }} />
       </ProForm>
     </section>

@@ -10,7 +10,7 @@
 - 与 B4a 的衔接：B4a 曾以 `PRODUCT_MASTER_READ_ONLY` 关闭商品写入；本规范放开商品维护，
   完成下述资格迁移、快照和统一守卫后，移除 `PRODUCT_MASTER_READ_ONLY` 前置校验，保留审计与停用校验，并验收「新建商品可立即用于入库」。只删403不算完成。
 
-来源/库存资格迁移：已核验 `erp-product` 映射为 legacy + eligible；新建入口显式写 local + eligible；sku-spec 永不具备资格；已有 app/未知来源保持 unknown + 非资格并输出诊断，不批量转正。库存与历史报表可读范围按资格及来源证据确定，停用不隐藏已有库存；新建单/新增引用另要求 active。商品选择、入出库确认、调整、盘点、库存与报表同步使用统一资格规则，迁移前后逐来源/仓品包吨对账，不采用 `source_kind != sku-spec`。来源显示不能替代库存资格校验。契约新增scope=inventory表示资格集合；保留旧source=erp-product为历史ERP子集，两者互斥，旧调用不静默扩大来源。新Web切换到scope契约，导出/报表同scope；存量app/未知仍排除。
+来源/库存资格迁移：已核验 `erp-product` 映射为 legacy + eligible；新建入口显式写 local + eligible；sku-spec 永不具备资格；存量 app 逐个检查所有库存行（包括零余额/软删行）和进行中引用：无库存行且无引用才赋 local + eligible；有任一项则 unknown + 非资格，逐项列报告等用户确认；未知来源保持 unknown + 非资格。erp-product 固定 legacy + eligible，sku-spec 永不具备资格，禁止用 CASE 猜来源。库存与历史报表可读范围按资格及来源证据确定，停用不隐藏已有库存；新建单/新增引用另要求 active。商品选择、入出库确认、调整、盘点、库存与报表同步使用统一资格规则，迁移前后逐来源/仓品包吨对账，不采用 `source_kind != sku-spec`。来源显示不能替代库存资格校验。契约新增scope=inventory表示资格集合；保留旧source=erp-product为历史ERP子集，两者互斥，旧调用不静默扩大来源。新Web切换到scope契约，导出/报表同scope；待确认app/未知仍排除。
 
 ## 1. 页面结构
 
@@ -25,7 +25,7 @@
 1. 编码手工填写，不自动生成；
 2. 不可物理删除，只能停用；停用后新单据选不到，历史单据仍显示名称快照；
 3. 编辑不回写历史单据；
-4. 停用前校验：无进行中单据引用。
+4. 停用前校验：无进行中入库单、出库单、盘点快照、未确认调整四类引用；检查与建单/调整统一先锁 app_meta.identity，再锁主数据/单据及库存，禁止检查后产生新引用。当前调整提交即入账，无持久化草稿；仍检查无流水的 stock.adjust 操作，事务内调整与停用互斥。拒绝返回422与 data.references（kind、documentNo），附 total/truncated。
 
 ## 3. 商品分类
 
@@ -52,13 +52,13 @@ code、name、address、status、memo。停用前要求库存为 0 且无进行�
 
 ## 7. 车辆
 
-字段：`master_vehicles` 的 id、plate_original、plate_normalized（去空格转大写，唯一，1–100 字符兼容现有契约）、driver、phone、status、source（manual/auto）、use_count、last_used_at、memo、merged_into_id。新输入5–10字符为常见格式提示，不截断/拒绝已有100字符合法历史值；全空白拒绝。`vehicle_aliases` 保存规范化旧车号唯一键和目标车辆外键，保留合并证据。
+字段：`master_vehicles` 的 id、plate_original、plate_normalized（去空白、转大写、去特殊符号，保留中文与字母数字；唯一；1–100字符）、driver、phone、status、source（manual/auto）、use_count、last_used_at、memo。归一化后为空拒绝。
 
 规则：
-- 唯一允许隐式建档的对象：首次新建出库单或允许状态下改选车牌时，按规范化唯一键查找/创建（source=auto），与单据快照、审计同一事务；原样保存不重复计数。新增 `vehicle_document_uses`，(vehicle_id, document_id) 唯一，首次关联才增加 use_count；last_used_at 为最近首次关联时间，幂等重放不再增加/刷新。
-- 已停用车牌被输入时提示启用，不静默接受；
-- 车辆页可编辑、停用、合并重复车牌。
-- 合并锁双方并防环，旧车辆停用并保留别名、历史关联与车号快照，使用次数按去重单据重算，不物理删除或改历史单号/事实。
+- 唯一允许隐式建档的对象：出库保存/允许状态下改选车牌时按归一化唯一键查找或创建（source=auto），并发冲突复用，与单据快照、审计、幂等同一事务。
+- vehicle_document_uses 的(vehicle_id,document_id)唯一；首次关联才累计次数和最近使用时间，重放不更新。
+- 停用车牌要求显式启用，不静默接受。车辆页支持维护、停用。
+- 本批不建车辆别名表、不做合并；出现实际同车多写法证据后另议。
 
 ## 8. 交互
 
@@ -83,7 +83,7 @@ code、name、address、status、memo。停用前要求库存为 0 且无进行�
 出库单保存 ship_to_name / ship_to_phone / ship_to_address；入库单保存 delivery_name / delivery_phone。
 档案变更不影响历史单据；详情提供「存为收货档案」。
 
-新增头表快照：warehouse_name_snapshot、customer_name_snapshot / supplier_name_snapshot、contact_id、vehicle_id、vehicle_no_snapshot；行表：product_code（原键）、product_name_snapshot、product_model_snapshot、package_type_snapshot。出库已有客户/商品快照字段复用；入库改读快照，禁止详情继续 JOIN 当前名称当历史名称。快照另记 snapshot_origin（created/source/migration/unknown）及 captured_at；有可靠原资料才回填 source，否则标「迁移时资料快照/历史未记录」。改名只影响后续新单；单据允许编辑时明确重选才更新未入账快照，历史/legacy-open 不可修改。商品有进行中引用禁止停用，仓库还须包吨均为零；联系人默认项停用须同事务清除默认，引用记录只可停用。
+新增头表快照：warehouse_name_snapshot、customer_name_snapshot / supplier_name_snapshot、contact_id、vehicle_id、vehicle_no_snapshot；行表：product_code（原键）、product_name_snapshot、product_model_snapshot、package_type_snapshot。出库已有客户/商品快照字段复用；入库改读快照，禁止详情继续 JOIN 当前名称当历史名称。快照另记 snapshot_origin（created/source/migration/unknown）及 captured_at；本批不猜补历史快照：已有客户/商品名称保留，所有新增历史快照字段NULL；缺失快照在详情、列表、导出统一显示「历史未记录」。改名只影响后续新单；单据允许编辑时明确重选才更新未入账快照，历史/legacy-open 不可修改。商品有进行中引用禁止停用，仓库还须包吨均为零；联系人默认项停用须同事务清除默认，引用记录只可停用。
 
 ## 9. 出入库字段追加
 
@@ -98,14 +98,13 @@ code、name、address、status、memo。停用前要求库存为 0 且无进行�
 
 ## 10. 接口
 
-沿用 /api/v1/master-data/{products,warehouses,customers,suppliers}；扩展 categories、vehicles、contacts（静态路由先于 :catalog）。
-GET/POST /api/v1/master-data/contacts?partyType=&partyCode=
-PATCH/DELETE /api/v1/master-data/contacts/:id（删除仅未引用且非默认）
-PUT /api/v1/master-data/contacts/:id/default
-POST /api/v1/master-data/vehicles/:id/merge（目标ID、版本、原因、幂等键）
+正式接口 /api/v1/master/{products,categories,warehouses,customers,suppliers,vehicles} 与 /api/v1/master/contacts（静态路由先于 :catalog）；兼容旧 /api/v1/master-data 路径。
+GET/POST /api/v1/master/contacts?partyType=&partyCode=
+PATCH/DELETE /api/v1/master/contacts/:id（删除仅未引用且非默认）
+PUT /api/v1/master/contacts/:id/default
 写接口使用严格字段白名单；分页与筛选参数遵循 WEB_UX_SPEC。
 
-上述扩展**需要新增服务能力**，当前通用主数据只有code/name等基础字段，不宣称已有联系人/车辆接口。`M-MASTER` 增加资格/分类/联系人/默认/车辆/别名/使用关联，`M-DOCUMENT-SNAPSHOTS` 增加头行快照与联系字段；对应B6a，真实迁移号实施时从012顺排。up保留原列与来源指纹，down在新增字段或表已有业务值时拒绝；不覆盖001–011。
+B6a已实现本轮批准范围的主数据、联系人/默认、车辆和保存快照接口；验收见 B6A_ACCEPTANCE。§9的单据类型、柜号、合同行备注及详情“存为档案”等扩展不计入本轮交付，仍按后续批次实施。`M-MASTER` 增加资格/分类/联系人/默认/车辆/使用关联，`M-DOCUMENT-SNAPSHOTS` 增加头行快照与联系字段；对应B6a，合并为012_master_data_snapshots，依赖已应用011。up保留原列与来源指纹，down在新增字段或表已有业务值时拒绝；不覆盖001–011。
 
 ## 11. 边界
 
@@ -135,3 +134,7 @@ POST /api/v1/master-data/vehicles/:id/merge（目标ID、版本、原因、幂�
 修订记录：C04 复用011，区分冻结日期锁定与入账后日期更正。
 修订记录：C05 补头行名称/联系/车辆快照及停用守卫；样品出库与取样分开，退货后置。
 修订记录：C16 沿用master-data路由及公共查询契约，新增迁移与接口标为待实现。
+
+修订记录：B6a 用户补充固定逐商品资格映射与报告、四类引用及统一锁序、取消车辆别名、缺失快照三处统一「历史未记录」；012不重复添加日期列。
+
+修订记录：B6a 实现联系人默认值投影；沿用本地原单创建后仅车号/备注可改的约束，不开放客户/仓库/商品/联系人重选。仓库非零库存禁止停用；联系人停用清默认且保留历史快照。

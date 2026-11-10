@@ -3,18 +3,18 @@ import { sourceStockSchema, sourceJournalSchema } from '@wms/contracts';
 import { request } from '../../api/client';
 
 export const stockKeys = createQueryKeys('stock-source', {
-  view: (source: 'erp-product') => ({
+  view: (source: 'inventory') => ({
     queryKey: [source],
     queryFn: async () => {
-      const result = await request(`/stock/by-source?source=${source}`, sourceStockSchema);
+      const result = await request(`/stock/by-source?scope=${source}`, sourceStockSchema);
       if (result.source !== source) throw new Error('库存来源不匹配，已停止展示，请重试');
       return result;
     },
   }),
-  journal: (source: 'erp-product') => ({
+  journal: (source: 'inventory') => ({
     queryKey: [source],
     queryFn: async () => {
-      const result = await request(`/stock/by-source/journal?source=${source}&limit=20`, sourceJournalSchema);
+      const result = await request(`/stock/by-source/journal?scope=${source}&limit=20`, sourceJournalSchema);
       if (result.source !== source) throw new Error('流水来源不匹配，已停止展示，请重试');
       return result.items;
     },

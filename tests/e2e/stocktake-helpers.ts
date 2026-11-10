@@ -12,7 +12,7 @@ export async function countCell(db: Database) {
     [code, name],
   );
   await db.run(
-    "INSERT INTO master_products(code,name,source_kind,created_at,updated_at) VALUES(?,?,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))",
+    "INSERT INTO master_products(code,name,source_kind,created_at,updated_at,origin_kind,inventory_eligible) VALUES(?,?,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)",
     [code, '盘点验收商品'],
   );
   await db.run('INSERT INTO stock(warehouse_code,product_code,packages,weight_tonnes) VALUES(?,?,6,1.8000)', [

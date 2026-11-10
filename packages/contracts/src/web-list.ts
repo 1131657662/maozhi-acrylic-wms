@@ -1,15 +1,21 @@
 import { z } from 'zod';
+import { inventoryScopeResult } from './inventory-scope.ts';
 import { inboundReceiptSchema } from './inbound.ts';
 
 const integer = z.number().int().safe();
 export const webInboundRowSchema = inboundReceiptSchema
   .omit({ lines: true, businessDate: true, corrections: true })
-  .extend({ products: z.array(z.string()) })
+  .extend({ products: z.array(z.string()), productModels: z.array(z.string()) })
   .strict();
 export const webOutboundRowSchema = z.strictObject({
   id: z.string(),
   orderNo: z.string(),
+  products: z.array(z.string()),
+  productModels: z.array(z.string()),
   customerName: z.string(),
+  shipToName: z.string().nullable().optional(),
+  shipToPhone: z.string().nullable().optional(),
+  shipToAddress: z.string().nullable().optional(),
   warehouseCode: z.string(),
   warehouseName: z.string(),
   vehicleNo: z.string(),
@@ -22,8 +28,8 @@ export const webOutboundRowSchema = z.strictObject({
 });
 export const webStockRowSchema = z.strictObject({
   id: z.string(),
-  source: z.literal('erp-product'),
-  sourceKind: z.literal('erp-product'),
+  source: inventoryScopeResult,
+  sourceKind: z.string(),
   warehouseCode: z.string(),
   warehouseName: z.string(),
   productCode: z.string(),
@@ -51,7 +57,7 @@ export const webInboundListSchema = z.strictObject({ ...envelope, items: z.array
 export const webOutboundListSchema = z.strictObject({ ...envelope, items: z.array(webOutboundRowSchema) });
 export const webStockListSchema = z.strictObject({
   ...envelope,
-  source: z.literal('erp-product'),
+  source: inventoryScopeResult,
   items: z.array(webStockRowSchema),
   subtotal: z.strictObject({ packages: integer, weightGrams: integer }),
 });

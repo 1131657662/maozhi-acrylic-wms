@@ -1,13 +1,12 @@
 import { ProForm, ProFormDigit, ProFormList } from '@ant-design/pro-components';
 import { tonnes, type Detail } from '@wms/contracts';
+import { PartyFields } from '../master-data/party-fields';
 import { MasterSelect } from '../master-data/select';
 
 export function PlanLinesFields() {
   return (
     <>
-      <ProForm.Item name="customerCode" label="客户" rules={[{ required: true }]}>
-        <MasterSelect catalog="customers" />
-      </ProForm.Item>
+      <PartyFields partyType="customer" />
       <ProForm.Item name="warehouseCode" label="仓库" rules={[{ required: true }]}>
         <MasterSelect catalog="warehouses" />
       </ProForm.Item>

@@ -9,7 +9,7 @@ async function validateRows(db: Database, id: string, warehouse: string): Promis
     JOIN stocktake_readings r USING(stocktake_id,product_code)
     LEFT JOIN master_products p ON p.code=s.product_code
     LEFT JOIN stock b ON b.warehouse_code=? AND b.product_code=s.product_code
-    WHERE s.stocktake_id=? AND (r.packages IS NULL OR p.code IS NULL OR p.source_kind<>'erp-product'
+    WHERE s.stocktake_id=? AND (r.packages IS NULL OR p.code IS NULL OR p.inventory_eligible<>1
       OR p.source_del_flag<>0 OR p.active<>1 OR b.source_del_flag<>0
       OR s.packages<>COALESCE(b.packages,0) OR s.weight_tonnes<>COALESCE(b.weight_tonnes,0))`,
     [warehouse, id],

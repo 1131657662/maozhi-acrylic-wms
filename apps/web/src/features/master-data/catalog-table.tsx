@@ -4,23 +4,37 @@ import { Alert, App, Popconfirm, Space, Tag, Button, Input } from 'antd';
 import type { MasterCatalog, MasterItem } from '@wms/contracts';
 import { useMasterItems } from './use-master-items';
 import { useUpdateMasterItem } from './use-update-master-item';
+import { ContactDrawer } from './contact-drawer';
+import { masterCopy as t, MASTER_PAGE_SIZE, MASTER_PAGE_SIZES } from './copy';
+import { ApiError } from '../../api/client';
+import { z } from 'zod';
 import { ItemEditor, NewItemButton } from './item-editor';
 
 export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
   const { message } = App.useApp();
+  const [contactOwner, setContactOwner] = useState<string | null>(null);
   const [editing, setEditing] = useState<MasterItem | null>(null);
   const [creating, setCreating] = useState(false);
-  const [query, setQuery] = useState({ page: 1, pageSize: 20, keyword: '' });
+  const [query, setQuery] = useState({ page: 1, pageSize: MASTER_PAGE_SIZE, keyword: '' });
   const { data, isLoading, error, refetch } = useMasterItems(catalog, query);
   const update = useUpdateMasterItem();
   const columns: ProColumns<MasterItem>[] = [
     { title: '编码', dataIndex: 'code', width: 180 },
     { title: '名称', dataIndex: 'name' },
+    ...(catalog === 'products'
+      ? [
+          { title: t.source, render: (_: unknown, row: MasterItem) => t.origin[row.originKind ?? 'unknown'] },
+          {
+            title: t.eligibility,
+            render: (_: unknown, row: MasterItem) => (row.inventoryEligible ? t.eligible : t.ineligible),
+          },
+        ]
+      : []),
     {
       title: '状态',
       dataIndex: 'active',
       width: 100,
-      render: (_, row) => (row.active ? <Tag color="green">启用</Tag> : <Tag>停用</Tag>),
+      render: (_, row) => (row.active ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>),
     },
     {
       title: '操作',
@@ -28,6 +42,11 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
       width: 180,
       render: (_, row) => (
         <Space>
+          {(catalog === 'customers' || catalog === 'suppliers') && (
+            <Button type="link" onClick={() => setContactOwner(row.code)}>
+              {t.contacts}
+            </Button>
+          )}
           <Button type="link" onClick={() => setEditing(row)}>
             编辑
           </Button>
@@ -37,7 +56,14 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
               try {
                 await update.mutateAsync({ catalog, code: row.code, active: !row.active });
               } catch (reason) {
-                message.error(reason instanceof Error ? reason.message : '状态更新失败');
+                const refs =
+                  reason instanceof ApiError
+                    ? z.object({ references: z.array(z.object({ documentNo: z.string() })) }).safeParse(reason.data)
+                    : null;
+                message.error(
+                  (reason instanceof Error ? reason.message : '状态更新失败') +
+                    (refs?.success ? '：' + refs.data.references.map((r) => r.documentNo).join('、') : ''),
+                );
               }
             }}
           >
@@ -51,7 +77,6 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
   ];
   return (
     <>
-      {catalog === 'products' && <Alert type="info" showIcon title="商品由 ERP 维护，此处只读" />}
       <Input.Search
         aria-label="搜索主数据"
         placeholder="按编码或名称搜索"
@@ -63,7 +88,7 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
       )}
       <ProTable<MasterItem>
         rowKey="code"
-        columns={catalog === 'products' ? columns.filter((column) => column.valueType !== 'option') : columns}
+        columns={columns}
         dataSource={error ? [] : data?.items}
         loading={isLoading}
         search={false}
@@ -73,17 +98,17 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
           pageSize: query.pageSize,
           total: data?.total ?? 0,
           showSizeChanger: true,
-          pageSizeOptions: [20, 50, 100, 200],
+          pageSizeOptions: MASTER_PAGE_SIZES,
           showTotal: (total) => `共 ${total} 条`,
           onChange: (page, pageSize) => setQuery({ ...query, page: pageSize === query.pageSize ? page : 1, pageSize }),
         }}
         toolbar={{
           title: '主数据目录',
-          actions: catalog === 'products' ? [] : [<NewItemButton key="new" onClick={() => setCreating(true)} />],
+          actions: [<NewItemButton key="new" onClick={() => setCreating(true)} />],
         }}
         locale={{ emptyText: '暂无主数据' }}
       />
-      {catalog !== 'products' && (creating || editing) && (
+      {(creating || editing) && (
         <ItemEditor
           catalog={catalog}
           editing={editing}
@@ -95,6 +120,12 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
             setCreating(false);
             setEditing(null);
           }}
+        />
+      )}
+      {contactOwner && (
+        <ContactDrawer
+          owner={{ partyType: catalog === 'customers' ? 'customer' : 'supplier', partyCode: contactOwner }}
+          onClose={() => setContactOwner(null)}
         />
       )}
     </>

@@ -14,8 +14,8 @@ test('B2a 两商品第二笔补偿写入失败，第一笔及所有状态回滚'
   const { db, dispose } = await fixture();
   try {
     assert.match(String((await db.get('SELECT DATABASE() AS name'))?.name), /^maozhi_test_[a-f0-9]{24}$/);
-    await db.run(`INSERT INTO master_products(code,name,active,source_kind,created_at,updated_at)
-      VALUES('Z-MULTI','隔离多行验收',1,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))`);
+    await db.run(`INSERT INTO master_products(code,name,active,source_kind,created_at,updated_at,origin_kind,inventory_eligible)
+      VALUES('Z-MULTI','隔离多行验收',1,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)`);
     const input = newReceipt();
     input.lines.push({ productCode: 'Z-MULTI', packages: 2, weightGrams: 601100 });
     const doc = await createInbound(db, input, randomUUID(), actor);

@@ -22,7 +22,11 @@ export const webListKeys = createQueryKeys('web-lists', {
   }),
   stock: (params: ListParams) => ({
     queryKey: [params],
-    queryFn: () => request(url('stock', params), webStockListSchema),
+    queryFn: () =>
+      request(
+        url('stock', params),
+        webStockListSchema.refine((data) => data.source === (params.scope ?? params.source)),
+      ),
   }),
   audit: (params: ListParams) => ({
     queryKey: [params],

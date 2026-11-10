@@ -21,8 +21,8 @@ export function stocktakeController(db: Database) {
     products: async (req: Request, res: Response) => {
       const keyword = z.string().max(80).default('').parse(req.query.keyword);
       const rows = await db.all(
-        `SELECT code,name,active FROM master_products WHERE source_kind='erp-product'
-        AND source_del_flag=0 AND (code LIKE ? OR name LIKE ?) ORDER BY code LIMIT 100`,
+        `SELECT code,name,active FROM master_products WHERE inventory_eligible=1
+        AND active=1 AND source_del_flag=0 AND (code LIKE ? OR name LIKE ?) ORDER BY code LIMIT 100`,
         [`%${keyword}%`, `%${keyword}%`],
       );
       ok(res, masterItemsSchema.parse(rows.map((r) => ({ ...r, active: Number(r.active) === 1 }))));

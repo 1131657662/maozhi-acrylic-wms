@@ -4,6 +4,32 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/master/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
+| GET | /api/v1/master/{catalog}/{code} | web | 按编码读取资料，含停用项 |
+| POST | /api/v1/master/{catalog} | web | 显式新增资料；商品固定本地来源与库存资格 |
+| PATCH | /api/v1/master/{catalog}/{code} | web | 更新资料；停用检查四类进行中引用，422 data.references返回单号 |
+| GET | /api/v1/master/contacts | web | 客户/供应商收送货档案与默认建议 |
+| POST | /api/v1/master/contacts | web | 新增指定往来单位档案 |
+| PATCH | /api/v1/master/contacts/{id} | web | 修改档案；停用同时清除默认，不改历史快照 |
+| DELETE | /api/v1/master/contacts/{id} | web | 仅删除非默认且从未被引用的档案 |
+| PUT | /api/v1/master/contacts/{id}/default | web | 同归属启用档案设默认，事务中替换唯一默认 |
+| GET | /api/v1/master/vehicles | web | 按归一化车牌分页查询车辆 |
+| GET | /api/v1/master/vehicles/{id} | web | 读取车辆档案 |
+| POST | /api/v1/master/vehicles | web | 手工建档；归一化车牌唯一 |
+| PATCH | /api/v1/master/vehicles/{id} | web | 修改司机、电话、备注及启停；不改历史单据车牌 |
+| GET | /api/v1/master-data/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
+| GET | /api/v1/master-data/{catalog}/{code} | web | 按编码读取资料，含停用项 |
+| POST | /api/v1/master-data/{catalog} | web | 显式新增资料；商品固定本地来源与库存资格 |
+| PATCH | /api/v1/master-data/{catalog}/{code} | web | 更新资料；停用检查四类进行中引用，422 data.references返回单号 |
+| GET | /api/v1/master-data/contacts | web | 客户/供应商收送货档案与默认建议 |
+| POST | /api/v1/master-data/contacts | web | 新增指定往来单位档案 |
+| PATCH | /api/v1/master-data/contacts/{id} | web | 修改档案；停用同时清除默认，不改历史快照 |
+| DELETE | /api/v1/master-data/contacts/{id} | web | 仅删除非默认且从未被引用的档案 |
+| PUT | /api/v1/master-data/contacts/{id}/default | web | 同归属启用档案设默认，事务中替换唯一默认 |
+| GET | /api/v1/master-data/vehicles | web | 按归一化车牌分页查询车辆 |
+| GET | /api/v1/master-data/vehicles/{id} | web | 读取车辆档案 |
+| POST | /api/v1/master-data/vehicles | web | 手工建档；归一化车牌唯一 |
+| PATCH | /api/v1/master-data/vehicles/{id} | web | 修改司机、电话、备注及启停；不改历史单据车牌 |
 | GET | /api/v1/corrections/{id} | web | 查询更正单与原单引用 |
 | POST | /api/v1/inbound/{id}/corrections | web | 只更正包数/吨数；原单版本互斥，历史/成环/盘点/负库存拒绝；原子写流水审计幂等 |
 | GET | /api/v1/inbound/{id}/corrections | web | 查询原单更正链及抵消标记 |
@@ -59,9 +85,9 @@
 | POST | /api/v1/catalog/handoffs/{id}/clients | web | 实物清点后审计关联旧会话/设备；不清零计数 |
 | POST | /api/v1/catalog/handoffs/{id}/confirm | web | 原正文全部收妥、清单完整且旧协议水位未变才确认交接 |
 | POST | /api/v1/inbound/{id}/confirm | web | 明确确认待确认入库单；库存、流水、审计和幂等结果同事务 |
-| POST | /api/v1/stock/adjustments | web | ERP 库存调整；原因必填，校验当前值，原子记账 |
-| GET | /api/v1/stock/by-source | web | 单一商品来源库存与小计；来源必填，无跨源合计；未归属不小计 |
-| GET | /api/v1/stock/by-source/journal | web | 单一商品来源最近流水；来源必填，不提供合计 |
+| POST | /api/v1/stock/adjustments | web | 有资格商品库存调整；原因必填，校验当前值，原子记账 |
+| GET | /api/v1/stock/by-source | web | 单一商品来源库存与小计；source或scope=inventory二选一，无跨源合计；未归属不小计 |
+| GET | /api/v1/stock/by-source/journal | web | 单一商品来源最近流水；source或scope=inventory二选一，不提供合计 |
 | GET | /api/v1/document-numbering | web | RK/CK 编号规则与非占号预览（北京时间） |
 | PUT | /api/v1/document-numbering/{kind} | web | 修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数 |
 | GET | /api/v1/stock/journal | web | 最近库存流水；保留原始类型，排除软删 |
@@ -77,10 +103,6 @@
 | GET | /api/v1/inbound | web | 入库记录分页查询 |
 | GET | /api/v1/inbound/{id} | web | 入库单详情及商品总重量 |
 | POST | /api/v1/inbound | web | 创建待确认入库单；包数、总吨数独立记录，不增加库存 |
-| GET | /api/v1/master-data/{catalog} | web | 分页搜索主数据；商品只返回 ERP 来源 |
-| POST | /api/v1/master-data/{catalog} | web | 新增仓库、客户或供应商；商品只读，返回 PRODUCT_MASTER_READ_ONLY |
-| PATCH | /api/v1/master-data/{catalog}/{code} | web | 更新仓库、客户或供应商；商品禁止编辑/启停，返回 PRODUCT_MASTER_READ_ONLY |
-| GET | /api/v1/master-data/{catalog}/{code} | web | 按精确编码读取已选主数据；可回显停用项，商品仅 ERP 来源 |
 | GET | /api/v1/scan/plans | any | PDA 计划列表 |
 | GET | /api/v1/scan/plans/{id} | any | 扫码计划及事实摘要 |
 | GET | /api/v1/scan/catalog | any | 只读 v1 兼容目录；PDA 旧协议访问计入发布门禁 |

@@ -1,5 +1,9 @@
 # 四端重建 / 第一里程碑
 
+## B6a 主数据与单据快照（2026-11-10，代码、012 开发库应用及本地自动化验收完成）
+
+商品来源/库存资格按逐商品报告映射；主数据可维护并有四类进行中引用停用守卫；新增 party_contacts、车辆归一化与单据快照。012 已应用至本机 3307 开发样本库，旧业务日期和历史快照保持 NULL，非空库拒绝回退。`npm run test` 179/179、`npm run test:e2e` 主套件 57/57 与 catalog 9/9、`npm run build` 通过。代码与本地自动化完成不代表实体设备或生产验收；详细证据见 [B6A_ACCEPTANCE.md](B6A_ACCEPTANCE.md)。不包含 UI-2、B5b/B5c、打印或工作台。
+
 ## B4a 边界修补（2026-11-08，代码与本地验证完成，待用户验收）
 
 - 范围仅 R1/R2/R3/R5/R6；R4 报表性能、R7/R8 PDA、R9 Android 测试更新、B3c、打印均不在本轮。以下覆盖早期主数据 CRUD 与出库编辑描述，验收状态以 [ACCEPTANCE](ACCEPTANCE.md) 顶部为准。
@@ -392,7 +396,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | 实施批次 | 交付与对应规格 | 迁移职责/门禁 |
 |---|---|---|
 | 011应用专项（非功能批次） | MIGRATION_011_APPLICATION_PLAN | 另轮按备份/指纹/副本演练/冒烟/非空拒绝回退执行，现有CLI足够，不等待维护UI |
-| B6a 主数据与单据快照 | MASTER_DATA_SPEC；C01/C03/C04/C05 | M-MASTER、M-DOCUMENT-SNAPSHOTS；统一库存资格后移除PRODUCT_MASTER_READ_ONLY，复用011日期；顺序1 |
+| B6a 主数据与单据快照 | MASTER_DATA_SPEC；C01/C03/C04/C05 | 已完成；012_M及快照迁移已应用本机开发库；逐项状态见B6A_ACCEPTANCE；顺序1 |
 | B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 查询反查/导出schema/批量逐单事务/本地视图；不必新增视图表，索引凭实测；顺序2 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |

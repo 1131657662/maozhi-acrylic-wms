@@ -11,7 +11,7 @@ import { Reconciliation } from './reconciliation';
 const detailColumns = reportColumns<ReportDetailRow>('report-details');
 const monthlyColumns = reportColumns<ReportMonthlyRow>('report-monthly');
 export function ReportDetails() {
-  const state = useListState('postedAt', { source: 'erp-product' }, reportDefaults());
+  const state = useListState('postedAt', { scope: 'inventory' }, reportDefaults(), ['source']);
   const query = useQuery(reportKeys.details(state.params));
   return (
     <BusinessList
@@ -39,7 +39,7 @@ export function ReportDetails() {
   );
 }
 export function ReportMonthly() {
-  const state = useListState('period', { source: 'erp-product' }, reportDefaults());
+  const state = useListState('period', { scope: 'inventory' }, reportDefaults(), ['source']);
   const query = useQuery(reportKeys.monthly(state.params));
   return (
     <BusinessList
@@ -50,7 +50,7 @@ export function ReportMonthly() {
         title: '月度汇总',
         columns: monthlyColumns,
         description:
-          '按仓库 × ERP 商品 × 入账月份核对。部分月份按所选日期截取；入出库净额含撤销，期初/期末不跨月相加。列设置可展开各类调整及补偿。',
+          '按仓库 × 库存商品 × 入账月份核对。部分月份按所选日期截取；入出库净额含撤销，期初/期末不跨月相加。列设置可展开各类调整及补偿。',
         extra: (
           <Link to={'/reports/details?' + new URLSearchParams({ ...state.params, page: '1', sortBy: 'postedAt' })}>
             同口径出入库明细

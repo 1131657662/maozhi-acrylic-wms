@@ -1,6 +1,6 @@
 # 文档索引与权威顺序（docs/README.md）
 
-> 2026-11-09 文档入库状态：C01–C18已按通过的评审和四项用户决策定点修订，闭环见 [DOC_REVIEW.md](DOC_REVIEW.md) §9；规格已对齐不表示服务能力已实现。已有批次的“完成”须按原验收记录区分代码、自动化、设备与生产。011 开发库应用另见 [应用计划](MIGRATION_011_APPLICATION_PLAN.md)，本轮未执行。
+> 2026-11-09 文档入库状态：C01–C18已按通过的评审和四项用户决策定点修订，闭环见 [DOC_REVIEW.md](DOC_REVIEW.md) §9；规格已对齐不表示服务能力已实现。已有批次的“完成”须按原验收记录区分代码、自动化、设备与生产。011 开发库已按 [应用计划与执行记录](MIGRATION_011_APPLICATION_PLAN.md) 应用；B6a与012的本地验收见 [B6A_ACCEPTANCE.md](B6A_ACCEPTANCE.md)。
 
 ## 1. 权威顺序（冲突时从上到下）
 
@@ -44,13 +44,14 @@
 |---|---|
 | `IMPLEMENTATION_PLAN.md` | 实施进度与未决项（实时更新） |
 | `DOC_REVIEW.md` | 实现方评审：代码证据、规格冲突、缺失迁移/接口、矩阵修订及C01–C18闭环（四项决策已关闭） |
-| `MIGRATION_011_APPLICATION_PLAN.md` | 011 开发库备份、指纹、应用、冒烟与回退计划（未执行） |
+| `MIGRATION_011_APPLICATION_PLAN.md` | 011 开发库备份、指纹、副本演练、应用与冒烟原始记录 |
 | `PARITY_MATRIX.md` | P/U/N 对齐矩阵 |
 | `UPGRADE_PROPOSALS.md` | 升级提案 |
 | `DESIGN_DECISIONS.md` | 设计决策 |
 | `UI_DESIGN_PLAN.md` | **已被 UX_STANDARDS / WEB_UX_SPEC 取代**，仅作历史参考 |
 | `UI_SPEC.md` | **已被页面规格取代**，仅作历史参考 |
 | `ACCEPTANCE.md` | 总验收记录 |
+| `B6A_ACCEPTANCE.md` | B6a 主数据/快照、资格逐项报告及012开发库应用证据 |
 | `B5A_ACCEPTANCE.md` | B5a 更正与业务日期的逐项验收证据 |
 | `B4A_VALIDATION.md` | B4a 边界修补的验收证据 |
 | `B1C1_IMPLEMENTATION_PLAN.md` | B1c-1 目录版本化的实施计划（历史） |
@@ -90,7 +91,8 @@
 | B3c 周转/库龄 | 代码及本地验证已有；周转率冷首屏未达目标，非生产验收 |
 | B4a 边界修补（更正入口相关、商品维护） | 已完成 |
 | B4b OpenAPI 生成器重构 | 已完成 |
-| B5a 更正与业务日期 | 代码/本地验收完成（61f4d82，原记录168/168、55+9 E2E）；011未应用3307，本轮未复测 |
+| B5a 更正与业务日期 | 代码与本地验收已有；011已应用3307并冒烟，B6a回归见最新验收记录 |
+| B6a 主数据与单据快照 | 已实现批准范围，012已应用3307；验证层次与原始输出见 B6A_ACCEPTANCE |
 | UI-2 全局交互重构 | 未开始 |
 | 工作台/看板/库存/报表/目录/审计/运维页面改造 | 未开始 |
 | 打印集成（积木） | 未开始，依赖配置 |

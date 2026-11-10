@@ -46,14 +46,16 @@ test('后续商品库存不足回滚此前商品的扣减与流水', async () =>
       '2026-11-07 00:00:00.000',
       '2026-11-07 00:00:00.000',
     ]);
-    await db.run("UPDATE master_products SET source_kind='erp-product' WHERE code='ACR-EXTRA'");
+    await db.run(
+      "UPDATE master_products SET source_kind='erp-product',origin_kind='legacy',inventory_eligible=1 WHERE code='ACR-EXTRA'",
+    );
     await db.run(
       `INSERT INTO outbound_lines
       (id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes)
       VALUES(?,?,?,?,?,?)`,
       ['extra', 'DEMO-001', 'ACR-EXTRA', '合成第二商品', 1, '0.1000'],
     );
-    await addV1Fixture(db,{barcode:'DEMO-EXTRA',product:'ACR-EXTRA',tonnes:'0.1000'});
+    await addV1Fixture(db, { barcode: 'DEMO-EXTRA', product: 'ACR-EXTRA', tonnes: '0.1000' });
     await recordFact(db, { planId: 'DEMO-001', fact: fact(), actor });
     await recordFact(db, { planId: 'DEMO-001', fact: fact({ barcode: 'DEMO-032-12', weightGrams: 297500 }), actor });
     const plan = await recordFact(db, {

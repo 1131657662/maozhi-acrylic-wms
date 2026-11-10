@@ -30,7 +30,7 @@ export async function reportMasters(db: Database, code: string): Promise<void> {
     [code, `报表合成仓 ${code}`],
   );
   await db.run(
-    `INSERT IGNORE INTO master_products(code,name,source_kind,active,created_at,updated_at) VALUES(?,?,'erp-product',1,UTC_TIMESTAMP(),UTC_TIMESTAMP())`,
+    `INSERT IGNORE INTO master_products(code,name,source_kind,active,created_at,updated_at,origin_kind,inventory_eligible) VALUES(?,?,'erp-product',1,UTC_TIMESTAMP(),UTC_TIMESTAMP(),'legacy',1)`,
     [code, `报表合成商品 ${code}`],
   );
 }

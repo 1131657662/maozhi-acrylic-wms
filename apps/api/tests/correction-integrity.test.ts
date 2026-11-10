@@ -49,7 +49,7 @@ test('B5a 多行更正第二行负库存，第一行及所有表不写入', asyn
   const c = await numberingFixture();
   try {
     await c.db.run(
-      "INSERT INTO master_products(code,name,source_kind,active,created_at,updated_at) VALUES('B5A-SECOND','合成第二商品','erp-product',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))",
+      "INSERT INTO master_products(code,name,source_kind,active,created_at,updated_at,origin_kind,inventory_eligible) VALUES('B5A-SECOND','合成第二商品','erp-product',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)",
     );
     const response = await c.web
       .post('/api/v1/inbound')

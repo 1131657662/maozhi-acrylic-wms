@@ -14,6 +14,7 @@ type DerivedRow = ReportTurnoverRow | ReportAgingRow;
 function projectionQuery(query: DerivedQuery) {
   return {
     source: query.source,
+    scope: query.scope,
     fromDay: query.fromDay,
     toDay: query.toDay,
     warehouse: query.warehouse,
@@ -32,7 +33,12 @@ function sortRows(rows: DerivedRow[], query: DerivedQuery): DerivedRow[] {
   return [...rows].sort((a, b) => {
     const left = (a as unknown as Record<string, unknown>)[key],
       right = (b as unknown as Record<string, unknown>)[key];
-    return direction * (String(left).localeCompare(String(right)) || a.warehouseCode.localeCompare(b.warehouseCode) || a.productCode.localeCompare(b.productCode));
+    return (
+      direction *
+      (String(left).localeCompare(String(right)) ||
+        a.warehouseCode.localeCompare(b.warehouseCode) ||
+        a.productCode.localeCompare(b.productCode))
+    );
   });
 }
 
@@ -60,9 +66,10 @@ function reportMeta(
     days: period.days.length,
     completeDays,
     incomplete: period.incomplete,
-    formula: kind === 'report-turnover'
-      ? 'R = O / M；T = D × M / O；M = ΣQ(d) / D'
-      : '吨数 FIFO；0–30 / 31–90 / 91–180 / 181–365 / >365；不能归龄的余额独立列示',
+    formula:
+      kind === 'report-turnover'
+        ? 'R = O / M；T = D × M / O；M = ΣQ(d) / D'
+        : '吨数 FIFO；0–30 / 31–90 / 91–180 / 181–365 / >365；不能归龄的余额独立列示',
     adjustmentCount: counts.adjustmentCount,
     stocktakeCount: counts.stocktakeCount,
   });
@@ -77,8 +84,7 @@ function validateDates(kind: 'report-turnover' | 'report-aging', query: DerivedQ
 
 export function derivedReportReader(kind: 'report-turnover' | 'report-aging', query: DerivedQuery) {
   validateDates(kind, query);
-  let projection: Awaited<ReturnType<typeof buildProjection>> | undefined,
-    rows: DerivedRow[] | undefined;
+  let projection: Awaited<ReturnType<typeof buildProjection>> | undefined, rows: DerivedRow[] | undefined;
   return async (db: Database, batch?: { page: number; size: number }) => {
     projection ??= await buildProjection(db, projectionQuery(query), true);
     rows ??= derivedRows(kind, query, [...projection.cells.values()], projection);
@@ -95,8 +101,13 @@ async function derivedResult(
 ) {
   const page = batch?.page ?? query.page,
     pageSize = batch?.size ?? query.pageSize,
-    pageData = pageResult(rows.slice((page - 1) * pageSize, page * pageSize), rows.length, { ...query, page, pageSize }),
-    totals = kind === 'report-turnover' ? turnoverTotals(rows as ReportTurnoverRow[]) : agingTotals(rows as ReportAgingRow[]),
+    pageData = pageResult(rows.slice((page - 1) * pageSize, page * pageSize), rows.length, {
+      ...query,
+      page,
+      pageSize,
+    }),
+    totals =
+      kind === 'report-turnover' ? turnoverTotals(rows as ReportTurnoverRow[]) : agingTotals(rows as ReportAgingRow[]),
     report = reportMeta(kind, query, rows, projection),
     response = { ...pageData, totals, report };
   return { ...response, viewToken: hash(JSON.stringify([query, projection.digest, response])) };

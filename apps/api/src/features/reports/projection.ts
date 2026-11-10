@@ -95,7 +95,7 @@ function finishProjection(
     reconciliation = totalBalance(entries);
   if (diagnostics.unassignedRows) {
     reconciliation.checkState = '不可验证';
-    reconciliation.reasons.push('存在无法判定库存来源的流水，未混入 ERP 发生额；需核实主数据');
+    reconciliation.reasons.push('存在无法判定库存来源的流水，未混入有库存资格商品的发生额；需核实主数据');
   }
   return {
     cells: state.cells,
@@ -105,7 +105,7 @@ function finishProjection(
     digest: state.digest.digest('hex'),
     monthly: entries.flatMap((c) => [...c.periods.values()].filter((r) => r.period !== 'range')),
     metadata: {
-      source: 'erp-product',
+      source: query.scope ?? query.source!,
       fromDay: query.fromDay,
       toDay: query.toDay,
       watermark: state.cursor,

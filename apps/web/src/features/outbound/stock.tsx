@@ -13,7 +13,7 @@ import { StockJournal } from '../stock/journal';
 import { AdjustmentDrawer } from '../stock/adjustment-drawer';
 
 export function Stock() {
-  const state = useListState('warehouseCode', { source: 'erp-product' });
+  const state = useListState('warehouseCode', { scope: 'inventory' }, {}, ['source']);
   const query = useQuery(webListKeys.stock(state.params));
   const [selected, setSelected] = useState<WebStockRow | null>(null);
   return (
@@ -25,8 +25,8 @@ export function Stock() {
           name: 'stock',
           title: '库存概览',
           columns: stockListColumns(setSelected),
-          description: '库存与单据仅使用 ERP 商品；扫码目录只用于现场核对，不计入库存。包数与重量独立记录。',
-          extra: <Tag data-testid="stock-source-label">库存口径：ERP 商品</Tag>,
+          description: '库存与单据使用有库存资格的商品；扫码目录只用于现场核对，不计入库存。包数与重量独立记录。',
+          extra: <Tag data-testid="stock-source-label">库存口径：库存商品</Tag>,
         }}
         filters={
           <ListFilters state={state}>
