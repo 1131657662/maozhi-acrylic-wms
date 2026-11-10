@@ -8,13 +8,13 @@ import { StockJournal } from './journal';
 export function SourcePanel() {
   const { data: stock, isLoading: isLoadingStock, error: stockError, refetch: reloadStock } = useSourceStock();
   if (stockError instanceof ApiError && stockError.status === 403)
-    return <Result status="403" title="无权查看 ERP 库存" />;
+    return <Result status="403" title="无权查看 商品库存" />;
   if (stockError)
     return (
       <Alert
         type="error"
         showIcon
-        title="ERP 库存加载失败，已停止展示旧数据"
+        title="商品库存加载失败，已停止展示旧数据"
         description={
           stockError instanceof ZodError ? '返回数据未通过来源校验，请重试；未展示任何小计。' : stockError.message
         }

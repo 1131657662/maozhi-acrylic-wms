@@ -9,8 +9,8 @@ async function seedBatch(db: Database, start: number, count: number): Promise<vo
   const date = '2026-11-01 16:00:00.000';
   await insertBatch(
     db,
-    'INSERT INTO master_products(code,name,active,source_kind,created_at,updated_at)',
-    numbers.map((n) => ['WL-P' + n, '列表验收腈纶长规格名称 ' + n, 1, 'erp-product', date, date]),
+    'INSERT INTO master_products(code,name,active,source_kind,created_at,updated_at,origin_kind,inventory_eligible)',
+    numbers.map((n) => ['WL-P' + n, '列表验收腈纶长规格名称 ' + n, 1, 'erp-product', date, date, 'legacy', 1]),
   );
   await insertBatch(
     db,
@@ -19,7 +19,7 @@ async function seedBatch(db: Database, start: number, count: number): Promise<vo
   );
   await insertBatch(
     db,
-    'INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,created_by,created_at,status,posting_state)',
+    'INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,created_by,created_at,status,posting_state,supplier_name_snapshot,warehouse_name_snapshot)',
     numbers.map((n) => [
       'WL-R' + n,
       'WL-RK-' + n,
@@ -29,6 +29,8 @@ async function seedBatch(db: Database, start: number, count: number): Promise<vo
       date,
       Number(n) === 0 ? null : Number(n) % 3 === 0 ? 'legacy-code' : 'pending',
       'pending',
+      '合成供应商',
+      '合成仓库',
     ]),
   );
   await insertBatch(

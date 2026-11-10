@@ -13,8 +13,8 @@ export const handoffPlan = 'pda-handoff-plan',
 export async function prepareHandoff(db: Database, original?: { payload: string; state: string }[]) {
   if (!/^maozhi_test_[a-f0-9]+$/.test(String((await db.get('SELECT DATABASE() AS n'))?.n)))
     throw new Error('Disposable DB only');
-  await db.run(`INSERT INTO master_products(code,name,active,created_at,updated_at,source_kind,source_del_flag)
-    VALUES('TEST-ERP','隔离验证商品',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'erp-product',0)`);
+  await db.run(`INSERT INTO master_products(code,name,active,created_at,updated_at,source_kind,source_del_flag,origin_kind,inventory_eligible)
+    VALUES('TEST-ERP','隔离验证商品',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'erp-product',0,'legacy',1)`);
   await db.run(
     "INSERT INTO stock(warehouse_code,product_code,packages,weight_tonnes,source_del_flag) VALUES('DEMO-WH','TEST-ERP',500,'150.0000',0)",
   );

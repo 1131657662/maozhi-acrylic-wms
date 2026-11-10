@@ -4,9 +4,9 @@ import { tonnes } from '@wms/contracts';
 export function StockListSubtotal({ subtotal }: { subtotal?: { packages: number; weightGrams: number } }) {
   if (!subtotal) return null;
   return (
-    <section data-testid="source-stock" data-source="erp-product">
+    <section data-testid="source-stock" data-source="inventory">
       <ProDescriptions
-        title="ERP 商品 · 当前筛选范围汇总（含全部分页）"
+        title="库存商品 · 当前筛选范围汇总（含全部分页）"
         column={2}
         dataSource={subtotal}
         columns={[

@@ -28,6 +28,7 @@ export async function assertEditableHeader(
   }
   ensure(
     (plan.customerCode === undefined || plan.customerCode === before.customerCode) &&
+      (plan.contactId === undefined || plan.contactId === before.contactId) &&
       (plan.warehouseCode === undefined || plan.warehouseCode === before.warehouseCode),
     'PLAN_FIELDS_IMMUTABLE',
     '计划创建后客户和仓库不可修改，只能改车号/备注',

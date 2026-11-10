@@ -47,7 +47,7 @@ export function StocktakeList() {
     <PageContainer
       title="库存盘点"
       className="business-list"
-      content="仅盘点 ERP 商品；快照固定，实盘包数与吨数独立记录。"
+      content="仅盘点 库存商品；快照固定，实盘包数与吨数独立记录。"
       extra={
         <Link to="/stocktakes/new">
           <Button type="primary">新建盘点</Button>

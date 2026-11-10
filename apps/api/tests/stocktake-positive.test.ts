@@ -13,7 +13,7 @@ test('B3a 零库存盘盈独立包重入账；软删库存不被隐式覆盖', a
   const { db, dispose } = await fixture();
   try {
     await db.run(
-      "INSERT INTO master_products(code,name,source_kind,created_at,updated_at) VALUES('COUNT-ZERO','合成零库存商品','erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))",
+      "INSERT INTO master_products(code,name,source_kind,created_at,updated_at,origin_kind,inventory_eligible) VALUES('COUNT-ZERO','合成零库存商品','erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)",
     );
     const take = await createStocktake(
       db,

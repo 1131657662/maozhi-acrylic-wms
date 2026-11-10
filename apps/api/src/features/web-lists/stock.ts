@@ -17,7 +17,7 @@ export function stockPredicate(query: Omit<WebStockQuery, 'pageSize'> & { pageSi
   const parts = {
     sql: `FROM stock s JOIN master_products p ON p.code=s.product_code
     LEFT JOIN master_warehouses w ON w.code=s.warehouse_code
-    WHERE s.source_del_flag=0 AND p.source_kind='erp-product'`,
+    WHERE s.source_del_flag=0 AND p.inventory_eligible=1${query.source ? " AND p.source_kind='erp-product'" : ''}`,
     values: [] as string[],
   };
   textFilter(parts, ['s.product_code', 'p.name'], query.product);
@@ -41,13 +41,13 @@ export async function listWebStock(db: Database, query: ListReadQuery<WebStockQu
     const items = page.rows.map(({ weight_tonnes, ...row }) => ({
       ...row,
       id: JSON.stringify([row.warehouseCode, row.productCode]),
-      source: 'erp-product',
+      source: query.scope ?? query.source,
       packages: Number(row.packages),
       weightGrams: aggregateGrams(weight_tonnes),
     }));
     const result = {
       ...pageResult(items, page.total, query),
-      source: 'erp-product',
+      source: query.scope ?? query.source,
       subtotal,
     };
     return webStockListSchema.parse({ ...result, viewToken: hash(JSON.stringify(result)) });

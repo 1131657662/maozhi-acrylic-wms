@@ -4,6 +4,7 @@ import { PageContainer, ProForm, ProFormDigit, ProFormList, ProFormTextArea } fr
 import type { CreateInbound } from '@wms/contracts';
 import { ApiError } from '../../api/client';
 import { tonnesToGrams } from '../../lib/weight-input';
+import { PartyFields } from '../master-data/party-fields';
 import { MasterSelect } from '../master-data/select';
 import { useCreateReceipt } from './use-create-receipt';
 import { BusinessDateField } from '../business-date/field';
@@ -95,9 +96,7 @@ export function InboundEditor() {
                 </ProForm.Item>
               </Col>
               <Col xs={24} md={12}>
-                <ProForm.Item name="supplierCode" label="供应商" rules={[{ required: true }]}>
-                  <MasterSelect catalog="suppliers" />
-                </ProForm.Item>
+                <PartyFields partyType="supplier" />
               </Col>
               <Col xs={24} md={12}>
                 <ProForm.Item name="warehouseCode" label="仓库" rules={[{ required: true }]}>

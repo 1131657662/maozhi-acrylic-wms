@@ -1,7 +1,12 @@
 import { useSearchParams } from '@umijs/max';
 import type { ListParams } from '../../features/web-lists/keys';
 
-export function useListState(defaultSort = 'createdAt', fixed: ListParams = {}, defaults: ListParams = {}) {
+export function useListState(
+  defaultSort = 'createdAt',
+  fixed: ListParams = {},
+  defaults: ListParams = {},
+  omitted: string[] = [],
+) {
   const [search, setSearch] = useSearchParams();
   const params: ListParams & { page: string; pageSize: string; sortBy: string; direction: string } = {
     page: '1',
@@ -12,6 +17,7 @@ export function useListState(defaultSort = 'createdAt', fixed: ListParams = {}, 
     ...Object.fromEntries(search),
     ...fixed,
   };
+  for (const key of omitted) delete params[key];
   function change(patch: ListParams) {
     const next = { ...params, ...patch };
     setSearch(new URLSearchParams(Object.entries(next).filter(([key, value]) => key === 'status' || value !== '')));

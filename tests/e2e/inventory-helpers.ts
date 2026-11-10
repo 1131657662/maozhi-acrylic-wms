@@ -21,8 +21,8 @@ export async function loginInventory(page: Page) {
 export async function inventoryCell(db: Database) {
   const code = `TX-${randomUUID().slice(0, 8)}`;
   await db.run(
-    `INSERT INTO master_products(code,name,active,source_kind,created_at,updated_at)
-    VALUES(?, '事务验收商品',1,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))`,
+    `INSERT INTO master_products(code,name,active,source_kind,created_at,updated_at,origin_kind,inventory_eligible)
+    VALUES(?, '事务验收商品',1,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)`,
     [code],
   );
   await db.run(`INSERT INTO stock(warehouse_code,product_code,packages,weight_tonnes) VALUES('DEMO-WH',?,6,'1.8000')`, [

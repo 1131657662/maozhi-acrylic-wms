@@ -4,6 +4,7 @@ import type { Database } from './mysql.ts';
 import { preflightCatalog, migrateCatalogData } from './catalog-migration.ts';
 import { prepareStocktakeDown } from './stocktake-migration.ts';
 import { guardCorrectionDown } from './correction-migration.ts';
+import { migrateProductEligibility } from './product-eligibility.ts';
 
 const migrations = [
   {
@@ -82,6 +83,26 @@ const migrations = [
   },
   { id: '010_outbound_memo', guardedTables: [] },
   { id: '011_corrections_business_date', guardedTables: [] },
+  {
+    id: '012_master_data_snapshots',
+    guardedTables: [
+      'product_eligibility_migration',
+      'vehicle_document_uses',
+      'master_vehicles',
+      'party_contact_defaults',
+      'party_contacts',
+      'master_product_categories',
+      'master_products',
+      'master_warehouses',
+      'master_customers',
+      'master_suppliers',
+      'inbound_lines',
+      'inbound_receipts',
+      'outbound_lines',
+      'outbound_orders',
+      'operation_log',
+    ],
+  },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -135,6 +156,7 @@ export async function migrateUp(db: Database, through?: string): Promise<void> {
         await migrateCatalogData(connection);
         await statements(connection, finalize!);
       } else await statements(connection, sql);
+      if (migration.id === '012_master_data_snapshots') await migrateProductEligibility(connection);
       await connection.run("UPDATE schema_migrations SET state='applied',applied_at=UTC_TIMESTAMP(3) WHERE id=?", [
         migration.id,
       ]);

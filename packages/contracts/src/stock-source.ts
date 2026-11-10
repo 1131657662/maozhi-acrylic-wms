@@ -1,12 +1,20 @@
 import { z } from 'zod';
 import { journalSchema } from './stock-journal.ts';
 
-export const stockSourceSchema = z.enum(['erp-product', 'sku-spec', 'unclassified']);
+export const stockSourceSchema = z.enum(['erp-product', 'sku-spec', 'unclassified', 'inventory']);
 export type StockSource = z.infer<typeof stockSourceSchema>;
-export const stockSourceQuerySchema = z.strictObject({ source: stockSourceSchema });
-export const sourceJournalQuerySchema = stockSourceQuerySchema.extend({
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+const sourceQuery = z.strictObject({
+  source: z.enum(['erp-product', 'sku-spec', 'unclassified']).optional(),
+  scope: z.literal('inventory').optional(),
 });
+const exclusive = (value: { source?: string; scope?: string }) =>
+  (value.source !== undefined) !== (value.scope !== undefined);
+export const stockSourceQuerySchema = sourceQuery.refine(exclusive);
+export const sourceJournalQuerySchema = sourceQuery
+  .extend({
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+  })
+  .refine(exclusive);
 const stockFields = {
   warehouseCode: z.string(),
   productCode: z.string(),
@@ -30,11 +38,13 @@ function sourceJournal<S extends StockSource>(source: S) {
   });
 }
 export const sourceStockSchema = z.discriminatedUnion('source', [
+  sourceStock('inventory'),
   sourceStock('erp-product'),
   sourceStock('sku-spec'),
   sourceStock('unclassified'),
 ]);
 export const sourceJournalSchema = z.discriminatedUnion('source', [
+  sourceJournal('inventory'),
   sourceJournal('erp-product'),
   sourceJournal('sku-spec'),
   sourceJournal('unclassified'),

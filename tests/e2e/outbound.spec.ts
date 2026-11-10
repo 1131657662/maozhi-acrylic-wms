@@ -56,7 +56,7 @@ test('Web 登录、详情核对与一次出库确认', async ({ page, request })
   await page.getByRole('button', { name: '确认出库', exact: true }).click();
   await expect(page.getByRole('button', { name: '已确认出库' })).toBeDisabled();
   await page.getByText('库存概览', { exact: true }).click();
-  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
+  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
   await expect(page.getByRole('cell', { name: '1.2000', exact: true })).toBeVisible();
   await page.getByText('操作记录', { exact: true }).click();
   await expect(page.getByText('outbound.confirm', { exact: true })).toBeVisible();
@@ -111,7 +111,7 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await page.getByText('DEMO-CUST-1 · 合成客户 1', { exact: true }).click();
   await page.getByLabel('仓库').click();
   await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
-  await page.getByLabel('车牌 / 车辆标识').fill('E2E-VEHICLE');
+  await page.getByLabel('车牌').fill('E2E-VEHICLE');
   await page.getByLabel('商品').click();
   await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
   await page.getByLabel('计划包数').fill('1');
@@ -120,7 +120,7 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /^CK-\d{8}-\d+$/ })).toBeVisible();
   const orderNo = await page.getByRole('heading', { name: /^CK-\d{8}-\d+$/ }).innerText();
   await page.getByRole('button', { name: '编辑计划' }).click();
-  await page.getByLabel('车牌 / 车辆标识').fill('E2E-VEHICLE-UPDATED');
+  await page.getByLabel('车牌').fill('E2E-VEHICLE-UPDATED');
   await page.getByRole('button', { name: '保存修改' }).click();
   await expect(page.getByText('E2E-VEHICLE-UPDATED', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: orderNo, exact: true })).toBeVisible();

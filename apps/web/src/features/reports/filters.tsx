@@ -1,18 +1,29 @@
-import { QueryFilter, ProFormDateRangePicker, ProFormDatePicker, ProFormText, ProFormSelect } from '@ant-design/pro-components';
+import {
+  QueryFilter,
+  ProFormDateRangePicker,
+  ProFormDatePicker,
+  ProFormText,
+  ProFormSelect,
+} from '@ant-design/pro-components';
 import type { ListState } from '../../components/BusinessList/use-list-state';
 
 export function reportDefaults() {
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
   return { fromDay: today.slice(0, 7) + '-01', toDay: today };
 }
-export function derivedReportDefaults(): { source: string; fromDay: string; toDay: string };
-export function derivedReportDefaults(aging: true): { source: string; fromDay: string; toDay: string; cutoffDay: string };
+export function derivedReportDefaults(): { scope: string; fromDay: string; toDay: string };
+export function derivedReportDefaults(aging: true): {
+  scope: string;
+  fromDay: string;
+  toDay: string;
+  cutoffDay: string;
+};
 export function derivedReportDefaults(aging = false) {
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }),
     yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10),
     monthStart = today.slice(0, 7) + '-01';
   return {
-    source: 'erp-product',
+    scope: 'inventory',
     fromDay: monthStart,
     toDay: yesterday < monthStart ? today : yesterday,
     ...(aging ? { cutoffDay: today } : {}),
@@ -27,10 +38,21 @@ function dateRangeFor(preset: string, custom: unknown): [string, string] | null 
     const lastDay = new Date(Date.parse(monthStart + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
     return [lastDay.slice(0, 7) + '-01', lastDay];
   }
-  if (preset === '30days') return [new Date(Date.parse(yesterday + 'T00:00:00Z') - 29 * 86400000).toISOString().slice(0, 10), yesterday];
+  if (preset === '30days')
+    return [new Date(Date.parse(yesterday + 'T00:00:00Z') - 29 * 86400000).toISOString().slice(0, 10), yesterday];
   return Array.isArray(custom) && custom.length === 2 ? [String(custom[0]), String(custom[1])] : null;
 }
-export function ReportFilters({ state, detail = false, aging = false, derived = false }: { state: ListState; detail?: boolean; aging?: boolean; derived?: boolean }) {
+export function ReportFilters({
+  state,
+  detail = false,
+  aging = false,
+  derived = false,
+}: {
+  state: ListState;
+  detail?: boolean;
+  aging?: boolean;
+  derived?: boolean;
+}) {
   const initial = {
     dateRange: [state.params.fromDay, state.params.toDay],
     periodPreset: 'custom',
@@ -94,7 +116,7 @@ export function ReportFilters({ state, detail = false, aging = false, derived = 
         />
       )}
       <ProFormText name="warehouse" label="仓库" colProps={{ xs: 24, sm: 12, lg: 6 }} placeholder="名称或编码" />
-      <ProFormText name="product" label="ERP 商品" colProps={{ xs: 24, sm: 12, lg: 6 }} placeholder="名称或编码" />
+      <ProFormText name="product" label="商品" colProps={{ xs: 24, sm: 12, lg: 6 }} placeholder="名称或编码" />
       {detail && (
         <ProFormSelect
           name="movement"

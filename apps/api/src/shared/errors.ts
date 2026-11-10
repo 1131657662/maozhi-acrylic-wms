@@ -3,6 +3,7 @@ export class AppError extends Error {
     public code: string,
     message: string,
     public status = 409,
+    public data: Record<string, unknown> | null = null,
   ) {
     super(message);
   }

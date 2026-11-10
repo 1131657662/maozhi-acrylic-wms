@@ -11,14 +11,14 @@ async function openStock(page: Page) {
 }
 
 async function expectedErpStock(page: Page) {
-  const response = await page.request.get('/api/v1/stock/by-source?source=erp-product');
+  const response = await page.request.get('/api/v1/stock/by-source?scope=inventory');
   expect(response.ok()).toBeTruthy();
   const data = sourceStockSchema.parse((await response.json()).data);
-  if (data.source !== 'erp-product' || !data.subtotal) throw new Error('Expected ERP stock only');
+  if (data.source !== 'inventory' || !data.subtotal) throw new Error('Expected ERP stock only');
   return data;
 }
 
-test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请求', async ({ page }) => {
+test('用途隔离：库存仅资格商品，无 SPEC 或未归属入口、空表及请求', async ({ page }) => {
   const errors: string[] = [];
   const stockRequests: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -29,10 +29,10 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   });
   await openStock(page);
   const expected = await expectedErpStock(page);
-  await expect(page.getByTestId('stock-source-label')).toHaveText('库存口径：ERP 商品');
+  await expect(page.getByTestId('stock-source-label')).toHaveText('库存口径：库存商品');
   await expect(page.getByRole('tab')).toHaveCount(0);
   await expect(page.getByTestId('source-stock')).toHaveCount(1);
-  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
+  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveText(String(expected.subtotal.packages));
   await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(tonnes(expected.subtotal.weightGrams));
   // Other suites can populate more than one page. Check the current page against the independent full ERP view.
@@ -51,7 +51,7 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   }
   await expect(page.getByText('未归属', { exact: false })).toHaveCount(0);
   await expect(page.getByText('SPEC 条码目录商品', { exact: false })).toHaveCount(0);
-  await expect(page.getByText('ERP 商品 · 最近 20 条库存流水', { exact: true })).toBeVisible();
+  await expect(page.getByText('库存商品 · 最近 20 条库存流水', { exact: true })).toBeVisible();
   await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
   await page.screenshot({ path: '.local/evidence/erp-inventory-only-1440.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -63,7 +63,7 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
       const request = new URL(url);
       return (
         (request.pathname.startsWith('/api/v1/stock/by-source') || request.pathname === '/api/v1/web/lists/stock') &&
-        request.searchParams.get('source') === 'erp-product'
+        request.searchParams.get('scope') === 'inventory'
       );
     }),
   ).toBeTruthy();
@@ -73,7 +73,7 @@ test('用途隔离：库存仅 ERP，无 SPEC 或未归属入口、空表及请�
   );
 });
 
-test('ERP 库存加载及错源重试：非 ERP 响应不显示、不残留数字', async ({ page }) => {
+test('商品库存加载及错源重试：无资格 响应不显示、不残留数字', async ({ page }) => {
   let release: (() => void) | undefined;
   const waiting = new Promise<void>((resolve) => {
     release = resolve;
@@ -99,11 +99,11 @@ test('ERP 库存加载及错源重试：非 ERP 响应不显示、不残留数�
   incorrect = false;
   await page.getByRole('button', { name: /重\s*试/ }).click();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveText(String(expected.subtotal.packages));
-  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'erp-product');
+  await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
   console.log('ERP_INVENTORY_RECOVERY wrong_source_display=0; retry=erp-product; tabs=0');
 });
 
-test('ERP 库存空态与无权限：不出现其他用途入口或占位', async ({ page }) => {
+test('商品库存空态与无权限：不出现其他用途入口或占位', async ({ page }) => {
   let forbidden = false;
   await page.route('**/api/v1/web/lists/stock?**', (route) =>
     route.fulfill({
@@ -115,7 +115,7 @@ test('ERP 库存空态与无权限：不出现其他用途入口或占位', asyn
         data: forbidden
           ? null
           : {
-              source: 'erp-product',
+              source: 'inventory',
               items: [],
               total: 0,
               page: 1,

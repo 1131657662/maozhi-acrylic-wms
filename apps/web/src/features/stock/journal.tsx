@@ -10,7 +10,7 @@ import { stockKeys } from './keys';
 import { JournalDetail } from './journal-detail';
 
 export function StockJournal() {
-  const query = useQuery(stockKeys.journal('erp-product'));
+  const query = useQuery(stockKeys.journal('inventory'));
   if (query.error instanceof ApiError && query.error.status === 403)
     return <Result status="403" title="无权查看库存流水" />;
   if (query.error)
@@ -24,7 +24,7 @@ export function StockJournal() {
   return (
     <ProTable<SourceJournalRow>
       rowKey="id"
-      headerTitle="ERP 商品 · 最近 20 条库存流水"
+      headerTitle="库存商品 · 最近 20 条库存流水"
       dataSource={query.data}
       loading={query.isLoading}
       search={false}

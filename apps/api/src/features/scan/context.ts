@@ -26,11 +26,15 @@ export async function resolveContext(
   const context = input.context ?? (await legacyContext(db, { planId, product: row.legacy_product_code, spec }));
   ensure(context.sourceSpec === spec, 'FACT_CONTEXT_MISMATCH', '规格与所声明的历史目录版本不一致');
   const line = await db.get(
-    `SELECT l.product_code,p.source_kind FROM outbound_lines l JOIN master_products p ON p.code=l.product_code
+    `SELECT l.product_code,p.inventory_eligible FROM outbound_lines l JOIN master_products p ON p.code=l.product_code
     WHERE l.id=? AND l.order_id=? AND l.source_del_flag=0`,
     [context.outboundLineId, planId],
   );
-  ensure(line?.source_kind === 'erp-product', 'FACT_CONTEXT_MISMATCH', '必须选择原单内的 ERP 商品作业行');
+  ensure(
+    line && Number(line.inventory_eligible) === 1,
+    'FACT_CONTEXT_MISMATCH',
+    '必须选择原单内的有库存资格的商品作业行',
+  );
   return {
     ...context,
     productCode: String(line.product_code),
@@ -43,7 +47,7 @@ async function legacyContext(
 ): Promise<ScanContextInput> {
   const lines = await db.all(
     `SELECT l.id FROM outbound_lines l JOIN master_products p ON p.code=l.product_code
-    WHERE l.order_id=? AND l.product_code=? AND l.source_del_flag=0 AND p.source_kind='erp-product'`,
+    WHERE l.order_id=? AND l.product_code=? AND l.source_del_flag=0 AND p.inventory_eligible=1`,
     [input.planId, String(input.product ?? '')],
   );
   ensure(lines.length === 1, 'FACT_CONTEXT_REQUIRED', '旧事实缺少可靠 ERP 作业行，请保留原记录并完成设备交接');

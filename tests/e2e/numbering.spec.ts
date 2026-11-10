@@ -1,13 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
-import { numberingRulesSchema } from '@wms/contracts';
 import { e2eDatabase } from './inventory-helpers';
 
-async function prepareCollision(page: Page) {
-  const response = await page.request.get('/api/v1/document-numbering');
-  expect(response.status()).toBe(200);
-  const rule = numberingRulesSchema.parse((await response.json()).data).find((row) => row.kind === 'outbound')!;
-  const next = rule.preview!;
+async function prepareCollision(page: Page, next: string) {
   expect(next).toMatch(/^CK-\d{8}-\d{4}$/);
   const sequence = String(Number(next.split('-').at(-1)));
   const narrow = next.replace(/-\d+$/, '-' + sequence.padStart(2, '0'));
@@ -48,12 +43,14 @@ async function prepareRecentUnknownJournal() {
 }
 test('B1a 编号配置预览、调窄撞号拒绝且保留输入，修改成功', async ({ page }) => {
   await login(page);
-  const expected = await prepareCollision(page);
   await page.goto('/system/document-numbering');
   await expect(page.getByText(/预览不占号/)).toBeVisible();
   await expect(page.getByText(/^RK-\d{8}-\d{4}$/)).toBeVisible();
   await page.getByText('出库 CK', { exact: true }).click();
-  await expect(page.getByText(expected.next, { exact: true })).toBeVisible();
+  const preview = page.getByText(/^CK-\d{8}-\d{4}$/);
+  const next = (await preview.innerText()).trim();
+  const expected = await prepareCollision(page, next);
+  await expect(preview).toHaveText(expected.next);
   await page.getByLabel('序号宽度', { exact: true }).fill('2');
   const collisionResponse = page.waitForResponse(
     (response) => response.url().endsWith('/document-numbering/outbound') && response.request().method() === 'PUT',
@@ -90,7 +87,10 @@ test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await login(page);
-  await expect(page.getByTestId('status-tag').filter({ hasText: 'legacy_future_state' })).toBeVisible();
+  await page.goto('/?status=legacy_future_state');
+  await expect(
+    page.getByTestId('pro-table').getByTestId('status-tag').filter({ hasText: 'legacy_future_state' }),
+  ).toBeVisible();
   await page.goto('/outbound/E2E-UNKNOWN-OUT');
   const tag = page.getByTestId('status-tag');
   await expect(tag).toHaveText('状态待识别：legacy_future_state');
@@ -103,8 +103,10 @@ test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和
   await page.setViewportSize({ width: 1280, height: 900 });
   await noPageOverflow(page);
   await page.screenshot({ path: '.local/evidence/b1a2-unknown-status-1280.png', fullPage: true });
-  await page.goto('/inbound');
-  await expect(page.getByTestId('status-tag').filter({ hasText: 'legacy_inbound_state' })).toBeVisible();
+  await page.goto('/inbound?status=legacy_inbound_state');
+  await expect(
+    page.getByTestId('pro-table').getByTestId('status-tag').filter({ hasText: 'legacy_inbound_state' }),
+  ).toBeVisible();
   await page.goto('/inbound/E2E-UNKNOWN-IN');
   await expect(page.getByTestId('status-tag')).toHaveText('状态待识别：legacy_inbound_state');
   await expect(page.getByTestId('unknown-status-notice')).toContainText('不能据此判断是否已入库');

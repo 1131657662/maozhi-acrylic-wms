@@ -17,7 +17,7 @@ export async function seedSourceEvidence(db: Database): Promise<void> {
     VALUES('DEMO-WH','SRC-ERP-A',999,'299.7000',1)`);
   await db.run(`INSERT INTO stock_journal(warehouse_code,product_code,packages_delta,tonnes_delta,created_at,source_del_flag)
     VALUES('DEMO-WH','SRC-ERP-A',999,'299.7000',UTC_TIMESTAMP(3),1)`);
-  await addV1Fixture(db,{barcode:'SRC-CATALOG-ONLY',product:'SRC-SPEC-A',tonnes:'0.3895'});
+  await addV1Fixture(db, { barcode: 'SRC-CATALOG-ONLY', product: 'SRC-SPEC-A', tonnes: '0.3895' });
 }
 interface ProductStock {
   code: string;
@@ -27,9 +27,9 @@ interface ProductStock {
 }
 async function addProductStock(db: Database, row: ProductStock): Promise<void> {
   await db.run(
-    `INSERT INTO master_products(code,name,active,created_at,updated_at,source_kind)
-    VALUES(?,'同名验收商品',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),?)`,
-    [row.code, row.source],
+    `INSERT INTO master_products(code,name,active,created_at,updated_at,source_kind,origin_kind,inventory_eligible)
+    VALUES(?,'同名验收商品',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),?,?,?)`,
+    [row.code, row.source, row.source === 'erp-product' ? 'legacy' : 'unknown', Number(row.source === 'erp-product')],
   );
   await db.run(
     `INSERT INTO stock(warehouse_code,product_code,packages,weight_tonnes)

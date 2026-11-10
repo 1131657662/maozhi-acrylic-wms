@@ -9,7 +9,7 @@ import { ReadingDrawer } from './reading-drawer';
 
 const columns: ProColumns<StocktakeLine>[] = [
   {
-    title: 'ERP 商品',
+    title: '库存商品',
     dataIndex: 'productName',
     width: 220,
     fixed: 'left',

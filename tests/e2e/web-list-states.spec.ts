@@ -33,7 +33,7 @@ for (const [kind, path] of [
                   page: 1,
                   pageSize: 20,
                   viewToken: 'empty',
-                  ...(kind === 'stock' ? { source: 'erp-product', subtotal: { packages: 0, weightGrams: 0 } } : {}),
+                  ...(kind === 'stock' ? { source: 'inventory', subtotal: { packages: 0, weightGrams: 0 } } : {}),
                 }
               : null,
         },

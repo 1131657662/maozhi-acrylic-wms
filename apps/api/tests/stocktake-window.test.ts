@@ -68,7 +68,7 @@ test('B3a 他仓可确认、指定零库存商品可实盘、PDA/小程序不得
     const receipt = await createInbound(db, { ...newReceipt(), warehouseCode: 'OTHER' }, randomUUID(), actor);
     await confirmInbound(db, receipt.id, randomUUID(), actor);
     await db.run(
-      "INSERT INTO master_products(code,name,source_kind,created_at,updated_at) VALUES('ZERO','零库存范围','erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))",
+      "INSERT INTO master_products(code,name,source_kind,created_at,updated_at,origin_kind,inventory_eligible) VALUES('ZERO','零库存范围','erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)",
     );
     const take = await createStocktake(db, { warehouseCode: 'OTHER', productCodes: ['ZERO'] }, randomUUID(), actor);
     assert.equal(take.snapshotPackages, 0);

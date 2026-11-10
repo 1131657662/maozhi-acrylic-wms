@@ -14,25 +14,25 @@ async function capture(db: Database, id: string, input: CreateStocktake) {
   const codes = input.productCodes;
   if (codes) {
     const valid = await db.get(
-      `SELECT COUNT(*) AS n FROM master_products WHERE source_kind='erp-product'
-      AND source_del_flag=0 AND code IN (${codes.map(() => '?').join(',')})`,
+      `SELECT COUNT(*) AS n FROM master_products WHERE inventory_eligible=1
+      AND active=1 AND source_del_flag=0 AND code IN (${codes.map(() => '?').join(',')})`,
       codes,
     );
-    ensure(Number(valid?.n) === codes.length, 'PRODUCT_NOT_INVENTORY', '盘点范围只能包含有效 ERP 商品');
+    ensure(Number(valid?.n) === codes.length, 'PRODUCT_NOT_INVENTORY', '盘点范围只能包含有库存资格的商品');
   }
   const filter = codes ? `p.code IN (${codes.map(() => '?').join(',')})` : 's.product_code IS NOT NULL';
   await db.run(
     `INSERT INTO stocktake_snapshots(stocktake_id,product_code,product_name,packages,weight_tonnes)
     SELECT ?,p.code,p.name,COALESCE(s.packages,0),COALESCE(s.weight_tonnes,0)
     FROM master_products p LEFT JOIN stock s ON s.product_code=p.code AND s.warehouse_code=? AND s.source_del_flag=0
-    WHERE p.source_kind='erp-product' AND p.source_del_flag=0 AND ${filter}`,
+    WHERE p.inventory_eligible=1 AND p.active=1 AND p.source_del_flag=0 AND ${filter}`,
     [id, input.warehouseCode, ...(codes ?? [])],
   );
   const rows = await db.all(
     'SELECT product_code,packages,weight_tonnes FROM stocktake_snapshots WHERE stocktake_id=? ORDER BY product_code',
     [id],
   );
-  ensure(rows.length > 0, 'EMPTY_STOCKTAKE', '所选仓库暂无 ERP 库存；可指定商品生成零库存快照');
+  ensure(rows.length > 0, 'EMPTY_STOCKTAKE', '所选仓库暂无 商品库存；可指定商品生成零库存快照');
   await db.run('UPDATE stocktakes SET snapshot_hash=?,line_count=? WHERE id=?', [
     hash(JSON.stringify(rows)),
     rows.length,

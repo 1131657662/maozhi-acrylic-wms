@@ -30,7 +30,7 @@ export function StocktakeDetail() {
         {take && (
           <>
             <Tag color={take.status === 'counting' ? 'warning' : 'default'}>{stocktakeStatus[take.status]}</Tag>
-            <Tag>库存口径：ERP 商品</Tag>
+            <Tag>库存口径：库存商品</Tag>
             {take.status === 'counting' && <StocktakePostPanel id={id} />}
             {take.status === 'counting' && (
               <Alert

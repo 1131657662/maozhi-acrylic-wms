@@ -12,8 +12,8 @@ export async function seedStocktakeVolume(db: Database, count = 10000) {
       (_, i) => `COUNT-${String(offset + i + 1).padStart(5, '0')}`,
     );
     await db.run(
-      `INSERT INTO master_products(code,name,source_kind,created_at,updated_at) VALUES
-      ${codes.map(() => "(?,?,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))").join(',')}`,
+      `INSERT INTO master_products(code,name,source_kind,created_at,updated_at,origin_kind,inventory_eligible) VALUES
+      ${codes.map(() => "(?,?,'erp-product',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)").join(',')}`,
       codes.flatMap((c) => [c, `合成盘点商品 ${c}`]),
     );
     await db.run(

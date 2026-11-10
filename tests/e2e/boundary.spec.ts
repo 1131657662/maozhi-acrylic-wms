@@ -49,7 +49,7 @@ test('B4a R1 下载/离线事实/Web改车号/原正文补传', async ({ page })
     await page.goto(`/outbound/${plan.id}/edit`);
     await expect(page.getByText('只能修改车号和备注，客户、仓库及明细保持不变。')).toBeVisible();
     await expect(page.getByLabel('计划包数')).toHaveCount(0);
-    await page.getByLabel('车牌 / 车辆标识').fill('B4A-Web改后车号');
+    await page.getByLabel('车牌').fill('B4A-Web改后车号');
     await page.getByLabel('备注', { exact: true }).fill('离线期间仅改表头');
     const updated = page.waitForResponse(
       (r) => r.url().endsWith(`/outbound/${plan.id}`) && r.request().method() === 'PATCH',
@@ -100,7 +100,7 @@ test('B4a R1 下载/离线事实/Web改车号/原正文补传', async ({ page })
   }
 });
 
-test('B4a R2/R3 商品只读；605条列表及单据选择器分页/搜索/已选回显/末条可达', async ({ page }) => {
+test('B4a R2/R3 商品可维护；605条列表及单据选择器分页/搜索/已选回显/末条可达', async ({ page }) => {
   test.setTimeout(90000);
   const db = e2eDatabase();
   const prefix = `B4A-${randomUUID().slice(0, 6)}-`,
@@ -119,7 +119,7 @@ test('B4a R2/R3 商品只读；605条列表及单据选择器分页/搜索/已�
         `翻页验收-${i + 1}`,
       ]);
       await db.run(
-        `INSERT INTO master_${catalog}(code,name,created_at,updated_at${catalog === 'products' ? ',source_kind' : ''}) VALUES ${rows.map(() => `(?,?,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3)${catalog === 'products' ? ",'erp-product'" : ''})`).join(',')}`,
+        `INSERT INTO master_${catalog}(code,name,created_at,updated_at${catalog === 'products' ? ',source_kind,origin_kind,inventory_eligible' : ''}) VALUES ${rows.map(() => `(?,?,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3)${catalog === 'products' ? ",'erp-product','legacy',1" : ''})`).join(',')}`,
         rows.flat(),
       );
     }
@@ -128,8 +128,7 @@ test('B4a R2/R3 商品只读；605条列表及单据选择器分页/搜索/已�
       await page.getByRole('tab', { name: label, exact: true }).click();
       const panel = page.getByRole('tabpanel', { name: label, exact: true });
       if (catalog === 'products') {
-        await expect(panel.getByText('商品由 ERP 维护，此处只读')).toBeVisible();
-        await expect(panel.getByRole('button', { name: /新增|编辑|停用|启用/ })).toHaveCount(0);
+        await expect(panel.getByRole('button', { name: '新增主数据', exact: true })).toBeVisible();
       }
       await panel.getByLabel('搜索主数据').fill(prefix);
       await panel.getByLabel('搜索主数据').press('Enter');
@@ -150,7 +149,7 @@ test('B4a R2/R3 商品只读；605条列表及单据选择器分页/搜索/已�
     await page.getByRole('button', { name: '下一页资料' }).click();
     await expect(page.getByText(`${prefix}0021 · 翻页验收-21`, { exact: true })).toBeVisible();
     await product.fill(last);
-    const selectedRead = page.waitForResponse((r) => r.url().endsWith(`/master-data/products/${last}`));
+    const selectedRead = page.waitForResponse((r) => r.url().endsWith(`/master/products/${last}`));
     await page.getByText(`${last} · 翻页验收-605`, { exact: true }).click();
     // Refetch on reload is unnecessary: the exact-code query runs as soon as selection changes.
     const selectedLabel = page.locator('.ant-select-content').filter({ has: product });
@@ -172,7 +171,7 @@ test('B4a R2/R3 商品只读；605条列表及单据选择器分页/搜索/已�
         codeSearch: true,
         exactCode: last,
         selectedAfterSearch: last,
-        productReadOnly: true,
+        productEditable: true,
       }),
     );
   } finally {

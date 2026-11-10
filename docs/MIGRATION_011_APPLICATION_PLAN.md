@@ -1,8 +1,8 @@
-# 011 开发库应用计划（未执行）
+# 011 开发库应用计划与执行记录
 
 日期：2026-11-09。对象：茂智云仓 · 腈纶仓储管理系统的本机合成开发库。代码基线：`61f4d82e95a1dd74af2027e894d869e426d6b5d2`。
 
-**本文件是后续执行计划。本轮没有连接数据库、备份、应用或回退迁移，也没有运行冒烟。** 用户说明 011 尚未应用到 3307 开发库，`B5A_ACCEPTANCE.md:208` 有相同历史记录；执行时仍须实际查询，不能把这条说明当作最新数据库状态证明。
+> 本计划在 B6a 开工前已按用户授权执行；实际记录见第 8 节。第 1–7 节保留执行前计划语境，其中“本轮未执行”指文档评审批次，不表示当前数据库仍缺少 011。
 
 ## 1. 范围与现有入口
 
@@ -117,3 +117,31 @@ npx tsx scripts/mysql/migrate.ts up
 - 是否恢复写服务、回退条件是否仍成立、保留的原库/副本/证据位置。
 
 本计划没有应用结果栏的预填“成功”。下一轮获实施授权后按实际输出填写，任一阻断保留现场并报告。
+
+
+## 8. B6a 前置执行记录（2026-11-09）
+
+实际目标 `127.0.0.1:3307 / maozhi_dev_sample`，MySQL 8.0.46；identity=`maozhi-local-mysql8-v1`，datadir=`D:\maozhi-acrylic-wms\.local\mysql\data\`。仅停止经核实的本项目 dev 启动树 PID 24024；未批量结束其他 Node/浏览器。全程没有连接3306或生产。
+
+- 备份：`.local/backups/maozhi-1794236722353.sql`，6,187,320 字节；SHA256=`1A06F0A101625795F081784E1EAD946DDABF3B0197901A0A5719B693A79DEFDD`。
+- 恢复副本：`maozhi_restore_b75623b5746b1bc3`，保留；原库 sessions=5，恢复脚本将副本 sessions 清为0，其余原表指纹相同。DDL差异仅显式字符集声明/触发器创建时间，规范化后匹配。
+- 副本011 up→down→up通过；独立合成库更正/日期/迁移验收26项通过。
+- 开发库执行 `npx tsx scripts/mysql/migrate.ts up`，当时最高注册为011；原始输出 `MySQL 迁移 up 完成`。
+- 011状态 applied，applied_at=`2026-11-09 15:07:05.427` UTC；checksum=`546374a8a7417534929a181f040cdee8fc3ef5582966f4927c8ac7b17d6ea390`。
+
+原始核验输出：
+
+```text
+B2_VERIFIED {
+  originalTablesUnchanged: 35,
+  oldMigrationsUnchanged: 10,
+  oldDatesNull: true,
+  revisionsZero: true,
+  correctionTablesEmpty: true,
+  journalCorrectionNull: true
+}
+```
+
+开发API启动、登录、入库/出库/库存/盘点/编号/历史详情/月报读取均200。首次冒烟选中了软删历史入库导致404，已保留失败日志；改为可见历史单后重试通过。迁移后业务指纹比较在登录前完成；重试登录单列 sessions 5→6、operation_log 9→10，不将这些认证写入称为迁移零差异。
+
+原始证据：[目录](../.local/evidence/migration-011-20261109/)、[应用](../.local/evidence/migration-011-20261109/dev-up.log)、[副本演练](../.local/evidence/migration-011-20261109/rehearsal.log)、[指纹](../.local/evidence/migration-011-20261109/postflight.log)、[26项验收](../.local/evidence/migration-011-20261109/isolated-smoke.log)、[开发库冒烟](../.local/evidence/migration-011-20261109/dev-smoke-retry.log)。这是本地合成开发库应用，不是生产/实体设备验收。后续012状态见 B6A_ACCEPTANCE。

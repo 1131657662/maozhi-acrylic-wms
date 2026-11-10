@@ -1,7 +1,7 @@
 import { Link, useParams } from '@umijs/max';
 import { Alert, Button, Card, Skeleton, Steps, Space } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
-import { tonnes } from '@wms/contracts';
+import { tonnes, snapshotText } from '@wms/contracts';
 import { useOrder } from './use-order';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { Facts } from './facts';
@@ -83,10 +83,13 @@ export function OrderDetail() {
           column={3}
           dataSource={order}
           columns={[
-            { title: '客户', dataIndex: 'customerName' },
+            { title: '客户', render: () => snapshotText(order.customerName) },
             { title: '车牌', dataIndex: 'vehicleNo' },
             { title: '备注', dataIndex: 'memo' },
-            { title: '仓库', dataIndex: 'warehouseCode' },
+            { title: '仓库', render: () => snapshotText(order.warehouseName) },
+            { title: '收货人', render: () => snapshotText(order.shipToName) },
+            { title: '电话', render: () => snapshotText(order.shipToPhone) },
+            { title: '地址', render: () => snapshotText(order.shipToAddress) },
             { title: '计划版本', dataIndex: 'planVersion' },
             { title: '事实修订号', dataIndex: 'revision' },
             { title: '建单时间', dataIndex: 'createdAt', render: () => formatTime(order.createdAt) },
@@ -96,8 +99,9 @@ export function OrderDetail() {
         <div className="line-summary">
           {order.lines.map((line) => (
             <p key={line.id}>
-              {line.productCode} · {line.productName} — 计划 {line.plannedPackages} 包 /{' '}
-              {tonnes(line.plannedWeightGrams)} 吨；实扫 {line.actualPackages} 包 / {tonnes(line.actualWeightGrams)} 吨
+              {line.productCode} · {snapshotText(line.productName)}（{snapshotText(line.productModel)}） — 计划{' '}
+              {line.plannedPackages} 包 / {tonnes(line.plannedWeightGrams)} 吨；实扫 {line.actualPackages} 包 /{' '}
+              {tonnes(line.actualWeightGrams)} 吨
             </p>
           ))}
         </div>

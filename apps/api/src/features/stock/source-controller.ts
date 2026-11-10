@@ -7,12 +7,12 @@ import { readSourceJournal, readSourceStock } from './source-service.ts';
 export function stockSourceController(db: Database) {
   return {
     stock: async (req: Request, res: Response) => {
-      const { source } = stockSourceQuerySchema.parse(req.query);
-      ok(res, await readSourceStock(db, source));
+      const { source, scope } = stockSourceQuerySchema.parse(req.query);
+      ok(res, await readSourceStock(db, scope ?? source!));
     },
     journal: async (req: Request, res: Response) => {
-      const { source, limit } = sourceJournalQuerySchema.parse(req.query);
-      ok(res, await readSourceJournal(db, source, limit));
+      const { source, scope, limit } = sourceJournalQuerySchema.parse(req.query);
+      ok(res, await readSourceJournal(db, scope ?? source!, limit));
     },
   };
 }

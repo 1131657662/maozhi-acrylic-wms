@@ -19,6 +19,7 @@ import { lockInventoryWriter } from '../inventory/operation.ts';
 import { requireInventoryProduct } from '../inventory/posting.ts';
 import { assertEditableHeader } from './edit-policy.ts';
 import { validateBusinessDate } from '../business-date/policy.ts';
+import { captureOutboundSnapshots, captureVehicle } from './snapshots.ts';
 
 export async function createOutboundPlan(db: Database, input: OutboundPlanFields, key: string, actor: Actor) {
   const plan = createOutboundPlanSchema.parse(input);
@@ -52,6 +53,7 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
       throw error;
     }
     await insertLines(tx, id, plan, references.products);
+    await captureOutboundSnapshots(tx, { id, plan }, actor);
     const after = await getOrder(tx, id);
     await audit(tx, actor, {
       action: 'outbound.plan.create',
@@ -74,6 +76,8 @@ export async function editOutboundPlan(db: Database, id: string, input: unknown,
     const before = await getOrder(tx, id);
     await assertEditableHeader(tx, before, command.plan);
     checkRevision(before, command);
+    if (command.plan.vehicleNo !== before.vehicleNo)
+      await captureVehicle(tx, { id, plate: command.plan.vehicleNo }, actor);
     await tx.run('UPDATE outbound_orders SET vehicle_no=?,memo=?,revision=revision+1 WHERE id=?', [
       command.plan.vehicleNo,
       command.plan.memo === undefined ? before.memo : command.plan.memo,

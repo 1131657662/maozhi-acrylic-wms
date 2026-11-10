@@ -49,7 +49,7 @@ export function StocktakeCreate() {
         </ProForm.Item>
         <ProFormSelect
           name="productCodes"
-          label="ERP 商品范围（选填）"
+          label="库存商品范围（选填）"
           mode="multiple"
           showSearch
           debounceTime={300}
@@ -62,7 +62,7 @@ export function StocktakeCreate() {
             ).map((p) => ({ value: p.code, label: `${p.code} · ${p.name}` }))
           }
           fieldProps={{ maxCount: 100 }}
-          extra="不选时盘点该仓全部 ERP 库存。指定商品即使当前无库存，也生成零库存快照；最多指定 100 个商品。"
+          extra="不选时盘点该仓全部 商品库存。指定商品即使当前无库存，也生成零库存快照；最多指定 100 个商品。"
         />
       </ProForm>
     </PageContainer>

@@ -1,3 +1,4 @@
+import { snapshotText } from './snapshots.ts';
 import type { ExportKind } from './export-kind.ts';
 import { reportFields } from './report-fields.ts';
 
@@ -61,18 +62,28 @@ export const listFields: Record<ExportKind, ListField[]> = {
     f('status', '原始状态', 'text', 30),
     f('postingState', '入账状态'),
     f('products', '商品明细', 'text', 48),
+    { ...f('productModels', '商品型号'), defaultHidden: true },
     f('supplierName', '供应商'),
+    ...[f('deliveryName', '送货人'), f('deliveryPhone', '送货电话'), f('deliveryAddress', '送货地址')].map((field) => ({
+      ...field,
+      defaultHidden: true,
+    })),
     f('warehouseName', '仓库'),
     f('createdAt', '登记时间', 'date', 24),
   ],
   outbound: [
     f('orderNo', '出库单号'),
+    ...[f('products', '商品明细'), f('productModels', '商品型号')].map((field) => ({ ...field, defaultHidden: true })),
     f('plannedPackages', '计划包数', 'integer', 14),
     f('plannedWeightGrams', '计划重量（吨）', 'tonnes', 20),
     f('actualPackages', '实扫包数', 'integer', 14),
     f('actualWeightGrams', '实扫重量（吨）', 'tonnes', 20),
     f('status', '状态', 'text', 30),
     f('customerName', '客户'),
+    ...[f('shipToName', '收货人'), f('shipToPhone', '收货电话'), f('shipToAddress', '收货地址')].map((field) => ({
+      ...field,
+      defaultHidden: true,
+    })),
     f('warehouseName', '仓库'),
     f('vehicleNo', '车牌'),
     f('createdAt', '建单时间', 'date', 24),
@@ -96,10 +107,26 @@ export function listCellText(kind: ExportKind, field: ListField, row: Record<str
   const value = row[field.key];
   if (field.key === 'status' && !kind.startsWith('report-'))
     return statusText(value == null ? null : String(value), kind === 'inbound' ? 'inbound' : 'outbound');
+  if (
+    ['inbound', 'outbound'].includes(kind) &&
+    [
+      'supplierName',
+      'customerName',
+      'warehouseName',
+      'shipToName',
+      'shipToPhone',
+      'shipToAddress',
+      'deliveryName',
+      'deliveryPhone',
+      'deliveryAddress',
+    ].includes(field.key)
+  )
+    return snapshotText(value == null ? null : String(value));
   if (value == null || value === '') return '-';
   if (field.key === 'reasons') return Array.isArray(value) ? value.join('；') || '-' : String(value);
   if (field.key === 'postingState') return postingText[value as keyof typeof postingText] ?? String(value);
-  if (field.key === 'products') return Array.isArray(value) ? value.join('；') || '无有效明细' : '';
+  if (['products', 'productModels'].includes(field.key))
+    return Array.isArray(value) ? value.join('；') || '无有效明细' : '';
   if (kind === 'stock' && field.key === 'warehouseCode') return `${row.warehouseName}（${value}）`;
   if (field.type === 'date') return listTime(String(value));
   if (field.type === 'tonnes') return (Number(value) / 1_000_000).toFixed(4);

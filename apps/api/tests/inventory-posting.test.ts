@@ -109,7 +109,7 @@ test('目录商品不能通过创建/确认/调整进入库存', async () => {
   const { db, dispose } = await numberingFixture();
   try {
     const receipt = await createInbound(db, newReceipt(), randomUUID(), actor);
-    await db.run("UPDATE master_products SET source_kind='sku-spec' WHERE code='ACR-032'");
+    await db.run("UPDATE master_products SET source_kind='sku-spec',inventory_eligible=0 WHERE code='ACR-032'");
     const before = await inventorySnapshot(db);
     await assert.rejects(createInbound(db, newReceipt(), randomUUID(), actor), { code: 'PRODUCT_NOT_INVENTORY' });
     await assert.rejects(confirmInbound(db, receipt.id, randomUUID(), actor), { code: 'PRODUCT_NOT_INVENTORY' });

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { inventoryScopeFields, validInventoryScope } from './inventory-scope.ts';
 
 export const webListKindSchema = z.enum(['inbound', 'outbound', 'stock', 'audit']);
 export type WebListKind = z.infer<typeof webListKindSchema>;
@@ -50,13 +51,15 @@ export const webOutboundQuerySchema = z
       .default('createdAt'),
   })
   .refine(validRange, '时间范围或状态条件冲突');
-export const webStockQuerySchema = z.strictObject({
-  ...paging,
-  source: z.literal('erp-product'),
-  product: text,
-  warehouse: text,
-  sortBy: z.enum(['warehouseCode', 'productCode', 'productName', 'packages', 'weightGrams']).default('warehouseCode'),
-});
+export const webStockQuerySchema = z
+  .strictObject({
+    ...paging,
+    ...inventoryScopeFields,
+    product: text,
+    warehouse: text,
+    sortBy: z.enum(['warehouseCode', 'productCode', 'productName', 'packages', 'weightGrams']).default('warehouseCode'),
+  })
+  .refine(validInventoryScope, 'source与scope必须且只能提供一个');
 export const webAuditQuerySchema = z
   .strictObject({
     ...paging,

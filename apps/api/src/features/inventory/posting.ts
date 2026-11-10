@@ -19,16 +19,12 @@ export interface PostedChange extends StockChange {
 
 export async function requireInventoryProduct(db: Database, code: string): Promise<void> {
   const product = await db.get(
-    'SELECT source_kind,active,source_del_flag FROM master_products WHERE code=? FOR SHARE',
+    'SELECT inventory_eligible,active,source_del_flag FROM master_products WHERE code=? FOR SHARE',
     [code],
   );
+  ensure(Number(product?.inventory_eligible) === 1, 'PRODUCT_NOT_INVENTORY', '商品没有库存资格；条码目录不参与入账');
   ensure(
-    product?.source_kind === 'erp-product',
-    'PRODUCT_NOT_INVENTORY',
-    '只有 ERP 商品可以写入库存；条码目录不参与入账',
-  );
-  ensure(
-    Number(product.active) === 1 && Number(product.source_del_flag) === 0,
+    Number(product?.active) === 1 && Number(product?.source_del_flag) === 0,
     'MASTER_DATA_INACTIVE',
     '商品不存在或已停用',
   );

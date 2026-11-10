@@ -42,7 +42,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
   return (
     <Drawer
       open
-      title="库存调整 · ERP 商品"
+      title="库存调整 · 库存商品"
       size={560}
       onClose={onClose}
       closable={{ disabled: adjust.isPending }}

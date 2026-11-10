@@ -12,6 +12,9 @@ export * from './document-numbering.ts';
 export * from './stock-journal.ts';
 export * from './stock-source.ts';
 export * from './master-data.ts';
+export * from './party-contacts.ts';
+export * from './vehicles.ts';
+export * from './snapshots.ts';
 export * from './inbound.ts';
 export * from './outbound-plan.ts';
 
@@ -38,6 +41,8 @@ export const lineSchema = z.object({
   id: idSchema,
   productCode: idSchema,
   productName: z.string(),
+  productModel: z.string().nullable().optional(),
+  packageType: z.string().nullable().optional(),
   plannedPackages: z.number().int(),
   plannedWeightGrams: plannedWeightGramsSchema,
   actualPackages: z.number().int(),
@@ -64,6 +69,12 @@ export const orderSchema = z.object({
   customerName: z.string(),
   customerCode: idSchema,
   warehouseCode: z.string(),
+  warehouseName: z.string().nullable().optional(),
+  contactId: z.uuid().nullable().optional(),
+  shipToName: z.string().nullable().optional(),
+  shipToPhone: z.string().nullable().optional(),
+  shipToAddress: z.string().nullable().optional(),
+  vehicleId: z.uuid().nullable().optional(),
   vehicleNo: z.string(),
   memo: z.string().max(500).nullable().default(null),
   status: statusSchema,

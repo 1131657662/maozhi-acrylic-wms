@@ -16,6 +16,7 @@ export const inboundLineInputSchema = z.strictObject({
 });
 export const createInboundSchema = z.strictObject({
   ...businessDateFields,
+  contactId: z.uuid().nullable().optional(),
   receiptNo: z.string().trim().min(1).max(100).optional(),
   supplierCode: codeSchema,
   warehouseCode: codeSchema,
@@ -26,7 +27,12 @@ export const createInboundSchema = z.strictObject({
     .max(50)
     .refine((lines) => new Set(lines.map((line) => line.productCode)).size === lines.length, '商品不能重复'),
 });
-export const inboundLineSchema = inboundLineInputSchema.extend({ id: codeSchema, productName: z.string() });
+export const inboundLineSchema = inboundLineInputSchema.extend({
+  id: codeSchema,
+  productName: z.string(),
+  productModel: z.string().nullable().optional(),
+  packageType: z.string().nullable().optional(),
+});
 export const inboundReceiptSchema = z.object({
   id: codeSchema,
   receiptNo: z.string(),
@@ -37,6 +43,10 @@ export const inboundReceiptSchema = z.object({
   supplierName: z.string(),
   warehouseCode: codeSchema,
   warehouseName: z.string(),
+  contactId: z.uuid().nullable().optional(),
+  deliveryName: z.string().nullable().optional(),
+  deliveryPhone: z.string().nullable().optional(),
+  deliveryAddress: z.string().nullable().optional(),
   memo: z.string().nullable(),
   createdBy: z.string(),
   createdAt: z.string(),

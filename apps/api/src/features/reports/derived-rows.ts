@@ -17,7 +17,7 @@ function commonFields(kind: string, query: { fromDay: string; toDay: string }, c
     warehouseName: cell.warehouseName,
     productCode: cell.productCode,
     productName: cell.productName,
-    source: 'erp-product' as const,
+    source: projection.metadata.source,
     timeStatus: projection.metadata.timeStatus,
     watermark: projection.metadata.watermark,
     checkState: state.checkState,
@@ -33,11 +33,12 @@ export function turnoverRow(query: ReportTurnoverQuery, cell: Cell, projection: 
     common = commonFields('report-turnover', query, cell, projection),
     balances = projection.chronological ? dailyBalances(cell, period.days) : { completeDays: 0, sumGrams: null },
     netOutboundGrams = (cell.events ?? [])
-      .filter((event) =>
-        event.localTime &&
-        event.localTime >= query.fromDay + ' 00:00:00' &&
-        event.localTime < shiftDay(period.throughDay, 1) + ' 00:00:00' &&
-        event.family === 'outbound',
+      .filter(
+        (event) =>
+          event.localTime &&
+          event.localTime >= query.fromDay + ' 00:00:00' &&
+          event.localTime < shiftDay(period.throughDay, 1) + ' 00:00:00' &&
+          event.family === 'outbound',
       )
       .reduce((sum, event) => sum + event.weightGrams, 0),
     reasons = [...common.reasons];
@@ -46,11 +47,13 @@ export function turnoverRow(query: ReportTurnoverQuery, cell: Cell, projection: 
     reasons.push(`逐日日终余额仅 ${balances.completeDays}/${period.days.length} 日可验证`);
   if (common.checkState === '不可验证') balances.sumGrams = null;
   if (netOutboundGrams < 0) reasons.push('本期出库撤销冲回大于出库确认，不适合计算周转');
-  const averageGrams = balances.sumGrams === null || !period.days.length ? null : balances.sumGrams / period.days.length,
+  const averageGrams =
+      balances.sumGrams === null || !period.days.length ? null : balances.sumGrams / period.days.length,
     turns = averageGrams !== null && averageGrams > 0 && netOutboundGrams >= 0 ? netOutboundGrams / averageGrams : null,
-    turnoverDays = averageGrams !== null && averageGrams > 0 && netOutboundGrams > 0
-      ? (period.days.length * averageGrams) / netOutboundGrams
-      : null;
+    turnoverDays =
+      averageGrams !== null && averageGrams > 0 && netOutboundGrams > 0
+        ? (period.days.length * averageGrams) / netOutboundGrams
+        : null;
   return {
     ...common,
     days: period.days.length,
@@ -58,7 +61,12 @@ export function turnoverRow(query: ReportTurnoverQuery, cell: Cell, projection: 
     netOutboundGrams: projection.chronological ? netOutboundGrams : null,
     dailyClosingGramsSum: balances.sumGrams,
     averageInventory: averageGrams === null ? null : (averageGrams / 1_000_000).toFixed(4),
-    turns: turns === null ? (netOutboundGrams === 0 && averageGrams !== null && averageGrams > 0 ? '0.0000' : null) : turns.toFixed(4),
+    turns:
+      turns === null
+        ? netOutboundGrams === 0 && averageGrams !== null && averageGrams > 0
+          ? '0.0000'
+          : null
+        : turns.toFixed(4),
     turnoverDays: turnoverDays === null ? null : turnoverDays.toFixed(1),
     formula: `${turnoverFormula}；D=${period.days}；M=${averageGrams === null ? '不可验证' : (averageGrams / 1_000_000).toFixed(4) + ' 吨'}`,
     checkState: reasons.length ? '不可验证' : common.checkState,
@@ -79,7 +87,11 @@ export function agingRow(query: ReportAgingQuery, cell: Cell, projection: Projec
     cutoff = closingAt(cell, query.cutoffDay),
     fifo = emptyFifo(),
     cutoffEnd = shiftDay(query.cutoffDay, 1) + ' 00:00:00';
-  if (common.checkState === '不可验证' || !projection.chronological || (cell.events ?? []).some((event) => !event.localTime))
+  if (
+    common.checkState === '不可验证' ||
+    !projection.chronological ||
+    (cell.events ?? []).some((event) => !event.localTime)
+  )
     markFifoUnknown(fifo);
   else
     for (const event of cell.events ?? []) {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { inboundReceiptSchema, type InboundReceipt } from '@wms/contracts';
+import { inboundReceiptSchema, SNAPSHOT_MISSING_TEXT, type InboundReceipt } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { decimalToGrams } from '../../db/weight.ts';
 import { isoDate } from '../../db/dates.ts';
@@ -12,19 +12,20 @@ const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
   weightGrams: z.string().transform(decimalToGrams),
 });
 const headerSql = `SELECT r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
-  r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,s.name AS supplierName,
-  r.warehouse_code AS warehouseCode,w.name AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt,
-  r.business_date AS businessDate,r.source_id AS sourceId
-  FROM inbound_receipts r JOIN master_suppliers s ON s.code=r.supplier_code AND s.source_del_flag=0
-  JOIN master_warehouses w ON w.code=r.warehouse_code AND w.source_del_flag=0`;
+  r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS supplierName,
+  r.warehouse_code AS warehouseCode,COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt,
+  r.business_date AS businessDate,r.source_id AS sourceId,r.contact_id AS contactId,
+  r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress
+  FROM inbound_receipts r`;
 export async function getInbound(db: Database, id: string): Promise<InboundReceipt> {
   const header = await db.get(`${headerSql} WHERE r.source_del_flag=0 AND r.id=?`, [id]);
   if (!header) throw new AppError('NOT_FOUND', '入库单不存在', 404);
   const lines = z.array(lineSchema).parse(
     await db.all(
-      `SELECT l.id,l.product_code AS productCode,COALESCE(p.name,l.product_code) AS productName,
+      `SELECT l.id,l.product_code AS productCode,COALESCE(NULLIF(l.product_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS productName,
+    l.product_model_snapshot AS productModel,l.package_type_snapshot AS packageType,
     l.packages,l.weight_tonnes AS weightGrams FROM inbound_lines l
-    LEFT JOIN master_products p ON p.code=l.product_code AND p.source_del_flag=0 WHERE l.receipt_id=? AND l.source_del_flag=0 ORDER BY l.product_code`,
+    WHERE l.receipt_id=? AND l.source_del_flag=0 ORDER BY l.product_code`,
       [id],
     ),
   );

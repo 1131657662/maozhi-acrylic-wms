@@ -1,7 +1,7 @@
 import { Alert, Button, Result, Skeleton, Space, theme } from 'antd';
 import { useParams } from '@umijs/max';
 import { PageContainer, ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
-import { tonnes, type InboundReceipt } from '@wms/contracts';
+import { tonnes, snapshotText, type InboundReceipt } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
 import { useReceipt } from './use-receipt';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
@@ -19,6 +19,7 @@ export function InboundDetail() {
   const columns: ProColumns<InboundReceipt['lines'][number]>[] = [
     { title: '商品编码', dataIndex: 'productCode' },
     { title: '商品名称', dataIndex: 'productName' },
+    { title: '型号', render: (_, line) => snapshotText(line.productModel) },
     { title: '包数', dataIndex: 'packages' },
     { title: '总重量（吨）', render: (_, line) => tonnes(line.weightGrams) },
   ];
@@ -57,6 +58,9 @@ export function InboundDetail() {
             columns={[
               { title: '供应商', dataIndex: 'supplierName' },
               { title: '仓库', dataIndex: 'warehouseName' },
+              { title: '送货人', render: () => snapshotText(data.deliveryName) },
+              { title: '电话', render: () => snapshotText(data.deliveryPhone) },
+              { title: '地址', render: () => snapshotText(data.deliveryAddress) },
               { title: '包数', dataIndex: 'packages' },
               { title: '总重量（吨）', render: () => tonnes(data.weightGrams) },
               { title: '登记人', dataIndex: 'createdBy' },

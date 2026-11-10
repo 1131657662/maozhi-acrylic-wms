@@ -2,11 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createTestDatabase } from '../../../scripts/mysql/test-database.ts';
-import { fixture, actor } from './fixture.ts';
+import { fixture } from './fixture.ts';
 import { migrateUp, migrateDown } from '../src/db/migrate.ts';
 import { assertStocktakeReady } from '../src/db/stocktake-readiness.ts';
 import { businessFingerprint } from './lifecycle-fixture.ts';
-import { createStocktake } from '../src/features/stocktake/create.ts';
 
 test('B3a 009 空表down/up、历史逐表不变、任一盘点非空拒绝down', async () => {
   const empty = await createTestDatabase('009_stocktake');
@@ -26,7 +25,11 @@ test('B3a 009 空表down/up、历史逐表不变、任一盘点非空拒绝down'
     const after = await businessFingerprint(db);
     for (const table of Object.keys(before).filter((t) => t !== 'schema_migrations'))
       assert.equal(after[table], before[table], table);
-    await createStocktake(db, { warehouseCode: 'DEMO-WH' }, randomUUID(), actor);
+    // Persist a valid 009-era header to test its guard without invoking current 012-dependent services.
+    await db.run(
+      "INSERT INTO stocktakes(id,number,warehouse_code,scope_kind,status,snapshot_at,journal_watermark,snapshot_hash,line_count,created_by) VALUES(?,'PD-009-GUARD','DEMO-WH','warehouse','counting',UTC_TIMESTAMP(3),0,'fixture',0,'owner')",
+      [randomUUID()],
+    );
     const occupied = await businessFingerprint(db);
     let refusal = '';
     try {

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { businessDateFields } from './business-date.ts';
+import { plateSchema } from './vehicles.ts';
 
 const codeSchema = z
   .string()
@@ -10,10 +11,11 @@ export const plannedWeightGramsSchema = z.number().int().positive().max(1_000_00
 export const outboundMemoSchema = z.string().trim().max(500).nullable().optional();
 export const outboundPlanFieldsSchema = z.strictObject({
   ...businessDateFields,
+  contactId: z.uuid().nullable().optional(),
   orderNo: z.string().trim().min(1).max(100).optional(),
   customerCode: codeSchema,
   warehouseCode: codeSchema,
-  vehicleNo: z.string().trim().min(1).max(100),
+  vehicleNo: plateSchema,
   memo: outboundMemoSchema,
   lines: z
     .array(
