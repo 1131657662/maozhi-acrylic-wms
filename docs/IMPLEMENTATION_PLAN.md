@@ -1,5 +1,9 @@
 # 四端重建 / 第一里程碑
 
+## B6a-num 编码补充批（2026-11-10，已完成，用户验收通过）
+
+最终验证 **208/86/0**：test 208/208、完整 E2E 86/0（主 77 + catalog 9）、build exit 0，三项 exit 均为 0。014 已备份后应用本机 3307 开发样本库；新客户 C00001、新仓库 W01、新入库 RK-20261110-001 冒烟通过，旧编码和库存不变。样本库无 RK/CK 四位序号旧号：样本原号打开与独立测试库四位号兼容分别验证，不混写数据来源。详见文末本批记录及 [B6A_NUM_ACCEPTANCE.md](B6A_NUM_ACCEPTANCE.md) §5；体验修复批、B6c、B10 未开始。
+
 ## B6b 公共交互（2026-11-10，已完成，用户验收通过）
 
 - Step 1–4 已按确认完成：默认 50/四档分页、身份/页面/schema 隔离视图、严格参数；入/出库商品反查；详情三入口与逐单批量撤销；两种导出 schema、三种范围、XLSX/CSV、10 万行上限及重放/失败完整性。
@@ -413,6 +417,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | 011应用专项（非功能批次） | MIGRATION_011_APPLICATION_PLAN | 另轮按备份/指纹/副本演练/冒烟/非空拒绝回退执行，现有CLI足够，不等待维护UI |
 | B6a 主数据与单据快照 | MASTER_DATA_SPEC；C01/C03/C04/C05 | 已完成；012_M及快照迁移已应用本机开发库；逐项状态见B6A_ACCEPTANCE；顺序1 |
 | B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 已完成并通过用户验收；test 200/200、E2E 84/0、build exit 0；013_list_preferences 已应用 3307 开发样本库，备份/指纹/冒烟通过；性能另列 B6b-perf；见 B6B_ACCEPTANCE；顺序2 |
+| B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |
 | B5c | DOMAIN §5–6，短溢发/分批/短关/取样 | M-SHIPMENTS、M-SAMPLE-MARKS；发货头/行/事实唯一归属、包吨独立剩余量；样品出库类型走普通扣库，取样不扣库；B6a之后、B6f之前 |
@@ -443,10 +448,11 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 修订记录：C17 公共交互/查询/文案归B6b，UI-3～UI-8映射固定。
 修订记录：C18 legacy-open/T0/回退归B10；四项业务待决策关闭为0。
 
-## B6a-num：系统生成主数据编码与三位单据号（2026-11-10）
+## B6a-num：系统生成主数据编码与三位单据号（2026-11-10，已完成）
 
 - 批准范围：客户 C+5、供应商 S+4、仓库 W+2；事务计数器、唯一键碰撞重试、不复用与容量守卫。新建不接收 code，编辑只读 code、允许改名；名称优先、辅助编码可复制。
 - 用户确认新号固定 3 位、编号规则页只读。RK/CK 按新建业务日期分段，GZ 按上海创建日（更正单无业务日期）；旧 4 位与导入号保留，旧计数续接。PD 编号统一、切换重编归 B10，商品编码仍手工，B6c 不展开。
-- 014_master_code_counters：新计数器、三类 legacy_code 回填、不修改原 code；规则默认/已有位宽固定 3，不重置计数。空库 up/down/up 与逐表非空 down 拒绝已在随机测试库通过；没有应用至开发样本库。启动新版本前须另轮备份、迁移与冒烟。
-- 代码及本地验收完成：完整 test 208/208、E2E 86/0（主 77 + catalog 9）、build exit 0；三项 exit 均为 0。生成 OpenAPI 同步 exit 0。原始输出、截图、回退边界见 [B6A_NUM_ACCEPTANCE.md](B6A_NUM_ACCEPTANCE.md)。
-- 本批分支 codex/b6a-system-numbering，完成后停下，不合并、不 push。代码与本地自动化不代表开发样本库迁移、实体设备或生产验收。
+- 014_master_code_counters：新计数器、三类 legacy_code 回填、不修改原 code；规则默认/已有位宽固定 3，不重置计数。空库 up/down/up 与逐表非空 down 拒绝已在随机测试库通过。2026-11-10 22:57:04.976（上海）备份后应用至 127.0.0.1:3307/maozhi_dev_sample，状态 applied；42 个原结构对象一致，43 张表原有列数据指纹一致，仅有预期 DDL 与回填。
+- **已完成，用户验收通过，208/86/0**：完整 test 208/208、E2E 86/0（主 77 + catalog 9）、build exit 0；三项 exit 均为 0，OpenAPI 同步 exit 0。收尾沿用已验收完整验证，本轮补迁移和浏览器冒烟；独立库旧四位号定向复核 1/1、exit 0，不重复累计至 86。原始输出、截图、回退边界见 [B6A_NUM_ACCEPTANCE.md](B6A_NUM_ACCEPTANCE.md)。
+- 开发样本库真实登录后创建 C00001、W01、RK-20261110-001；入库保持待确认，库存/流水和既有主数据/单据未改。样本旧号 IN20261107001 可查询打开；样本库无 RK/CK 四位序号旧号，RK-20260101-0088 的兼容读取在独立合成库验证。
+- 本批开发分支 codex/b6a-system-numbering；收尾按用户授权合并并推送 master，之后停止。外部 UX 四份规范原样单独提交 b450ebf，未开始其体验修复内容、B6c 或 B10；开发库与自动化验收不代表实体设备或生产验收。
