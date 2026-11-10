@@ -8,12 +8,12 @@ import { tableFingerprints } from '../../../scripts/b4a-fingerprint.ts';
 test('013 列偏好空库 up/down/up，只回退013', async () => {
   const c = await createTestDatabase('012_master_data_snapshots');
   try {
-    await migrateUp(c.db);
+    await migrateUp(c.db, '013_list_preferences');
     assert.ok(await c.db.get("SHOW TABLES LIKE 'user_list_preferences'"));
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'user_list_preferences'"), undefined);
     assert.ok(await c.db.get("SELECT id FROM schema_migrations WHERE id='012_master_data_snapshots'"));
-    await migrateUp(c.db);
+    await migrateUp(c.db, '013_list_preferences');
     assert.ok(await c.db.get("SHOW TABLES LIKE 'user_list_preferences'"));
     console.log('B6B_PREFERENCES_MIGRATION empty=up/down/up success');
   } finally {
@@ -22,7 +22,7 @@ test('013 列偏好空库 up/down/up，只回退013', async () => {
 });
 
 test('013 非空 down 在任何 DDL 前拒绝，结构/数据/迁移状态不变', async () => {
-  const c = await createTestDatabase();
+  const c = await createTestDatabase('013_list_preferences');
   try {
     await c.db.run('INSERT INTO user_list_preferences VALUES(?,?,?,?,?,UTC_TIMESTAMP(3))', [
       randomUUID(),

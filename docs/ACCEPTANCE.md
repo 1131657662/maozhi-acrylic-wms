@@ -1,5 +1,9 @@
 # 第一里程碑验收记录
 
+## B6a-num：系统生成编码与三位单据号（2026-11-10）
+
+代码及本地验证完成：test 208/208、build exit 0、E2E 86/0（主 77 + catalog 9），三项 exit 均为 0。014 已在随机测试库通过空库 up/down/up、非空拒绝回退及旧编码保留；尚未应用开发样本库。固定 3 位、规则页只读，未实施 B10 重编或 B6c。逐项原始输出、截图、首次失败修复与回退边界见 [B6A_NUM_ACCEPTANCE.md](B6A_NUM_ACCEPTANCE.md)。
+
 ## B6b：公共交互（2026-11-10）
 
 **B6b 已完成，用户验收通过：test 200/200、E2E 84/0（主 75 + catalog 9）、build exit 0，三项 exit 均为 0；013 已应用 3307 开发样本库，备份、结构指纹与列宽持久化冒烟通过。详见 [docs/B6B_ACCEPTANCE.md](B6B_ACCEPTANCE.md)。**

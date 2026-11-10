@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hasGeneratedMasterCode } from './numbering-policy.ts';
 
 export const masterCatalogSchema = z.enum(['products', 'categories', 'warehouses', 'customers', 'suppliers']);
 const optionalText = (max: number) => z.string().trim().max(max).nullable().optional();
@@ -19,6 +20,7 @@ export const masterItemSchema = z.object({
   code: z.string().min(1).max(64),
   name: z.string().min(1).max(200),
   active: z.boolean(),
+  legacyCode: z.string().max(80).nullable().optional(),
   ...masterEditableFields,
   originKind: z.enum(['local', 'legacy', 'unknown']).optional(),
   inventoryEligible: z.boolean().optional(),
@@ -38,7 +40,7 @@ export const masterPageSchema = z.object({
   pageSize: z.number().int().positive(),
 });
 export type MasterListQuery = z.infer<typeof masterListQuerySchema>;
-export const createMasterItemSchema = z.strictObject({
+export const createManualMasterItemSchema = z.strictObject({
   ...masterEditableFields,
   code: z
     .string()
@@ -48,6 +50,11 @@ export const createMasterItemSchema = z.strictObject({
     .regex(/^[a-zA-Z0-9_-]+$/),
   name: z.string().trim().min(1).max(200),
 });
+export const createGeneratedMasterItemSchema = createManualMasterItemSchema.omit({ code: true });
+export const createMasterItemSchema = createManualMasterItemSchema.partial({ code: true });
+export function masterCreateSchema(catalog: MasterCatalog) {
+  return hasGeneratedMasterCode(catalog) ? createGeneratedMasterItemSchema : createManualMasterItemSchema;
+}
 export const updateMasterItemSchema = z
   .strictObject({
     ...masterEditableFields,

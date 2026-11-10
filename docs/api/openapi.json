@@ -109,6 +109,46 @@
         ],
         "type": "string"
       },
+      "S_05321bb2ad42c977": {
+        "additionalProperties": false,
+        "properties": {
+          "dateKey": {
+            "$ref": "#/components/schemas/S_ec37699fa056187f"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_0751f80bcdd0b95f"
+          },
+          "prefix": {
+            "$ref": "#/components/schemas/S_a3274265b5b8bdf3"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "previewError": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/S_ce622ef9640026a7"
+          },
+          "version": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "width": {
+            "$ref": "#/components/schemas/S_68740660c82fea1c"
+          }
+        },
+        "required": [
+          "kind",
+          "prefix",
+          "width",
+          "version",
+          "dateKey",
+          "timeZone",
+          "preview",
+          "previewError"
+        ],
+        "type": "object"
+      },
       "S_0635e2210c56e4db": {
         "default": 0,
         "maximum": 9007199254740991,
@@ -154,6 +194,31 @@
           "csv"
         ],
         "type": "string"
+      },
+      "S_08ea6636c29437ea": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_328cee47c36ea745"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
       },
       "S_098299344baa1906": {
         "additionalProperties": false,
@@ -702,36 +767,6 @@
         ],
         "type": "string"
       },
-      "S_28b4dc94710555c1": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "$ref": "#/components/schemas/S_2a2aca8dd06e8dcb"
-          },
-          "page": {
-            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
-          },
-          "pageSize": {
-            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_83f6485d0d169a84"
-          }
-        },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "pageSize"
-        ],
-        "type": "object"
-      },
-      "S_2a2aca8dd06e8dcb": {
-        "items": {
-          "$ref": "#/components/schemas/S_7048f2314aa34d11"
-        },
-        "type": "array"
-      },
       "S_2ac3e7fadf2b1465": {
         "maxLength": 500,
         "minLength": 1,
@@ -746,6 +781,10 @@
           "$ref": "#/components/schemas/S_b0abd84f5b3e9f3c"
         },
         "type": "array"
+      },
+      "S_2cfd93b904df0bb2": {
+        "maxLength": 80,
+        "type": "string"
       },
       "S_2ec451924b02dcb8": {
         "anyOf": [
@@ -814,6 +853,30 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_328cee47c36ea745": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "$ref": "#/components/schemas/S_74d0b82a93f74deb"
+          },
+          "page": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object"
       },
       "S_333271c3a01aef9d": {
         "const": "unclassified",
@@ -1317,6 +1380,31 @@
         "minimum": 1,
         "type": "integer"
       },
+      "S_54d886893e468484": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_98e44d41f075ccc1"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_552e63170407d5d6": {
         "default": "warehouseCode",
         "enum": [
@@ -1491,6 +1579,10 @@
         ],
         "type": "object"
       },
+      "S_68740660c82fea1c": {
+        "const": 3,
+        "type": "number"
+      },
       "S_69ab049ccedc4135": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -1603,65 +1695,6 @@
         },
         "type": "array"
       },
-      "S_7048f2314aa34d11": {
-        "additionalProperties": false,
-        "properties": {
-          "active": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "address": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "categoryCode": {
-            "$ref": "#/components/schemas/S_86ec77b1bd5c9e95"
-          },
-          "code": {
-            "$ref": "#/components/schemas/S_4876df4b78eb1afc"
-          },
-          "contact": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "inventoryEligible": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "maxAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "minAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "model": {
-            "$ref": "#/components/schemas/S_622125007b03450c"
-          },
-          "name": {
-            "$ref": "#/components/schemas/S_710bf2d0bd619025"
-          },
-          "originKind": {
-            "$ref": "#/components/schemas/S_fc7cd0801a95bc4f"
-          },
-          "packageColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "packageType": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "phone": {
-            "$ref": "#/components/schemas/S_ada490857814a487"
-          },
-          "strapColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          }
-        },
-        "required": [
-          "code",
-          "name",
-          "active"
-        ],
-        "type": "object"
-      },
       "S_710bf2d0bd619025": {
         "maxLength": 200,
         "minLength": 1,
@@ -1698,6 +1731,12 @@
           "traceId"
         ],
         "type": "object"
+      },
+      "S_74d0b82a93f74deb": {
+        "items": {
+          "$ref": "#/components/schemas/S_98e44d41f075ccc1"
+        },
+        "type": "array"
       },
       "S_74e4e96fc513966c": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1772,50 +1811,56 @@
         },
         "type": "object"
       },
-      "S_7ae859faca2b1074": {
-        "additionalProperties": false,
-        "properties": {
-          "dateKey": {
-            "$ref": "#/components/schemas/S_ec37699fa056187f"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_0751f80bcdd0b95f"
-          },
-          "prefix": {
-            "$ref": "#/components/schemas/S_a3274265b5b8bdf3"
-          },
-          "preview": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "previewError": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "timeZone": {
-            "$ref": "#/components/schemas/S_ce622ef9640026a7"
-          },
-          "version": {
-            "$ref": "#/components/schemas/S_83f6485d0d169a84"
-          },
-          "width": {
-            "$ref": "#/components/schemas/S_849d9969e9813705"
-          }
-        },
-        "required": [
-          "kind",
-          "prefix",
-          "width",
-          "version",
-          "dateKey",
-          "timeZone",
-          "preview",
-          "previewError"
-        ],
-        "type": "object"
-      },
       "S_7b00f2f695331f2e": {
         "exclusiveMinimum": 0,
         "maximum": 2147483647,
         "type": "integer"
+      },
+      "S_7b1bdbc507a9eafe": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "categoryCode": {
+            "$ref": "#/components/schemas/S_86ec77b1bd5c9e95"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "maxAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "minAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "model": {
+            "$ref": "#/components/schemas/S_622125007b03450c"
+          },
+          "name": {
+            "$ref": "#/components/schemas/S_710bf2d0bd619025"
+          },
+          "packageColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "packageType": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/S_ada490857814a487"
+          },
+          "strapColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
       },
       "S_7b5bbd1112a78d1c": {
         "anyOf": [
@@ -2006,11 +2051,6 @@
         "default": "",
         "maxLength": 200,
         "type": "string"
-      },
-      "S_849d9969e9813705": {
-        "maximum": 8,
-        "minimum": 2,
-        "type": "integer"
       },
       "S_85d86a89c7f95b0c": {
         "enum": [
@@ -2378,6 +2418,68 @@
         "minimum": 0,
         "type": "integer"
       },
+      "S_98e44d41f075ccc1": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "address": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "categoryCode": {
+            "$ref": "#/components/schemas/S_86ec77b1bd5c9e95"
+          },
+          "code": {
+            "$ref": "#/components/schemas/S_4876df4b78eb1afc"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "inventoryEligible": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "legacyCode": {
+            "$ref": "#/components/schemas/S_c43fd84959f0fed1"
+          },
+          "maxAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "minAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "model": {
+            "$ref": "#/components/schemas/S_622125007b03450c"
+          },
+          "name": {
+            "$ref": "#/components/schemas/S_710bf2d0bd619025"
+          },
+          "originKind": {
+            "$ref": "#/components/schemas/S_fc7cd0801a95bc4f"
+          },
+          "packageColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "packageType": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/S_ada490857814a487"
+          },
+          "strapColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "active"
+        ],
+        "type": "object"
+      },
       "S_9ae5ec65647cb279": {
         "maxLength": 500,
         "type": "string"
@@ -2591,31 +2693,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/S_ab9861cbc3717542"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
-      },
-      "S_b0a866d39e454a64": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_28b4dc94710555c1"
           },
           "message": {
             "$ref": "#/components/schemas/S_00404e686415370f"
@@ -2969,6 +3046,16 @@
         "maximum": 100,
         "minimum": 1,
         "type": "integer"
+      },
+      "S_c43fd84959f0fed1": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_2cfd93b904df0bb2"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
       },
       "S_c6b5eba0874323e5": {
         "format": "date-time",
@@ -3638,31 +3725,6 @@
       "S_fc8e894ba12ab9e1": {
         "const": "true",
         "type": "string"
-      },
-      "S_fcc50364edf4f9a7": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_7048f2314aa34d11"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       }
     },
     "securitySchemes": {
@@ -6357,7 +6419,7 @@
                     },
                     "data": {
                       "items": {
-                        "$ref": "#/components/schemas/S_7ae859faca2b1074"
+                        "$ref": "#/components/schemas/S_05321bb2ad42c977"
                       },
                       "type": "array"
                     },
@@ -6514,7 +6576,7 @@
                     "$ref": "#/components/schemas/S_83f6485d0d169a84"
                   },
                   "width": {
-                    "$ref": "#/components/schemas/S_849d9969e9813705"
+                    "$ref": "#/components/schemas/S_68740660c82fea1c"
                   }
                 },
                 "required": [
@@ -6539,7 +6601,7 @@
                       "$ref": "#/components/schemas/S_b4685c29266fd612"
                     },
                     "data": {
-                      "$ref": "#/components/schemas/S_7ae859faca2b1074"
+                      "$ref": "#/components/schemas/S_05321bb2ad42c977"
                     },
                     "message": {
                       "$ref": "#/components/schemas/S_00404e686415370f"
@@ -6659,7 +6721,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数",
+        "summary": "已停用的写入口：固定 3 位，只读；任何修改返回 422 NUMBERING_READ_ONLY",
         "x-client-channel": "web"
       }
     },
@@ -8283,6 +8345,133 @@
         "x-client-channel": "web"
       }
     },
+    "/master-data/categories": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_8e0429603134dd30"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
     "/master-data/contacts": {
       "get": {
         "parameters": [
@@ -8938,6 +9127,387 @@
         "x-client-channel": "web"
       }
     },
+    "/master-data/customers": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_7b1bdbc507a9eafe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
+    "/master-data/products": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_8e0429603134dd30"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
+    "/master-data/suppliers": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_7b1bdbc507a9eafe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
     "/master-data/vehicles": {
       "get": {
         "parameters": [
@@ -9481,6 +10051,133 @@
         "x-client-channel": "web"
       }
     },
+    "/master-data/warehouses": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_7b1bdbc507a9eafe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
     "/master-data/{catalog}": {
       "get": {
         "parameters": [
@@ -9538,7 +10235,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_b0a866d39e454a64"
+                  "$ref": "#/components/schemas/S_08ea6636c29437ea"
                 }
               }
             },
@@ -9645,140 +10342,6 @@
         ],
         "summary": "分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品",
         "x-client-channel": "web"
-      },
-      "post": {
-        "parameters": [
-          {
-            "in": "path",
-            "name": "catalog",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/S_e8d8bb2c4816547b"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/S_8e0429603134dd30"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
-                }
-              }
-            },
-            "description": "成功"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "413": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "415": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          }
-        },
-        "security": [
-          {
-            "cookieAuth": []
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "显式新增资料；商品固定本地来源与库存资格",
-        "x-client-channel": "web"
       }
     },
     "/master-data/{catalog}/{code}": {
@@ -9806,7 +10369,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
+                  "$ref": "#/components/schemas/S_54d886893e468484"
                 }
               }
             },
@@ -9948,7 +10511,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
+                  "$ref": "#/components/schemas/S_54d886893e468484"
                 }
               }
             },
@@ -10054,6 +10617,133 @@
           }
         ],
         "summary": "更新资料；停用检查四类进行中引用，422 data.references返回单号",
+        "x-client-channel": "web"
+      }
+    },
+    "/master/categories": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_8e0429603134dd30"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
         "x-client-channel": "web"
       }
     },
@@ -10712,6 +11402,387 @@
         "x-client-channel": "web"
       }
     },
+    "/master/customers": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_7b1bdbc507a9eafe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
+    "/master/products": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_8e0429603134dd30"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
+    "/master/suppliers": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_7b1bdbc507a9eafe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
     "/master/vehicles": {
       "get": {
         "parameters": [
@@ -11255,6 +12326,133 @@
         "x-client-channel": "web"
       }
     },
+    "/master/warehouses": {
+      "post": {
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_7b1bdbc507a9eafe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_54d886893e468484"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料",
+        "x-client-channel": "web"
+      }
+    },
     "/master/{catalog}": {
       "get": {
         "parameters": [
@@ -11312,7 +12510,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_b0a866d39e454a64"
+                  "$ref": "#/components/schemas/S_08ea6636c29437ea"
                 }
               }
             },
@@ -11419,140 +12617,6 @@
         ],
         "summary": "分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品",
         "x-client-channel": "web"
-      },
-      "post": {
-        "parameters": [
-          {
-            "in": "path",
-            "name": "catalog",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/S_e8d8bb2c4816547b"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/S_8e0429603134dd30"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
-                }
-              }
-            },
-            "description": "成功"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "413": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "415": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
-                }
-              }
-            },
-            "description": "统一错误信封"
-          }
-        },
-        "security": [
-          {
-            "cookieAuth": []
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "显式新增资料；商品固定本地来源与库存资格",
-        "x-client-channel": "web"
       }
     },
     "/master/{catalog}/{code}": {
@@ -11580,7 +12644,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
+                  "$ref": "#/components/schemas/S_54d886893e468484"
                 }
               }
             },
@@ -11722,7 +12786,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
+                  "$ref": "#/components/schemas/S_54d886893e468484"
                 }
               }
             },
@@ -17501,7 +18565,7 @@
                       "$ref": "#/components/schemas/S_b4685c29266fd612"
                     },
                     "data": {
-                      "$ref": "#/components/schemas/S_2a2aca8dd06e8dcb"
+                      "$ref": "#/components/schemas/S_74d0b82a93f74deb"
                     },
                     "message": {
                       "$ref": "#/components/schemas/S_00404e686415370f"

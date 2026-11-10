@@ -8,7 +8,11 @@
 | PUT | /api/v1/me/list-preferences/{kind} | web | 保存当前登录身份的列偏好；空 columns 重置；旧版本按列键保留 |
 | GET | /api/v1/master/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
 | GET | /api/v1/master/{catalog}/{code} | web | 按编码读取资料，含停用项 |
-| POST | /api/v1/master/{catalog} | web | 显式新增资料；商品固定本地来源与库存资格 |
+| POST | /api/v1/master/products | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master/categories | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master/warehouses | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master/customers | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master/suppliers | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
 | PATCH | /api/v1/master/{catalog}/{code} | web | 更新资料；停用检查四类进行中引用，422 data.references返回单号 |
 | GET | /api/v1/master/contacts | web | 客户/供应商收送货档案与默认建议 |
 | POST | /api/v1/master/contacts | web | 新增指定往来单位档案 |
@@ -21,7 +25,11 @@
 | PATCH | /api/v1/master/vehicles/{id} | web | 修改司机、电话、备注及启停；不改历史单据车牌 |
 | GET | /api/v1/master-data/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
 | GET | /api/v1/master-data/{catalog}/{code} | web | 按编码读取资料，含停用项 |
-| POST | /api/v1/master-data/{catalog} | web | 显式新增资料；商品固定本地来源与库存资格 |
+| POST | /api/v1/master-data/products | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master-data/categories | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master-data/warehouses | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master-data/customers | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
+| POST | /api/v1/master-data/suppliers | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
 | PATCH | /api/v1/master-data/{catalog}/{code} | web | 更新资料；停用检查四类进行中引用，422 data.references返回单号 |
 | GET | /api/v1/master-data/contacts | web | 客户/供应商收送货档案与默认建议 |
 | POST | /api/v1/master-data/contacts | web | 新增指定往来单位档案 |
@@ -92,7 +100,7 @@
 | GET | /api/v1/stock/by-source | web | 单一商品来源库存与小计；source或scope=inventory二选一，无跨源合计；未归属不小计 |
 | GET | /api/v1/stock/by-source/journal | web | 单一商品来源最近流水；source或scope=inventory二选一，不提供合计 |
 | GET | /api/v1/document-numbering | web | RK/CK 编号规则与非占号预览（北京时间） |
-| PUT | /api/v1/document-numbering/{kind} | web | 修改序号宽度；拒绝撞号/溢出/过期版本，不重置计数 |
+| PUT | /api/v1/document-numbering/{kind} | web | 已停用的写入口：固定 3 位，只读；任何修改返回 422 NUMBERING_READ_ONLY |
 | GET | /api/v1/stock/journal | web | 最近库存流水；保留原始类型，排除软删 |
 | GET | /api/v1/health | 公开 | 本地合成环境健康检查 |
 | POST | /api/v1/auth/login | 公开 | 单用户登录；web 使用 HttpOnly Cookie，其他端返回 Bearer |

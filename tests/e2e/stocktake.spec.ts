@@ -16,7 +16,7 @@ test('B3a Web 新建/实盘/未入账确认/故障恢复/重复回写/SQL', asyn
     await page.goto('/stocktakes/new');
     await page.getByLabel('盘点仓库', { exact: true }).click();
     await page.getByLabel('盘点仓库', { exact: true }).fill(cell.warehouseCode);
-    await page.getByText(`${cell.warehouseCode} · ${cell.name}`, { exact: true }).click();
+    await page.getByTitle(`${cell.name} · ${cell.warehouseCode}`, { exact: true }).click();
     await screenshotWidths(page, 'b3a-new');
     const creation = page.waitForResponse((r) => r.url().endsWith('/stocktakes') && r.request().method() === 'POST');
     await page.getByRole('button', { name: '生成快照并开始盘点' }).click();

@@ -10,9 +10,9 @@ async function login(page: Page) {
 async function fillReceipt(page: Page) {
   await page.goto('/inbound/new');
   await page.getByLabel('供应商').click();
-  await page.getByText('DEMO-SUPPLIER · 合成供应商', { exact: true }).click();
+  await page.getByTitle('合成供应商 · DEMO-SUPPLIER', { exact: true }).click();
   await page.getByLabel('仓库').click();
-  await page.getByText('DEMO-WH · 合成仓库', { exact: true }).click();
+  await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品').click();
   await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');
@@ -40,7 +40,10 @@ test('B1a 创建入库已成功但响应丢失，同表单重试使用原键和�
   const retry = page.getByRole('button', { name: /创建待确认入库单$/ });
   await expect(retry).toBeEnabled();
   await expect(retry).not.toHaveClass(/ant-btn-loading/);
-  console.log('B1A_RETRY_UI', await retry.evaluate((button) => ({ classes: button.className, text: button.textContent })));
+  console.log(
+    'B1A_RETRY_UI',
+    await retry.evaluate((button) => ({ classes: button.className, text: button.textContent })),
+  );
   await retry.click();
   await expect(page).toHaveURL(new RegExp(`/inbound/${createdId}$`));
   expect(attempts).toHaveLength(2);

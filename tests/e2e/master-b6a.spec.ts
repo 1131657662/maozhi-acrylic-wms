@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 
 async function choose(page: Page, label: string, code: string) {
   await page.getByLabel(label, { exact: true }).fill(code);
-  await page.getByTitle(new RegExp(`^${code} ·`)).click();
+  await page.locator('.ant-select-item-option').filter({ hasText: code }).click();
 }
 test('B6a 新建商品立即回填入出库，改名后快照保留；1440/1280资料抽屉', async ({ page }) => {
   test.setTimeout(90000);
@@ -75,12 +75,12 @@ test('B6a 新建商品立即回填入出库，改名后快照保留；1440/1280�
 
 test('B6a 收货档案默认切换停用，出库表单正确带出', async ({ page }) => {
   test.setTimeout(90000);
-  const code = `CONTACT-${randomUUID().slice(0, 8)}`;
   const created = await page.request.post('/api/v1/master/customers', {
     headers: { Origin: 'http://127.0.0.1:5174' },
-    data: { code, name: '收货档案验收客户' },
+    data: { name: '收货档案验收客户' },
   });
   expect(created.status()).toBe(200);
+  const code = (await created.json()).data.code as string;
   await page.goto('/outbound/new');
   await choose(page, '客户', code);
   await page.getByRole('button', { name: '管理档案' }).click();

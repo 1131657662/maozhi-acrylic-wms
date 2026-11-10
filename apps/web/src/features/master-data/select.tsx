@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Button, Select, Space, Alert } from 'antd';
 import type { MasterCatalog } from '@wms/contracts';
+import { hasGeneratedMasterCode } from '@wms/contracts';
+import { MasterLabel } from './master-label';
 import { useMasterItems } from './use-master-items';
 import { useMasterItem } from './use-master-item';
 import { ItemEditor } from './item-editor';
@@ -31,7 +33,7 @@ export function MasterSelect({ catalog, ...props }: Props) {
   const rows = new Map([...(selected ? [selected] : []), ...(page?.items ?? [])].map((item) => [item.code, item]));
   const options = [...rows.values()].map((item) => ({
     value: item.code,
-    label: `${item.code} · ${item.name}${item.active ? '' : '（已停用）'}`,
+    label: `${hasGeneratedMasterCode(catalog) ? `${item.name} · ${item.code}` : `${item.code} · ${item.name}`}${item.active ? '' : '（已停用）'}`,
     disabled: !item.active || (catalog === 'products' && !item.inventoryEligible),
   }));
   if (props.value && !rows.has(props.value))
@@ -47,6 +49,14 @@ export function MasterSelect({ catalog, ...props }: Props) {
         allowClear
         loading={loading}
         options={options}
+        optionRender={(option) => {
+          const item = rows.get(String(option.value));
+          return item && hasGeneratedMasterCode(catalog) ? <MasterLabel item={item} /> : option.label;
+        }}
+        labelRender={(option) => {
+          const item = rows.get(String(option.value));
+          return item && hasGeneratedMasterCode(catalog) ? <MasterLabel item={item} /> : option.label;
+        }}
         showSearch={{ filterOption: false, onSearch: (keyword) => setQuery({ keyword, page: 1 }) }}
         placeholder="输入编码或名称搜索"
         notFoundContent={error ? '加载失败，请重试' : loading ? '加载中' : '没有匹配资料'}

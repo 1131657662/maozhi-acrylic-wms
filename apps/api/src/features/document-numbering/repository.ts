@@ -1,4 +1,4 @@
-import type { DocumentKind } from '@wms/contracts';
+import { DOCUMENT_NUMBER_WIDTH, type DocumentKind } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 
 export const prefixes = { inbound: 'RK', outbound: 'CK', correction: 'GZ' } as const;
@@ -18,7 +18,7 @@ export async function lockNumbering(db: Database): Promise<void> {
 }
 export async function readRule(db: Database, kind: DocumentKind) {
   const row = await db.get('SELECT sequence_width,version FROM document_number_rules WHERE kind=?', [kind]);
-  return { width: row ? Number(row.sequence_width) : 4, version: row ? Number(row.version) : 0 };
+  return { width: DOCUMENT_NUMBER_WIDTH, version: row ? Number(row.version) : 0 } as const;
 }
 export async function numberExists(db: Database, number: string): Promise<boolean> {
   const inbound = await db.get('SELECT id FROM inbound_receipts WHERE receipt_no=?', [number]);
@@ -47,8 +47,8 @@ export async function lastSequence(db: Database, kind: DocumentKind, date: strin
 }
 export async function ensureRule(db: Database, kind: DocumentKind): Promise<void> {
   await db.run(
-    `INSERT INTO document_number_rules(kind,sequence_width) VALUES(?,4)
+    `INSERT INTO document_number_rules(kind,sequence_width) VALUES(?,?)
     ON DUPLICATE KEY UPDATE kind=VALUES(kind)`,
-    [kind],
+    [kind, DOCUMENT_NUMBER_WIDTH],
   );
 }

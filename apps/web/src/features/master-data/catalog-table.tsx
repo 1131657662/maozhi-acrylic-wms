@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import { Alert, App, Popconfirm, Space, Tag, Button, Input } from 'antd';
 import type { MasterCatalog, MasterItem } from '@wms/contracts';
+import { hasGeneratedMasterCode } from '@wms/contracts';
+import { MasterLabel } from './master-label';
 import { useMasterItems } from './use-master-items';
 import { useUpdateMasterItem } from './use-update-master-item';
 import { ContactDrawer } from './contact-drawer';
@@ -19,8 +21,12 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
   const { data, isLoading, error, refetch } = useMasterItems(catalog, query);
   const update = useUpdateMasterItem();
   const columns: ProColumns<MasterItem>[] = [
-    { title: '编码', dataIndex: 'code', width: 180 },
-    { title: '名称', dataIndex: 'name' },
+    ...(hasGeneratedMasterCode(catalog)
+      ? [{ title: t.name, dataIndex: 'name', render: (_: unknown, row: MasterItem) => <MasterLabel item={row} /> }]
+      : [
+          { title: t.code, dataIndex: 'code', width: 180 },
+          { title: t.name, dataIndex: 'name' },
+        ]),
     ...(catalog === 'products'
       ? [
           { title: t.source, render: (_: unknown, row: MasterItem) => t.origin[row.originKind ?? 'unknown'] },

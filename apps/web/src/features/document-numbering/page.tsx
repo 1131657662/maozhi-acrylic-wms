@@ -12,7 +12,7 @@ export function NumberingPage() {
   const query = useQuery(numberingKeys.rules);
   if (query.isLoading) return <Skeleton active />;
   if (query.error instanceof ApiError && query.error.status === 403)
-    return <Result status="403" title="无权修改编号规则" />;
+    return <Result status="403" title="无权查看编号规则" />;
   if (query.error && !query.data)
     return (
       <Alert

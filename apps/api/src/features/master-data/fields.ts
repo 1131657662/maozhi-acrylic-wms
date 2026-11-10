@@ -33,5 +33,6 @@ export function masterItem(row: Row, catalog: MasterCatalog): MasterItem {
     extra.originKind = row.origin_kind;
     extra.inventoryEligible = Number(row.inventory_eligible) === 1;
   }
+  if (['customers', 'suppliers', 'warehouses'].includes(catalog)) extra.legacyCode = row.legacy_code ?? null;
   return masterItemSchema.parse({ code: row.code, name: row.name, active: Number(row.active) === 1, ...extra });
 }

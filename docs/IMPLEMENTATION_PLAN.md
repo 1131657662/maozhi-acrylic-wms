@@ -442,3 +442,11 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 修订记录：C16 公共交互/查询/文案归B6b，UI-3～UI-8映射固定。
 修订记录：C17 公共交互/查询/文案归B6b，UI-3～UI-8映射固定。
 修订记录：C18 legacy-open/T0/回退归B10；四项业务待决策关闭为0。
+
+## B6a-num：系统生成主数据编码与三位单据号（2026-11-10）
+
+- 批准范围：客户 C+5、供应商 S+4、仓库 W+2；事务计数器、唯一键碰撞重试、不复用与容量守卫。新建不接收 code，编辑只读 code、允许改名；名称优先、辅助编码可复制。
+- 用户确认新号固定 3 位、编号规则页只读。RK/CK 按新建业务日期分段，GZ 按上海创建日（更正单无业务日期）；旧 4 位与导入号保留，旧计数续接。PD 编号统一、切换重编归 B10，商品编码仍手工，B6c 不展开。
+- 014_master_code_counters：新计数器、三类 legacy_code 回填、不修改原 code；规则默认/已有位宽固定 3，不重置计数。空库 up/down/up 与逐表非空 down 拒绝已在随机测试库通过；没有应用至开发样本库。启动新版本前须另轮备份、迁移与冒烟。
+- 代码及本地验收完成：完整 test 208/208、E2E 86/0（主 77 + catalog 9）、build exit 0；三项 exit 均为 0。生成 OpenAPI 同步 exit 0。原始输出、截图、回退边界见 [B6A_NUM_ACCEPTANCE.md](B6A_NUM_ACCEPTANCE.md)。
+- 本批分支 codex/b6a-system-numbering，完成后停下，不合并、不 push。代码与本地自动化不代表开发样本库迁移、实体设备或生产验收。
