@@ -18,3 +18,5 @@ local.properties
 *.keystore
 apps/miniapp/miniprogram_npm/
 project.private.config.json
+apps/web/src/.umi/
+apps/web/src/.umi-production/
