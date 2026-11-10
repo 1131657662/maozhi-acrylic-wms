@@ -23,7 +23,7 @@ export function useListState(
     const next: ListParams = { ...params, ...patch };
     if (!search.has('sortBy') && !('sortBy' in patch)) {
       delete next.sortBy;
-      delete next.direction;
+      if (!search.has('direction') && !('direction' in patch)) delete next.direction;
     }
     setSearch(new URLSearchParams(Object.entries(next).filter(([key, value]) => key === 'status' || value !== '')));
   }
@@ -34,7 +34,7 @@ export function useListState(
         ...fixed,
         page: '1',
         pageSize: filters.pageSize ?? params.pageSize,
-        ...(filters.sortBy || search.has('sortBy')
+        ...(filters.sortBy || filters.direction || search.has('sortBy') || search.has('direction')
           ? { sortBy: filters.sortBy ?? params.sortBy, direction: filters.direction ?? params.direction }
           : {}),
       }),
@@ -42,7 +42,7 @@ export function useListState(
   }
   return {
     params,
-    hasExplicitSort: search.has('sortBy'),
+    hasExplicitSort: search.has('sortBy') || search.has('direction'),
     change,
     searchFor,
     reset: () => setSearch(new URLSearchParams({ ...defaults, ...fixed })),

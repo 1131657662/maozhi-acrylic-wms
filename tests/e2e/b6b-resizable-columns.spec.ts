@@ -48,7 +48,7 @@ for (const kind of ['inbound', 'outbound'])
       expect(resized.clientWidth).toBe(before.clientWidth);
       expect(resized.scrollLeft).toBe(before.scrollLeft);
       expect(resized.pageScrollWidth).toBe(width);
-      await page.screenshot({ path: `${root}/${kind}-resized-${width}.png`, fullPage: true });
+      await page.screenshot({ path: `${root}/${kind}-resized-${width}.png`, fullPage: true, animations: 'disabled' });
 
       await toggleColumn(page, kind, '商品型号');
       const shown = await columnMetrics(page, kind);
@@ -58,7 +58,11 @@ for (const kind of ['inbound', 'outbound'])
       await list.locator('.ant-table-body').evaluate((body) => {
         body.scrollLeft = body.scrollWidth;
       });
-      await page.screenshot({ path: `${root}/${kind}-hidden-shown-${width}.png`, fullPage: true });
+      await page.screenshot({
+        path: `${root}/${kind}-hidden-shown-${width}.png`,
+        fullPage: true,
+        animations: 'disabled',
+      });
       await list.locator('.ant-table-body').evaluate((body) => {
         body.scrollLeft = 0;
       });
@@ -84,10 +88,10 @@ for (const kind of ['inbound', 'outbound'])
       const selected = await columnMetrics(page, kind);
       expect(selected.rect).toEqual(unselected.rect);
       expect(selected.pageScrollWidth).toBe(width);
-      await page.screenshot({ path: `${root}/${kind}-batch-${width}.png`, fullPage: true });
+      await page.screenshot({ path: `${root}/${kind}-batch-${width}.png`, fullPage: true, animations: 'disabled' });
       await list.getByRole('button', { name: '导出', exact: true }).click();
       await expect(page.getByRole('radio', { name: '选中记录 · 1 单' })).toBeVisible();
-      await page.screenshot({ path: `${root}/${kind}-export-${width}.png`, fullPage: true });
+      await page.screenshot({ path: `${root}/${kind}-export-${width}.png`, fullPage: true, animations: 'disabled' });
       await page.keyboard.press('Escape');
       await resetColumns(page, kind, true);
       expect((await columnMetrics(page, kind)).widths).toEqual(defaults.widths);

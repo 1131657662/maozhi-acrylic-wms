@@ -185,3 +185,17 @@ API/迁移/012 回归 7/7，列同步防抖与迟到响应测试 3/3；偏好、
 证据：`.local/evidence/b6b-preferences-api.log`、`b6b-preferences-sync.log`、`b6b-preferences-e2e.log`、`b6b-preferences-typecheck.log`、`b6b-preferences-openapi.log`。最终完整验证另存 `b6b-followup-test.log`、`b6b-followup-build.log`、`b6b-followup-e2e.log`，实际 exit/计数以命令完成后的日志及本轮汇报为准。
 
 回退仅回退应用代码并保留 013 表；表非空禁止 down 或删除偏好。迁移尚未应用开发样本库/生产；开发部署须先运行既有迁移入口。没有改库存事务、逐单幂等或审计展示边界。§6 p95 与并发口径保持原样；反查翻页与库存导出深分页仍留给 B6b-perf。
+
+## 11. 补充功能的最终全量回归
+
+三个独立提交为 `21c7565`（选择与排序）、`7a705f7`（列宽）、`1807508`（服务端偏好）。每次提交后的相关测试分别为 E2E 4/4、列设置单元测试 2/2、API/迁移/同步 8/8，exit 均为 0；日志分别为 `b6b-fix-postcommit.log`、`b6b-resize-postcommit.log`、`b6b-preferences-postcommit.log`。
+
+首次完整验证：test exit 0、200/200；build exit 0；E2E exit 1、主套件 73 通过 / 2 失败，catalog 因 `&&` 未运行。原始日志保留为 `b6b-followup-test.log`、`b6b-followup-build.log`、`b6b-followup-e2e.log`。失败与修复如下：
+
+- `B3b details screen and XLSX three scopes, layout`：报表旧 URL 只传 `direction=asc`，分页误删方向，使后页回到默认倒序。公共状态层现保留显式 direction；取消排序仍同时删除 sortBy/direction、表头无箭头，后续翻页保持默认排序。
+- `商品库存空态与无权限：不出现其他用途入口或占位`：全套重复 UI 登录触发登录限流。该列表用例改用既有真实认证夹具；未修改生产鉴权或限流规则，登录 UI 与限流仍由专项测试覆盖。
+- 列宽证据截图禁用截图时的动画，避免把导出抽屉进入动画的中间帧作为视觉证据。
+
+上述修复的定向 E2E exit 0、10/10，日志 `b6b-followup-fix-e2e.log`。按 `code-review-wms` 审查修复 diff：仅更正 URL 状态保留与测试会话/截图采集，不涉及库存、权限或数据迁移。修复追加独立 commit，不 amend 三个功能提交。
+
+修复提交后的完整 test / build / E2E 使用新日志 `b6b-followup-final-test.log`、`b6b-followup-final-build.log`、`b6b-followup-final-e2e.log`，不覆盖首次失败证据。最终退出码、通过数及截图索引写入 `.local/evidence/b6b-followup/final-results.json`，以命令完成后的原始结果为准，不预先宣称通过。
