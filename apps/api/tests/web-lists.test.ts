@@ -14,22 +14,22 @@ test('Web 列表多条件/日期边界/稳定分页，软删明细不进入包�
     const read = async (page: number) =>
       webInboundListSchema.parse(
         (
-          await context.web
-            .get('/api/v1/web/lists/inbound')
-            .query({
-              keyword: 'WL-RK-',
-              supplier: '合成供应商',
-              warehouse: 'DEMO-WH',
-              postingState: 'pending',
-              from: '2026-11-02T00:00:00+08:00',
-              to: '2026-11-02T23:59:59.999+08:00',
-              pageSize: 200,
-              page,
-            })
+          await context.web.get('/api/v1/web/lists/inbound').query({
+            keyword: 'WL-RK-',
+            supplier: '合成供应商',
+            warehouse: 'DEMO-WH',
+            postingState: 'pending',
+            from: '2026-11-02T00:00:00+08:00',
+            to: '2026-11-02T23:59:59.999+08:00',
+            pageSize: 200,
+            page,
+          })
         ).body.data,
       );
     const first = await read(1);
     const second = await read(2);
+    const defaultPage = await context.web.get('/api/v1/web/lists/inbound').query({ keyword: 'WL-RK-' }).expect(200);
+    assert.equal(defaultPage.body.data.pageSize, 50);
     assert.equal(first.total, 240);
     assert.equal(first.items.length, 200);
     assert.equal(second.items.length, 40);

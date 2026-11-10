@@ -4,25 +4,68 @@ import { PageContainer, type ProColumns } from '@ant-design/pro-components';
 import { Alert, Button, Result, Skeleton, theme } from 'antd';
 import { ZodError } from 'zod';
 import { ApiError } from '../../api/client';
+import { useSession } from '../../features/auth/use-session';
 import { ListTable, type ListData } from './table';
+import { ListViewToolbar } from './list-view-toolbar';
+import { useListColumns, type ListColumnPreferences } from './use-list-columns';
 import type { ListState } from './use-list-state';
 import { useListSelection } from './use-list-selection';
+import { useListViews } from './use-list-views';
 import './style.css';
 
+interface Config<Row> {
+  name: ExportKind;
+  title: string;
+  description: string;
+  extra?: ReactNode;
+  columns: ProColumns<Row>[];
+  emptyText?: ReactNode;
+}
 interface Props<Row> {
-  config: {
-    name: ExportKind;
-    title: string;
-    description: string;
-    extra?: ReactNode;
-    columns: ProColumns<Row>[];
-    emptyText?: ReactNode;
-  };
+  config: Config<Row>;
   state: ListState;
   query: { data?: ListData<Row>; error: Error | null; isPending: boolean; isFetching: boolean; refetch: () => unknown };
   filters: ReactNode;
   children?: ReactNode;
   summary?: ReactNode;
+}
+interface ResultsProps<Row extends { id: Key }> {
+  config: Config<Row>;
+  data: ListData<Row>;
+  state: ListState;
+  selection: { tokens: Record<string, string>; keys: Key[]; change: (keys: Key[]) => void };
+  columnPrefs: ListColumnPreferences<Row>;
+  refreshing: boolean;
+  reload: () => unknown;
+  summary?: ReactNode;
+  emptyText?: ReactNode;
+}
+function ListResults<Row extends { id: Key }>({
+  config,
+  data,
+  state,
+  selection,
+  columnPrefs,
+  refreshing,
+  reload,
+  summary,
+  emptyText,
+}: ResultsProps<Row>) {
+  return (
+    <section data-testid={config.name + '-list'}>
+      {summary}
+      <ListTable
+        name={config.name}
+        data={data}
+        state={state}
+        refreshing={refreshing}
+        reload={reload}
+        selection={selection}
+        columnPrefs={columnPrefs}
+        emptyText={emptyText}
+      />
+    </section>
+  );
 }
 function ListError({ error, reload }: { error: Error; reload: () => unknown }) {
   if (error instanceof ApiError && error.status === 403) return <Result status="403" title="无权查看此列表" />;
@@ -47,9 +90,20 @@ function ListError({ error, reload }: { error: Error; reload: () => unknown }) {
 }
 export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
   const { config, query, state } = props;
+  const { data: session } = useSession();
+  const identity = session?.username ?? 'anonymous';
   const { token } = theme.useToken();
   const { page: _page, pageSize: _size, sortBy: _sort, direction: _dir, ...scope } = state.params;
-  const selection = useListSelection(JSON.stringify(scope), query.data?.rowTokens);
+  const scopeKey = JSON.stringify(Object.fromEntries(Object.entries(scope).sort(([a], [b]) => a.localeCompare(b))));
+  const selection = useListSelection(scopeKey, query.data?.rowTokens);
+  const columns = useListColumns(config.name, config.columns, identity);
+  const views = useListViews({
+    kind: config.name,
+    identity,
+    state,
+    columns: columns.value,
+    applyColumns: columns.apply,
+  });
   return (
     <PageContainer
       title={<h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>{config.title}</h1>}
@@ -69,6 +123,17 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
         }}
         data-testid="list-filters"
       >
+        {session?.username && (
+          <div className="business-list-view-toolbar" style={{ marginBottom: token.marginSM }}>
+            <ListViewToolbar
+              key={scopeKey}
+              views={views.views}
+              apply={views.apply}
+              save={views.save}
+              remove={views.remove}
+            />
+          </div>
+        )}
         {props.filters}
       </div>
       {query.error ? (
@@ -79,20 +144,17 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
         </div>
       ) : (
         <div data-testid="list-results" className="business-list-results">
-          <section data-testid={config.name + '-list'}>
-            {props.summary}
-            <ListTable
-              key={JSON.stringify(scope)}
-              name={config.name}
-              columns={config.columns}
-              data={query.data}
-              state={state}
-              refreshing={query.isFetching}
-              reload={query.refetch}
-              selection={selection}
-              emptyText={config.emptyText}
-            />
-          </section>
+          <ListResults
+            config={config}
+            data={query.data}
+            state={state}
+            selection={selection}
+            columnPrefs={columns}
+            refreshing={query.isFetching}
+            reload={query.refetch}
+            summary={props.summary}
+            emptyText={config.emptyText}
+          />
           {props.children}
         </div>
       )}

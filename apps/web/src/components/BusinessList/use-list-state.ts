@@ -1,4 +1,5 @@
 import { useSearchParams } from '@umijs/max';
+import { WEB_LIST_DEFAULT_PAGE_SIZE } from '@wms/contracts';
 import type { ListParams } from '../../features/web-lists/keys';
 
 export function useListState(
@@ -10,7 +11,7 @@ export function useListState(
   const [search, setSearch] = useSearchParams();
   const params: ListParams & { page: string; pageSize: string; sortBy: string; direction: string } = {
     page: '1',
-    pageSize: '20',
+    pageSize: String(WEB_LIST_DEFAULT_PAGE_SIZE),
     sortBy: defaultSort,
     direction: defaultSort === 'warehouseCode' ? 'asc' : 'desc',
     ...defaults,
@@ -28,9 +29,9 @@ export function useListState(
         ...filters,
         ...fixed,
         page: '1',
-        pageSize: params.pageSize,
-        sortBy: params.sortBy,
-        direction: params.direction,
+        pageSize: filters.pageSize ?? params.pageSize,
+        sortBy: filters.sortBy ?? params.sortBy,
+        direction: filters.direction ?? params.direction,
       }),
     );
   }

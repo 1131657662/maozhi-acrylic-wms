@@ -2,6 +2,10 @@ import { snapshotText } from './snapshots.ts';
 import type { ExportKind } from './export-kind.ts';
 import { reportFields } from './report-fields.ts';
 
+export const WEB_LIST_PAGE_SIZES = [20, 50, 100, 200] as const;
+export const WEB_LIST_DEFAULT_PAGE_SIZE = 50;
+export const WEB_LIST_VIEW_SCHEMA_VERSION = 1;
+
 const states = new Map([
   ['open', { text: '待扫码', color: 'processing' }],
   ['frozen', { text: '待出库确认', color: 'warning' }],

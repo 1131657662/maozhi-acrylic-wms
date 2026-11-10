@@ -62,7 +62,7 @@ for (const config of pages)
 test('B1b2 列隐藏和重排跟随文件，生成时页面仍可操作', async ({ page }) => {
   await page.addInitScript(() =>
     localStorage.setItem(
-      'b1b-outbound-columns-v1',
+      'b6b-list-columns:owner:outbound:v1',
       JSON.stringify({
         customerName: { show: false },
         createdAt: { show: true, order: 1 },

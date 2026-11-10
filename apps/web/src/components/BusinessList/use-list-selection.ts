@@ -1,4 +1,4 @@
-import { useState, type Key } from 'react';
+import { useEffect, useState, type Key } from 'react';
 
 export function useListSelection(scope: string, rowTokens: Record<string, string> = {}) {
   const [selection, setSelection] = useState<{ scope: string; keys: Key[]; tokens: Record<string, string> }>({
@@ -6,7 +6,9 @@ export function useListSelection(scope: string, rowTokens: Record<string, string
     keys: [],
     tokens: {},
   });
-  if (selection.scope !== scope) setSelection({ scope, keys: [], tokens: {} });
+  useEffect(() => {
+    setSelection({ scope, keys: [], tokens: {} });
+  }, [scope]);
   return {
     keys: selection.scope === scope ? selection.keys : [],
     tokens: selection.scope === scope ? selection.tokens : {},

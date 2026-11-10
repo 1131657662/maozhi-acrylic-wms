@@ -1,9 +1,9 @@
-import type { ExportKind } from '@wms/contracts';
-import { useListColumns } from './use-list-columns';
+import { WEB_LIST_PAGE_SIZES, type ExportKind } from '@wms/contracts';
+import type { ListColumnPreferences } from './use-list-columns';
 import { ExportPanel } from '../../features/web-exports/panel';
 import { useMemo, type Key, type ReactNode } from 'react';
 import { Button } from 'antd';
-import { ProTable, type ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
 import type { ListState } from './use-list-state';
 
 export interface ListData<Row> {
@@ -15,19 +15,18 @@ export interface ListData<Row> {
   rowTokens?: Record<string, string>;
 }
 interface Props<Row> {
-  columns: ProColumns<Row>[];
   data: ListData<Row>;
   state: ListState;
   name: ExportKind;
   refreshing: boolean;
   reload: () => unknown;
   selection: { tokens: Record<string, string>; keys: Key[]; change: (keys: Key[]) => void };
+  columnPrefs: ListColumnPreferences<Row>;
   emptyText?: ReactNode;
 }
 export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
-  const { columns, data, state, name } = props;
-  const columnPrefs = useListColumns(name, columns);
+  const { data, state, name, columnPrefs } = props;
   const configured = useMemo(
     () =>
       columnPrefs.configured.map((column) => ({
@@ -93,12 +92,12 @@ export function ListTable<Row extends { id: Key }>(props: Props<Row>) {
         pageSize: data.pageSize,
         total: data.total,
         showSizeChanger: true,
-        pageSizeOptions: [20, 50, 100, 200],
+        pageSizeOptions: WEB_LIST_PAGE_SIZES.map(String),
         showTotal: (total) => `共 ${total} 条`,
       }}
       onChange={(page, _filters, sorter, extra) => {
         if (extra.action === 'paginate')
-          state.change({ page: String(page.current ?? 1), pageSize: String(page.pageSize ?? 20) });
+          state.change({ page: String(page.current ?? 1), pageSize: String(page.pageSize ?? WEB_LIST_PAGE_SIZES[0]) });
         if (extra.action === 'sort' && !Array.isArray(sorter)) {
           const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
           if (typeof field === 'string')

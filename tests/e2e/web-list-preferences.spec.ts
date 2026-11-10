@@ -36,10 +36,33 @@ test('B1b1 列显隐持久化，排序/分页保留选择，改筛选清空', as
   await expect(page.getByText(/已选择 2 条/)).toHaveCount(0);
   console.log('B1B1_PREFERENCES hidden_column_reload=preserved cross_page_selection=2 filter_change_selection=0');
 });
+test('B6b 默认页大小与视图按用户/页面/schema隔离，失效视图自动清理', async ({ page }) => {
+  const invalidKey = 'b6b-list-views:owner:outbound:v1';
+  await page.addInitScript((key) => {
+    if (!localStorage.getItem('b6b-invalid-view-seeded')) {
+      localStorage.setItem(key, JSON.stringify([{ schemaVersion: 0, name: '旧视图', params: {}, columns: {} }]));
+      localStorage.setItem('b6b-invalid-view-seeded', '1');
+    }
+  }, invalidKey);
+  await page.goto('/?keyword=WL-CK-');
+  const list = page.getByTestId('outbound-list');
+  await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(50);
+  expect(await page.evaluate((key) => localStorage.getItem(key), invalidKey)).toBeNull();
+
+  await page.getByRole('textbox', { name: '视图名称' }).fill('出库待查');
+  await page.getByRole('button', { name: '保存视图' }).click();
+  await page.goto('/?keyword=NO-MATCH');
+  await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
+  await page.getByRole('combobox', { name: '已保存视图' }).click();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/keyword=WL-CK-/);
+  await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(50);
+});
 test('B1b1 多条件筛选与未知状态/空状态原文查询', async ({ page }) => {
   await page.goto('/inbound?keyword=WL-RK-&status=legacy-code');
   const list = page.getByTestId('inbound-list');
-  await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(20);
+  await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(50);
   await expect(list.getByTestId('status-tag').first()).toHaveText('状态待识别：legacy-code');
   await page.getByText('展开', { exact: false }).click();
   await page.getByRole('textbox', { name: /^供应商/ }).fill('不存在');

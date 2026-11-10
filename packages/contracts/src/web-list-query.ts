@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { inventoryScopeFields, validInventoryScope } from './inventory-scope.ts';
+import { WEB_LIST_DEFAULT_PAGE_SIZE, WEB_LIST_PAGE_SIZES } from './list-display.ts';
 
 export const webListKindSchema = z.enum(['inbound', 'outbound', 'stock', 'audit']);
 export type WebListKind = z.infer<typeof webListKindSchema>;
@@ -8,8 +9,9 @@ const paging = {
   page: z.coerce.number().int().min(1).max(100000).default(1),
   pageSize: z.coerce
     .number()
-    .pipe(z.union([z.literal(20), z.literal(50), z.literal(100), z.literal(200)]))
-    .default(20),
+    .int()
+    .refine((value) => WEB_LIST_PAGE_SIZES.includes(value as (typeof WEB_LIST_PAGE_SIZES)[number]))
+    .default(WEB_LIST_DEFAULT_PAGE_SIZE),
   direction: z.enum(['asc', 'desc']).default('desc'),
 };
 const dates = {
