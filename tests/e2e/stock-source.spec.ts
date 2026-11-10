@@ -87,7 +87,8 @@ test('商品库存加载及错源重试：无资格 响应不显示、不残留�
   });
   await openStock(page);
   const expected = await expectedErpStock(page);
-  await expect(page.locator('.ant-skeleton')).toBeVisible();
+  await expect(page.getByRole('status', { name: '正在查询列表', exact: true })).toBeVisible();
+  await expect(page.locator('.ant-skeleton')).toHaveCount(0);
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
   release?.();
   await expect(page.getByText('列表加载失败，已停止展示旧数据')).toBeVisible();

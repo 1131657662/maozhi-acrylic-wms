@@ -38,12 +38,12 @@ export function ExportPanel({ context, refreshing }: { context: ExportContext; r
         focusable={{ trap: false }}
         styles={{ wrapper: { maxWidth: '100vw' } }}
       >
-        <ExportControls context={context} />
+        <ExportControls context={context} refreshing={refreshing} />
       </Drawer>
     </>
   );
 }
-function ExportControls({ context }: { context: ExportContext }) {
+function ExportControls({ context, refreshing }: { context: ExportContext; refreshing: boolean }) {
   const [scope, setScope] = useState<ExportRequest['scope']>('all');
   const supportsMatchedLines =
     (context.kind === 'inbound' || context.kind === 'outbound') && Boolean(context.query.productCodes);
@@ -51,8 +51,9 @@ function ExportControls({ context }: { context: ExportContext }) {
   const [format, setFormat] = useState<NonNullable<ExportRequest['format']>>('xlsx');
   const session = useExportSession();
   const { data: job } = session;
-  const generate = () =>
-    session.generate({
+  const generate = () => {
+    if (refreshing) return;
+    return session.generate({
       kind: context.kind,
       query: context.query,
       columns:
@@ -65,6 +66,7 @@ function ExportControls({ context }: { context: ExportContext }) {
       schema,
       format,
     });
+  };
   return (
     <Space orientation="vertical" style={{ width: '100%' }}>
       <p>跟随当前筛选、排序及可见列。生成后可核对本次范围合计，再下载完整文件。</p>
@@ -98,6 +100,7 @@ function ExportControls({ context }: { context: ExportContext }) {
         type={job?.state === 'ready' ? 'default' : 'primary'}
         loading={session.starting}
         disabled={
+          refreshing ||
           !context.total ||
           (scope === 'selected' && (!context.selected.length || context.selected.length > WEB_EXPORT_SELECTED_MAX))
         }

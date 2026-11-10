@@ -16,6 +16,7 @@ export interface BatchRow {
   number: string;
 }
 interface Props {
+  refreshing?: boolean;
   kind: LifecycleKind;
   rows: BatchRow[];
   excluded: ExcludedBatchRow[];
@@ -30,7 +31,7 @@ function selectedNumbers(rows: BatchRow[]) {
   const suffix = rows.length > BATCH_CONFIRM_DISPLAY_LIMIT ? `，共 ${rows.length} 条` : '';
   return `${shown.join('、')}${suffix}`;
 }
-export function BatchReverseActions({ kind, rows, excluded, selectedCount, onClear }: Props) {
+export function BatchReverseActions({ kind, rows, excluded, selectedCount, onClear, refreshing }: Props) {
   const { token } = theme.useToken();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('批量撤销误确认');
@@ -59,6 +60,7 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
     }
   }
   async function submit() {
+    if (refreshing) return;
     if (Object.keys(previews).length !== rows.length) return;
     pendingCommand.current ??= {
       kind,
@@ -93,7 +95,7 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
           </Button>
           <Tooltip title={!rows.length ? batchText.none : undefined}>
             <span>
-              <Button danger disabled={!rows.length} onClick={() => void openModal()}>
+              <Button danger disabled={!rows.length || refreshing} onClick={() => void openModal()}>
                 批量撤销
               </Button>
             </span>
@@ -115,7 +117,7 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
         onOk={() => void submit()}
         okText="确认批量撤销"
         cancelText="取消"
-        okButtonProps={{ danger: true, disabled: preparing || Boolean(prepareError) || Boolean(result) }}
+        okButtonProps={{ danger: true, disabled: refreshing || preparing || Boolean(prepareError) || Boolean(result) }}
         confirmLoading={mutation.isPending}
         destroyOnHidden
       >

@@ -7,13 +7,16 @@ import { useColumnLayout } from './use-column-layout';
 import { ResizeEnabled, ResizeHeader } from './resize-header';
 import { useMatchedExpansion } from './use-matched-expansion';
 import { COLUMN_WIDTH } from './column-settings';
-import { useMemo, type Key, type KeyboardEvent, type MouseEvent } from 'react';
-import { Button, ConfigProvider, theme } from 'antd';
+import { useMemo, type Key, type KeyboardEvent } from 'react';
+import { Button, ConfigProvider, Spin, theme } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import { useLocation, useNavigate } from '@umijs/max';
 import { BatchReverseActions, type BatchRow } from './batch-actions';
 import type { ListSelectionRow } from './use-list-selection';
-import { documentNumber, isEligible, exclusionReason, isInteractiveTarget, isTextEntry } from './table-helpers';
+import { documentNumber, isEligible, exclusionReason, isTextEntry } from './table-helpers';
+import { useRowInteractions } from './use-row-interactions';
+import { tableChange } from './table-change';
+import { listFeedback } from './list-feedback';
 
 export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
@@ -61,19 +64,24 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
     event.preventDefault();
     openDetail(selectedRows[0]!);
   };
-  const onRow = reverseLookup
-    ? (row: Row) => ({
-        onDoubleClick: (event: MouseEvent<HTMLTableRowElement>) => {
-          if (!isInteractiveTarget(event.target)) openDetail(row);
-        },
-      })
-    : undefined;
+  const onRow = useRowInteractions({
+    scope: JSON.stringify(state.params),
+    selection: {
+      ...props.selection,
+      change: (keys, rows) => {
+        if (!props.placeholder) setSelected(keys, rows);
+      },
+    },
+    rows: currentSelectionRows,
+    open: openDetail,
+  });
   const expansion = useMatchedExpansion(configured, reverseLookup && Boolean(state.params.productCodes));
-  const layout = useColumnLayout(expansion.columns, columnPrefs);
+  const layout = useColumnLayout(expansion.columns, columnPrefs, state);
   return (
     <div
       ref={layout.root}
       data-table-resize-root
+      aria-busy={props.refreshing}
       onKeyDown={handleEnter}
       tabIndex={-1}
       data-testid={`${name}-table-shell`}
@@ -98,7 +106,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                 ? `查询结果 · ${data.matchedTotals.documentCount} 单 · ${data.matchedTotals.lineCount} 行 · ${data.matchedTotals.packages} 包 · ${tonnes(data.matchedTotals.weightGrams)} 吨`
                 : `查询结果 · ${data.total} 条`
             }
-            loading={props.refreshing}
+            loading={false}
             size="middle"
             options={{
               density: false,
@@ -114,11 +122,21 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
             }}
             columnsState={columnPrefs.state}
             toolBarRender={() => [
+              <span
+                key="refresh"
+                className="business-list-toolbar-slot"
+                style={{ width: token.controlHeightSM }}
+                role={props.refreshing ? 'status' : undefined}
+                aria-label={props.refreshing ? listFeedback.refreshing : undefined}
+              >
+                <Spin size="small" spinning={props.refreshing} />
+              </span>,
               ...(selected.length > 0 && reverseLookup
                 ? [
                     <BatchReverseActions
                       key="batch-reverse"
                       kind={lifecycleKind!}
+                      refreshing={props.refreshing}
                       rows={batchRows}
                       excluded={Object.values(props.selection.rows)
                         .filter((row) => !row.eligible)
@@ -134,14 +152,22 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                 : []),
               <ListExportPanel key="export" {...props} />,
             ]}
-            scroll={{ x: layout.width, y: 480 }}
+            scroll={{ x: layout.width, y: 480, scrollToFirstRowOnChange: false }}
             locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}
             rowSelection={{
               alwaysShowAlert: true,
               selectedRowKeys: selected,
-              onChange: (keys) => setSelected(keys, currentSelectionRows),
+              onChange: (keys) => {
+                if (!props.placeholder) setSelected(keys, currentSelectionRows);
+              },
+              getCheckboxProps: () => ({ disabled: props.placeholder }),
               preserveSelectedRowKeys: true,
               columnWidth: COLUMN_WIDTH.selection,
+              renderCell: (_checked, _row, _index, node) => (
+                <span onClick={(event) => event.stopPropagation()} onDoubleClick={(event) => event.stopPropagation()}>
+                  {node}
+                </span>
+              ),
             }}
             tableAlertRender={() => <span role="status">已选择 {selected.length} 条；变更筛选将清空选择</span>}
             tableAlertOptionRender={() => (
@@ -151,29 +177,14 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
             )}
             onRow={onRow}
             pagination={{
-              current: data.page,
-              pageSize: data.pageSize,
+              current: Number(state.params.page),
+              pageSize: Number(state.params.pageSize),
               total: data.total,
               showSizeChanger: true,
               pageSizeOptions: WEB_LIST_PAGE_SIZES.map(String),
               showTotal: (total) => `共 ${total} 条`,
             }}
-            onChange={(page, _filters, sorter, extra) => {
-              if (extra.action === 'paginate')
-                state.change({
-                  page: String(page.current ?? 1),
-                  pageSize: String(page.pageSize ?? WEB_LIST_PAGE_SIZES[0]),
-                });
-              if (extra.action === 'sort' && !Array.isArray(sorter)) {
-                if (!sorter.order) {
-                  state.change({ page: '1', sortBy: '', direction: '' });
-                  return;
-                }
-                const field = Array.isArray(sorter.field) ? sorter.field[0] : sorter.field;
-                if (typeof field === 'string')
-                  state.change({ page: '1', sortBy: field, direction: sorter.order === 'ascend' ? 'asc' : 'desc' });
-              }
-            }}
+            onChange={tableChange<Row>(state, layout.root)}
           />
         </ConfigProvider>
       </ResizeEnabled>

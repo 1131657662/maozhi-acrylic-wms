@@ -46,7 +46,6 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     title: '状态',
     dataIndex: 'status',
     width: 240,
-    fixed: 'right',
     render: (_, row) => <StatusTag status={row.status} />,
   },
   { title: '客户', dataIndex: 'customerName', width: 180, ellipsis: true, sorter: true },

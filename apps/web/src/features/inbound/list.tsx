@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
 import { Button, Empty } from 'antd';
 import { ProFormText, ProFormSelect } from '@ant-design/pro-components';
@@ -16,7 +16,7 @@ import { inboundColumns } from './list-columns';
 
 export function InboundList() {
   const state = useListState();
-  const query = useQuery(webListKeys.inbound(state.params));
+  const query = useQuery({ ...webListKeys.inbound(state.params), placeholderData: keepPreviousData });
   return (
     <BusinessList
       state={state}

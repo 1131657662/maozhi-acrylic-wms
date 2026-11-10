@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useRef, type ThHTMLAttributes, type PointerEvent } from 'react';
 import { theme } from 'antd';
 import { COLUMN_WIDTH, columnText } from './column-settings';
+import { createResizePreview } from './resize-preview';
+import { useSortFeedback, type SortOrder } from './use-sort-feedback';
 
 export const ResizeEnabled = createContext(false);
 export interface ResizeHeaderProps extends ThHTMLAttributes<HTMLTableCellElement> {
@@ -9,27 +11,7 @@ export interface ResizeHeaderProps extends ThHTMLAttributes<HTMLTableCellElement
   columnWidth?: number;
   resize?: (width: number) => void;
   resetWidth?: () => void;
-}
-
-function lockScroll(element: HTMLElement): () => void {
-  const root = element.closest('[data-table-resize-root]');
-  const scrollers = Array.from(
-    root?.querySelectorAll<HTMLElement>('.ant-table-body,.ant-table-content,.ant-table-header') ?? [],
-  );
-  const releases = scrollers.map((node) => {
-    const left = node.scrollLeft;
-    const hold = () => {
-      if (node.scrollLeft !== left) node.scrollLeft = left;
-    };
-    node.addEventListener('scroll', hold);
-    return () => node.removeEventListener('scroll', hold);
-  });
-  const previous = document.body.style.userSelect;
-  document.body.style.userSelect = 'none';
-  return () => {
-    releases.forEach((release) => release());
-    document.body.style.userSelect = previous;
-  };
+  sort?: (order: SortOrder) => void;
 }
 
 export function ResizeHeader({
@@ -38,32 +20,44 @@ export function ResizeHeader({
   columnWidth,
   resize,
   resetWidth,
+  sort,
   children,
   style,
   ...rest
 }: ResizeHeaderProps) {
   const enabled = useContext(ResizeEnabled);
   const { token } = theme.useToken();
-  const drag = useRef<{ x: number; width: number; release: () => void } | null>(null);
+  const sortFeedback = useSortFeedback(rest, sort);
+  const drag = useRef<{ x: number; width: number; preview: ReturnType<typeof createResizePreview> } | null>(null);
   const finish = () => {
-    drag.current?.release();
+    const width = drag.current?.preview.finish();
     drag.current = null;
+    return width;
   };
-  useEffect(() => finish, []);
+  useEffect(
+    () => () => {
+      finish();
+    },
+    [],
+  );
   const down = (event: PointerEvent<HTMLSpanElement>) => {
     if (event.button !== 0) return;
     event.stopPropagation();
     event.preventDefault();
     finish();
-    drag.current = { x: event.clientX, width: columnWidth!, release: lockScroll(event.currentTarget) };
+    const header = event.currentTarget.closest('th')!;
+    drag.current = { x: event.clientX, width: columnWidth!, preview: createResizePreview(header, columnWidth!) };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
   return (
     <th
       {...rest}
+      {...sortFeedback}
       aria-label={columnLabel}
       style={{
         ...style,
+        ['--list-sort-active' as string]: token.colorPrimary,
+        ['--list-sort-inactive' as string]: token.colorTextQuaternary,
         position: style?.insetInlineStart !== undefined || style?.insetInlineEnd !== undefined ? 'sticky' : 'relative',
       }}
       data-column-key={columnKey}
@@ -80,6 +74,7 @@ export function ResizeHeader({
           tabIndex={0}
           title={columnText.handle}
           data-testid={`resize-${columnKey}`}
+          className="business-list-resize-handle"
           style={{
             position: 'absolute',
             right: 0,
@@ -93,11 +88,13 @@ export function ResizeHeader({
           }}
           onPointerDown={down}
           onPointerMove={(event) => {
-            if (drag.current) resize(drag.current.width + event.clientX - drag.current.x);
+            if (drag.current) drag.current.preview.move(drag.current.width + event.clientX - drag.current.x);
           }}
           onPointerUp={(event) => {
             event.stopPropagation();
-            finish();
+            if (drag.current) drag.current.preview.move(drag.current.width + event.clientX - drag.current.x);
+            const width = finish();
+            if (width !== undefined && width !== columnWidth) resize(width);
             event.currentTarget.releasePointerCapture(event.pointerId);
           }}
           onPointerCancel={finish}

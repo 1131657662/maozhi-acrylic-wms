@@ -47,7 +47,7 @@ export function mergeColumns<Row>(kind: ExportKind, columns: ProColumns<Row>[], 
         key,
         column.hideInSetting
           ? { ...defaults, width: saved[key]?.width ?? defaults.width }
-          : { ...defaults, ...saved[key] },
+          : { ...defaults, ...saved[key], ...(['inbound', 'outbound'].includes(kind) ? { fixed } : {}) },
       ];
     }),
   );

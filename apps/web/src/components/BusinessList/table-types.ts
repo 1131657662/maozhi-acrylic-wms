@@ -2,7 +2,7 @@ import type { Key, ReactNode } from 'react';
 import type { ExportKind, WebMatchedTotals } from '@wms/contracts';
 import type { ListColumnPreferences } from './use-list-columns';
 import type { ListState } from './use-list-state';
-import type { ListSelectionRow } from './use-list-selection';
+import type { ListSelectionRow, SelectionKeys } from './use-list-selection';
 
 export interface ListData<Row> {
   items: Row[];
@@ -18,12 +18,13 @@ export interface ListTableProps<Row> {
   state: ListState;
   name: ExportKind;
   refreshing: boolean;
+  placeholder: boolean;
   reload: () => unknown;
   selection: {
     tokens: Record<string, string>;
     keys: Key[];
     rows: Record<string, ListSelectionRow>;
-    change: (keys: Key[], rows?: ListSelectionRow[]) => void;
+    change: (keys: SelectionKeys, rows?: ListSelectionRow[]) => void;
   };
   columnPrefs: ListColumnPreferences<Row>;
   emptyText?: ReactNode;
