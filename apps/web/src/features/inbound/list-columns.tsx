@@ -5,6 +5,7 @@ import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
 import { CorrectionRowActions } from '../corrections/row-actions';
+import { matchedSummary } from '../../components/BusinessList/matched-lines';
 
 export const inboundColumns: ProColumns<WebInboundRow>[] = [
   {
@@ -16,10 +17,19 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     hideInSetting: true,
     render: (_, row) => <ListDetailLink to={'/inbound/' + row.id}>{row.receiptNo}</ListDetailLink>,
   },
-  { title: '包数', dataIndex: 'packages', width: 100, align: 'right' },
+  {
+    title: '商品反查',
+    dataIndex: 'matchedSummary',
+    key: 'matchedSummary',
+    width: 300,
+    hideInSetting: true,
+    render: (_, row) => <span data-testid="matched-summary">{matchedSummary(row.matchedLines)}</span>,
+  },
+  { title: '包数', dataIndex: 'packages', sorter: true, width: 100, align: 'right' },
   {
     title: '总重量（吨）',
     dataIndex: 'weightGrams',
+    sorter: true,
     width: 140,
     align: 'right',
     render: (_, row) => tonnes(row.weightGrams),
@@ -29,14 +39,12 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     dataIndex: 'status',
     width: 240,
     fixed: 'right',
-    sorter: true,
     render: (_, row) => <StatusTag status={row.status} kind="inbound" />,
   },
   {
     title: '入账状态',
     dataIndex: 'postingState',
     width: 120,
-    sorter: true,
     render: (_, row) => <Tag>{postingText[row.postingState]}</Tag>,
   },
   {

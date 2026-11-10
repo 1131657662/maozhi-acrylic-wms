@@ -3,9 +3,29 @@ import { inventoryScopeResult } from './inventory-scope.ts';
 import { inboundReceiptSchema } from './inbound.ts';
 
 const integer = z.number().int().safe();
+export const webMatchedLineSchema = z.strictObject({
+  lineId: z.string(),
+  productCode: z.string(),
+  productName: z.string(),
+  packages: integer.nonnegative(),
+  weightGrams: integer.nonnegative(),
+});
+export type WebMatchedLine = z.infer<typeof webMatchedLineSchema>;
+export const webMatchedTotalsSchema = z.strictObject({
+  documentCount: integer.nonnegative(),
+  lineCount: integer.nonnegative(),
+  packages: integer.nonnegative(),
+  weightGrams: integer.nonnegative(),
+});
+export type WebMatchedTotals = z.infer<typeof webMatchedTotalsSchema>;
 export const webInboundRowSchema = inboundReceiptSchema
   .omit({ lines: true, businessDate: true, corrections: true })
-  .extend({ products: z.array(z.string()), productModels: z.array(z.string()) })
+  .extend({
+    products: z.array(z.string()),
+    productModels: z.array(z.string()),
+    matchedLineCount: integer.nonnegative().optional(),
+    matchedLines: z.array(webMatchedLineSchema).optional(),
+  })
   .strict();
 export const webOutboundRowSchema = z.strictObject({
   id: z.string(),
@@ -25,6 +45,8 @@ export const webOutboundRowSchema = z.strictObject({
   plannedWeightGrams: integer,
   actualPackages: integer,
   actualWeightGrams: integer,
+  matchedLineCount: integer.nonnegative().optional(),
+  matchedLines: z.array(webMatchedLineSchema).optional(),
 });
 export const webStockRowSchema = z.strictObject({
   id: z.string(),
@@ -53,8 +75,16 @@ const envelope = {
   viewToken: z.string(),
   rowTokens: z.record(z.string(), z.string()).optional(),
 };
-export const webInboundListSchema = z.strictObject({ ...envelope, items: z.array(webInboundRowSchema) });
-export const webOutboundListSchema = z.strictObject({ ...envelope, items: z.array(webOutboundRowSchema) });
+export const webInboundListSchema = z.strictObject({
+  ...envelope,
+  matchedTotals: webMatchedTotalsSchema.optional(),
+  items: z.array(webInboundRowSchema),
+});
+export const webOutboundListSchema = z.strictObject({
+  ...envelope,
+  matchedTotals: webMatchedTotalsSchema.optional(),
+  items: z.array(webOutboundRowSchema),
+});
 export const webStockListSchema = z.strictObject({
   ...envelope,
   source: inventoryScopeResult,

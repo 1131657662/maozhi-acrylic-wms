@@ -4,6 +4,7 @@ import { useCancelExport } from './use-cancel-export';
 
 export function ExportJobView({ job }: { job: ExportJob }) {
   const { mutate: cancel, isPending: cancelling, error: cancelError } = useCancelExport();
+  const unit = job.schema === 'matched_lines' ? '行' : '条';
   return (
     <Space orientation="vertical" style={{ width: '100%' }}>
       <div>
@@ -27,8 +28,8 @@ export function ExportJobView({ job }: { job: ExportJob }) {
       </div>
       <div role="status">
         {job.state === 'running'
-          ? `正在生成 ${job.processed} / ${job.total} 条`
-          : `导出${job.state === 'ready' ? '完成' : job.state === 'cancelled' ? '已取消' : '失败'} · ${job.processed} 条`}
+          ? `正在生成 ${job.processed} / ${job.total} ${unit}`
+          : `导出${job.state === 'ready' ? '完成' : job.state === 'cancelled' ? '已取消' : '失败'} · ${job.processed} ${unit}`}
       </div>
       {job.state === 'running' && (
         <>
@@ -49,11 +50,11 @@ function CompletedExport({ job }: { job: ExportJob }) {
     <Space orientation="vertical" style={{ width: '100%' }}>
       <Alert
         type="success"
-        title={`完整文件已生成：${job.total} 条。合计仅包含本次导出范围。`}
+        title={`完整文件已生成：${job.total} ${job.schema === 'matched_lines' ? '行' : '条'}。合计仅包含本次导出范围。`}
         description="文件保留 24 小时；可继续操作列表，下载中断后可重新下载同一文件。"
       />
       <Button type="primary" href={`/api/v1/web/exports/${job.id}/download`} target="_blank" rel="noopener">
-        下载 XLSX
+        下载 {job.format.toUpperCase()}
       </Button>
       <Descriptions
         title="本次导出合计"

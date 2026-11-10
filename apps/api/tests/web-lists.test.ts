@@ -73,6 +73,88 @@ test('出库摘要与旧详情一致，多明细与多事实不放大汇总', as
   }
 });
 
+test('商品反查按主单分页，支持任一/全部与重复编码，命中汇总保持一致', async () => {
+  const context = await numberingFixture();
+  try {
+    await seedListEvidence(context.db);
+    const inboundAny = webInboundListSchema.parse(
+      (
+        await context.web
+          .get('/api/v1/web/lists/inbound')
+          .query({ productCodes: 'WL-P000001,WL-P000001', productMode: 'any', pageSize: 20 })
+          .expect(200)
+      ).body.data,
+    );
+    assert.equal(inboundAny.total, 1);
+    assert.equal(inboundAny.items.length, 1);
+    const inboundRow = inboundAny.items[0]!;
+    assert.equal(inboundRow.matchedLineCount, inboundRow.matchedLines?.length);
+    assert.equal(inboundRow.matchedLineCount, 2);
+    assert.equal(
+      inboundRow.matchedLines?.reduce((sum, line) => sum + line.packages, 0),
+      2,
+    );
+    assert.equal(
+      inboundRow.matchedLines?.reduce((sum, line) => sum + line.weightGrams, 0),
+      600000,
+    );
+    assert.deepEqual(inboundAny.matchedTotals, { documentCount: 1, lineCount: 2, packages: 2, weightGrams: 600000 });
+
+    await context.db.run(
+      "INSERT INTO outbound_lines(id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes,source_del_flag) VALUES('reverse-all','DEMO-001','REVERSE-ALL','反查商品',2,'0.5000',0)",
+    );
+    const outboundAll = webOutboundListSchema.parse(
+      (
+        await context.web
+          .get('/api/v1/web/lists/outbound')
+          .query({ productCodes: 'ACR-032,REVERSE-ALL,ACR-032', productMode: 'all', pageSize: 20 })
+          .expect(200)
+      ).body.data,
+    );
+    assert.equal(outboundAll.total, 1);
+    const outboundRow = outboundAll.items[0]!;
+    assert.equal(outboundRow.id, 'DEMO-001');
+    assert.equal(outboundRow.matchedLineCount, outboundRow.matchedLines?.length);
+    assert.equal(outboundRow.matchedLineCount, 2);
+    assert.equal(
+      outboundRow.matchedLines?.reduce((sum, line) => sum + line.packages, 0),
+      4,
+    );
+    assert.equal(
+      outboundRow.matchedLines?.reduce((sum, line) => sum + line.weightGrams, 0),
+      1100000,
+    );
+    assert.deepEqual(outboundAll.matchedTotals, { documentCount: 1, lineCount: 2, packages: 4, weightGrams: 1100000 });
+
+    const pageCodes = Array.from({ length: 21 }, (_, index) => `WL-P${String(index).padStart(6, '0')}`).join(',');
+    const page = webInboundListSchema.parse(
+      (
+        await context.web
+          .get('/api/v1/web/lists/inbound')
+          .query({ productCodes: pageCodes, page: 2, pageSize: 20 })
+          .expect(200)
+      ).body.data,
+    );
+    assert.equal(page.total, 21);
+    assert.equal(page.items.length, 1);
+    assert.equal(page.items[0]!.matchedLineCount, 2);
+    assert.ok(page.items[0]!.matchedLines?.every((line) => pageCodes.includes(line.productCode)));
+    assert.deepEqual(page.matchedTotals, { documentCount: 21, lineCount: 42, packages: 42, weightGrams: 12600000 });
+    const noLookup = webInboundListSchema.parse(
+      (await context.web.get('/api/v1/web/lists/inbound').query({ pageSize: 20 }).expect(200)).body.data,
+    );
+    assert.equal('matchedLineCount' in noLookup.items[0]!, false);
+    assert.equal('matchedLines' in noLookup.items[0]!, false);
+    assert.equal('matchedTotals' in noLookup, false);
+    await context.web.get('/api/v1/web/lists/inbound').query({ productMode: 'invalid' }).expect(422);
+    console.log(
+      'B6B_STEP2 inbound_any=1/2/2/0.6000 outbound_all=1/2/4/1.1000 page_scope=current no_lookup_fields=omitted invalid_mode=422',
+    );
+  } finally {
+    await context.dispose();
+  }
+});
+
 test('ERP 分页小计与筛选范围一致，拒绝跨来源/总计参数及混源响应', async () => {
   const context = await numberingFixture();
   try {

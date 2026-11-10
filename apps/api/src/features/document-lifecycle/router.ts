@@ -1,13 +1,18 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { idSchema, lifecycleCommandSchema } from '@wms/contracts';
+import { batchReverseCommandSchema, idSchema, lifecycleCommandSchema } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { actorFrom, ok, requireChannel } from '../../middleware/http.ts';
 import { lifecyclePreview } from './preview.ts';
 import { executeLifecycle } from './execute.ts';
+import { executeBatchReverse } from './batch-reverse.ts';
 
 export function lifecycleRouter(db: Database, origins: string[]): Router {
   const router = Router();
+  router.post('/web/lifecycle/batch-reverse', requireChannel('web', origins), async (req, res) => {
+    const input = batchReverseCommandSchema.parse(req.body);
+    ok(res, await executeBatchReverse(db, input, actorFrom(res)));
+  });
   for (const kind of ['inbound', 'outbound'] as const) {
     router.get(`/${kind}/:id/lifecycle`, requireChannel('web', origins), async (req, res) => {
       const id = idSchema.parse(req.params.id);

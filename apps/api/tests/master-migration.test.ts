@@ -7,12 +7,12 @@ import { fixture } from './fixture.ts';
 test('B6a 012 空库 up/down/up，只回退012', async () => {
   const c = await createTestDatabase('011_corrections_business_date');
   try {
-    await migrateUp(c.db);
+    await migrateUp(c.db, '012_master_data_snapshots');
     assert.ok(await c.db.get("SHOW TABLES LIKE 'party_contacts'"));
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'party_contacts'"), undefined);
     assert.ok(await c.db.get("SELECT id FROM schema_migrations WHERE id='011_corrections_business_date'"));
-    await migrateUp(c.db);
+    await migrateUp(c.db, '012_master_data_snapshots');
     console.log(
       'B6A_MIGRATION',
       JSON.stringify({
@@ -43,7 +43,7 @@ test('B6a 012 存量逐条映射、原值日期保持、非空down不变', async
       "INSERT INTO stock(warehouse_code,product_code,packages,weight_tonnes) VALUES('DEMO-WH','USED-APP',0,0)",
     );
     const before = await tableFingerprints(c.db);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '012_master_data_snapshots');
     const after = await tableFingerprints(c.db, before);
     for (const table of Object.keys(before).filter((name) => name !== 'schema_migrations'))
       assert.deepEqual(after[table], before[table], table);

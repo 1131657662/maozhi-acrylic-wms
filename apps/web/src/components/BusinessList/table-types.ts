@@ -1,0 +1,30 @@
+import type { Key, ReactNode } from 'react';
+import type { ExportKind, WebMatchedTotals } from '@wms/contracts';
+import type { ListColumnPreferences } from './use-list-columns';
+import type { ListState } from './use-list-state';
+import type { ListSelectionRow } from './use-list-selection';
+
+export interface ListData<Row> {
+  items: Row[];
+  total: number;
+  page: number;
+  pageSize: number;
+  viewToken?: string;
+  rowTokens?: Record<string, string>;
+  matchedTotals?: WebMatchedTotals;
+}
+export interface ListTableProps<Row> {
+  data: ListData<Row>;
+  state: ListState;
+  name: ExportKind;
+  refreshing: boolean;
+  reload: () => unknown;
+  selection: {
+    tokens: Record<string, string>;
+    keys: Key[];
+    rows: Record<string, ListSelectionRow>;
+    change: (keys: Key[], rows?: ListSelectionRow[]) => void;
+  };
+  columnPrefs: ListColumnPreferences<Row>;
+  emptyText?: ReactNode;
+}

@@ -27,9 +27,9 @@ test('B1b1 列显隐持久化，排序/分页保留选择，改筛选清空', as
   await list.locator('tbody tr[data-row-key]').first().getByRole('checkbox').check();
   await list.locator('li[title="2"]').click();
   await expect(page).toHaveURL(/page=2/);
-  await expect(page.getByText(/已选择 1 条/)).toBeVisible();
+  await expect(list.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 1 条');
   await list.locator('tbody tr[data-row-key]').first().getByRole('checkbox').check();
-  await expect(page.getByText(/已选择 2 条/)).toBeVisible();
+  await expect(list.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 2 条');
   await page.getByRole('searchbox', { name: '搜索出库单' }).fill('WL-CK-000001');
   await page.getByRole('searchbox', { name: '搜索出库单' }).press('Enter');
   await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(1);

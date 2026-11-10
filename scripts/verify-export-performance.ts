@@ -30,10 +30,30 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 960 } });
 const report: unknown[] = [];
 mkdirSync('.local/evidence', { recursive: true });
 const cases = [
-  { kind: 'inbound', path: '/inbound?keyword=WL-RK-&sortBy=receiptNo&direction=asc', idColumn: 1, prefix: 'WL-RK-' },
-  { kind: 'outbound', path: '/?keyword=WL-CK-&sortBy=orderNo&direction=asc', idColumn: 1, prefix: 'WL-CK-' },
-  { kind: 'stock', path: '/stock?product=WL-P&sortBy=productCode&direction=asc', idColumn: 4, prefix: 'WL-P' },
-  { kind: 'audit', path: '/audit?action=list.fixture&sortBy=id&direction=asc', idColumn: 2, prefix: 'WL-R' },
+  {
+    kind: 'inbound',
+    path: '/inbound?keyword=WL-RK-&sortBy=receiptNo&direction=asc&pageSize=20',
+    idColumn: 1,
+    prefix: 'WL-RK-',
+  },
+  {
+    kind: 'outbound',
+    path: '/?keyword=WL-CK-&sortBy=orderNo&direction=asc&pageSize=20',
+    idColumn: 1,
+    prefix: 'WL-CK-',
+  },
+  {
+    kind: 'stock',
+    path: '/stock?product=WL-P&sortBy=productCode&direction=asc&pageSize=20',
+    idColumn: 4,
+    prefix: 'WL-P',
+  },
+  {
+    kind: 'audit',
+    path: '/audit?action=list.fixture&sortBy=id&direction=asc&pageSize=20',
+    idColumn: 2,
+    prefix: 'WL-R',
+  },
 ];
 async function pageDuringExport(page: Page, kind: string, number: number): Promise<number> {
   const list = page.getByTestId(kind + '-list');

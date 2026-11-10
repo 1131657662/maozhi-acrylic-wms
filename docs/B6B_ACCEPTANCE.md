@@ -1,0 +1,225 @@
+# B6b 公共交互验收记录
+
+本记录保留 Step 1–5 及后续选择/排序、列宽、服务端偏好的分阶段证据。2026-11-10 用户确认 B6b 全部验收通过；最终 test 200/200、E2E 84/0、build exit 0，三项命令 exit 均为 0，013 开发库应用见 §12。所有数据来自本机开发样本或随机合成测试库，不代表生产、实体设备或现场验收。
+
+## 1. 商品 130 的数据集说明
+
+| 记录 | 数据库与来源 | 业务方向 / 商品 | 单数 | 有效命中行 | 包数 | 吨数 |
+|---|---|---|---:|---:|---:|---:|
+| Step 2（用户已独立核对） | 本机 `127.0.0.1:3307/maozhi_dev_sample` 开发样本；415 张出库主单、544 条明细 | 出库 / `130` | 33 | 34 | 1532 | 463.7705 |
+| Step 4 | `apps/api/tests/export-fixture.ts` 通过 `scripts/e2e-list-fixtures.ts` 创建的随机 `maozhi_test_<24 hex>` 合成测试库；运行后销毁 | 入库 / `WL-P000130` | 1 | 2 | 2 | 0.6000 |
+
+Step 2 的商品 130 原始 35 行中有 1 行软删，排除后为 34 行。Step 4 是验收夹具中的不同商品编码与业务方向，并未查询开发样本库；因此两组数字不是同一查询的前后结果。Step 4 当时的随机库名没有写入专项日志，不能事后编造；其临时库命名及销毁规则见 `scripts/mysql/test-database.ts`。本轮未重造、修改开发样本库。
+
+Step 4 原始输出保存在 `.local/evidence/b6b-step4-focused.log`：
+
+```text
+B6B_STEP4_MATCHED schema=matched_lines documents=1 lines=2 packages=2 weightGrams=600000 xlsxDifferences=0 csv=true replaySameTask=true
+B6B_STEP4_MONTH schema=document_summary month=2026-11 documents=240 comparedCells=2160 differences=0 totalsDifferences=0 packages=480 weightGrams=144000000
+```
+
+## 2. 本轮实现与回归修补
+
+- 入库、出库高级筛选补充右侧 480px 查询抽屉，按单据/商品/往来/其他分组；条件计数与中文 tag、URL 回显、Esc 关闭及焦点返回。保留既有内联筛选兼容入口。未将新抽屉接入审计页，未扩大 trace/raw 的暴露面。
+- 修正选择资格：导出可选择普通记录；批量撤销仍由 `batchRows` 的 `eligible` 过滤，只传入满足撤销条件的单据。服务端逐单事务、逐单幂等及终态门禁未改。
+- 修正非单据导出范围单位为“条”；将旧 E2E 的默认 20 条断言对齐已验收的 50 条，并消除批量栏与表格提示同名造成的定位歧义。
+- 表格选中与悬停使用 `theme.token.colorBgLayout` 的浅背景，不增加行边框。
+- 验证脚本置于 `scripts/b6b/`，SQL 探针仅在验证进程安装，不进入 API 应用构建；没有新增迁移或索引。
+
+## 3. 库存导出诊断口径
+
+Step 4 `.local/evidence/b1b2-performance-100000.json` 记录：入库 22,361ms、出库 22,662ms、库存 41,356ms。该轮导出期间同时进行浏览器翻页；未记录 SQL 与序列化分段，因此不能把旧 41,356ms 精确拆分为二者。
+
+实际分页路径：`web-exports/generate.ts` 的 `appendBatches` 每批 1,000 行；`web-lists/query.ts` 的 `readPage` 使用 `LIMIT ? OFFSET ?`，从 OFFSET 0 递增至 99,000。库存查询连接 `stock / master_products / master_warehouses`，包含商品编码或名称的 `%WL-P%` 模糊匹配，并按商品编码、仓库编码排序。快照复用总数和小计，后续批次不重复 COUNT/SUM；仍需反复执行分页查询。本轮只诊断，不改分页或索引。
+
+SQL 时间定义为等待 mysql2 查询返回的时长，包含查询、网络传输及解码；连接池等待若发生在事务取连接阶段则计入 API 耗时。XLSX append 为同步行转换/写入调用时间，finish 为收尾等待；异步压缩、I/O 与查询可能重叠，不能将各分项机械相加解释为纯 CPU 时间。
+
+独立续跑 `npx tsx scripts/verify-b6b-stock-export.ts` **exit 0**，使用随机合成库 `maozhi_test_b01cea61dd8a4f159f1b592b`、10 万条 `erp-product` 库存记录。原始证据为 `.local/evidence/b6b-step5/stock-diagnostic.json`，运行日志为 `.local/evidence/b6b-step5-stock-diagnostic.log`。本次直接调用与应用相同的 `generateSnapshot / XlsxWriter`，未并行运行浏览器基准；是一次诊断运行，不是对旧 41.356 秒的复原或速度回归判定。
+
+| 指标 | 本次实测 |
+|---|---:|
+| 导出生成总耗时 | 62,019.04 ms |
+| SQL 等待总耗时 | 57,772.61 ms（总耗时的 93.15%） |
+| 同步 XLSX append 累计 | 2,963.46 ms |
+| XLSX finish 等待 | 13.84 ms |
+| 生成数据行 / 文件大小 | 100,000 行 / 2,810,198 bytes |
+| 分页 SELECT 次数 | 101（校验当前页 20 行一次 + 导出 1,000 行/批共 100 次） |
+| 首批 / 末批 SQL | 538.39 / 639.91 ms |
+| 末批 OFFSET | 99,000 |
+
+末页 `EXPLAIN`：商品表使用 `product_inventory_lookup`，但仍为 `Using where; Using temporary; Using filesort`；库存表使用 `stock_product_fk`；仓库表仅 1 行扫描。`EXPLAIN ANALYZE` 的实际路径为：商品资格索引读取 100,001 行 → 库存索引查找 100,001 次 → 连接后 100,000 行 → 按商品/仓库排序 100,000 行 → `Limit/Offset: 1000/99000`，最终返回 1,000 行，约 648–649ms。此处 `Using filesort` 表示额外排序，不能据此断言发生了物理磁盘排序溢出。
+
+结论：本次是**重复连接、过滤、排序与 OFFSET 分页的 SQL 路径主导**，不是同步 XLSX 行序列化主导；首批本身也约 538ms，因此不能只归因为最后几页 OFFSET 变大。全量导出重复此查询 100 次，解释了库存路径的高耗时。旧入库/出库约 22 秒与库存 41.356 秒没有相同的分段遥测，只能作历史背景。本轮不改查询、不新增索引/迁移。生成文件位于 `.local/evidence/b6b-step5/stock-diagnostic-affe2bde-da0d-45a4-90d3-5e17b6d606c9.xlsx`。
+
+## 4. 回退与范围
+
+回退本轮 Step 5 代码可单独 revert 对应提交，不执行数据库 down、不删历史数据。打印文档按用户实测内容单独提交 `702aed1`，不包含打印功能。未合并 master、未推送；B6c 及其他后续批次未开始。
+
+## 5. 自动化与视觉实测
+
+| 验证 | exit code | 结果 | 原始证据（`.local/evidence/`） |
+|---|---:|---|---|
+| API / 小程序完整测试 | 0 | 188 通过 / 0 失败 | `b6b-step5-test.log` |
+| 完整 E2E（实际仓库全部用例） | 0 | 主套件 65 + catalog 9 = 74 通过 / 0 失败 | `b6b-step5-e2e-final.log` |
+| 浅背景修正后相关 E2E | 0 | Step 3 + Step 5 共 5 通过 / 0 失败 | `b6b-step5-layout-final.log` |
+| 最终严格类型检查与 Web 构建 | 0 | 通过 | `b6b-step5-build-final-green.log` |
+| 验证脚本独立严格类型检查（含库存诊断续跑入口） | 0 | 通过 | `b6b-step5-scripts-typecheck-final.log` |
+
+旧的 66 项为 B6a 时的主 57 + catalog 9；B6b 新增 4 项、Step 5 新增 4 项后为 74 项。完整套件通过后只调整 Table 选中背景 token，再跑相关 5 项和最终构建；不把这 5 项计成 79 个独立用例。
+
+首次完整回归为 exit 1、主套件 50 通过 / 11 失败，catalog 因 `&&` 未运行。失败涉及选择资格、旧默认页大小、提示条同名及列设置期间热更新；修复后冻结应用代码运行上述完整套件。新抽屉的定向验证先发现按钮图标参与可访问名称、关闭焦点返回时机问题，修复后最终 4 个视觉用例均通过。初始日志保留为 `b6b-step5-e2e.log`、`b6b-step5-visual*.log`、`b6b-step5-focus*.log`，不能引用它们冒充最终结果。
+
+截图目录：`.local/evidence/b6b-step5/`。每个宽度均含入库/出库各四态，共 16 张：
+
+| 页面 | 宽度 | 列表 | 批量栏 | 查询抽屉 | 导出面板 |
+|---|---:|---|---|---|---|
+| 入库 | 1440 | `inbound-list-1440.png` | `inbound-batch-1440.png` | `inbound-query-1440.png` | `inbound-export-1440.png` |
+| 入库 | 1280 | `inbound-list-1280.png` | `inbound-batch-1280.png` | `inbound-query-1280.png` | `inbound-export-1280.png` |
+| 出库 | 1440 | `outbound-list-1440.png` | `outbound-batch-1440.png` | `outbound-query-1440.png` | `outbound-export-1440.png` |
+| 出库 | 1280 | `outbound-list-1280.png` | `outbound-batch-1280.png` | `outbound-query-1280.png` | `outbound-export-1280.png` |
+
+| 宽度（入/出库、四态均测） | document.scrollWidth | document.clientWidth | body.scrollWidth | 表格勾选前后 Δx / Δy / Δwidth / Δheight |
+|---:|---:|---:|---:|---|
+| 1440 | 1440 | 1440 | 1440 | 0 / 0 / 0 / 0 px |
+| 1280 | 1280 | 1280 | 1280 | 0 / 0 / 0 / 0 px |
+
+原始矩形：两页在 1440 均为 `{x:344,y:536,width:1008,height:527}`，1280 均为 `{x:344,y:536,width:848,height:527}`。取消选择后同样保持矩形；抽屉 Esc 关闭后焦点回触发按钮且矩形不变。各页的 `*-layout.json` 保留 before/after 实测值。页面没有横向滚动，宽表通过表格内部滚动访问其余列。
+
+Step 3 本轮回归原始结果：`entries=link,double-click,enter displacement=selection:0px/0px/0px/0px batch:0px/0px/0px/0px result={"total":3,"succeeded":2,"failed":1,"duplicateCompensation":false}`。
+
+## 6. 性能实测（存在超阈值项）
+
+### 环境与采样口径
+
+- 本机 CPU i5-11400F 2.60GHz / 12 逻辑核，内存 34,252,378,112 bytes（约 31.9 GiB），D 盘 NVMe WDC WDS500G2B0C-00PXH0 / 500,107,862,016 bytes；Windows 10.0.26300、Node 24.14.1、MySQL 8.0.46（3307）。浏览器和 API 同机。
+- 独立随机库 `maozhi_test_338b414a9cfd51b5506d166b`，入库、出库**各 10,000 主单 / 100,000 有效明细**；每类另有 10,000 条软删明细，不计入有效数量。运行后由既有测试工具销毁，未修改开发样本库。
+- 使用最终 production bundle，1440×960、每页 50 行；测量时 HEAD 为 `702aed1`，工作区包含本轮未提交代码。`umi.js` SHA256：`469cc669b282faf69dc3a8fd6a6b06e11d00db9db733e096dba919610db5f408`。
+- 普通列表筛选合成单号前缀；反查额外筛选 `WL-P000130`，夹具使每张主单均命中，测量高命中率场景。两种查询均返回总单数 10,000、本页 50 主单；不是 Step 2 开发样本的 33 单查询。
+- 冷：每个样本新建浏览器 context；热：每条并发 lane 复用 context，先做一次不计入样本的预热，每次样本仍完整导航。**未重启 API/MySQL、未清 MySQL buffer pool，因此本记录的“冷”仅指浏览器冷缓存，不能作为服务冷启动或物理冷盘验收。**
+- 入/出库 × 普通/反查 × 并发 1/5 × 冷/热，共 16 组，每组 30 个有效样本（并发 5 为 5 条 lane 各 6 次），合计 480；预热另计。首屏从导航开始到 50 行出现并完成两次 animation frame；翻页从点击第 2 页开始到首行 key 改变、50 行出现并完成两次 animation frame。p95 取升序第 29/30 个值。
+- SQL 耗时按 §3 口径，接口耗时从验证用中间件进入到响应 finish。各列独立计算 p95，不应相减推导同一个请求的精确分段。测量与 E2E、构建错开；没有数据库或应用性能优化。
+
+### 首屏 / 翻页 p95
+
+单位 ms；目标为首屏 **< 1,500**、翻页 **< 500**。
+
+| 页面 / 查询 | 并发 | 冷首屏 | 冷翻页 | 热首屏 | 热翻页 |
+|---|---:|---:|---:|---:|---:|
+| 入库普通 | 1 | 1200.08 | 399.28 | 862.43 | 363.05 |
+| 入库普通 | 5 | 1750.37 | 696.00 | 1164.93 | 587.73 |
+| 入库商品反查 | 1 | 1609.99 | 849.54 | 1278.73 | 832.54 |
+| 入库商品反查 | 5 | 2878.74 | 1585.94 | 2095.76 | 1536.31 |
+| 出库普通 | 1 | 1191.64 | 381.30 | 848.08 | 388.28 |
+| 出库普通 | 5 | 1754.71 | 646.81 | 1251.34 | 609.72 |
+| 出库商品反查 | 1 | 1655.83 | 902.93 | 1327.45 | 860.03 |
+| 出库商品反查 | 5 | 2765.08 | 1708.39 | 2414.43 | 1698.37 |
+
+16 组中首屏 **8 组超标**、翻页 **12 组超标**。普通列表并发 1 的全部指标达标；普通列表并发 5 的冷首屏、冷/热翻页超标；反查并发 1 的冷首屏、冷/热翻页超标；反查并发 5 的全部指标超标。B6b 性能目标未全部达到。
+
+后续验收决定：用户确认 Step 5 的完整回归、构建和视觉通过；**并发 5 为压力场景，单用户以并发 1 为准**。保留以上全部原始 p95，不用此说明抹去并发 1 的反查超标；性能结果不阻塞本批，反查翻页及库存导出深分页另列 `B6b-perf`，本轮不优化。
+
+### 接口 / SQL / 行数汇总
+
+各耗时均为 p95 ms，“首 / 页”表示首屏请求 / 第 2 页请求。每组 30 次，每次返回 50 主单、结果总数 10,000；反查会额外返回这 50 主单对应的命中行，未返回全表明细。
+
+| 页面 / 查询 | 并发 | 缓存 | 接口首 / 页 | SQL 首 / 页 | 本页主单 / 总主单 |
+|---|---:|---|---:|---:|---:|
+| 入库普通 | 1 | 冷 | 21.66 / 20.77 | 17.34 / 15.95 | 50 / 10000 |
+| 入库普通 | 1 | 热 | 21.60 / 20.54 | 17.48 / 15.54 | 50 / 10000 |
+| 入库普通 | 5 | 冷 | 50.03 / 42.87 | 39.61 / 33.11 | 50 / 10000 |
+| 入库普通 | 5 | 热 | 33.60 / 34.88 | 24.00 / 25.76 | 50 / 10000 |
+| 入库反查 | 1 | 冷 | 485.31 / 459.24 | 480.87 / 455.66 | 50 / 10000 |
+| 入库反查 | 1 | 热 | 503.88 / 475.34 | 499.23 / 470.66 | 50 / 10000 |
+| 入库反查 | 5 | 冷 | 1110.15 / 954.35 | 1104.71 / 948.14 | 50 / 10000 |
+| 入库反查 | 5 | 热 | 1051.90 / 970.93 | 1046.46 / 966.27 | 50 / 10000 |
+| 出库普通 | 1 | 冷 | 20.32 / 19.09 | 16.09 / 14.76 | 50 / 10000 |
+| 出库普通 | 1 | 热 | 20.08 / 21.06 | 16.70 / 16.43 | 50 / 10000 |
+| 出库普通 | 5 | 冷 | 41.01 / 38.03 | 32.15 / 30.17 | 50 / 10000 |
+| 出库普通 | 5 | 热 | 27.63 / 31.68 | 22.53 / 24.01 | 50 / 10000 |
+| 出库反查 | 1 | 冷 | 527.40 / 499.36 | 524.06 / 495.55 | 50 / 10000 |
+| 出库反查 | 1 | 热 | 508.43 / 482.82 | 503.78 / 479.13 | 50 / 10000 |
+| 出库反查 | 5 | 冷 | 1108.50 / 1073.43 | 1103.26 / 1068.09 | 50 / 10000 |
+| 出库反查 | 5 | 热 | 1247.94 / 1054.93 | 1242.71 / 1050.23 | 50 / 10000 |
+
+普通列表 SQL 远小于浏览器首屏/翻页端到端时间，不能归因为 SQL 慢。反查请求的 SQL 等待占接口时间的主要部分；代码仍每次执行全筛选命中汇总，后续应先对该查询做 EXPLAIN 与单查询基准，再评估查询改写或缓存/索引。此为待决诊断方向，未将某个查询断言为唯一瓶颈，也未扩展本轮为性能优化批次。
+
+复现入口：`npx tsx scripts/verify-b6b-step5.ts`；完整环境和 480 个原始样本保存在 `.local/evidence/b6b-step5/environment.json`、`performance.json`。本次浏览器采样全部完成并逐组落盘后，库存诊断因夹具查询缺少 `source` 而报参数错误，主脚本 exit 1；保留 `b6b-step5-performance-final.log` 与对应 exit 文件，不能以该 exit 1 否定已完整落盘的样本，也不能改写成 exit 0。库存诊断改由独立入口 `npx tsx scripts/verify-b6b-stock-export.ts` 续跑，不重跑或覆盖浏览器样本。
+
+## 7. 提交前审查
+
+按 `code-review-wms` 检查本轮全部改动：新增代码不改库存扣减、撤销事务或幂等链路；批量撤销仍过滤 `eligible`，新增导出选择不放开撤销门禁；查询抽屉只用于入/出库，不展示审计原值/追踪号；样式使用 theme token。SQL 探针只在一次性验证进程内安装与恢复，应用 API 未新增遥测端点；造数使用既有随机测试库工具，库存诊断额外校验库名，无迁移/生产连接变更。
+
+指定改动文件 Prettier check exit 0；Drawer 与 Table 的 antd lint 均 exit 0 / 0 issues；`git diff --check` 通过。未发现阻断提交的功能/数据安全问题；§6 的性能超标与冷缓存口径限制保留，不将其列为已通过验收。
+
+## 8. 选择与排序交互回归
+
+所有行可选择导出；批量撤销单独计算可撤子集，历史/未入账/终态显示排除原因，确认弹窗列出排除单号。三态排序取消时清除 URL 排序字段并恢复默认创建时间倒序；枚举列不显示排序入口。包数、吨数补齐全结果服务端排序，未使用当前页前端排序。
+
+定向 API 测试 2/2、E2E 4/4、严格类型检查 exit 0。原始结果：`selected=3 exported=3 reversed=1 excluded=2 reason=历史导入单据`；入/出库三次点击取消、翻页保持默认顺序；既有 Step 3 详情入口/部分成功/幂等重放回归通过，选择和批量栏矩形差值均 `0/0/0/0 px`。证据：`.local/evidence/b6b-fix-api.log`、`b6b-fix-e2e.log`、`b6b-fix-typecheck.log`。
+
+## 9. 列宽拖拽补充验收
+
+固定布局、按列 key 保存宽度/显隐/顺序；缺省 120px，范围 80–600px；总宽为可见列宽之和加选择列 48px。手柄使用 pointer capture，拖动期间横向滚动锁定；固定列表头/单元格坐标差为 0。无横向滚动时隐藏手柄。列设置虚拟滚动内容限制绘制范围并保护标题控件层级，重置使用正常鼠标点击验证。
+
+| 页面 | 视口 | 单号前/后 | 表格总宽前/后 | 容器 clientWidth | 页面 scrollWidth/clientWidth | 勾选位移 |
+|---|---:|---:|---:|---:|---:|---:|
+| 入库 | 1440 | 220/320 | 1788/1888 | 1008 | 1440/1440 | 0px |
+| 入库 | 1280 | 220/320 | 1788/1888 | 848 | 1280/1280 | 0px |
+| 出库 | 1440 | 220/320 | 1848/1948 | 1008 | 1440/1440 | 0px |
+| 出库 | 1280 | 220/320 | 1848/1948 | 848 | 1280/1280 | 0px |
+
+每组先将包数列加宽 20px，再测单号列加宽 100px；后者其他列宽全部不变。默认隐藏的商品型号显示为 120px，总宽增加 120px，再隐藏即回落；改成 130px 后隐藏/刷新/显示仍为 130px。重排后各列宽度不变，刷新保留顺序；重置列宽包含隐藏列，重新显示为 120px；双击恢复单列默认，全重置恢复顺序和显隐。
+
+本机合成夹具的浏览器证据位于 `.local/evidence/b6b-followup/`：`{inbound|outbound}-{1440|1280}-columns.json`，以及同前缀的 `resized`、`hidden-shown`、`batch`、`export` PNG。列设置单元测试 2/2、严格类型检查 exit 0；定向回归日志为 `b6b-resize-e2e-final.log`。不等同于实体设备或生产验收。
+
+## 10. 服务端列偏好补充验收
+
+`013_list_preferences` 按 `(user_id,list_kind)` 唯一保存 schema 及 JSON 列设置；身份由已登录 Web 会话取得，拒绝 body/query 的 userId、未知字段、非法宽度、未来版本和非 Web 客户端。PUT 原子 upsert，重复保存不新增记录；空 columns 是重置标记。OpenAPI 已从契约生成，未暴露审计 raw 或内部偏好记录 ID。
+
+客户端默认值 → 本地缓存 → 服务端权威；未保存过的账号可迁移旧本地设置。旧版本按列 key 合并，新增列补默认、未知列丢弃。每次编辑保存本地待同步副本，500ms 防抖和单写者保证连续拖拽/重排不会并发覆盖；GET/PUT 迟到响应由编辑版本隔离。失败不循环请求、不清缓存，下次进入续传；离线重置暂留待同步空值，服务端确认后删除本地各版本列缓存。
+
+验证使用随机一次性 MySQL 测试库。013 空库 up→down→up 成功；非空 down 拒绝，DDL 执行数为 0，全部表数据指纹、表结构及迁移状态不变。为严格满足“任何 DDL 前检查”，down 的迁移锁流程不再执行初始化用的 `CREATE TABLE IF NOT EXISTS schema_migrations`；012 专项测试明确停在012，继续覆盖原回退行为。
+
+API/迁移/012 回归 7/7，列同步防抖与迟到响应测试 3/3；偏好、双分辨率列宽和导出联合 E2E 12/12，类型检查 exit 0。浏览器覆盖实际拖宽及重排后刷新、清 localStorage 后恢复、独立浏览器 context 重新登录恢复、偏好端点连接拒绝时使用缓存、离线修改/重置续传、schema 0 保留宽度 360px 且新增列默认 120px。连接拒绝在网络边界注入，未停止用户开发服务；“换浏览器”采用独立 Chromium context 与新登录会话，不声称已覆盖 Firefox/WebKit。
+
+证据：`.local/evidence/b6b-preferences-api.log`、`b6b-preferences-sync.log`、`b6b-preferences-e2e.log`、`b6b-preferences-typecheck.log`、`b6b-preferences-openapi.log`。最终完整验证另存 `b6b-followup-test.log`、`b6b-followup-build.log`、`b6b-followup-e2e.log`，实际 exit/计数以命令完成后的日志及本轮汇报为准。
+
+回退仅回退应用代码并保留 013 表；表非空禁止 down 或删除偏好。本节专项验证时迁移仅用于测试库；收尾时已应用开发样本库，见 §12，生产未应用。没有改库存事务、逐单幂等或审计展示边界。§6 p95 与并发口径保持原样；反查翻页与库存导出深分页仍留给 B6b-perf。
+
+## 11. 补充功能的最终全量回归
+
+三个独立提交为 `21c7565`（选择与排序）、`7a705f7`（列宽）、`1807508`（服务端偏好）。每次提交后的相关测试分别为 E2E 4/4、列设置单元测试 2/2、API/迁移/同步 8/8，exit 均为 0；日志分别为 `b6b-fix-postcommit.log`、`b6b-resize-postcommit.log`、`b6b-preferences-postcommit.log`。
+
+首次完整验证：test exit 0、200/200；build exit 0；E2E exit 1、主套件 73 通过 / 2 失败，catalog 因 `&&` 未运行。原始日志保留为 `b6b-followup-test.log`、`b6b-followup-build.log`、`b6b-followup-e2e.log`。失败与修复如下：
+
+- `B3b details screen and XLSX three scopes, layout`：报表旧 URL 只传 `direction=asc`，分页误删方向，使后页回到默认倒序。公共状态层现保留显式 direction；取消排序仍同时删除 sortBy/direction、表头无箭头，后续翻页保持默认排序。
+- `商品库存空态与无权限：不出现其他用途入口或占位`：全套重复 UI 登录触发登录限流。该列表用例改用既有真实认证夹具；未修改生产鉴权或限流规则，登录 UI 与限流仍由专项测试覆盖。
+- 列宽证据截图禁用截图时的动画，避免把导出抽屉进入动画的中间帧作为视觉证据。
+
+上述修复的定向 E2E exit 0、10/10，日志 `b6b-followup-fix-e2e.log`。按 `code-review-wms` 审查修复 diff：仅更正 URL 状态保留与测试会话/截图采集，不涉及库存、权限或数据迁移。修复追加独立 commit，不 amend 三个功能提交。
+
+修复提交 `f88cee3` 后完整 test / build / E2E 均 exit 0：test 200/200、E2E 主 75 + catalog 9 = 84/0、build 通过。新日志为 `b6b-followup-final-test.log`、`b6b-followup-final-build.log`、`b6b-followup-final-e2e.log`，不覆盖首次失败证据。最终退出码、通过数及 16 张截图索引见 `.local/evidence/b6b-followup/final-results.json`、`screenshots.md`。
+
+## 12. 013 开发样本库应用与冒烟（2026-11-10）
+
+目标严格核对为 `127.0.0.1:3307/maozhi_dev_sample`，数据库身份 `maozhi-local-mysql8-v1`；本机 MySQL 8 实例目录也通过守卫。仅暂停经核实的本项目开发 API/Web 进程，前后比较时无其他目标库连接；原 001–012 校验和及 applied 状态全部通过。通过既有 `migrateUp(db, '013_list_preferences')` 应用，exit 0，状态 `applied`；应用时间为上海时间 2026-11-10 21:18:39（数据库记录 UTC 13:18:39）。
+
+| 项目 | 证据 |
+|---|---|
+| 应用前备份 | `.local/backups/maozhi-1794316688343.sql`，6,457,551 字节；mysqldump exit 0，结束标记完整 |
+| 备份 SHA256 | `18822768E5BC691E01431E0ADD51590A973594E1621DDA6D6C96BEDCBC1EEB62` |
+| 应用前结构 SHA256 | `77486191f8de29fc05a7049b4471b8341f71b9ec03e09d7f9b1b4b9f17970da0` |
+| 应用后结构 SHA256 | `3fe20eeb099e6844705234e408f442a2455ec61ea0dfe24567a8a26c6a9ea2fb` |
+| 013 文件/登记校验和 | `1bcde33ca43237b45f1d8a116661334c807851f4a645ccefa808e1f3b3de35f8` |
+
+结构指纹按表名排序的 SHOW CREATE TABLE/视图结果及触发器定义计算 SHA256。仅新增 `user_list_preferences`；原 45 个表/视图结构与触发器未变，43 张原数据表（不含迁移登记表）逐表列集/行数/内容指纹相同，旧 12 项迁移记录相同。新表在冒烟前为 0 行。原始证据在 `.local/evidence/b6b-closeout/`：`backup.json`、`schema-before.json`、`schema-after.json`、`data-before.json`、`data-after.json`、`migration-result.json` 及 preflight/apply/postflight 日志。
+
+重启开发服务后，以独立 Chromium 会话完成真实登录（200）→ 打开开发样本入库列表 → 鼠标拖单号列 220→320px → 偏好 PUT 200 → 刷新仍为 320px；清空该浏览器 localStorage 后再次刷新也恢复为 320px，数据库 schemaVersion=1、保存宽度=320。冒烟 exit 0；业务数据指纹未变。认证产生 sessions 1→2、operation_log 13→14，另新增一条 owner/inbound 列偏好，不把这些授权写入描述为数据库零变化。截图 `inbound-preferences-1440.png` 与结果 `smoke-result.json` 同目录。
+
+本轮未进行备份恢复演练，不将备份结束标记与校验和视为恢复验证。013 空库 up/down/up 与非空拒绝回退已在 §10 一次性库验证；开发样本库现在含偏好数据，禁止直接 down 或删除偏好。开发 API/Web 已恢复运行。
+
+## 13. 遗留与后续
+
+- **B6b-perf**：反查翻页约 850–900ms（§6 完整原值保留），库存 10 万行导出深分页约 62s（62,019.04ms），SQL 等待约 93%（93.15%）。用户确认不阻塞 B6b，本轮不优化。
+- **采样口径**：并发 5 为压力场景，单用户以并发 1 为准；冷仅指浏览器冷缓存，不代表 MySQL 冷盘。并发 1 反查的超阈值项仍保留。
+- **跨浏览器**：仅验证 Chromium 的独立 context/新登录会话；Firefox/WebKit 未覆盖。

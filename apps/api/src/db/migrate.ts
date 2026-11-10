@@ -103,6 +103,7 @@ const migrations = [
       'operation_log',
     ],
   },
+  { id: '013_list_preferences', guardedTables: ['user_list_preferences'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -116,14 +117,19 @@ async function statements(db: Database, sql: string): Promise<void> {
     .filter(Boolean))
     await db.run(statement);
 }
-async function lockMigration<T>(db: Database, work: (connection: Database) => Promise<T>): Promise<T> {
+async function lockMigration<T>(
+  db: Database,
+  work: (connection: Database) => Promise<T>,
+  initialize = true,
+): Promise<T> {
   return db.withConnection(async (connection) => {
     const name = String((await connection.get('SELECT DATABASE() AS name'))?.name);
     const lock = await connection.get('SELECT GET_LOCK(?,5) AS acquired', [`migrate:${name}`]);
     if (Number(lock?.acquired) !== 1) throw new Error('迁移锁获取失败');
     try {
       await connection.run('SET SESSION lock_wait_timeout=5');
-      await connection.run(`CREATE TABLE IF NOT EXISTS schema_migrations (
+      if (initialize)
+        await connection.run(`CREATE TABLE IF NOT EXISTS schema_migrations (
         id VARCHAR(80) PRIMARY KEY, checksum CHAR(64) NOT NULL, state VARCHAR(16) NOT NULL,
         applied_at DATETIME(3) NULL) ENGINE=InnoDB`);
       return await work(connection);
@@ -164,26 +170,31 @@ export async function migrateUp(db: Database, through?: string): Promise<void> {
   });
 }
 export async function migrateDown(db: Database): Promise<void> {
-  await lockMigration(db, async (connection) => {
-    for (const migration of [...migrations].reverse()) {
-      const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
-      if (!previous) continue;
-      if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
-      if (migration.id === '011_corrections_business_date') await guardCorrectionDown(connection);
-      if (
-        migration.id === '010_outbound_memo' &&
-        (await connection.get('SELECT id FROM outbound_orders WHERE memo IS NOT NULL LIMIT 1'))
-      )
-        throw new Error('拒绝回退：outbound_orders.memo 含有数据，禁止删除备注');
-      for (const table of migration.guardedTables) {
-        if (Number((await connection.get(`SELECT COUNT(*) AS total FROM \`${table}\``))?.total) > 0)
-          throw new Error(`拒绝回退：${table} 含有数据，禁止删除历史数据`);
+  await lockMigration(
+    db,
+    async (connection) => {
+      if (!(await connection.get("SHOW TABLES LIKE 'schema_migrations'"))) return;
+      for (const migration of [...migrations].reverse()) {
+        const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
+        if (!previous) continue;
+        if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (migration.id === '011_corrections_business_date') await guardCorrectionDown(connection);
+        if (
+          migration.id === '010_outbound_memo' &&
+          (await connection.get('SELECT id FROM outbound_orders WHERE memo IS NOT NULL LIMIT 1'))
+        )
+          throw new Error('拒绝回退：outbound_orders.memo 含有数据，禁止删除备注');
+        for (const table of migration.guardedTables) {
+          if (Number((await connection.get(`SELECT COUNT(*) AS total FROM \`${table}\``))?.total) > 0)
+            throw new Error(`拒绝回退：${table} 含有数据，禁止删除历史数据`);
+        }
+        await connection.run("UPDATE schema_migrations SET state='reverting' WHERE id=?", [migration.id]);
+        if (migration.id === '009_stocktake') await prepareStocktakeDown(connection);
+        await statements(connection, migrationSql(migration.id, 'down'));
+        await connection.run('DELETE FROM schema_migrations WHERE id=?', [migration.id]);
+        return;
       }
-      await connection.run("UPDATE schema_migrations SET state='reverting' WHERE id=?", [migration.id]);
-      if (migration.id === '009_stocktake') await prepareStocktakeDown(connection);
-      await statements(connection, migrationSql(migration.id, 'down'));
-      await connection.run('DELETE FROM schema_migrations WHERE id=?', [migration.id]);
-      return;
-    }
-  });
+    },
+    false,
+  );
 }

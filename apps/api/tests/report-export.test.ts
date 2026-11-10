@@ -5,6 +5,7 @@ import { listFields, listCellText, type ExportRequest, type ReportKind } from '@
 import { reportFixture, reportParams } from './report-fixture.ts';
 import { waitExport, workbook } from './export-fixture.ts';
 import { actor } from './fixture.ts';
+import { AppError } from '../src/shared/errors.ts';
 
 test('B3b: both XLSX reports match every field in all/page/selected scopes and never sum balances', async () => {
   const f = await reportFixture();
@@ -117,10 +118,11 @@ test('B3b: missing balances stay text in XLSX, and stale snapshot rejects before
     assert.equal(sheet.getCell(2, 4).value, '-');
     assert.equal(book.getWorksheet('收发存对账')!.getCell(3, 2).value, '—（不可验证）');
     await f.db.run("UPDATE stock SET packages=packages+1 WHERE warehouse_code='RPT-W1' AND product_code='RPT-P1'");
-    const job = await f.service.create({ ...input, requestId: randomUUID() }, actor),
-      result = await waitExport(f, job.id);
-    assert.equal(result.errorCode, 'EXPORT_VIEW_CHANGED');
-    await assert.rejects(() => f.service.download(job.id));
+    await assert.rejects(
+      f.service.create({ ...input, requestId: randomUUID() }, actor),
+      (error: unknown) => error instanceof AppError && error.code === 'EXPORT_VIEW_CHANGED' && error.status === 409,
+    );
+    assert.equal(await f.service.current(), null);
     console.log('B3B_EXPORT_GUARD missing=null/text stale=EXPORT_VIEW_CHANGED file=none');
   } finally {
     await f.dispose();

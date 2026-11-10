@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { access } from 'node:fs/promises';
+import path from 'node:path';
 import { exportFixture, exportInput, waitExport, workbook, evidence } from './export-fixture.ts';
 import { actor } from './fixture.ts';
 import { AppError } from '../src/shared/errors.ts';
@@ -75,6 +77,9 @@ for (const failure of ['write', 'cancel'] as const)
         (e: unknown) => e instanceof AppError && e.code === 'EXPORT_NOT_READY',
       );
       const res = await f.api.get(`/api/v1/web/exports/${id}/download`).set('Cookie', f.cookie).expect(409);
+      const database = String((await f.db.get('SELECT DATABASE() AS name'))?.name);
+      for (const extension of ['part', 'xlsx', 'csv'])
+        await assert.rejects(access(path.resolve('.local/exports', database, `${id}.${extension}`)));
       await evidence('B1B2_FAILURE', {
         failure,
         state: job.state,
@@ -82,6 +87,7 @@ for (const failure of ['write', 'cancel'] as const)
         total: job.total,
         downloadStatus: res.status,
         bytes: job.bytes,
+        partialFiles: 0,
       });
       f.service.hooks.afterBatch = undefined;
       const next = await exportInput(f, 'outbound', 'page');

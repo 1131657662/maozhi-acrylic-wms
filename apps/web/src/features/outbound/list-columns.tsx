@@ -4,6 +4,7 @@ import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
 import { CorrectionRowActions } from '../corrections/row-actions';
+import { matchedSummary } from '../../components/BusinessList/matched-lines';
 
 export const outboundColumns: ProColumns<WebOutboundRow>[] = [
   {
@@ -15,18 +16,28 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     hideInSetting: true,
     render: (_, row) => <ListDetailLink to={'/outbound/' + row.id}>{row.orderNo}</ListDetailLink>,
   },
-  { title: '计划包数', dataIndex: 'plannedPackages', width: 100, align: 'right' },
+  {
+    title: '商品反查',
+    dataIndex: 'matchedSummary',
+    key: 'matchedSummary',
+    width: 300,
+    hideInSetting: true,
+    render: (_, row) => <span data-testid="matched-summary">{matchedSummary(row.matchedLines)}</span>,
+  },
+  { title: '计划包数', dataIndex: 'plannedPackages', sorter: true, width: 100, align: 'right' },
   {
     title: '计划重量（吨）',
     dataIndex: 'plannedWeightGrams',
+    sorter: true,
     width: 140,
     align: 'right',
     render: (_, row) => tonnes(row.plannedWeightGrams),
   },
-  { title: '实扫包数', dataIndex: 'actualPackages', width: 110, align: 'right' },
+  { title: '实扫包数', dataIndex: 'actualPackages', sorter: true, width: 110, align: 'right' },
   {
     title: '实扫重量（吨）',
     dataIndex: 'actualWeightGrams',
+    sorter: true,
     width: 150,
     align: 'right',
     render: (_, row) => tonnes(row.actualWeightGrams),
@@ -36,7 +47,6 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     dataIndex: 'status',
     width: 240,
     fixed: 'right',
-    sorter: true,
     render: (_, row) => <StatusTag status={row.status} />,
   },
   { title: '客户', dataIndex: 'customerName', width: 180, ellipsis: true, sorter: true },

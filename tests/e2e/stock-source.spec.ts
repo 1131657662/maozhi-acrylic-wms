@@ -1,12 +1,8 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from './list-test';
 import { sourceStockSchema, tonnes } from '@wms/contracts';
 
 async function openStock(page: Page) {
-  await page.goto('/user/login');
-  await page.getByLabel('用户名', { exact: true }).fill('owner');
-  await page.getByLabel('密码', { exact: true }).fill('e2e-only-password');
-  await page.getByRole('button', { name: /登\s*录/ }).click();
-  await expect(page.getByRole('heading', { name: '出库工作台' })).toBeVisible();
   await page.goto('/stock');
 }
 
@@ -37,7 +33,7 @@ test('用途隔离：库存仅资格商品，无 SPEC 或未归属入口、空�
   await expect(page.getByTestId('stock-subtotal-tonnes')).toHaveText(tonnes(expected.subtotal.weightGrams));
   // Other suites can populate more than one page. Check the current page against the independent full ERP view.
   const visibleRows = page.getByTestId('stock-list').locator('tbody tr[data-row-key]');
-  await expect(visibleRows).toHaveCount(Math.min(expected.items.length, 20));
+  await expect(visibleRows).toHaveCount(Math.min(expected.items.length, 50));
   for (const tableRow of await visibleRows.all()) {
     const identity = await tableRow.getAttribute('data-row-key');
     const row = expected.items.find((item) => JSON.stringify([item.warehouseCode, item.productCode]) === identity);
@@ -119,7 +115,7 @@ test('商品库存空态与无权限：不出现其他用途入口或占位', as
               items: [],
               total: 0,
               page: 1,
-              pageSize: 20,
+              pageSize: 50,
               viewToken: 'empty',
               subtotal: { packages: 0, weightGrams: 0 },
             },

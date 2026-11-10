@@ -46,7 +46,7 @@ for (const item of pages) {
     await screenshotWidths(page, 'b1b1-' + item.kind);
     const table = page.getByTestId(item.kind + '-list');
     await table.locator('tbody tr[data-row-key]').first().getByRole('checkbox').check();
-    await expect(page.getByText(/已选择 1 条/)).toBeVisible();
+    await expect(table.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 1 条');
     const sorted = page.waitForResponse((res) => res.url().includes('/api/v1/web/lists/' + item.kind + '?'));
     await table.getByRole('columnheader', { name: item.sort, exact: true }).click();
     await expect(page).toHaveURL(/sortBy=/);
@@ -56,7 +56,7 @@ for (const item of pages) {
       'data-row-key',
       String(expected.data.items[0].id),
     );
-    await expect(page.getByText(/已选择 1 条/)).toBeVisible();
+    await expect(table.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 1 条');
     const input =
       item.field === 'keyword'
         ? page.getByRole('searchbox', { name: item.label })
@@ -86,7 +86,7 @@ for (const item of pages.slice(0, 2)) {
     await rowsReady(page, item.kind, 20);
     await page
       .getByTestId(item.kind + '-list')
-      .getByRole('link', { name: '查看详情' })
+      .locator('tbody tr[data-row-key] a')
       .first()
       .click();
     await page.getByRole('link', { name: /返回(入库记录|出库工作台)/ }).click();
@@ -95,6 +95,20 @@ for (const item of pages.slice(0, 2)) {
     console.log('B1B1_RETURN ' + item.kind + ' query_and_page=preserved');
   });
 }
+
+test('B6b Step 2 商品反查摘要与命中行展开', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.goto('/inbound?productCodes=WL-P000001&pageSize=20');
+  await rowsReady(page, 'inbound', 1);
+  await expect(page.getByTestId('matched-summary')).toContainText('命中：');
+  await expect(page.getByTestId('inbound-list')).toContainText('1 单 · 2 行 · 2 包 · 0.6000 吨');
+  await page.getByTestId('inbound-list').getByRole('button', { name: '展开命中行' }).first().click();
+  await expect(page.getByTestId('matched-lines-table')).toBeVisible();
+  await expect(page.getByTestId('matched-lines-table').getByText('WL-P000001', { exact: true })).toHaveCount(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
+  await page.screenshot({ path: '.local/evidence/b6b-step2-inbound-1440.png' });
+  console.log('B6B_STEP2_UI inbound=summary+expanded rows=1 width=1440 pageOverflow=0');
+});
 
 test('B1b1 日志历史分页与前后值抽屉', async ({ page }) => {
   await page.goto('/audit?action=list.fixture&page=2&pageSize=200');

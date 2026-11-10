@@ -20,7 +20,11 @@ export function useListState(
   };
   for (const key of omitted) delete params[key];
   function change(patch: ListParams) {
-    const next = { ...params, ...patch };
+    const next: ListParams = { ...params, ...patch };
+    if (!search.has('sortBy') && !('sortBy' in patch)) {
+      delete next.sortBy;
+      if (!search.has('direction') && !('direction' in patch)) delete next.direction;
+    }
     setSearch(new URLSearchParams(Object.entries(next).filter(([key, value]) => key === 'status' || value !== '')));
   }
   function searchFor(filters: ListParams) {
@@ -30,11 +34,18 @@ export function useListState(
         ...fixed,
         page: '1',
         pageSize: filters.pageSize ?? params.pageSize,
-        sortBy: filters.sortBy ?? params.sortBy,
-        direction: filters.direction ?? params.direction,
+        ...(filters.sortBy || filters.direction || search.has('sortBy') || search.has('direction')
+          ? { sortBy: filters.sortBy ?? params.sortBy, direction: filters.direction ?? params.direction }
+          : {}),
       }),
     );
   }
-  return { params, change, searchFor, reset: () => setSearch(new URLSearchParams({ ...defaults, ...fixed })) };
+  return {
+    params,
+    hasExplicitSort: search.has('sortBy') || search.has('direction'),
+    change,
+    searchFor,
+    reset: () => setSearch(new URLSearchParams({ ...defaults, ...fixed })),
+  };
 }
 export type ListState = ReturnType<typeof useListState>;

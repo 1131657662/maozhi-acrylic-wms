@@ -30,13 +30,14 @@ for (const config of pages)
     await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(40);
     const second = await screenRows(page, config.kind);
     await list.locator('tbody tr[data-row-key]').first().getByRole('checkbox').check();
+    const selectedLabel = `选中记录 · 2 ${['inbound', 'outbound'].includes(config.kind) ? '单' : '条'}`;
     for (const scope of ['all', 'page', 'selected']) {
       await list.getByRole('button', { name: '导出', exact: true }).click();
       await expect(page.getByRole('radio', { name: '全部筛选结果 · 240 条' })).toBeVisible();
       await expect(page.getByRole('radio', { name: '当前页 · 40 条' })).toBeVisible();
-      await expect(page.getByRole('radio', { name: '选中记录 · 2 条' })).toBeVisible();
+      await expect(page.getByRole('radio', { name: selectedLabel })).toBeVisible();
       const scopeLabel =
-        scope === 'all' ? '全部筛选结果 · 240 条' : scope === 'page' ? '当前页 · 40 条' : '选中记录 · 2 条';
+        scope === 'all' ? '全部筛选结果 · 240 条' : scope === 'page' ? '当前页 · 40 条' : selectedLabel;
       await page.getByRole('radio', { name: scopeLabel }).check();
       const created = page.waitForResponse((r) => r.url().endsWith('/web/exports') && r.request().method() === 'POST');
       await page.getByRole('button', { name: '生成 XLSX' }).click();

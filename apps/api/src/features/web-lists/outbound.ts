@@ -21,12 +21,18 @@ const sortColumns = {
   warehouseName: 'warehouseName',
   vehicleNo: 'o.vehicle_no',
   status: 'o.status',
+  plannedPackages:
+    '(SELECT COALESCE(SUM(sl.planned_packages),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
+  plannedWeightGrams:
+    '(SELECT COALESCE(SUM(sl.planned_weight_tonnes),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
+  actualPackages: '(SELECT COUNT(*) FROM scan_facts sf WHERE sf.plan_id=o.id)',
+  actualWeightGrams: '(SELECT COALESCE(SUM(sf.weight_tonnes),0) FROM scan_facts sf WHERE sf.plan_id=o.id)',
 };
 export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { pageSize: number }) {
   const parts = {
     sql: `FROM outbound_orders o LEFT JOIN master_warehouses w ON w.code=o.warehouse_code
     WHERE o.source_del_flag=0`,
-    values: [] as string[],
+    values: [] as (string | number)[],
   };
   textFilter(parts, ['o.order_no'], query.keyword);
   textFilter(parts, ['o.customer_code', 'o.customer_name'], query.customer);
@@ -34,6 +40,18 @@ export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { 
   textFilter(parts, ['o.vehicle_no'], query.vehicle);
   statusFilter(parts, 'o.status', query);
   dateFilter(parts, 'o.created_at', query);
+  if (query.productCodes?.length) {
+    const placeholders = query.productCodes.map(() => '?').join(',');
+    if (query.productMode === 'all') {
+      parts.sql += ` AND (SELECT COUNT(DISTINCT ml.product_code) FROM outbound_lines ml
+        WHERE ml.order_id=o.id AND ml.source_del_flag=0 AND ml.product_code IN (${placeholders}))=?`;
+      parts.values.push(...query.productCodes, query.productCodes.length);
+    } else {
+      parts.sql += ` AND EXISTS (SELECT 1 FROM outbound_lines ml
+        WHERE ml.order_id=o.id AND ml.source_del_flag=0 AND ml.product_code IN (${placeholders}))`;
+      parts.values.push(...query.productCodes);
+    }
+  }
   return parts;
 }
 async function summaries(db: Database, ids: string[]) {
@@ -73,13 +91,48 @@ async function summaries(db: Database, ids: string[]) {
   );
   return { planned: plannedValues, actual: values(actual) };
 }
+type MatchedLine = {
+  lineId: string;
+  productCode: string;
+  productName: string;
+  packages: number;
+  weightGrams: number;
+};
+async function matchedLineMap(db: Database, ids: string[], productCodes?: string[]) {
+  const result = new Map<string, { matchedLineCount: number; matchedLines: MatchedLine[] }>();
+  if (!ids.length || !productCodes?.length) return result;
+  const rows = await db.all(
+    `SELECT l.order_id AS parentId,l.id AS lineId,l.product_code AS productCode,
+      COALESCE(NULLIF(l.product_name,''),'${SNAPSHOT_MISSING_TEXT}') AS productName,
+      l.planned_packages AS packages,l.planned_weight_tonnes AS tonnes
+     FROM outbound_lines l
+     WHERE l.source_del_flag=0 AND l.order_id IN (${ids.map(() => '?').join(',')})
+       AND l.product_code IN (${productCodes.map(() => '?').join(',')})
+     ORDER BY l.order_id,l.id`,
+    [...ids, ...productCodes],
+  );
+  for (const row of rows) {
+    const parentId = String(row.parentId);
+    const lines = result.get(parentId)?.matchedLines ?? [];
+    lines.push({
+      lineId: String(row.lineId),
+      productCode: String(row.productCode),
+      productName: String(row.productName),
+      packages: Number(row.packages),
+      weightGrams: aggregateGrams(row.tonnes),
+    });
+    result.set(parentId, { matchedLineCount: lines.length, matchedLines: lines });
+  }
+  return result;
+}
 export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutboundQuery>) {
   return db.transaction(async (tx) => {
+    const predicate = outboundPredicate(query);
     const page = await readPage(
       tx,
       {
         fields,
-        predicate: outboundPredicate(query),
+        predicate,
         order: `${sortColumns[query.sortBy]} ${query.direction},o.id ${query.direction}`,
       },
       query,
@@ -88,6 +141,16 @@ export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutb
       tx,
       page.rows.map((row) => String(row.id)),
     );
+    const matched = query.productCodes?.length
+      ? await matchedLineMap(
+          tx,
+          page.rows.map((row) => String(row.id)),
+          query.productCodes,
+        )
+      : undefined;
+    const matchedTotals = query.productCodes?.length
+      ? await outboundMatchedTotals(tx, query.productCodes, predicate, page.total)
+      : undefined;
     const items = page.rows.map((row) => ({
       ...row,
       createdAt: isoDate(row.createdAt),
@@ -97,7 +160,34 @@ export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutb
       plannedWeightGrams: sums.planned.get(String(row.id))?.weightGrams ?? 0,
       actualPackages: sums.actual.get(String(row.id))?.packages ?? 0,
       actualWeightGrams: sums.actual.get(String(row.id))?.weightGrams ?? 0,
+      ...(query.productCodes?.length
+        ? (matched?.get(String(row.id)) ?? { matchedLineCount: 0, matchedLines: [] })
+        : {}),
     }));
-    return webOutboundListSchema.parse(pageResult(items, page.total, query));
+    return webOutboundListSchema.parse({
+      ...pageResult(items, page.total, query),
+      ...(matchedTotals ? { matchedTotals } : {}),
+    });
   });
+}
+
+async function outboundMatchedTotals(
+  db: Database,
+  productCodes: string[],
+  predicate: ReturnType<typeof outboundPredicate>,
+  documentCount: number,
+) {
+  const rows = await db.all(
+    `SELECT COUNT(*) AS lineCount,SUM(l.planned_packages) AS packages,SUM(l.planned_weight_tonnes) AS tonnes
+     FROM outbound_lines l WHERE l.source_del_flag=0 AND l.product_code IN (${productCodes.map(() => '?').join(',')})
+       AND EXISTS (SELECT 1 ${predicate.sql} AND o.id=l.order_id)`,
+    [...productCodes, ...predicate.values],
+  );
+  const row = rows[0];
+  return {
+    documentCount,
+    lineCount: Number(row?.lineCount ?? 0),
+    packages: Number(row?.packages ?? 0),
+    weightGrams: aggregateGrams(row?.tonnes ?? '0.0000'),
+  };
 }

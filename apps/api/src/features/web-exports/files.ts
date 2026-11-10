@@ -39,22 +39,22 @@ export class ExportFiles {
     return jobs;
   }
   async discard(id: string): Promise<void> {
-    await Promise.all(['part', 'xlsx'].map((ext) => rm(this.file(id, ext), { force: true })));
+    await Promise.all(['part', 'xlsx', 'csv'].map((ext) => rm(this.file(id, ext), { force: true })));
   }
   async remove(id: string): Promise<void> {
     await this.discard(id);
     await rm(this.file(id, 'json'), { force: true });
   }
-  async publish(id: string): Promise<{ sha256: string; bytes: number }> {
+  async publish(id: string, extension: 'xlsx' | 'csv'): Promise<{ sha256: string; bytes: number }> {
     const digest = createHash('sha256');
     for await (const chunk of createReadStream(this.file(id, 'part'))) digest.update(chunk);
     const bytes = (await stat(this.file(id, 'part'))).size;
-    await rename(this.file(id, 'part'), this.file(id, 'xlsx'));
+    await rename(this.file(id, 'part'), this.file(id, extension));
     return { sha256: digest.digest('hex'), bytes };
   }
   async verify(job: ExportJob): Promise<void> {
     try {
-      const filename = this.file(job.id, 'xlsx');
+      const filename = this.file(job.id, job.format);
       if ((await stat(filename)).size !== job.bytes) throw new Error('Export size changed');
       const digest = createHash('sha256');
       for await (const chunk of createReadStream(filename)) digest.update(chunk);

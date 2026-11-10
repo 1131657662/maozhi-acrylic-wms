@@ -19,6 +19,16 @@ const dates = {
   to: z.string().datetime({ offset: true }).optional(),
 };
 const status = { status: z.string().max(32).optional(), statusMissing: z.literal('true').optional() };
+const productCodes = z.preprocess(
+  (value) => {
+    const values = Array.isArray(value) ? value : [value];
+    const codes = values.flatMap((entry) => (typeof entry === 'string' ? entry.split(',') : []));
+    const normalized = [...new Set(codes.map((code) => code.trim()).filter(Boolean))];
+    return normalized.length ? normalized : undefined;
+  },
+  z.array(z.string().min(1).max(80)).max(100).optional(),
+);
+const productReverse = { productCodes, productMode: z.enum(['any', 'all']).default('any') };
 function validRange(value: { from?: string; to?: string; status?: string; statusMissing?: string }): boolean {
   return (
     !(value.from && value.to && Date.parse(value.from) > Date.parse(value.to)) &&
@@ -30,12 +40,22 @@ export const webInboundQuerySchema = z
     ...paging,
     ...dates,
     ...status,
+    ...productReverse,
     keyword: text,
     supplier: text,
     warehouse: text,
     postingState: z.enum(['legacy', 'pending', 'confirmed', 'reversed', 'voided']).optional(),
     sortBy: z
-      .enum(['createdAt', 'receiptNo', 'supplierName', 'warehouseName', 'status', 'postingState'])
+      .enum([
+        'createdAt',
+        'receiptNo',
+        'supplierName',
+        'warehouseName',
+        'status',
+        'postingState',
+        'packages',
+        'weightGrams',
+      ])
       .default('createdAt'),
   })
   .refine(validRange, '时间范围或状态条件冲突');
@@ -44,12 +64,24 @@ export const webOutboundQuerySchema = z
     ...paging,
     ...dates,
     ...status,
+    ...productReverse,
     keyword: text,
     customer: text,
     warehouse: text,
     vehicle: text,
     sortBy: z
-      .enum(['createdAt', 'orderNo', 'customerName', 'warehouseName', 'vehicleNo', 'status'])
+      .enum([
+        'createdAt',
+        'orderNo',
+        'customerName',
+        'warehouseName',
+        'vehicleNo',
+        'status',
+        'plannedPackages',
+        'plannedWeightGrams',
+        'actualPackages',
+        'actualWeightGrams',
+      ])
       .default('createdAt'),
   })
   .refine(validRange, '时间范围或状态条件冲突');

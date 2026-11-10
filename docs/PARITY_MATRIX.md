@@ -2,7 +2,7 @@
 
 状态只按当前代码与可定位证据填写；新现状无证据时按未完成处理。U 统一写作“旧痛点 → 新改法 → 量化收益”；无法说明收益的改动降为 P。P 覆盖率按非 N/A 的 P 行统计，权限按单用户边界明确记为 N/A，不纳入分母。P0 收敛为 8 项：仅纳入库存正确性、单据可追溯性、旧 ERP 高频路径或多个后续模块共同依赖的能力；其余功能按依赖和风险进入 P1–P3。
 
-2026-11-09状态同步：B1a/B1b/B1c/B2a/B3a/B3b/B4a保留原批次证据；B3c代码已完成但周转冷首屏未达性能目标；B5a更正/业务日期已有代码与本地验收，011与012已应用3307并冒烟。B6a主数据与快照已实现批准范围，原始证据见B6A_ACCEPTANCE；B5b–d及其余页面增强待实施。C01–C18规格不代表实体/生产验收完成。打印仍未实现。
+2026-11-10状态同步：B1a/B1b/B1c/B2a/B3a/B3b/B4a保留原批次证据；B3c代码已完成但周转冷首屏未达性能目标；B5a与B6a已有代码及本地验收，011/012已应用3307。**B6b 已完成并通过用户验收：test 200/200、E2E 84/0、build exit 0；013 已应用3307开发样本库，备份/指纹/持久化冒烟通过。** B6b-perf及Firefox/WebKit覆盖后续处理；B5b–d、B6c及其余页面增强待实施，打印仍未实现。批次完成不代表实体/生产验收。
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
@@ -18,10 +18,10 @@
 
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 基础资料 | 商品新增、编辑、启停（2.1） | B6a已开放新增/编辑/启停、分类、来源/资格与保存快照 | 本轮批准范围已补齐；UI-2交互与其他规格扩展后置 | 本地商品不可入库 → 统一资格并保留来源 → 新建后可选/可入账，待验 | 新增可选/可入账；四类引用422和建单/停用竞态验证 | 无 | P1 | B6a | Product、ProductCategory | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
+| 基础资料 | 商品新增、编辑、启停（2.1） | B6a已开放新增/编辑/启停、分类、来源/资格与保存快照 | B6a批准范围已补齐；B6b公共交互已完成，主数据专页扩展仍后置 | 本地商品不可入库 → 统一资格并保留来源 → 新建后可选/可入账，待验 | 新增可选/可入账；四类引用422和建单/停用竞态验证 | 无 | P1 | B6a | Product、ProductCategory | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
 | 基础资料 | 仓库新增、编辑、启停（2.2） | B6a已补联系人/电话/地址/memo；停用检查库存包吨均零及进行中引用 | 本轮批准范围已补齐 | 同一资料结构在多页重复学习 → 复用编码/名称/状态布局 → 目标从每类学习 3 种布局降为 1 种 | 结构与事务守卫见master-data/references.ts；本地回归见B6A_ACCEPTANCE | 无 | P1 | B6a | Warehouse | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
-| 基础资料 | 供应商新增、编辑、启停（2.3） | B6a送货档案、默认唯一、供应商/联系人保存快照及停用保护 | 本轮批准范围已补齐；完整UI-2后置 | 列表与编辑上下文分离 → 行内显示状态、抽屉保存后回原筛选 → 目标启停 2 步完成 | 入库名称改动后快照不变；缺失三处一致 | 导入校验报告 | P1 | B6a | Supplier | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
-| 基础资料 | 客户新增、编辑、分级（2.4） | B6a收货档案、默认唯一、客户联系快照与车辆隐式建档 | 分级不属单用户当前批准范围；完整UI-2后置 | 重复录入地址/联系人 → 选择客户时带出历史资料、单据保留快照 → 单据录入少填 3 个联系字段 | 三联系人默认切换/停用、客户改名不回写；并发车牌一条 | 经营数据看板 | P1 | B6a | Customer | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
+| 基础资料 | 供应商新增、编辑、启停（2.3） | B6a送货档案、默认唯一、供应商/联系人保存快照及停用保护 | B6a批准范围已补齐；B6b公共交互已完成，供应商专页扩展后置 | 列表与编辑上下文分离 → 行内显示状态、抽屉保存后回原筛选 → 目标启停 2 步完成 | 入库名称改动后快照不变；缺失三处一致 | 导入校验报告 | P1 | B6a | Supplier | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
+| 基础资料 | 客户新增、编辑、分级（2.4） | B6a收货档案、默认唯一、客户联系快照与车辆隐式建档 | 分级不属单用户当前批准范围；B6b公共交互已完成，客户专页扩展后置 | 重复录入地址/联系人 → 选择客户时带出历史资料、单据保留快照 → 单据录入少填 3 个联系字段 | 三联系人默认切换/停用、客户改名不回写；并发车牌一条 | 经营数据看板 | P1 | B6a | Customer | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
 | 基础资料 | **[红色风险] ERP 库存商品与 SPEC 扫码目录用途隔离** | 库存使用显式资格；141规格/9018条码只用于扫码目录；不推全局关联键 | P：B1c-1 目录/事实上下文已验证；B1c-2 已验收；缺关联键不得自动匹配 ERP 商品 | 把扫码目录当库存 → 库存与单据只认显式资格，sku-spec只属于B1c目录页 → 无资格商品混入0次 | E2E 检查唯一 ERP 视图；9018 条目录沿用 DATA 基线 | 全局商品关系维护（后置，不属 B1c） | P0 | B1a / B1c | Product、InventorySettlement | E2E: [tests/e2e/stock-source.spec.ts](../tests/e2e/stock-source.spec.ts)；DATA: [scripts/verify-sample-seed.ts](../scripts/verify-sample-seed.ts) | 不按名称/前缀猜测；B1c 由原单 ERP 作业行保存事实归属，不建立全局映射；缺归属旧事实须先核对，不能因上传丢失 |
 
 ## 入库
@@ -29,7 +29,7 @@
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 入库 | 新建：仓库/供应商/日期/车辆/明细（3.1） | RK自动号/待确认创建与确认已有；B5a新增business_date及数量更正 | P：B5b短溢装/追加入库/纠错转移、联系/快照字段已由B6a补齐 | 手填单号且明细逐项录入 → 服务端 RK 自动号、包数与总吨数独立录入 → 少填 1 个字段；新建目标 ≤2 屏 | 50 并发入库 0 重复；录入时长待实测 | N-02 粘贴多行录入（B3 候选）；仅用于目录/事实辅助，不改变入库不扫码的业务边界 | P0 | B1a / B5a / B5b / B6a | InboundOrderForm、InboundEntry | E2E: [tests/e2e/outbound.spec.ts:77](../tests/e2e/outbound.spec.ts#L77) | 旧请求可保留原单号；旧缓存前端须刷新以获得确认入口；不能把创建成功当库存入账 |
-| 入库 | 列表搜索、筛选、排序、导出（3.2） | B1b-1：组合筛选/稳定分页/列设置/选择/原上下文返回已验；历史状态不改；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：XLSX三范围已有；商品反查/命中行导出/CSV/单张导出/批量动作未做，打印占位 | 逐单读明细且只搜关键词 → 批量摘要+多条件服务端查询 → 同机10k行50条查询p95 303.62→35.04ms；表体最多200行 | 30次读模型计时；双宽度200行E2E；人机查单耗时待实测 | 保存常用筛选（N候选） | P0 | B6b / B5d | InboundOrderList、InboundDataTables | E2E: [tests/e2e/web-lists.spec.ts](../tests/e2e/web-lists.spec.ts)；IMG: .local/evidence/b1b1-inbound-1440.png；DATA: [scripts/verify-list-performance.ts](../scripts/verify-list-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 上海整日边界；原始状态与入账状态分开；打印未完成；不复刻HTML版式；快照内分批、不混源，失败/取消不提供部分文件 |
+| 入库 | 列表搜索、筛选、排序、导出（3.2） | B6b 已完成：默认50/URL筛选/任一或全部商品反查/三入口/逐单批量撤销/两种schema三范围XLSX与CSV/三态排序/列宽及服务端偏好 | 本批批准范围已补齐；详情单张导出待B5d、打印待B9，反查性能另列B6b-perf | 历史单误禁选、列设置清缓存即丢 → 选择与撤销资格分离、偏好服务端保存 → 选3导出3，撤销1/排除2；刷新及清缓存恢复，勾选位移0px | test 200/200、E2E 84/0、build exit 0；1440/1280页面无横滚；单号220→320px、其他列不变；并发1/5 p95原值见验收 | 无（保存视图与批量撤销已实现） | P0 | B6b 已完成 / B5d待实施 | InboundOrderList、InboundDataTables | [B6B_ACCEPTANCE](B6B_ACCEPTANCE.md) §8–13；tests/e2e/b6b-selection-sort.spec.ts、b6b-resizable-columns.spec.ts、b6b-preferences.spec.ts | 历史单可选导出但不可撤；批量仅reverse、逐单事务与幂等；失败/取消无部分文件；013已应用开发库；非生产验收 |
 | 入库 | 详情审核、撤销审核、库存联动（3.3） | B2a撤销/作废已有；B5a更正保留原量，详情返有效量/累计差额/最近更正，撤销按有效量抵消链 | P：数量更正已实现；入账后日期更正及快照扩展未做；普通历史单只读，legacy-open承接另待B10 | 错误入账缺自助恢复 → 原详情核对补偿并填写原因，事务终结 → 原+补偿delta为0，重复补偿0笔 | 两类各20首次并发仅1补偿；7阶段故障无部分写入；UI失败保留原因/原键；耗时待实测 | 审计差异对比 | P0 | B2a / B5a / B5d / B10 | InboundOrderDetail | [B5A_ACCEPTANCE](B5A_ACCEPTANCE.md)；[document-lifecycle.spec.ts](../tests/e2e/document-lifecycle.spec.ts) | 非实物退货；同仓商品后续有效流水、余额不符或原证据不足则阻断；原流水/原号保留，不重开 |
 
 ## 出库
@@ -37,9 +37,9 @@
 | 模块 | 旧系统功能点（手册章节） | 新现状 | P 差距 | U 升级（旧痛点 → 新改法 → 量化收益） | U 指标 | N 候选 | 优先级 | Batch | UI 参考 | 证据指针 | 备选/风险 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 出库 | 新建：仓库/客户/日期/车辆/明细、库存校验（4.1） | CK自动号、本地open仅车号/备注可编辑；B5a业务日期及数量更正已有 | P：联系人/车辆隐式建档/快照B6a已补齐；分批/短溢发/短关B5c待实施；不把状态标签当完整能力 | 编辑重建行破坏离线归属 → 表头独立更新且明细409 → 下载后离线事实补传200，行ID/UUID/正文变化0 | 999.9999与1000吨200，1000.0001吨422；时序见B4A_VALIDATION | Web 摄像头扫码 | P1 | B4a / B5a / B5c / B6a | OutboundOrderForm、OutboundPlanEntry | E2E: [boundary.spec.ts](../tests/e2e/boundary.spec.ts)；TEST: boundary-http.test.ts | 号码/客户/仓库/明细创建后不可改；只允许有库存资格的商品；B2a作废保护保留 |
-| 出库 | 列表搜索、筛选、排序、导出（4.2） | B1b-1：单号/时间/状态/客户/仓库/车牌筛选、排序、列设置及返回上下文已验；B1b-2 XLSX三范围与屏幕逐格核对已验 | P：XLSX三范围已有；商品反查/命中行导出/CSV/单张导出/批量逐单事务未做 | 关键词和分散列设置 → 同一查询壳与URL状态、计划/实扫分开 → 详情返回额外重填0项；每页上限200行，双宽度页面横滚0 | E2E核对返回URL、排序响应、跨页选择；10k生产构建30次首屏/翻页p95见ACCEPTANCE | 批量动作（候选） | P1 | B6b / B5d | OutboundOrderList | E2E: [tests/e2e/web-lists.spec.ts](../tests/e2e/web-lists.spec.ts)；IMG: .local/evidence/b1b1-outbound-1280.png；DATA: [scripts/verify-list-browser-performance.ts](../scripts/verify-list-browser-performance.ts)；E2E: [tests/e2e/web-exports.spec.ts](../tests/e2e/web-exports.spec.ts)；DATA: [scripts/verify-export-performance.ts](../scripts/verify-export-performance.ts) | 无批量确认；计划明细/事实分别聚合，防JOIN放大；旧PDA/小程序契约不改；快照内分批、不混源，失败/取消不提供部分文件 |
+| 出库 | 列表搜索、筛选、排序、导出（4.2） | B6b 已完成：默认50/URL筛选/任一或全部商品反查/三入口/逐单批量撤销/两种schema三范围XLSX与CSV/三态排序/列宽及服务端偏好 | 本批批准范围已补齐；详情单张导出待B5d、打印待B9，反查性能另列B6b-perf | 历史单误禁选、列设置清缓存即丢 → 选择与撤销资格分离、偏好服务端保存 → 选3导出3，撤销1/排除2；刷新及清缓存恢复，勾选位移0px | test 200/200、E2E 84/0、build exit 0；1440/1280页面无横滚；单号220→320px、其他列不变；并发1/5 p95原值见验收 | 无（保存视图与批量撤销已实现） | P1 | B6b 已完成 / B5d待实施 | OutboundOrderList | [B6B_ACCEPTANCE](B6B_ACCEPTANCE.md) §8–13；tests/e2e/b6b-selection-sort.spec.ts、b6b-resizable-columns.spec.ts、b6b-preferences.spec.ts | 历史单可选导出但不可撤；批量仅reverse、逐单事务与幂等；失败/取消无部分文件；013已应用开发库；非生产验收 |
 | 出库 | 详情审核、撤销审核、库存联动（4.3） | B2a限定撤销/作废已有，B5a更正/有效量/抵消链已有，原事实不变 | P：已扫/下发作废仍守卫；B5c批次/剩余量/短关/取样未做；B10承接专用确认/作废未做 | 误确认无法安全回退 → 详情核对补偿/下游证据并终结 → 原+补偿delta为0，事实正文变化0 | 20首次并发仅1补偿；7阶段故障全回滚；PDA读取/作废10轮竞争不同时成功；原事实幂等重放可用 | 差异放行/短装超发（本轮不做） | P0 | B2a / B5a / B5c / B10 | OutboundOrderDetail、OutboundVehicleConfirmation | [B5A_ACCEPTANCE](B5A_ACCEPTANCE.md)；[document-lifecycle.spec.ts](../tests/e2e/document-lifecycle.spec.ts) | 只纠正误确认，不代表实物回库；已入账禁止作废；原号不复用；PDA/小程序无补偿权限；旧计划下发状态未知时保守阻断 |
-| 出库 | 未知状态/流水类型显示 | 现有旧验收允许原文回退；新UX要求业务页只显示中文，尚需改代码 | P：未知中文、按对象映射cancelled、审计原值折叠区例外待B6b/B6c | 内部值暴露 → 中文解释+受控诊断 → 列表原始技术值0处，待验 | E2E 真 MySQL 未知值逐页断言；1440/1280 截图 | 无 | P0 | B6b / B6c | OutboundOrderDetail、StockJournal | E2E: [tests/e2e/numbering.spec.ts](../tests/e2e/numbering.spec.ts)；IMG: .local/evidence/b1a2-unknown-status-1440.png | 旧原文截图仅历史证据，不作为新页面验收标准 |
+| 出库 | 未知状态/流水类型显示 | B6b公共交互已完成；未知原值回退与审计展示边界未纳入本批实现，仍待专项收敛 | P：未知中文、按对象映射cancelled、审计原值折叠区例外待B6c；不得随B6b交互验收标成完成 | 内部值暴露 → 中文解释+受控诊断 → 列表原始技术值0处，待验 | E2E 真 MySQL 未知值逐页断言；1440/1280 截图 | 无 | P0 | B6c 待实施 | OutboundOrderDetail、StockJournal | packages/contracts/src/list-display.ts statusText；[B6B_ACCEPTANCE](B6B_ACCEPTANCE.md)；AUDIT_PAGE_SPEC | 旧原文截图仅历史证据，不作为新页面验收标准 |
 
 ## 打印（已延后）
 
@@ -148,7 +148,7 @@ C01–C18文档闭环见 [DOC_REVIEW.md](DOC_REVIEW.md) §9；本次已修订正
 | 库存盘点 | 盘点（6） | B3a固定快照/窗口/ACK已有 | P：盲盘/默认折吨/盘盈/批量保存/导出 | 手算/跨页丢录 → 估算可覆盖+行草稿 → 万行无丢失，待验 | 200渲染上限、漂移/ACK/并发/重放 | 无 | P2 | B6e | STOCKTAKE_SPEC | DOC_REVIEW C08/C09；apps/api/src/features/stocktake/post.ts | 不改009快照，半包吨数手填 |
 | 报表四页 | 报表（7） | B3b/B3c已有；冷首屏有差距 | P：更正明细/重述/图表/联动 | 手工解释差额 → 分类/桥接显式 → 重复计量0，待验 | 包吨恒等式、去重单数、重算比率 | 无 | P2 | UI-5 / B7a，前置B5d | REPORTS_PAGE_SPEC + REPORT_SPEC | DOC_REVIEW C07；apps/api/src/features/reports/accumulate.ts | 原始余额与重述发生额不得混算 |
 | 条码目录 | 目录补充（4.3） | B1c上传/发布/事实版本已有 | P：轨迹/分组/候选放弃/对比导出 | 删码误认为出库 → 目录变化独立解释 → 历史证据丢失0，待验 | 版本/UUID指纹、掉响应重放 | 无 | P1 | UI-6 / B6d | CATALOG_PAGE_SPEC | DOC_REVIEW C10/C11；apps/api/src/features/catalog/publish.ts | 上传已分配版本，实时同步覆盖率不支持 |
-| 基础资料 | 主数据（2） | B6a 已完成：资格/分类/联系人/车辆/快照 | 详情存为档案、单据类型等扩展及完整UI-2仍未实施 | 本地新建无法入库 → 统一资格+快照 → 可用且改名不改旧单，已验 | 569条逐项资格；默认切换/停用；车辆并发与重放验证；test 179/179、build exit 0、E2E 66/0 | 无 | P1 | B6a | MASTER_DATA_SPEC | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
+| 基础资料 | 主数据（2） | B6a 已完成：资格/分类/联系人/车辆/快照 | B6b公共交互已完成；详情存为档案、单据类型及主数据专页扩展仍未实施 | 本地新建无法入库 → 统一资格+快照 → 可用且改名不改旧单，已验 | 569条逐项资格；默认切换/停用；车辆并发与重放验证；test 179/179、build exit 0、E2E 66/0 | 无 | P1 | B6a | MASTER_DATA_SPEC | [B6A_ACCEPTANCE](B6A_ACCEPTANCE.md)；master-b6a/master-guards/master-snapshots测试 | 历史来源与原值保留；新快照缺失统一“历史未记录”；本地验证不代表生产验收 |
 | 操作记录 | 日志（10.1） | 轻列表/原JSON已有 | P：失败独立记录/差异/时间线/raw投影 | 读JSON排障 → 中文差异+受控原值 → 列表技术值0，待验 | 回滚失败记录、raw登录/脱敏、真实事件数 | 无 | P1 | UI-7 / B6c | AUDIT_PAGE_SPEC | DOC_REVIEW C13/C17；apps/api/src/shared/audit.ts | 不把失败尝试当成功业务审计 |
 | 运维三页 | 消息/备份/个人（10–12） | CLI备份/基础身份已有，其余未做 | P：任务/产物/指纹、会话策略、通知 | 手工检查 → 可追溯任务/事件 → 对账项100%有结果，待验 | 恢复指纹/去重/会话失效/队列不丢 | 无 | P1 | UI-8 / B8a–c | OPS_PAGES_SPEC | DOC_REVIEW C15；scripts/backup.ts、scripts/restore.ts | 需新增服务，缺采集项不支持 |
 
@@ -174,3 +174,8 @@ C01–C18文档闭环见 [DOC_REVIEW.md](DOC_REVIEW.md) §9；本次已修订正
 修订记录：C18 增列切换专项门禁，与UI-3～UI-8实施编号同步。
 
 修订记录：B6a 更新主数据与用途隔离现状；011/012应用、逐商品资格及快照/默认/车辆/锁序的本地证据见B6A_ACCEPTANCE，不将剩余页面规格视为已完成。
+
+## 遗留与后续（B6b）
+
+- B6b-perf：反查翻页约 850–900ms；库存10万行导出深分页约62s，SQL等待约93%。完整p95和分段原值见[B6B_ACCEPTANCE](B6B_ACCEPTANCE.md) §3/6，不阻塞本批，本轮不优化。
+- 并发5为压力场景，单用户以并发1为准；跨浏览器仅验证Chromium独立会话，Firefox/WebKit未覆盖。

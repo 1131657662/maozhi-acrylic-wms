@@ -3,7 +3,12 @@ import { Link } from '@umijs/max';
 import { Button, Empty } from 'antd';
 import { ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import { BusinessList } from '../../components/BusinessList';
-import { ListFilters, ListDateFilter, WarehouseFilter } from '../../components/BusinessList/filters';
+import {
+  ListFilters,
+  ListDateFilter,
+  ProductReverseFilters,
+  WarehouseFilter,
+} from '../../components/BusinessList/filters';
 import { StatusFilter } from '../../components/BusinessList/status-filter';
 import { useListState } from '../../components/BusinessList/use-list-state';
 import { webListKeys } from '../web-lists/keys';
@@ -33,7 +38,7 @@ export function InboundList() {
         ),
       }}
       filters={
-        <ListFilters state={state}>
+        <ListFilters state={state} documentKind="inbound">
           <ProFormText
             name="keyword"
             label="入库单号"
@@ -43,6 +48,7 @@ export function InboundList() {
           <ListDateFilter key="dateRange" label="登记时间" />
           <ProFormText name="supplier" label="供应商" placeholder="名称或编码" />
           <WarehouseFilter key="warehouse" />
+          <ProductReverseFilters key="productCodes" />
           <StatusFilter key="statusChoice" kind="inbound" />
           <ProFormSelect
             name="postingState"
