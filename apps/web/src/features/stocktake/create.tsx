@@ -1,6 +1,8 @@
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
-import { Alert, Button } from 'antd';
+import { Form, Alert, Button } from 'antd';
 import { PageContainer, ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { Link, useNavigate } from '@umijs/max';
 import { masterItemsSchema, type CreateStocktake } from '@wms/contracts';
@@ -10,13 +12,17 @@ import { request } from '../../api/client';
 
 export function StocktakeCreate() {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stocktake`, 'new');
   const { mutateAsync: create, isPending: isCreating, error: createError } = useCreateStocktake();
+  useFormErrors(createError, form);
   async function submit(values: CreateStocktake) {
     try {
       const take = await create({
         ...values,
         productCodes: values.productCodes?.length ? values.productCodes : undefined,
       });
+      draft.saved();
       navigate(`/stocktakes/${take.id}`);
       return true;
     } catch {
@@ -36,6 +42,8 @@ export function StocktakeCreate() {
       <Alert type="warning" showIcon title="开始后暂停该仓库存写入" description={businessCopy.stocktakeCreate2} />
       {createError && <RequestError type="error" error={createError} description="已填内容保留，可修正后重试。" />}
       <ProForm<CreateStocktake>
+        form={form}
+        onValuesChange={draft.change}
         onFinish={submit}
         loading={isCreating}
         disabled={isCreating}

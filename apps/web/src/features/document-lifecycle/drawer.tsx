@@ -1,6 +1,8 @@
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { errorMessage } from '../../api/errors';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Space } from 'antd';
+import { Form, Alert, Button, Drawer, Space } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import { lifecyclePreviewSchema, type LifecyclePreview } from '@wms/contracts';
 import { request } from '../../api/client';
@@ -11,6 +13,9 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
   const [preview, setPreview] = useState(initial),
     [refreshError, setRefreshError] = useState('');
   const { mutateAsync: closeDocument, isPending: isClosing, error: closeError } = useCloseDocument();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `lifecycle-${initial.kind}-${initial.action}`, initial.id);
+  useFormErrors(closeError, form);
   async function refresh() {
     try {
       setPreview(await request(`/${initial.kind}/${initial.id}/lifecycle`, lifecyclePreviewSchema));
@@ -22,6 +27,7 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
   async function submit(values: { reason: string }) {
     try {
       await closeDocument({ preview, reason: values.reason });
+      draft.saved();
       onClose();
       return true;
     } catch {
@@ -33,7 +39,7 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
       open
       title={`${initial.action === 'reverse' ? '撤销误确认' : '作废未入账单据'} · ${initial.number}`}
       size={560}
-      onClose={isClosing ? undefined : onClose}
+      onClose={isClosing ? undefined : () => void draft.leave(onClose)}
       mask={{ closable: false }}
       keyboard={!isClosing}
     >
@@ -53,6 +59,8 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
           />
         )}
         <ProForm<{ reason: string }>
+          form={form}
+          onValuesChange={draft.change}
           onFinish={submit}
           disabled={isClosing}
           submitter={{

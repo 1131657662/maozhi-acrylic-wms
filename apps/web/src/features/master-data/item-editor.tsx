@@ -1,3 +1,4 @@
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { notifyError } from '../../api/error-events';
 import { useFormErrors } from '../../components/use-form-errors';
 import { DrawerForm, ProFormText } from '@ant-design/pro-components';
@@ -29,6 +30,7 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
   const create = useCreateMasterItem();
   const update = useUpdateMasterItem();
   const [form] = Form.useForm<CreateMasterItem>();
+  const draft = useFormDraft(form, `master-${catalog}`, editing?.code ?? 'new');
   useFormErrors(create.error ?? update.error, form);
   const generated = hasGeneratedMasterCode(catalog);
   async function save(values: CreateMasterItem): Promise<boolean> {
@@ -41,6 +43,7 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
             ...masterCreateSchema(catalog).parse(generated ? fields : { code, ...fields }),
           });
       message.success(t.saved);
+      draft.saved();
       onSaved(saved);
       return true;
     } catch (error) {
@@ -51,12 +54,13 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
   return (
     <DrawerForm
       form={form}
+      onValuesChange={draft.change}
       key={editing?.code ?? 'new'}
       title={editing ? `${editing.name} · ${t.edit}` : t.newItem}
       open
       width={MASTER_DRAWER_SIZE}
       onOpenChange={(next) => {
-        if (!next) onClose();
+        if (!next) void draft.leave(onClose);
       }}
       initialValues={
         editing
@@ -86,9 +90,12 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
             )
           : undefined
       }
-      drawerProps={{ destroyOnHidden: true, onClose }}
+      drawerProps={{ destroyOnHidden: true, onClose: () => void draft.leave(onClose) }}
       onFinish={save}
-      submitter={{ searchConfig: { submitText: t.save, resetText: t.cancel }, onReset: onClose }}
+      submitter={{
+        searchConfig: { submitText: t.save, resetText: t.cancel },
+        onReset: () => void draft.leave(onClose),
+      }}
     >
       {generated ? (
         <Form.Item label={t.code}>

@@ -1,15 +1,21 @@
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
-import { Alert, Drawer } from 'antd';
+import { Form, Alert, Drawer } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import type { Stocktake } from '@wms/contracts';
 import { useVoidStocktake } from './use-void-stocktake';
 
 export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClose: () => void }) {
   const { mutateAsync: voidTake, isPending: isVoiding, error: voidError } = useVoidStocktake();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stocktake-void`, take.id);
+  useFormErrors(voidError, form);
   async function submit(v: { reason: string }) {
     try {
       await voidTake({ take, reason: v.reason });
+      draft.saved();
       onClose();
       return true;
     } catch {
@@ -21,7 +27,7 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
       open
       size={480}
       title="作废盘点并释放暂停"
-      onClose={isVoiding ? undefined : onClose}
+      onClose={isVoiding ? undefined : () => void draft.leave(onClose)}
       mask={{ closable: false }}
       keyboard={!isVoiding}
     >
@@ -39,6 +45,8 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
         />
       )}
       <ProForm<{ reason: string }>
+        form={form}
+        onValuesChange={draft.change}
         onFinish={submit}
         loading={isVoiding}
         disabled={isVoiding}

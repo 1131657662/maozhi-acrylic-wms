@@ -13,6 +13,7 @@ import './styles.css';
 import { ActiveStocktakeLink } from './features/stocktake/active-link';
 import { ErrorNotifications } from './components/ErrorNotifications';
 import { ERROR_MAX_VISIBLE } from './text';
+import { UnsavedNavigation } from './components/form-protection/UnsavedNavigation';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: 1 }, mutations: { networkMode: 'always', retry: false } },
@@ -44,7 +45,10 @@ export function rootContainer(container: ReactNode) {
         >
           <AntApp notification={{ maxCount: ERROR_MAX_VISIBLE }} message={{ maxCount: ERROR_MAX_VISIBLE }}>
             <ErrorNotifications />
-            <QueryClientProvider client={client}>{container}</QueryClientProvider>
+            <QueryClientProvider client={client}>
+              <UnsavedNavigation />
+              {container}
+            </QueryClientProvider>
           </AntApp>
         </ConfigProvider>
       </ErrorBoundary>

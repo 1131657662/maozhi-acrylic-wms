@@ -1,3 +1,4 @@
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { useFormErrors } from '../../components/use-form-errors';
 import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Form, Col, Result, Space, theme } from 'antd';
@@ -20,6 +21,7 @@ export function InboundEditor() {
   const navigate = useNavigate();
   const create = useCreateReceipt();
   const [form] = Form.useForm<ReceiptFormValues>();
+  const draft = useFormDraft(form, `inbound`, 'new');
   useFormErrors(create.error, form);
   const confirmBackdate = useBackdateConfirmation();
   async function submit(values: ReceiptFormValues): Promise<boolean> {
@@ -35,6 +37,7 @@ export function InboundEditor() {
         })),
       };
       const receipt = await create.mutateAsync(input);
+      draft.saved();
       navigate(`/inbound/${receipt.id}`);
       return true;
     } catch {
@@ -79,6 +82,7 @@ export function InboundEditor() {
           <ProForm<ReceiptFormValues>
             loading={create.isPending}
             form={form}
+            onValuesChange={draft.change}
             grid
             rowProps={{ gutter: token.marginLG }}
             disabled={create.isPending}

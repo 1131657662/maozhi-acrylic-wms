@@ -1,6 +1,8 @@
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
-import { Alert, Button, Checkbox, Drawer, Space } from 'antd';
+import { Form, Alert, Button, Checkbox, Drawer, Space } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import { stocktakePreviewSchema, tonnes, type StocktakePreview } from '@wms/contracts';
 import { request } from '../../api/client';
@@ -12,6 +14,9 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
     [ackToken, setAckToken] = useState(''),
     [refreshError, setRefreshError] = useState('');
   const { mutateAsync: post, isPending: isPosting, error: postError } = usePostStocktake();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stocktake-post`, initial.stocktake.id);
+  useFormErrors(postError, form);
   const acknowledged = ackToken === preview.token,
     take = preview.stocktake;
   async function refresh() {
@@ -28,6 +33,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
         id: take.id,
         input: { reason: v.reason.trim(), expectedToken: preview.token, acknowledgeSnapshotBasis: acknowledged },
       });
+      draft.saved();
       onClose();
       return true;
     } catch {
@@ -42,7 +48,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
       maxSize={1100}
       mask={{ closable: false }}
       keyboard={!isPosting}
-      onClose={isPosting ? undefined : onClose}
+      onClose={isPosting ? undefined : () => void draft.leave(onClose)}
     >
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         <Alert
@@ -82,7 +88,14 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
         <Button onClick={() => void refresh()} disabled={isPosting}>
           刷新回写预览
         </Button>
-        <ProForm<{ reason: string }> onFinish={submit} loading={isPosting} disabled={isPosting} submitter={false}>
+        <ProForm<{ reason: string }>
+          form={form}
+          onValuesChange={draft.change}
+          onFinish={submit}
+          loading={isPosting}
+          disabled={isPosting}
+          submitter={false}
+        >
           <ProFormTextArea
             name="reason"
             label="回写原因"

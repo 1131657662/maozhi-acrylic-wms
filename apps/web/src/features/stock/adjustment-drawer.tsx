@@ -1,6 +1,8 @@
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Space } from 'antd';
+import { Form, Alert, Button, Drawer, Space } from 'antd';
 import { ProDescriptions, ProForm } from '@ant-design/pro-components';
 import { tonnes, type SourceStockRow } from '@wms/contracts';
 import { tonnesDeltaToGrams } from '../../lib/weight-input';
@@ -13,6 +15,9 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
   const [reloadError, setReloadError] = useState('');
   const stock = useSourceStock();
   const adjust = useAdjustStock();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stock-adjust`, `${row.warehouseCode}:${row.productCode}`);
+  useFormErrors(adjust.error, form);
   async function refresh() {
     const result = await stock.refetch();
     const latest = result.data?.items.find(
@@ -35,6 +40,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
         weightDeltaGrams: tonnesDeltaToGrams(values.weightTonnesDelta),
         reason: values.reason,
       });
+      draft.saved();
       return true;
     } catch {
       return false;
@@ -45,7 +51,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
       open
       title="库存调整 · 库存商品"
       size={560}
-      onClose={onClose}
+      onClose={() => void draft.leave(onClose)}
       closable={{ disabled: adjust.isPending }}
       mask={{ closable: false }}
       keyboard={!adjust.isPending}
@@ -97,6 +103,8 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
             )}
             {reloadError && <Alert type="error" title={reloadError} />}
             <ProForm<AdjustmentValues>
+              form={form}
+              onValuesChange={draft.change}
               onFinish={submit}
               disabled={adjust.isPending}
               initialValues={{ packagesDelta: 0, weightTonnesDelta: 0 }}

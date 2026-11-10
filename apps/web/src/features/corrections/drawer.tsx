@@ -1,3 +1,5 @@
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { RequestError } from '../../components/RequestError';
 import { Alert, App, Button, Drawer, Form, Input, Space } from 'antd';
 import { tonnes, type CorrectionSummary, type CorrectionTarget } from '@wms/contracts';
@@ -15,6 +17,8 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
   const { modal } = App.useApp(),
     mutation = useCorrect(target);
   const [form] = Form.useForm<CorrectionFormValues>();
+  const draft = useFormDraft(form, `correction-${target.kind}`, target.id);
+  useFormErrors(mutation.error, form);
   async function submit(values: CorrectionFormValues) {
     const lines = values.lines.map((line, index) => ({
       originalLineId: initial.lines[index]!.originalLineId,
@@ -44,6 +48,7 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
         reason: values.reason,
         lines,
       });
+      draft.saved();
       onClose();
     } catch {
       /* The drawer retains the exact snapshot, values and idempotency key for retry. */
@@ -56,10 +61,11 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
       size={560}
       mask={{ closable: false }}
       keyboard={!mutation.isPending}
-      onClose={mutation.isPending ? undefined : onClose}
+      onClose={mutation.isPending ? undefined : () => void draft.leave(onClose)}
     >
       <Form
         form={form}
+        onValuesChange={draft.change}
         layout="vertical"
         onFinish={submit}
         disabled={mutation.isPending}
@@ -96,7 +102,7 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
             <Input.TextArea maxLength={500} showCount rows={3} />
           </Form.Item>
           <Space>
-            <Button onClick={onClose} disabled={mutation.isPending}>
+            <Button onClick={() => void draft.leave(onClose)} disabled={mutation.isPending}>
               取消
             </Button>
             <Button htmlType="submit" loading={mutation.isPending}>

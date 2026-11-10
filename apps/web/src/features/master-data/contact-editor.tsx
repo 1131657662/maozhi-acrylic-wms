@@ -1,3 +1,6 @@
+import { Form } from 'antd';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { useFormErrors } from '../../components/use-form-errors';
 import { notifyError } from '../../api/error-events';
 import { DrawerForm, ProFormText } from '@ant-design/pro-components';
 import type { Contact, PartyOwner } from '@wms/contracts';
@@ -15,14 +18,19 @@ export function ContactEditor({
 }) {
   const create = useCreateContact(),
     update = useUpdateContact();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `contact-${owner.partyType}-${owner.partyCode}`, editing?.id ?? 'new');
+  useFormErrors(create.error ?? update.error, form);
   return (
     <DrawerForm<{ name: string; phone?: string; address?: string }>
+      form={form}
+      onValuesChange={draft.change}
       open
       title={editing ? t.edit : t.newContact}
       width={MASTER_DRAWER_SIZE}
-      drawerProps={{ destroyOnHidden: true, onClose }}
+      drawerProps={{ destroyOnHidden: true, onClose: () => void draft.leave(onClose) }}
       onOpenChange={(open) => {
-        if (!open) onClose();
+        if (!open) void draft.leave(onClose);
       }}
       initialValues={editing ? { name: editing.name, phone: editing.phone, address: editing.address } : undefined}
       submitter={{ searchConfig: { submitText: t.save, resetText: t.cancel } }}
@@ -30,6 +38,7 @@ export function ContactEditor({
         try {
           if (editing) await update.mutateAsync({ id: editing.id, ...values });
           else await create.mutateAsync({ ...owner, ...values });
+          draft.saved();
           onClose();
           return true;
         } catch (error) {
