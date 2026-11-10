@@ -18,6 +18,7 @@ export interface ListTableProps<Row> {
   state: ListState;
   name: ExportKind;
   refreshing: boolean;
+  placeholder: boolean;
   reload: () => unknown;
   selection: {
     tokens: Record<string, string>;

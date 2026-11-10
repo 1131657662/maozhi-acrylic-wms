@@ -25,7 +25,15 @@ export function useListColumns<Row extends { id: React.Key }>(
   const all = useMemo(() => completeColumns(kind, columns), [kind, columns]);
   const value = useMemo(() => mergeColumns(kind, all, saved), [kind, all, saved]);
   const configured = useMemo(
-    () => all.map((column) => ({ ...displayColumn(kind, column), width: value[columnKey(column)]!.width })),
+    () =>
+      all.map((column) => ({
+        ...displayColumn(kind, column),
+        width: value[columnKey(column)]!.width,
+        // Query feedback and header sorting do not change the retained row objects.
+        // The expansion summary is stateful and must still render when it opens.
+        shouldCellUpdate:
+          columnKey(column) === 'matchedSummary' ? undefined : (row: Row, previous: Row) => row !== previous,
+      })),
     [kind, all, value],
   );
   const visible = configured

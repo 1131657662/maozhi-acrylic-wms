@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ProFormText } from '@ant-design/pro-components';
 import { Tag } from 'antd';
 import type { WebStockRow } from '@wms/contracts';
@@ -14,7 +14,7 @@ import { AdjustmentDrawer } from '../stock/adjustment-drawer';
 
 export function Stock() {
   const state = useListState('warehouseCode', { scope: 'inventory' }, {}, ['source']);
-  const query = useQuery(webListKeys.stock(state.params));
+  const query = useQuery({ ...webListKeys.stock(state.params), placeholderData: keepPreviousData });
   const [selected, setSelected] = useState<WebStockRow | null>(null);
   return (
     <>

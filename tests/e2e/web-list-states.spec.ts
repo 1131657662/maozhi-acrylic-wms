@@ -40,7 +40,8 @@ for (const [kind, path] of [
       });
     });
     await page.goto(path!);
-    await expect(page.locator('.ant-skeleton')).toBeVisible();
+    await expect(page.getByRole('status', { name: '正在查询列表', exact: true })).toBeVisible();
+    await expect(page.locator('.ant-skeleton')).toHaveCount(0);
     mode = 'error';
     release();
     await expect(page.getByText('列表加载失败，已停止展示旧数据')).toBeVisible();

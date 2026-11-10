@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, type ThHTMLAttributes, ty
 import { theme } from 'antd';
 import { COLUMN_WIDTH, columnText } from './column-settings';
 import { createResizePreview } from './resize-preview';
+import { useSortFeedback, type SortOrder } from './use-sort-feedback';
 
 export const ResizeEnabled = createContext(false);
 export interface ResizeHeaderProps extends ThHTMLAttributes<HTMLTableCellElement> {
@@ -10,6 +11,7 @@ export interface ResizeHeaderProps extends ThHTMLAttributes<HTMLTableCellElement
   columnWidth?: number;
   resize?: (width: number) => void;
   resetWidth?: () => void;
+  sort?: (order: SortOrder) => void;
 }
 
 export function ResizeHeader({
@@ -18,12 +20,14 @@ export function ResizeHeader({
   columnWidth,
   resize,
   resetWidth,
+  sort,
   children,
   style,
   ...rest
 }: ResizeHeaderProps) {
   const enabled = useContext(ResizeEnabled);
   const { token } = theme.useToken();
+  const sortFeedback = useSortFeedback(rest, sort);
   const drag = useRef<{ x: number; width: number; preview: ReturnType<typeof createResizePreview> } | null>(null);
   const finish = () => {
     const width = drag.current?.preview.finish();
@@ -48,9 +52,12 @@ export function ResizeHeader({
   return (
     <th
       {...rest}
+      {...sortFeedback}
       aria-label={columnLabel}
       style={{
         ...style,
+        ['--list-sort-active' as string]: token.colorPrimary,
+        ['--list-sort-inactive' as string]: token.colorTextQuaternary,
         position: style?.insetInlineStart !== undefined || style?.insetInlineEnd !== undefined ? 'sticky' : 'relative',
       }}
       data-column-key={columnKey}

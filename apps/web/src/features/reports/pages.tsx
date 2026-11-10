@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
 import type { ReportDetailRow, ReportMonthlyRow } from '@wms/contracts';
 import { BusinessList } from '../../components/BusinessList';
@@ -12,7 +12,7 @@ const detailColumns = reportColumns<ReportDetailRow>('report-details');
 const monthlyColumns = reportColumns<ReportMonthlyRow>('report-monthly');
 export function ReportDetails() {
   const state = useListState('postedAt', { scope: 'inventory' }, reportDefaults(), ['source']);
-  const query = useQuery(reportKeys.details(state.params));
+  const query = useQuery({ ...reportKeys.details(state.params), placeholderData: keepPreviousData });
   return (
     <BusinessList
       state={state}
@@ -40,7 +40,7 @@ export function ReportDetails() {
 }
 export function ReportMonthly() {
   const state = useListState('period', { scope: 'inventory' }, reportDefaults(), ['source']);
-  const query = useQuery(reportKeys.monthly(state.params));
+  const query = useQuery({ ...reportKeys.monthly(state.params), placeholderData: keepPreviousData });
   return (
     <BusinessList
       state={state}

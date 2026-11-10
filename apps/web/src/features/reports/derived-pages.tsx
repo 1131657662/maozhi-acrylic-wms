@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { ReportAgingRow, ReportTurnoverRow } from '@wms/contracts';
 import { BusinessList } from '../../components/BusinessList';
 import { useListState } from '../../components/BusinessList/use-list-state';
@@ -13,7 +13,7 @@ const agingColumns = reportColumns<ReportAgingRow>('report-aging');
 
 export function ReportTurnover() {
   const state = useListState('warehouseCode', { scope: 'inventory' }, derivedReportDefaults(), ['source']),
-    query = useQuery(reportKeys.turnover(state.params)),
+    query = useQuery({ ...reportKeys.turnover(state.params), placeholderData: keepPreviousData }),
     report = query.data?.report;
   return (
     <BusinessList
@@ -51,7 +51,7 @@ export function ReportTurnover() {
 export function ReportAging() {
   const defaults = derivedReportDefaults(true),
     state = useListState('warehouseCode', { scope: 'inventory' }, defaults, ['source']),
-    query = useQuery(reportKeys.aging(state.params)),
+    query = useQuery({ ...reportKeys.aging(state.params), placeholderData: keepPreviousData }),
     report = query.data?.report;
   return (
     <BusinessList

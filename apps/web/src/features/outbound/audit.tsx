@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ProFormText } from '@ant-design/pro-components';
 import { BusinessList } from '../../components/BusinessList';
 import { ListFilters, ListDateFilter } from '../../components/BusinessList/filters';
@@ -10,7 +10,7 @@ import { AuditDetail } from '../web-lists/audit-detail';
 
 export function Audit() {
   const state = useListState();
-  const query = useQuery(webListKeys.audit(state.params));
+  const query = useQuery({ ...webListKeys.audit(state.params), placeholderData: keepPreviousData });
   const [selected, setSelected] = useState<number | null>(null);
   return (
     <>
