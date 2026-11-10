@@ -1,6 +1,6 @@
 # B6b 公共交互验收记录
 
-本记录区分已确认的 Step 1–4 历史证据与本轮 Step 5 实测。所有数据来自本机开发样本或随机合成测试库，不代表生产、实体设备或现场验收。
+本记录保留 Step 1–5 及后续选择/排序、列宽、服务端偏好的分阶段证据。2026-11-10 用户确认 B6b 全部验收通过；最终 test 200/200、E2E 84/0、build exit 0，三项命令 exit 均为 0，013 开发库应用见 §12。所有数据来自本机开发样本或随机合成测试库，不代表生产、实体设备或现场验收。
 
 ## 1. 商品 130 的数据集说明
 
@@ -184,7 +184,7 @@ API/迁移/012 回归 7/7，列同步防抖与迟到响应测试 3/3；偏好、
 
 证据：`.local/evidence/b6b-preferences-api.log`、`b6b-preferences-sync.log`、`b6b-preferences-e2e.log`、`b6b-preferences-typecheck.log`、`b6b-preferences-openapi.log`。最终完整验证另存 `b6b-followup-test.log`、`b6b-followup-build.log`、`b6b-followup-e2e.log`，实际 exit/计数以命令完成后的日志及本轮汇报为准。
 
-回退仅回退应用代码并保留 013 表；表非空禁止 down 或删除偏好。迁移尚未应用开发样本库/生产；开发部署须先运行既有迁移入口。没有改库存事务、逐单幂等或审计展示边界。§6 p95 与并发口径保持原样；反查翻页与库存导出深分页仍留给 B6b-perf。
+回退仅回退应用代码并保留 013 表；表非空禁止 down 或删除偏好。本节专项验证时迁移仅用于测试库；收尾时已应用开发样本库，见 §12，生产未应用。没有改库存事务、逐单幂等或审计展示边界。§6 p95 与并发口径保持原样；反查翻页与库存导出深分页仍留给 B6b-perf。
 
 ## 11. 补充功能的最终全量回归
 
@@ -198,4 +198,28 @@ API/迁移/012 回归 7/7，列同步防抖与迟到响应测试 3/3；偏好、
 
 上述修复的定向 E2E exit 0、10/10，日志 `b6b-followup-fix-e2e.log`。按 `code-review-wms` 审查修复 diff：仅更正 URL 状态保留与测试会话/截图采集，不涉及库存、权限或数据迁移。修复追加独立 commit，不 amend 三个功能提交。
 
-修复提交后的完整 test / build / E2E 使用新日志 `b6b-followup-final-test.log`、`b6b-followup-final-build.log`、`b6b-followup-final-e2e.log`，不覆盖首次失败证据。最终退出码、通过数及截图索引写入 `.local/evidence/b6b-followup/final-results.json`，以命令完成后的原始结果为准，不预先宣称通过。
+修复提交 `f88cee3` 后完整 test / build / E2E 均 exit 0：test 200/200、E2E 主 75 + catalog 9 = 84/0、build 通过。新日志为 `b6b-followup-final-test.log`、`b6b-followup-final-build.log`、`b6b-followup-final-e2e.log`，不覆盖首次失败证据。最终退出码、通过数及 16 张截图索引见 `.local/evidence/b6b-followup/final-results.json`、`screenshots.md`。
+
+## 12. 013 开发样本库应用与冒烟（2026-11-10）
+
+目标严格核对为 `127.0.0.1:3307/maozhi_dev_sample`，数据库身份 `maozhi-local-mysql8-v1`；本机 MySQL 8 实例目录也通过守卫。仅暂停经核实的本项目开发 API/Web 进程，前后比较时无其他目标库连接；原 001–012 校验和及 applied 状态全部通过。通过既有 `migrateUp(db, '013_list_preferences')` 应用，exit 0，状态 `applied`；应用时间为上海时间 2026-11-10 21:18:39（数据库记录 UTC 13:18:39）。
+
+| 项目 | 证据 |
+|---|---|
+| 应用前备份 | `.local/backups/maozhi-1794316688343.sql`，6,457,551 字节；mysqldump exit 0，结束标记完整 |
+| 备份 SHA256 | `18822768E5BC691E01431E0ADD51590A973594E1621DDA6D6C96BEDCBC1EEB62` |
+| 应用前结构 SHA256 | `77486191f8de29fc05a7049b4471b8341f71b9ec03e09d7f9b1b4b9f17970da0` |
+| 应用后结构 SHA256 | `3fe20eeb099e6844705234e408f442a2455ec61ea0dfe24567a8a26c6a9ea2fb` |
+| 013 文件/登记校验和 | `1bcde33ca43237b45f1d8a116661334c807851f4a645ccefa808e1f3b3de35f8` |
+
+结构指纹按表名排序的 SHOW CREATE TABLE/视图结果及触发器定义计算 SHA256。仅新增 `user_list_preferences`；原 45 个表/视图结构与触发器未变，43 张原数据表（不含迁移登记表）逐表列集/行数/内容指纹相同，旧 12 项迁移记录相同。新表在冒烟前为 0 行。原始证据在 `.local/evidence/b6b-closeout/`：`backup.json`、`schema-before.json`、`schema-after.json`、`data-before.json`、`data-after.json`、`migration-result.json` 及 preflight/apply/postflight 日志。
+
+重启开发服务后，以独立 Chromium 会话完成真实登录（200）→ 打开开发样本入库列表 → 鼠标拖单号列 220→320px → 偏好 PUT 200 → 刷新仍为 320px；清空该浏览器 localStorage 后再次刷新也恢复为 320px，数据库 schemaVersion=1、保存宽度=320。冒烟 exit 0；业务数据指纹未变。认证产生 sessions 1→2、operation_log 13→14，另新增一条 owner/inbound 列偏好，不把这些授权写入描述为数据库零变化。截图 `inbound-preferences-1440.png` 与结果 `smoke-result.json` 同目录。
+
+本轮未进行备份恢复演练，不将备份结束标记与校验和视为恢复验证。013 空库 up/down/up 与非空拒绝回退已在 §10 一次性库验证；开发样本库现在含偏好数据，禁止直接 down 或删除偏好。开发 API/Web 已恢复运行。
+
+## 13. 遗留与后续
+
+- **B6b-perf**：反查翻页约 850–900ms（§6 完整原值保留），库存 10 万行导出深分页约 62s（62,019.04ms），SQL 等待约 93%（93.15%）。用户确认不阻塞 B6b，本轮不优化。
+- **采样口径**：并发 5 为压力场景，单用户以并发 1 为准；冷仅指浏览器冷缓存，不代表 MySQL 冷盘。并发 1 反查的超阈值项仍保留。
+- **跨浏览器**：仅验证 Chromium 的独立 context/新登录会话；Firefox/WebKit 未覆盖。
