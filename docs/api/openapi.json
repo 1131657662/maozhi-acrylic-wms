@@ -427,65 +427,6 @@
           }
         ]
       },
-      "S_185400033598cdd0": {
-        "additionalProperties": false,
-        "properties": {
-          "active": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "address": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "categoryCode": {
-            "$ref": "#/components/schemas/S_c43fd84959f0fed1"
-          },
-          "code": {
-            "$ref": "#/components/schemas/S_4876df4b78eb1afc"
-          },
-          "contact": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "inventoryEligible": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "maxAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "minAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "model": {
-            "$ref": "#/components/schemas/S_622125007b03450c"
-          },
-          "name": {
-            "$ref": "#/components/schemas/S_710bf2d0bd619025"
-          },
-          "originKind": {
-            "$ref": "#/components/schemas/S_fc7cd0801a95bc4f"
-          },
-          "packageColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "packageType": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "phone": {
-            "$ref": "#/components/schemas/S_ada490857814a487"
-          },
-          "strapColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          }
-        },
-        "required": [
-          "code",
-          "name",
-          "active"
-        ],
-        "type": "object"
-      },
       "S_19af3da19e11d389": {
         "default": "legacy-unrecorded",
         "enum": [
@@ -754,6 +695,36 @@
         ],
         "type": "string"
       },
+      "S_28b4dc94710555c1": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "$ref": "#/components/schemas/S_2a2aca8dd06e8dcb"
+          },
+          "page": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object"
+      },
+      "S_2a2aca8dd06e8dcb": {
+        "items": {
+          "$ref": "#/components/schemas/S_7048f2314aa34d11"
+        },
+        "type": "array"
+      },
       "S_2ac3e7fadf2b1465": {
         "maxLength": 500,
         "minLength": 1,
@@ -768,10 +739,6 @@
           "$ref": "#/components/schemas/S_b0abd84f5b3e9f3c"
         },
         "type": "array"
-      },
-      "S_2cfd93b904df0bb2": {
-        "maxLength": 80,
-        "type": "string"
       },
       "S_2ec451924b02dcb8": {
         "anyOf": [
@@ -1259,31 +1226,6 @@
         ],
         "type": "object"
       },
-      "S_4c1b5cb1b7baf0df": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_5173a2b3392ce6cd"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
-      },
       "S_4cd0b4f653d64777": {
         "format": "uuid",
         "type": "string"
@@ -1327,76 +1269,6 @@
       "S_507580129371a76b": {
         "maxLength": 100,
         "type": "string"
-      },
-      "S_5173a2b3392ce6cd": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "$ref": "#/components/schemas/S_eca066c4620a4f10"
-          },
-          "page": {
-            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
-          },
-          "pageSize": {
-            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_83f6485d0d169a84"
-          }
-        },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "pageSize"
-        ],
-        "type": "object"
-      },
-      "S_51fae356409c3054": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "active": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "address": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "categoryCode": {
-            "$ref": "#/components/schemas/S_c43fd84959f0fed1"
-          },
-          "contact": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "maxAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "minAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "model": {
-            "$ref": "#/components/schemas/S_622125007b03450c"
-          },
-          "name": {
-            "$ref": "#/components/schemas/S_710bf2d0bd619025"
-          },
-          "packageColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "packageType": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "phone": {
-            "$ref": "#/components/schemas/S_ada490857814a487"
-          },
-          "strapColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          }
-        },
-        "type": "object"
       },
       "S_53ae93326f9389ef": {
         "default": 1,
@@ -1636,6 +1508,65 @@
           "$ref": "#/components/schemas/S_00404e686415370f"
         },
         "type": "array"
+      },
+      "S_7048f2314aa34d11": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "address": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "categoryCode": {
+            "$ref": "#/components/schemas/S_86ec77b1bd5c9e95"
+          },
+          "code": {
+            "$ref": "#/components/schemas/S_4876df4b78eb1afc"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "inventoryEligible": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "maxAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "minAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "model": {
+            "$ref": "#/components/schemas/S_622125007b03450c"
+          },
+          "name": {
+            "$ref": "#/components/schemas/S_710bf2d0bd619025"
+          },
+          "originKind": {
+            "$ref": "#/components/schemas/S_fc7cd0801a95bc4f"
+          },
+          "packageColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "packageType": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/S_ada490857814a487"
+          },
+          "strapColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "active"
+        ],
+        "type": "object"
       },
       "S_710bf2d0bd619025": {
         "maxLength": 200,
@@ -1954,6 +1885,16 @@
         ],
         "type": "string"
       },
+      "S_86ec77b1bd5c9e95": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_4876df4b78eb1afc"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
+      },
       "S_87cfcb6c4ffe6c77": {
         "enum": [
           "erp-product",
@@ -2163,6 +2104,56 @@
         ],
         "type": "object"
       },
+      "S_8e0429603134dd30": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "categoryCode": {
+            "$ref": "#/components/schemas/S_86ec77b1bd5c9e95"
+          },
+          "code": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "maxAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "minAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "model": {
+            "$ref": "#/components/schemas/S_622125007b03450c"
+          },
+          "name": {
+            "$ref": "#/components/schemas/S_710bf2d0bd619025"
+          },
+          "packageColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "packageType": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/S_ada490857814a487"
+          },
+          "strapColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
       "S_8f42b53c2bca11d5": {
         "additionalProperties": false,
         "properties": {
@@ -2217,31 +2208,6 @@
         "maximum": 1000000,
         "minimum": 0,
         "type": "integer"
-      },
-      "S_9a15910e1e2bbcb1": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_185400033598cdd0"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       },
       "S_9ae5ec65647cb279": {
         "maxLength": 500,
@@ -2417,6 +2383,31 @@
           },
           "data": {
             "$ref": "#/components/schemas/S_ab9861cbc3717542"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
+      "S_b0a866d39e454a64": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_28b4dc94710555c1"
           },
           "message": {
             "$ref": "#/components/schemas/S_00404e686415370f"
@@ -2677,56 +2668,6 @@
         ],
         "type": "object"
       },
-      "S_c004b48c8aa22c0b": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "address": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "categoryCode": {
-            "$ref": "#/components/schemas/S_c43fd84959f0fed1"
-          },
-          "code": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "contact": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "maxAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_672fbce7220060f0"
-          },
-          "minAlertTonnes": {
-            "$ref": "#/components/schemas/S_30b6552f49008a6b"
-          },
-          "model": {
-            "$ref": "#/components/schemas/S_622125007b03450c"
-          },
-          "name": {
-            "$ref": "#/components/schemas/S_710bf2d0bd619025"
-          },
-          "packageColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "packageType": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          },
-          "phone": {
-            "$ref": "#/components/schemas/S_ada490857814a487"
-          },
-          "strapColor": {
-            "$ref": "#/components/schemas/S_b9d0534b597d983a"
-          }
-        },
-        "required": [
-          "code",
-          "name"
-        ],
-        "type": "object"
-      },
       "S_c27113cfa620933c": {
         "additionalProperties": false,
         "properties": {
@@ -2820,16 +2761,6 @@
         "maximum": 100,
         "minimum": 1,
         "type": "integer"
-      },
-      "S_c43fd84959f0fed1": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/S_2cfd93b904df0bb2"
-          },
-          {
-            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
-          }
-        ]
       },
       "S_c6b5eba0874323e5": {
         "format": "date-time",
@@ -3250,12 +3181,6 @@
         "pattern": "^\\d{8}$",
         "type": "string"
       },
-      "S_eca066c4620a4f10": {
-        "items": {
-          "$ref": "#/components/schemas/S_185400033598cdd0"
-        },
-        "type": "array"
-      },
       "S_ee56701c7583d98e": {
         "anyOf": [
           {
@@ -3284,6 +3209,52 @@
           "$ref": "#/components/schemas/S_fb2f1ad6a1e904c9"
         },
         "type": "array"
+      },
+      "S_f8337975fdbd218f": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "address": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "categoryCode": {
+            "$ref": "#/components/schemas/S_86ec77b1bd5c9e95"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "maxAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_672fbce7220060f0"
+          },
+          "minAlertTonnes": {
+            "$ref": "#/components/schemas/S_30b6552f49008a6b"
+          },
+          "model": {
+            "$ref": "#/components/schemas/S_622125007b03450c"
+          },
+          "name": {
+            "$ref": "#/components/schemas/S_710bf2d0bd619025"
+          },
+          "packageColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "packageType": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/S_ada490857814a487"
+          },
+          "strapColor": {
+            "$ref": "#/components/schemas/S_b9d0534b597d983a"
+          }
+        },
+        "type": "object"
       },
       "S_f938dacc63db9436": {
         "additionalProperties": false,
@@ -3451,6 +3422,31 @@
       "S_fc8e894ba12ab9e1": {
         "const": "true",
         "type": "string"
+      },
+      "S_fcc50364edf4f9a7": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_7048f2314aa34d11"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -9326,7 +9322,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_4c1b5cb1b7baf0df"
+                  "$ref": "#/components/schemas/S_b0a866d39e454a64"
                 }
               }
             },
@@ -9449,7 +9445,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/S_c004b48c8aa22c0b"
+                "$ref": "#/components/schemas/S_8e0429603134dd30"
               }
             }
           },
@@ -9460,7 +9456,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_9a15910e1e2bbcb1"
+                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
                 }
               }
             },
@@ -9594,7 +9590,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_9a15910e1e2bbcb1"
+                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
                 }
               }
             },
@@ -9725,7 +9721,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/S_51fae356409c3054"
+                "$ref": "#/components/schemas/S_f8337975fdbd218f"
               }
             }
           },
@@ -9736,7 +9732,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_9a15910e1e2bbcb1"
+                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
                 }
               }
             },
@@ -11100,7 +11096,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_4c1b5cb1b7baf0df"
+                  "$ref": "#/components/schemas/S_b0a866d39e454a64"
                 }
               }
             },
@@ -11223,7 +11219,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/S_c004b48c8aa22c0b"
+                "$ref": "#/components/schemas/S_8e0429603134dd30"
               }
             }
           },
@@ -11234,7 +11230,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_9a15910e1e2bbcb1"
+                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
                 }
               }
             },
@@ -11368,7 +11364,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_9a15910e1e2bbcb1"
+                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
                 }
               }
             },
@@ -11499,7 +11495,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/S_51fae356409c3054"
+                "$ref": "#/components/schemas/S_f8337975fdbd218f"
               }
             }
           },
@@ -11510,7 +11506,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_9a15910e1e2bbcb1"
+                  "$ref": "#/components/schemas/S_fcc50364edf4f9a7"
                 }
               }
             },
@@ -17013,7 +17009,7 @@
                       "$ref": "#/components/schemas/S_b4685c29266fd612"
                     },
                     "data": {
-                      "$ref": "#/components/schemas/S_eca066c4620a4f10"
+                      "$ref": "#/components/schemas/S_2a2aca8dd06e8dcb"
                     },
                     "message": {
                       "$ref": "#/components/schemas/S_00404e686415370f"
