@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Alert, Button, Drawer, Space, Typography } from 'antd';
 import { ProDescriptions, ProForm } from '@ant-design/pro-components';
@@ -83,10 +84,10 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
               description="这不是修改某一张单据。调整量、前后值和原因将一起写入流水及审计，不能在此撤销。"
             />
             {adjust.error && (
-              <Alert
+              <RequestError
                 type="error"
                 showIcon
-                title={adjust.error.message}
+                error={adjust.error}
                 description="已保留输入，可核对后重试；刷新当前库存不会清空原因或调整量。"
                 action={
                   <Button onClick={() => void refresh()} loading={stock.isFetching}>

@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Card, Drawer, Empty, Pagination, Skeleton, Space, Tag } from 'antd';
@@ -28,9 +29,9 @@ export function VersionHistory({
         />
         {isLoading && <Skeleton active />}
         {error && (
-          <Alert
+          <RequestError
             type="error"
-            title={error.message}
+            error={error}
             action={<Button onClick={() => void refetch()}>重试版本历史</Button>}
           />
         )}

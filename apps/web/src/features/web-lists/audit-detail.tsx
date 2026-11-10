@@ -1,5 +1,6 @@
+import { RequestError } from '../../components/RequestError';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Drawer, Skeleton } from 'antd';
+import { Button, Drawer, Skeleton } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { webListKeys } from './keys';
 import { formatTime } from '../../lib/format-time';
@@ -16,7 +17,7 @@ export function AuditDetail({ id, onClose }: { id: number; onClose: () => void }
   return (
     <Drawer open title="操作日志详情" size={640} onClose={onClose}>
       {error ? (
-        <Alert type="error" title={error.message} action={<Button onClick={() => void refetch()}>重试</Button>} />
+        <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />
       ) : isPending || !entry ? (
         <Skeleton active />
       ) : (

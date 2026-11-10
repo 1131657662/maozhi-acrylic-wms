@@ -1,4 +1,6 @@
-﻿import { Alert, Button, Skeleton, Space } from 'antd';
+import { useFormErrors } from '../../components/use-form-errors';
+import { RequestError } from '../../components/RequestError';
+import { Alert, Button, Form, Skeleton, Space } from 'antd';
 import { Link, useNavigate, useParams } from '@umijs/max';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import type { OutboundPlanFields } from '@wms/contracts';
@@ -21,11 +23,12 @@ export function OutboundPlanEditor() {
   const orderQuery = useOrder(id);
   const create = useCreatePlan();
   const update = useUpdatePlan();
+  const [form] = Form.useForm<PlanFormValues>();
+  useFormErrors(create.error ?? update.error, form);
   const confirmBackdate = useBackdateConfirmation();
   const order = orderQuery.data;
   if (id && orderQuery.isLoading) return <Skeleton active />;
-  if (orderQuery.error || (id && !order))
-    return <Alert type="error" title={orderQuery.error?.message ?? '出库计划不存在'} />;
+  if (orderQuery.error || (id && !order)) return <RequestError error={orderQuery.error} retry={orderQuery.refetch} />;
   if (order && order.status !== 'open')
     return (
       <Alert
@@ -73,13 +76,18 @@ export function OutboundPlanEditor() {
           </p>
         </div>
       </div>
-      {(create.error || update.error) && <Alert type="error" title={(create.error ?? update.error)?.message} />}
+      {(create.error || update.error) && (
+        <RequestError error={create.error ?? update.error} retry={() => form.submit()} />
+      )}
       <ProForm<PlanFormValues>
         loading={create.isPending || update.isPending}
+        form={form}
+        disabled={create.isPending || update.isPending}
         key={id || 'new-plan'}
         initialValues={order ? { vehicleNo: order.vehicleNo, memo: order.memo } : undefined}
         onFinish={submit}
         submitter={{
+          submitButtonProps: { loading: create.isPending || update.isPending },
           searchConfig: { submitText: order ? '保存修改' : '创建计划', resetText: '取消' },
           render: (_, dom) => (
             <Space>

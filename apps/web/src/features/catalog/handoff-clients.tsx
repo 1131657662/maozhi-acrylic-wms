@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Alert, App, Button, Select, Space } from 'antd';
 import type { z } from 'zod';
@@ -49,7 +50,7 @@ export function HandoffClients({ data }: { data: z.infer<typeof handoffOverviewS
           </Button>
         </Space>
       ))}
-      {command.error && <Alert type="error" title={command.error.message} />}
+      {command.error && <RequestError type="error" error={command.error} />}
     </Space>
   );
 }

@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { Alert, Drawer } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import type { Stocktake } from '@wms/contracts';
@@ -30,9 +31,9 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
         description="原快照和实盘记录保留。作废后不能重开，需要时新建盘点；该仓恢复确认。"
       />
       {voidError && (
-        <Alert
+        <RequestError
           type="error"
-          title={voidError.message}
+          error={voidError}
           description="原因已保留。网络失败可重试；盘点变更时关闭抽屉、刷新详情再核对。"
         />
       )}

@@ -1,5 +1,6 @@
+import { RequestError } from '../../components/RequestError';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Result } from 'antd';
+import { Button, Result } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import { tonnes, type SourceJournalRow } from '@wms/contracts';
 import { ApiError } from '../../api/client';
@@ -15,9 +16,9 @@ export function StockJournal() {
     return <Result status="403" title="无权查看库存流水" />;
   if (query.error)
     return (
-      <Alert
+      <RequestError
         type="error"
-        title={query.error.message}
+        error={query.error}
         action={<Button onClick={() => void query.refetch()}>重试</Button>}
       />
     );

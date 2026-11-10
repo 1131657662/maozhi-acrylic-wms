@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { Alert, App, Button, Drawer, Form, Input, Space } from 'antd';
 import { tonnes, type CorrectionSummary, type CorrectionTarget } from '@wms/contracts';
 import { gramsToTonnes, tonnesDeltaToGrams } from '../../lib/weight-input';
@@ -77,10 +78,10 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
             description="可只改包数，保持吨数不变。商品、仓库、往来单位、单号与业务日期不可修改。"
           />
           {mutation.error && (
-            <Alert
+            <RequestError
               type="error"
               showIcon
-              title={mutation.error.message}
+              error={mutation.error}
               description="原值、填写内容和请求已保留。网络失败可重试；若原单版本已变化，请关闭抽屉并重新核对。"
             />
           )}

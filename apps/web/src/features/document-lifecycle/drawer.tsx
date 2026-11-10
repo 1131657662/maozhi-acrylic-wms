@@ -1,3 +1,4 @@
+import { errorMessage } from '../../api/errors';
 import { useState } from 'react';
 import { Alert, Button, Drawer, Space } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
@@ -15,7 +16,7 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
       setPreview(await request(`/${initial.kind}/${initial.id}/lifecycle`, lifecyclePreviewSchema));
       setRefreshError('');
     } catch (error) {
-      setRefreshError(error instanceof Error ? error.message : '预览刷新失败，请重试');
+      setRefreshError(errorMessage(error));
     }
   }
   async function submit(values: { reason: string }) {

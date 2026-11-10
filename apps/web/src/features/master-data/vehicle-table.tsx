@@ -1,6 +1,8 @@
+import { notifyError } from '../../api/error-events';
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, App, Button, Input, Popconfirm, Space } from 'antd';
+import { Button, Input, Popconfirm, Space } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import type { Vehicle } from '@wms/contracts';
 import { vehicleKeys } from './vehicle-keys';
@@ -11,8 +13,7 @@ export function VehicleTable() {
   const [query, setQuery] = useState({ page: 1, pageSize: MASTER_PAGE_SIZE, keyword: '' }),
     [editor, setEditor] = useState<{ item: Vehicle | null } | null>(null);
   const { data: vehicles, isLoading: loading, error } = useQuery(vehicleKeys.list(query)),
-    update = useUpdateVehicle(),
-    { message } = App.useApp();
+    update = useUpdateVehicle();
   return (
     <>
       <Input.Search
@@ -21,7 +22,7 @@ export function VehicleTable() {
         allowClear
         onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
       />
-      {error && <Alert type="error" title={error.message} />}
+      {error && <RequestError type="error" error={error} />}
       <ProTable<Vehicle>
         rowKey="id"
         dataSource={vehicles?.items}
@@ -63,7 +64,7 @@ export function VehicleTable() {
                     try {
                       await update.mutateAsync({ id: row.id, active: !row.active });
                     } catch (error) {
-                      message.error(error instanceof Error ? error.message : t.failed);
+                      notifyError(error);
                     }
                   }}
                 >

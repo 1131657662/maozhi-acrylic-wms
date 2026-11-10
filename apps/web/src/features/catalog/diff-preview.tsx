@@ -1,6 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Empty, Radio, Space } from 'antd';
+import { Button, Empty, Radio, Space } from 'antd';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import type { CatalogDiffRow, CatalogVersion } from '@wms/contracts';
 import { catalogKeys } from './keys';
@@ -64,9 +65,9 @@ export function DiffPreview({ version }: { version: CatalogVersion }) {
         }}
       />
       {error && (
-        <Alert
+        <RequestError
           type="error"
-          title={error.message}
+          error={error}
           action={<Button onClick={() => void refetch()}>重试差异查询</Button>}
         />
       )}

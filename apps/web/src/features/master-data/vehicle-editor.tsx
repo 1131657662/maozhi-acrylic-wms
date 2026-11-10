@@ -1,5 +1,5 @@
+import { notifyError } from '../../api/error-events';
 import { DrawerForm, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
-import { App } from 'antd';
 import { createVehicleSchema, type Vehicle } from '@wms/contracts';
 import type { z } from 'zod';
 import { useCreateVehicle } from './use-create-vehicle';
@@ -7,8 +7,7 @@ import { useUpdateVehicle } from './use-update-vehicle';
 import { masterCopy as t, MASTER_DRAWER_SIZE } from './copy';
 export function VehicleEditor({ editing, onClose }: { editing: Vehicle | null; onClose: () => void }) {
   const create = useCreateVehicle(),
-    update = useUpdateVehicle(),
-    { message } = App.useApp();
+    update = useUpdateVehicle();
   return (
     <DrawerForm<z.infer<typeof createVehicleSchema>>
       open
@@ -30,7 +29,7 @@ export function VehicleEditor({ editing, onClose }: { editing: Vehicle | null; o
           onClose();
           return true;
         } catch (error) {
-          message.error(error instanceof Error ? error.message : t.failed);
+          notifyError(error);
           return false;
         }
       }}

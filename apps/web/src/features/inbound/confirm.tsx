@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Popconfirm, Space, Typography } from 'antd';
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { useConfirmReceipt } from './use-confirm-receipt';
@@ -28,10 +29,10 @@ export function InboundConfirmation({ receipt }: { receipt: InboundReceipt }) {
         description={`核对实物后确认，将向 ${receipt.warehouseName} 增加 ${receipt.packages} 包、${tonnes(receipt.weightGrams)} 吨；确认与流水同时入账。`}
       />
       {confirm.error && (
-        <Alert
+        <RequestError
           type="error"
           showIcon
-          title={confirm.error.message}
+          error={confirm.error}
           description="操作失败可重试；重复提交不会重复入账。"
         />
       )}

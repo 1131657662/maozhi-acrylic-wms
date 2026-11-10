@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, App, Button, Card, Empty, Result, Skeleton, Space } from 'antd';
@@ -20,9 +21,9 @@ export function HandoffPanel() {
         <Result status="403" title="仅 Web 用户可核验交接" />
       ) : (
         error && (
-          <Alert
+          <RequestError
             type="error"
-            title={error.message}
+            error={error}
             action={<Button onClick={() => void refetch()}>重试交接清单</Button>}
           />
         )
@@ -87,7 +88,7 @@ export function HandoffPanel() {
           <HandoffClients data={data} />
         </Space>
       )}
-      {command.error && <Alert type="error" title={command.error.message} />}
+      {command.error && <RequestError type="error" error={command.error} />}
       {id && <HandoffDetail key={id} id={id} onClose={() => setId(undefined)} />}
     </Card>
   );

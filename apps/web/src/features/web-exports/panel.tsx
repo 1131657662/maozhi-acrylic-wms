@@ -1,5 +1,6 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Radio, Space } from 'antd';
+import { Button, Drawer, Radio, Space } from 'antd';
 import {
   listFields,
   matchedLineFields,
@@ -166,16 +167,16 @@ function ExportErrors({ session }: { session: ReturnType<typeof useExportSession
   return (
     <>
       {session.startError && (
-        <Alert
+        <RequestError
           type="error"
-          title={session.startError.message}
+          error={session.startError}
           description="筛选和选择已保留。列表变化时请关闭面板，刷新核对后重试。"
         />
       )}
       {session.error && (
-        <Alert
+        <RequestError
           type="error"
-          title={session.error.message}
+          error={session.error}
           action={<Button onClick={() => void session.refetch()}>重试查询进度</Button>}
         />
       )}

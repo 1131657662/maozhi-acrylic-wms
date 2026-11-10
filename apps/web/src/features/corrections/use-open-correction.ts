@@ -1,3 +1,4 @@
+import { errorMessage } from '../../api/errors';
 import { useState } from 'react';
 import { App } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,7 @@ export function useOpenCorrection(target: CorrectionTarget) {
       if (!data.corrections?.allowed) throw new Error('仅本地已入账且未终结的单据可以更正；历史导入单只能库存调整');
       setSnapshot(data.corrections);
     } catch (error) {
-      void message.error(error instanceof Error ? error.message : '读取原单失败，请重试');
+      void message.error(errorMessage(error));
     } finally {
       setLoading(false);
     }

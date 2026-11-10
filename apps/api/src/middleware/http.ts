@@ -7,6 +7,7 @@ import { AppError } from '../shared/errors.ts';
 import { authenticate } from '../features/auth/service.ts';
 import type { Actor } from '../shared/audit.ts';
 import { logger } from '../shared/logger.ts';
+import { validationMessage } from './validation-message.ts';
 
 export const trace: RequestHandler = (req, res, next) => {
   res.locals.traceId = randomUUID();
@@ -88,7 +89,13 @@ export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) =>
         : invalid
           ? '请求字段或格式不正确'
           : '服务异常，请提供请求编号',
-    data: known ? error.data : null,
+    data: known
+      ? error.data
+      : error instanceof ZodError
+        ? {
+          fields: error.issues.map((issue) => ({ path: issue.path, message: validationMessage(issue) })),
+          }
+        : null,
     traceId: res.locals.traceId,
   });
 };

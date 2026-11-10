@@ -1,3 +1,5 @@
+import { notifyError } from '../../api/error-events';
+import { useFormErrors } from '../../components/use-form-errors';
 import { DrawerForm, ProFormText } from '@ant-design/pro-components';
 import { App, Button, Form, Typography } from 'antd';
 import { createMasterItemSchema, hasGeneratedMasterCode, masterCreateSchema } from '@wms/contracts';
@@ -26,6 +28,8 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
   const { message } = App.useApp();
   const create = useCreateMasterItem();
   const update = useUpdateMasterItem();
+  const [form] = Form.useForm<CreateMasterItem>();
+  useFormErrors(create.error ?? update.error, form);
   const generated = hasGeneratedMasterCode(catalog);
   async function save(values: CreateMasterItem): Promise<boolean> {
     try {
@@ -40,12 +44,13 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
       onSaved(saved);
       return true;
     } catch (error) {
-      message.error(error instanceof Error ? error.message : t.failed);
+      notifyError(error);
       return false;
     }
   }
   return (
     <DrawerForm
+      form={form}
       key={editing?.code ?? 'new'}
       title={editing ? `${editing.name} · ${t.edit}` : t.newItem}
       open

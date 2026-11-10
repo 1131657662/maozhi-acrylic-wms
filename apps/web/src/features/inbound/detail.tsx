@@ -1,4 +1,5 @@
-import { Alert, Button, Result, Skeleton, Space, theme } from 'antd';
+import { RequestError } from '../../components/RequestError';
+import { Button, Result, Skeleton, Space, theme } from 'antd';
 import { useParams } from '@umijs/max';
 import { PageContainer, ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
 import { tonnes, snapshotText, type InboundReceipt } from '@wms/contracts';
@@ -41,10 +42,10 @@ export function InboundDetail() {
       ) : error instanceof ApiError && error.status === 403 ? (
         <Result status="403" title="当前账号无权查看此入库单" />
       ) : error || !data ? (
-        <Alert
+        <RequestError
           type="error"
           showIcon
-          title={error?.message ?? '入库单不存在'}
+          error={error}
           action={<Button onClick={() => void refetch()}>重试</Button>}
         />
       ) : (

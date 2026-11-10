@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Alert, App, Button, Space, Upload } from 'antd';
 import { ProForm, ProFormSelect } from '@ant-design/pro-components';
@@ -33,10 +34,10 @@ export function CatalogUpload({
       />
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         {error && (
-          <Alert
+          <RequestError
             type="error"
             showIcon
-            title={error.message}
+            error={error}
             description="文件未丢失。核对编码或更换文件后可再次校验。"
           />
         )}

@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, App, Button, Select, Space } from 'antd';
@@ -57,13 +58,13 @@ export function HandoffBind({ id, records }: { id: string; records: z.infer<type
         }))}
       />
       {query.error && (
-        <Alert
+        <RequestError
           type="error"
-          title={query.error.message}
+          error={query.error}
           action={<Button onClick={() => void query.refetch()}>重试作业行</Button>}
         />
       )}
-      {command.error && <Alert type="error" title={command.error.message} />}
+      {command.error && <RequestError type="error" error={command.error} />}
       <Button disabled={!line || !rows.length} loading={command.isPending} onClick={bind}>
         批量确认本单 {rows.length} 条
       </Button>

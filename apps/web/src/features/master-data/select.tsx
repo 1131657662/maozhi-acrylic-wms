@@ -1,5 +1,6 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Button, Select, Space, Alert } from 'antd';
+import { Button, Select, Space } from 'antd';
 import type { MasterCatalog } from '@wms/contracts';
 import { hasGeneratedMasterCode } from '@wms/contracts';
 import { MasterLabel } from './master-label';
@@ -64,7 +65,7 @@ export function MasterSelect({ catalog, ...props }: Props) {
           <>
             {menu}
             {error && (
-              <Alert type="error" title={error.message} action={<Button onClick={() => void refetch()}>重试</Button>} />
+              <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />
             )}
             <Space onMouseDown={(event) => event.preventDefault()}>
               <Button

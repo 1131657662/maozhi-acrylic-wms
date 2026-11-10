@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { Alert, Button } from 'antd';
 import { PageContainer, ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { Link, useNavigate } from '@umijs/max';
@@ -37,7 +38,7 @@ export function StocktakeCreate() {
         title="开始后暂停该仓库存写入"
         description="暂停入库确认、出库确认、库存调整与误确认撤销；其他仓库、PDA 扫码和补传不受影响。请确认现场可以按快照时点实盘。"
       />
-      {createError && <Alert type="error" title={createError.message} description="已填内容保留，可修正后重试。" />}
+      {createError && <RequestError type="error" error={createError} description="已填内容保留，可修正后重试。" />}
       <ProForm<CreateStocktake>
         onFinish={submit}
         loading={isCreating}

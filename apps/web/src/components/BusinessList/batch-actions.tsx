@@ -1,3 +1,5 @@
+import { errorMessage } from '../../api/errors';
+import { RequestError } from '../RequestError';
 import { useRef, useState } from 'react';
 import { Alert, Button, Input, Modal, Space, Spin, Tooltip, Typography, theme } from 'antd';
 import { batchText, type ExcludedBatchRow } from './batch-text';
@@ -56,7 +58,7 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
       );
       setPreviews(Object.fromEntries(values));
     } catch (error) {
-      setPrepareError(error instanceof Error ? error.message : '预览加载失败，请重试');
+      setPrepareError(errorMessage(error));
     }
   }
   async function submit() {
@@ -139,7 +141,7 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
           />
         )}
         {prepareError && <Alert type="error" showIcon title={prepareError} />}
-        {mutation.error && <Alert type="error" showIcon title={mutation.error.message} />}
+        {mutation.error && <RequestError type="error" showIcon error={mutation.error} />}
         {result && (
           <Alert
             type={result.failed ? 'warning' : 'success'}

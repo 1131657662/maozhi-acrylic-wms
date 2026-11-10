@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { Alert, App, Button, Card, Space, Tag } from 'antd';
 import type { CatalogUploadResult } from '@wms/contracts';
 import { DiffPreview } from './diff-preview';
@@ -35,7 +36,7 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
           title="消失不等于删除历史"
           description="仅影响刷新到新版后的新扫码；已扫码的包仍可冻结、确认和对账。重量变化不重称已扫包。"
         />
-        {error && <Alert type="error" showIcon title={error.message} />}
+        {error && <RequestError type="error" showIcon error={error} />}
         {published ? (
           <Alert type="success" showIcon title="整版发布成功，已有事实未改变" />
         ) : (

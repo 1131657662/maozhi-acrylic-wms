@@ -40,7 +40,7 @@ async function sendUpload(input: UploadInput, key: string) {
       headers: { 'Content-Type': 'application/octet-stream', 'Idempotency-Key': key },
     });
   } catch (error) {
-    if (error instanceof ApiError && error.status < 500) throw error;
+    if (error instanceof ApiError && error.status >= 400 && error.status < 500) throw error;
     try {
       return await request(`/catalog/uploads/${key}`, catalogUploadResultSchema);
     } catch {

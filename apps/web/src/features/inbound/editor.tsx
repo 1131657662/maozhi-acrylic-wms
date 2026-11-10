@@ -1,4 +1,6 @@
-import { Alert, Button, Col, Result, Space, theme } from 'antd';
+import { useFormErrors } from '../../components/use-form-errors';
+import { RequestError } from '../../components/RequestError';
+import { Alert, Button, Form, Col, Result, Space, theme } from 'antd';
 import { Link, useNavigate } from '@umijs/max';
 import { PageContainer, ProForm, ProFormDigit, ProFormList, ProFormTextArea } from '@ant-design/pro-components';
 import type { CreateInbound } from '@wms/contracts';
@@ -17,6 +19,8 @@ interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
 export function InboundEditor() {
   const navigate = useNavigate();
   const create = useCreateReceipt();
+  const [form] = Form.useForm<ReceiptFormValues>();
+  useFormErrors(create.error, form);
   const confirmBackdate = useBackdateConfirmation();
   async function submit(values: ReceiptFormValues): Promise<boolean> {
     try {
@@ -70,14 +74,17 @@ export function InboundEditor() {
             style={{ marginBottom: token.margin }}
           />
           {create.error && (
-            <Alert type="error" showIcon title={create.error.message} style={{ marginBottom: token.margin }} />
+            <RequestError error={create.error} retry={() => form.submit()} style={{ marginBottom: token.margin }} />
           )}
           <ProForm<ReceiptFormValues>
+            loading={create.isPending}
+            form={form}
             grid
             rowProps={{ gutter: token.marginLG }}
-            loading={create.isPending}
+            disabled={create.isPending}
             onFinish={submit}
             submitter={{
+              submitButtonProps: { loading: create.isPending },
               searchConfig: { submitText: '创建待确认入库单', resetText: '取消' },
               render: (_, dom) => (
                 <Space>

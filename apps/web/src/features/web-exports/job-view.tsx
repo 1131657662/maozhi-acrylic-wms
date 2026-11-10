@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Descriptions, Progress, Space, Table } from 'antd';
 import { listTime, type ExportJob } from '@wms/contracts';
 import { useCancelExport } from './use-cancel-export';
@@ -40,7 +41,7 @@ export function ExportJobView({ job }: { job: ExportJob }) {
         </>
       )}
       {job.error && <Alert type={job.state === 'failed' ? 'error' : 'info'} title={job.error} showIcon />}
-      {cancelError && <Alert type="error" title={cancelError.message} />}
+      {cancelError && <RequestError type="error" error={cancelError} />}
       {job.state === 'ready' && <CompletedExport job={job} />}
     </Space>
   );

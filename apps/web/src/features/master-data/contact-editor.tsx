@@ -1,5 +1,5 @@
+import { notifyError } from '../../api/error-events';
 import { DrawerForm, ProFormText } from '@ant-design/pro-components';
-import { App } from 'antd';
 import type { Contact, PartyOwner } from '@wms/contracts';
 import { useCreateContact } from './use-create-contact';
 import { useUpdateContact } from './use-update-contact';
@@ -13,8 +13,7 @@ export function ContactEditor({
   editing: Contact | null;
   onClose: () => void;
 }) {
-  const { message } = App.useApp(),
-    create = useCreateContact(),
+  const create = useCreateContact(),
     update = useUpdateContact();
   return (
     <DrawerForm<{ name: string; phone?: string; address?: string }>
@@ -34,7 +33,7 @@ export function ContactEditor({
           onClose();
           return true;
         } catch (error) {
-          message.error(error instanceof Error ? error.message : t.failed);
+          notifyError(error);
           return false;
         }
       }}

@@ -1,6 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Form, Select, Space, Typography } from 'antd';
+import { Button, Form, Select, Space, Typography } from 'antd';
 import { ProForm } from '@ant-design/pro-components';
 import type { PartyOwner } from '@wms/contracts';
 import { contactKeys } from './contact-keys';
@@ -62,7 +63,7 @@ function ContactPicker({
           {selected.phone} {selected.address}
         </Typography.Text>
       )}
-      {error && <Alert type="error" title={error.message} />}
+      {error && <RequestError type="error" error={error} />}
       {open && <ContactDrawer owner={owner} onClose={() => setOpen(false)} />}
     </>
   );

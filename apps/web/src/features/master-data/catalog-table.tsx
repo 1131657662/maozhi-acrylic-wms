@@ -1,6 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
-import { Alert, App, Popconfirm, Space, Tag, Button, Input } from 'antd';
+import { App, Popconfirm, Space, Tag, Button, Input } from 'antd';
 import type { MasterCatalog, MasterItem } from '@wms/contracts';
 import { hasGeneratedMasterCode } from '@wms/contracts';
 import { MasterLabel } from './master-label';
@@ -90,7 +91,7 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
         onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
       />
       {error && (
-        <Alert type="error" title={error.message} action={<Button onClick={() => void refetch()}>重试</Button>} />
+        <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />
       )}
       <ProTable<MasterItem>
         rowKey="code"

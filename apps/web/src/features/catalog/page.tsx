@@ -1,6 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Card, Result, Skeleton, Space } from 'antd';
+import { Button, Card, Result, Skeleton, Space } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import type { CatalogUploadResult } from '@wms/contracts';
 import { ApiError } from '../../api/client';
@@ -33,9 +34,9 @@ export function CatalogPage() {
       <Space orientation="vertical" size="large" style={{ width: '100%', maxWidth: 1440 }}>
         {isLoading && <Skeleton active />}
         {error && (
-          <Alert
+          <RequestError
             type="error"
-            title={error.message}
+            error={error}
             action={<Button onClick={() => void refetch()}>重试目录状态</Button>}
           />
         )}
