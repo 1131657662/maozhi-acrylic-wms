@@ -17,6 +17,7 @@ import { listFeedback } from './list-feedback';
 interface Config<Row> {
   name: ExportKind;
   title: string;
+  icon?: ReactNode;
   description: string;
   extra?: ReactNode;
   columns: ProColumns<Row>[];
@@ -104,7 +105,14 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
   });
   return (
     <PageContainer
-      title={<h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>{config.title}</h1>}
+      title={
+        <h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>
+          {config.icon && (
+            <span style={{ fontSize: token.fontSizeLG, marginInlineEnd: token.marginXS }}>{config.icon}</span>
+          )}
+          {config.title}
+        </h1>
+      }
       content={config.description}
       extra={config.extra}
       className="business-list"

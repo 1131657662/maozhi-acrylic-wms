@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { inventoryScopeResult } from './inventory-scope.ts';
 import { inboundReceiptSchema } from './inbound.ts';
+import { auditRowSchema, auditDetailSchema } from './audit.ts';
 
 const integer = z.number().int().safe();
 export const webMatchedLineSchema = z.strictObject({
@@ -59,15 +60,8 @@ export const webStockRowSchema = z.strictObject({
   packages: integer,
   weightGrams: integer,
 });
-export const webAuditRowSchema = z.strictObject({
-  id: integer,
-  action: z.string(),
-  targetId: z.string(),
-  actor: z.string(),
-  traceId: z.string(),
-  createdAt: z.string(),
-});
-export const webAuditDetailSchema = webAuditRowSchema.extend({ beforeJson: z.string(), afterJson: z.string() });
+export const webAuditRowSchema = auditRowSchema;
+export const webAuditDetailSchema = auditDetailSchema;
 const envelope = {
   total: integer.nonnegative(),
   page: integer.positive(),

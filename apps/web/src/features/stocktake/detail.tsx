@@ -11,6 +11,7 @@ import { StocktakeLines } from './lines';
 import { stocktakeStatus } from './list';
 import { VoidStocktakeDrawer } from './void-drawer';
 import { StocktakePostPanel } from './post-panel';
+import { ObjectAuditTimeline } from '../audit/events';
 
 export function StocktakeDetail() {
   const [voiding, setVoiding] = useState(false);
@@ -61,6 +62,7 @@ export function StocktakeDetail() {
               ]}
             />
             <StocktakeLines id={id} editable={take.status === 'counting'} />
+            <ObjectAuditTimeline kind="stocktake" id={id} />
             {take.status === 'counting' && (
               <Button danger onClick={() => setVoiding(true)}>
                 作废盘点

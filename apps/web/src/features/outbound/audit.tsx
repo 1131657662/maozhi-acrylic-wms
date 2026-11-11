@@ -1,37 +1,59 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ProFormText } from '@ant-design/pro-components';
+import { ProFormText, ProFormSelect } from '@ant-design/pro-components';
+import { Segmented } from 'antd';
+import { AuditOutlined } from '@ant-design/icons';
 import { BusinessList } from '../../components/BusinessList';
 import { ListFilters, ListDateFilter } from '../../components/BusinessList/filters';
 import { useListState } from '../../components/BusinessList/use-list-state';
 import { webListKeys } from '../web-lists/keys';
 import { auditColumns } from '../web-lists/audit-columns';
 import { AuditDetail } from '../web-lists/audit-detail';
-
+import { AuditTimelineView } from '../audit/timeline-view';
+import { auditCopy as t } from '../audit/text';
 export function Audit() {
   const state = useListState();
   const query = useQuery({ ...webListKeys.audit(state.params), placeholderData: keepPreviousData });
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<string | null>(null),
+    [view, setView] = useState('list');
   return (
     <>
-      <BusinessList
-        state={state}
-        query={query}
-        config={{
-          name: 'audit',
-          title: '操作记录',
-          columns: auditColumns(setSelected),
-          description: '按时间与业务对象追溯操作，查看操作前后值。此处只读，不执行撤销。',
+      <Segmented
+        aria-label={t.timeline}
+        value={view}
+        onChange={(value) => {
+          setView(value);
+          state.change({ page: '1' });
         }}
-        filters={
-          <ListFilters state={state}>
-            <ListDateFilter label="操作时间" />
-            <ProFormText name="action" label="操作类型" placeholder="如 inbound.confirm" />
-            <ProFormText name="target" label="业务对象" placeholder="单据 ID 或商品编码" />
-            <ProFormText name="traceId" label="请求编号" placeholder="支持部分请求编号" />
-          </ListFilters>
-        }
+        options={[
+          { label: t.list, value: 'list' },
+          { label: t.timeline, value: 'timeline' },
+        ]}
       />
+      {view === 'list' ? (
+        <BusinessList
+          state={state}
+          query={query}
+          config={{
+            name: 'audit',
+            title: t.title,
+            icon: <AuditOutlined />,
+            columns: auditColumns(setSelected),
+            description: t.description,
+          }}
+          filters={
+            <ListFilters state={state}>
+              <ListDateFilter label={t.filterTime} />
+              <ProFormText name="action" label={t.filterAction} placeholder={t.actionPlaceholder} />
+              <ProFormText name="target" label={t.filterObject} placeholder={t.objectPlaceholder} />
+              <ProFormText name="keyword" label={t.filterKeyword} placeholder={t.keywordPlaceholder} />
+              <ProFormSelect name="result" label={t.result} options={t.results} />
+            </ListFilters>
+          }
+        />
+      ) : (
+        <AuditTimelineView params={state.params} onPage={(page) => state.change({ page: String(page) })} />
+      )}
       {selected !== null && <AuditDetail id={selected} onClose={() => setSelected(null)} />}
     </>
   );

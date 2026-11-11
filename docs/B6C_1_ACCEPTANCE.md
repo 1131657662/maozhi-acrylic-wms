@@ -1,5 +1,14 @@
 # B6c-1 留证基础验收
 
+## 收尾补记（2026-11-11）
+
+用户已验收本批。以下原批次章节保留当时状态；本次已应用 015 并合并推送，页面冒烟在 B6c-2 查询接续完成后补验通过。
+
+- 目标仅 `127.0.0.1:3307/maozhi_dev_sample`。备份 `.local/evidence/b6c-1-closeout/before-015.sql`，6,471,725 字节，SHA-256 `dcbd133b7921096a564a6d01f8231d32d8f98ae47ffd85dce63616f6283bf6a1`。mysqldump exit 0 但提示缺少 tablespace 的 PROCESS 权限；已在独立 `maozhi_restore_*` 库恢复，46 张数据表指纹全部一致，随后只删除该验证副本。证据 `backup-verified.json`。
+- 015 applied，时间 `2026-11-11 03:06:06.097 UTC`。结构前指纹 `8694f8e4acd58a331d5265d4a8d4e57162b23860b2861751ac7b165db632e1b1`，结构后 `a6c6ec4c9b095775ad76b75ccd80eceb7948e9e56d6a22924a5305936d27c032`；新增 `operation_attempts`，扩展 `operation_log`，其余 46 个结构对象不变，旧数据投影指纹一致。原始结构和数据文件位于同一 closeout 目录。
+- 422 失败尝试 1 条；新增并确认 `RK-20261111-001`（1 包 / 0.2500 吨），同键确认请求 2 次、成功记录 1 条。该样本入账和失败证据保留，没有重置样本数据。B6c-1 页面当时不能查尝试表，因此页面验证明确延后；B6c-2 的 `.local/evidence/b6c-2-sample-smoke.json` 确认失败行 1、成功行 1，可见。
+- 分支规范为 `codex/b6c-1-audit-attempts`；merge 与远端 master HEAD 均为 `c9311d8455214ebb188dfe30e5926073be9319a8`，push exit 0。
+
 ## 范围与环境
 
 分支 codex/b6c-audit-attempts；本批只实现规格、015 迁移和写入留证，不实现 B6c-2 查询/页面/对象详情时间线。测试使用本机 3307 的随机 maozhi_test_* 合成库，运行后销毁；未应用到开发样本库，不代表生产验收。

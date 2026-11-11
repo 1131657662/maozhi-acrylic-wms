@@ -75,7 +75,7 @@ async function seedBatch(db: Database, start: number, count: number): Promise<vo
       'WL-TRACE-' + n,
       '{"packages":1}',
       '{"packages":2}',
-      date,
+      new Date().toISOString().replace('T', ' ').replace('Z', ''),
     ]),
   );
 }

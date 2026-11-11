@@ -32,7 +32,7 @@ export const webListKeys = createQueryKeys('web-lists', {
     queryKey: [params],
     queryFn: () => request(url('audit', params), webAuditListSchema),
   }),
-  auditDetail: (id: number) => ({
+  auditDetail: (id: string) => ({
     queryKey: [id],
     queryFn: () => request(`/web/lists/audit/${id}`, webAuditDetailSchema),
   }),

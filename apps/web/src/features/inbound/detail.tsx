@@ -12,6 +12,7 @@ import { ListBackLink } from '../../components/BusinessList/navigation';
 import { LifecyclePanel } from '../document-lifecycle/panel';
 import { CorrectionSummaryPanel } from '../corrections/summary';
 import { CorrectionDetailActions } from '../corrections/detail-actions';
+import { ObjectAuditTimeline } from '../audit/events';
 
 export function InboundDetail() {
   const { id = '' } = useParams();
@@ -83,6 +84,7 @@ export function InboundDetail() {
             <CorrectionSummaryPanel summary={data.corrections} number={data.receiptNo} createdAt={data.createdAt} />
           )}
           <LifecyclePanel kind="inbound" id={data.id} />
+          <ObjectAuditTimeline kind="inbound" id={data.id} />
           <CorrectionDetailActions
             kind="inbound"
             id={data.id}

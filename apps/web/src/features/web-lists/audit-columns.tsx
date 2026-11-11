@@ -1,29 +1,30 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { auditActionText, businessLabels, type WebAuditRow } from '@wms/contracts';
+import { type WebAuditRow, listTime } from '@wms/contracts';
 import { Button } from 'antd';
-import { formatTime } from '../../lib/format-time';
+import { auditCopy as t } from '../audit/text';
 
-export function auditColumns(onOpen: (id: number) => void): ProColumns<WebAuditRow>[] {
+export function auditColumns(onOpen: (id: string) => void): ProColumns<WebAuditRow>[] {
   return [
     {
-      title: '动作',
+      title: t.action,
       dataIndex: 'action',
       width: 180,
       fixed: 'left',
       sorter: true,
       hideInSetting: true,
-      render: (_, row) => auditActionText(row.action),
     },
     {
-      title: '对象',
-      dataIndex: 'targetId',
+      title: t.object,
+      dataIndex: 'objectLabel',
       width: 220,
       ellipsis: true,
       sorter: true,
-      render: () => businessLabels.relatedRecord,
     },
-    { title: '操作者', dataIndex: 'actor', width: 120, sorter: true },
-    { title: '时间', dataIndex: 'createdAt', width: 180, sorter: true, render: (_, row) => formatTime(row.createdAt) },
+    { title: t.summary, dataIndex: 'summary', width: 260, ellipsis: true },
+    { title: t.channel, dataIndex: 'channel', width: 120 },
+    { title: t.result, dataIndex: 'result', width: 120 },
+    { title: t.actor, dataIndex: 'actor', width: 120, sorter: true },
+    { title: t.time, dataIndex: 'createdAt', width: 180, sorter: true, render: (_, row) => listTime(row.createdAt) },
     {
       title: '操作',
       key: 'actionDetail',
@@ -33,7 +34,7 @@ export function auditColumns(onOpen: (id: number) => void): ProColumns<WebAuditR
       hideInSetting: true,
       render: (_, row) => (
         <Button type="link" onClick={() => onOpen(row.id)}>
-          查看详情
+          {t.view}
         </Button>
       ),
     },

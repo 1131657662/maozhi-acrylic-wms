@@ -21,6 +21,7 @@ import { correctionRouter } from './features/corrections/router.ts';
 import { stocktakeRouter } from './features/stocktake/router.ts';
 import { reportRouter } from './features/reports/router.ts';
 import { listPreferencesRouter } from './features/list-preferences/router.ts';
+import { auditRouter, auditOk } from './features/audit/router.ts';
 
 export function businessRouter(db: Database, origins: string[], catalogPublishEnabled = false): Router {
   const router = Router();
@@ -31,6 +32,9 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   const numbering = numberingController(db);
   const stockSource = stockSourceController(db);
   router.use(requireAuth(db));
+  router.use('/web/lists/audit', auditRouter(db, origins));
+  router.get('/audit', requireChannel('web', origins), async (_req, res) => auditOk(res, await auditRows(db)));
+  router.use('/audit', auditRouter(db, origins));
   router.use(listPreferencesRouter(db, origins));
   router.use(['/master', '/master-data'], masterRouter(db, origins));
   router.use(reportRouter(db, origins));
@@ -64,6 +68,5 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   router.post('/scan/plans/:id/facts', requireChannel('pda', origins), scan.fact);
   router.post('/scan/plans/:id/submit', requireChannel('pda', origins), scan.freeze);
   router.get('/stock', async (_req, res) => ok(res, await stockRows(db)));
-  router.get('/audit', requireChannel('web', origins), async (_req, res) => ok(res, await auditRows(db)));
   return router;
 }

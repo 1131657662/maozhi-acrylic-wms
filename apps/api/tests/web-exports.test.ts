@@ -35,7 +35,7 @@ for (const kind of ['inbound', 'outbound', 'stock', 'audit'] as WebListKind[]) {
         const first = scope === 'all' ? '000000' : '000020';
         const idColumn = kind === 'stock' || kind === 'audit' ? 2 : 1;
         if (kind === 'audit') {
-          assert.equal(sheet.getCell(2, idColumn).value, '相关业务记录');
+          assert.equal(sheet.getCell(2, idColumn).value, '未记录');
           assert.equal(sheet.getCell(2, 1).value, '未识别');
           assert.equal(sheet.getCell(2, 3).value, 'owner');
           assert.equal(
