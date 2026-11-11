@@ -7,14 +7,11 @@ import { fixture, actor } from './fixture.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
 import { confirmOutbound } from '../src/features/outbound/confirm.ts';
 import { randomUUID } from 'node:crypto';
-import { createInbound } from '../src/features/inbound/create.ts';
-import { newReceipt } from './numbering-fixture.ts';
 import { createOperation } from '../src/features/inventory/operation.ts';
 
 test('016 empty up/down/up restores identical shipment schema', async () => {
-  const c = await createTestDatabase('015_audit_attempts');
+  const c = await createTestDatabase('016_outbound_shipments');
   try {
-    await migrateUp(c.db);
     const before = await c.db.get('SHOW CREATE TABLE outbound_shipment_lines');
     const correctionSchema = await c.db.get('SHOW CREATE TABLE document_correction_lines');
     await migrateDown(c.db);
@@ -32,25 +29,40 @@ test('016 empty up/down/up restores identical shipment schema', async () => {
 test('016 upgrades existing correction rows without changing evidence and refuses correction-only down', async () => {
   const c = await fixture('015_audit_attempts');
   try {
-    const receipt = await createInbound(c.db, newReceipt(), randomUUID(), actor);
+    const receiptId = randomUUID();
+    await c.db.run(
+      `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at,status,
+        source_del_flag,posting_state,business_date,correction_revision)
+       VALUES(?,'B4D-MIGRATION-RK','DEMO-SUPPLIER','DEMO-WH',NULL,'owner',UTC_TIMESTAMP(3),'pending',0,'pending',CURRENT_DATE,0)`,
+      [receiptId],
+    );
+    const lineId = randomUUID();
+    await c.db.run(
+      `INSERT INTO inbound_lines(id,receipt_id,product_code,packages,weight_tonnes,source_del_flag)
+       VALUES(?,?,'ACR-032',1,'0.1000',0)`,
+      [lineId, receiptId],
+    );
     const correctionId = randomUUID();
     const operation = await createOperation(c.db, 'stock.correct', correctionId, '旧版本合成更正', actor);
     await c.db.run(
       `INSERT INTO document_corrections(id,number,inbound_receipt_id,revision,reason,actor,created_at,operation_id)
       VALUES(?,'B4D-GZ-OLD',?,1,'旧版本合成更正','owner',UTC_TIMESTAMP(3),?)`,
-      [correctionId, receipt.id, operation.id],
+      [correctionId, receiptId, operation.id],
     );
     await c.db.run(
       `INSERT INTO document_correction_lines(correction_id,product_code,inbound_line_id,
       packages_before,packages_after,tonnes_before,tonnes_after,packages_delta,tonnes_delta)
       VALUES(?,'ACR-032',?,2,3,'0.6000','0.6000',1,0)`,
-      [correctionId, receipt.lines[0]!.id],
+      [correctionId, lineId],
     );
     const old = await c.db.get('SELECT * FROM document_correction_lines');
     await migrateUp(c.db);
-    const { original_line_id: lineId, ...current } = (await c.db.get('SELECT * FROM document_correction_lines'))!;
-    assert.equal(lineId, receipt.lines[0]!.id);
+    const { original_line_id: migratedLineId, ...current } = (await c.db.get(
+      'SELECT * FROM document_correction_lines',
+    ))!;
+    assert.equal(migratedLineId, lineId);
     assert.deepEqual(current, old);
+    await migrateDown(c.db);
     const fingerprint = await tableFingerprints(c.db);
     const structure = await c.db.get('SHOW CREATE TABLE document_correction_lines');
     await assert.rejects(migrateDown(c.db), /document_correction_lines.*含有数据/);
@@ -74,6 +86,7 @@ test('016 nonempty down refuses before DDL and keeps structure and evidence', as
       actor,
       lines: [{ lineId: before.lines[0]!.id, actualPackages: 1, actualWeightGrams: 200000 }],
     });
+    await migrateDown(c.db);
     const fingerprints = await tableFingerprints(c.db);
     const structure = await c.db.get('SHOW CREATE TABLE outbound_lines');
     const statements: string[] = [];

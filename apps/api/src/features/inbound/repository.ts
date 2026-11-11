@@ -14,7 +14,7 @@ const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
 const headerSql = `SELECT r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
   r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS supplierName,
   r.warehouse_code AS warehouseCode,COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt,
-  r.business_date AS businessDate,r.source_id AS sourceId,r.contact_id AS contactId,
+  r.business_date AS businessDate,r.bill_type AS billType,r.container_no AS containerNo,r.source_id AS sourceId,r.contact_id AS contactId,
   r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress
   FROM inbound_receipts r`;
 export async function getInbound(db: Database, id: string): Promise<InboundReceipt> {
@@ -24,7 +24,7 @@ export async function getInbound(db: Database, id: string): Promise<InboundRecei
     await db.all(
       `SELECT l.id,l.product_code AS productCode,COALESCE(NULLIF(l.product_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS productName,
     l.product_model_snapshot AS productModel,l.package_type_snapshot AS packageType,
-    l.packages,l.weight_tonnes AS weightGrams FROM inbound_lines l
+    l.packages,l.weight_tonnes AS weightGrams,l.memo FROM inbound_lines l
     WHERE l.receipt_id=? AND l.source_del_flag=0 ORDER BY l.product_code`,
       [id],
     ),

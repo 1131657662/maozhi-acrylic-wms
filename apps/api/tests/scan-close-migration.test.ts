@@ -38,7 +38,7 @@ test('016 migrates legacy frozen using original submission time and permits manu
 
 for (const column of ['scan_packages', 'scan_weight_grams', 'scan_closed_at']) {
   test(`016 refuses down with only ${column} evidence and no shipments, without any DDL`, async () => {
-    const c = await fixture();
+    const c = await fixture('016_outbound_shipments');
     try {
       const table = column === 'scan_closed_at' ? 'outbound_orders' : 'outbound_lines';
       const value = column === 'scan_closed_at' ? "'2026-11-10 02:03:04.123'" : '0';

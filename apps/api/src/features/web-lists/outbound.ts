@@ -14,7 +14,8 @@ import {
 } from './query.ts';
 
 const fields = `o.id,o.order_no AS orderNo,o.customer_name AS customerName,o.warehouse_code AS warehouseCode,
-  COALESCE(NULLIF(o.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,o.ship_to_name AS shipToName,o.ship_to_phone AS shipToPhone,o.ship_to_address AS shipToAddress,o.vehicle_no AS vehicleNo,o.status,o.created_at AS createdAt`;
+  COALESCE(NULLIF(o.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,o.ship_to_name AS shipToName,o.ship_to_phone AS shipToPhone,o.ship_to_address AS shipToAddress,
+  o.bill_type AS billType,o.container_no AS containerNo,o.vehicle_no AS vehicleNo,o.status,o.created_at AS createdAt`;
 const sortColumns = {
   createdAt: 'o.created_at',
   orderNo: 'o.order_no',
@@ -22,6 +23,7 @@ const sortColumns = {
   warehouseName: 'warehouseName',
   vehicleNo: 'o.vehicle_no',
   status: 'o.status',
+  billType: 'o.bill_type',
   plannedPackages:
     '(SELECT COALESCE(SUM(sl.planned_packages),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
   plannedWeightGrams:
@@ -41,6 +43,10 @@ export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { 
   textFilter(parts, ['o.vehicle_no'], query.vehicle);
   statusFilter(parts, 'o.status', query);
   dateFilter(parts, 'o.created_at', query);
+  if (query.billType) {
+    parts.sql += ' AND o.bill_type=?';
+    parts.values.push(query.billType);
+  }
   if (query.productCodes?.length) {
     const placeholders = query.productCodes.map(() => '?').join(',');
     if (query.productMode === 'all') {

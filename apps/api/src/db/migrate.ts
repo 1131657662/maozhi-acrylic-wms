@@ -119,6 +119,7 @@ const migrations = [
     id: '016_outbound_shipments',
     guardedTables: ['outbound_shipment_lines', 'outbound_shipments', 'document_correction_lines'],
   },
+  { id: '017_document_extra_fields', guardedTables: [] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -213,6 +214,17 @@ export async function migrateDown(db: Database): Promise<void> {
           ))
         )
           throw new Error('拒绝回退：outbound_lines 含有发货快照或行序数据');
+        if (
+          migration.id === '017_document_extra_fields' &&
+          (await connection.get(`
+            SELECT id FROM inbound_receipts WHERE bill_type IS NOT NULL OR container_no IS NOT NULL
+            UNION ALL SELECT id FROM inbound_lines WHERE memo IS NOT NULL
+            UNION ALL SELECT id FROM outbound_orders WHERE bill_type IS NOT NULL OR container_no IS NOT NULL
+            UNION ALL SELECT id FROM outbound_lines WHERE contract_no IS NOT NULL OR memo IS NOT NULL
+            LIMIT 1
+          `))
+        )
+          throw new Error('拒绝回退：单据扩展字段已有数据，禁止删除');
         if (migration.id === '011_corrections_business_date') await guardCorrectionDown(connection);
         if (
           migration.id === '010_outbound_memo' &&

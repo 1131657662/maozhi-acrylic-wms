@@ -15,7 +15,8 @@ import {
 const fields = `r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
   r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS supplierName,
   r.warehouse_code AS warehouseCode,COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,
-  r.contact_id AS contactId,r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress,r.memo,r.created_by AS createdBy,r.created_at AS createdAt`;
+  r.contact_id AS contactId,r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress,
+  r.bill_type AS billType,r.container_no AS containerNo,r.memo,r.created_by AS createdBy,r.created_at AS createdAt`;
 const sortColumns = {
   createdAt: 'r.created_at',
   receiptNo: 'r.receipt_no',
@@ -23,6 +24,7 @@ const sortColumns = {
   warehouseName: 'warehouseName',
   status: 'r.status',
   postingState: 'r.posting_state',
+  billType: 'r.bill_type',
   packages:
     '(SELECT COALESCE(SUM(sl.packages),0) FROM inbound_lines sl WHERE sl.receipt_id=r.id AND sl.source_del_flag=0)',
   weightGrams:
@@ -42,6 +44,10 @@ export function inboundPredicate(query: Omit<WebInboundQuery, 'pageSize'> & { pa
   if (query.postingState) {
     parts.sql += ' AND r.posting_state=?';
     parts.values.push(query.postingState);
+  }
+  if (query.billType) {
+    parts.sql += ' AND r.bill_type=?';
+    parts.values.push(query.billType);
   }
   if (query.productCodes?.length) {
     const placeholders = query.productCodes.map(() => '?').join(',');

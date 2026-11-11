@@ -47,7 +47,7 @@ test('B4a R1 下载/离线事实/Web改车号/原正文补传', async ({ page })
     expect(Number((await db.get('SELECT COUNT(*) AS n FROM scan_facts WHERE plan_id=?', [plan.id]))?.n)).toBe(0);
     const lineBefore = await db.all('SELECT * FROM outbound_lines WHERE order_id=?', [plan.id]);
     await page.goto(`/outbound/${plan.id}/edit`);
-    await expect(page.getByText('只能修改车号和备注，客户、仓库及明细保持不变。')).toBeVisible();
+    await expect(page.getByText('只能修改计划信息与明细备注，客户、仓库、商品和计划数量保持不变。')).toBeVisible();
     await expect(page.getByLabel('计划包数')).toHaveCount(0);
     await page.getByLabel('车牌').fill('B4A-Web改后车号');
     await page.getByLabel('备注', { exact: true }).fill('离线期间仅改表头');
@@ -57,7 +57,14 @@ test('B4a R1 下载/离线事实/Web改车号/原正文补传', async ({ page })
     await page.getByRole('button', { name: '保存修改' }).click();
     const response = await updated;
     expect(response.status()).toBe(200);
-    expect(Object.keys(response.request().postDataJSON().plan).sort()).toEqual(['memo', 'vehicleNo']);
+    const submittedPlan = response.request().postDataJSON().plan;
+    expect({ ...submittedPlan, containerNo: submittedPlan.containerNo ?? null }).toEqual({
+      vehicleNo: 'B4A-Web改后车号',
+      memo: '离线期间仅改表头',
+      billType: plan.billType,
+      containerNo: plan.containerNo,
+      lines: plan.lines.map(({ id, contractNo, memo }) => ({ id, contractNo, memo })),
+    });
     await expect(page.getByText('B4A-Web改后车号', { exact: true })).toBeVisible();
     expect(await db.all('SELECT * FROM outbound_lines WHERE order_id=?', [plan.id])).toEqual(lineBefore);
     const upload = () =>

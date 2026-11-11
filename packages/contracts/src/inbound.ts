@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { businessDateFields } from './business-date.ts';
 import { correctionSummarySchema } from './corrections.ts';
+import { inboundBillTypeSchema, DOCUMENT_EXTRA_LIMITS } from './document-types.ts';
 
 const codeSchema = z
   .string()
@@ -13,6 +14,7 @@ export const inboundLineInputSchema = z.strictObject({
   productCode: codeSchema,
   packages: z.number().int().positive().max(1_000_000),
   weightGrams: gramsSchema,
+  memo: z.string().trim().max(DOCUMENT_EXTRA_LIMITS.memo).nullable().optional(),
 });
 export const createInboundSchema = z.strictObject({
   ...businessDateFields,
@@ -20,7 +22,9 @@ export const createInboundSchema = z.strictObject({
   receiptNo: z.string().trim().min(1).max(100).optional(),
   supplierCode: codeSchema,
   warehouseCode: codeSchema,
-  memo: z.string().trim().max(500).optional(),
+  billType: inboundBillTypeSchema.default('purchase'),
+  containerNo: z.string().trim().max(DOCUMENT_EXTRA_LIMITS.containerNo).nullable().optional(),
+  memo: z.string().trim().max(DOCUMENT_EXTRA_LIMITS.memo).optional(),
   lines: z
     .array(inboundLineInputSchema)
     .min(1)
@@ -32,6 +36,7 @@ export const inboundLineSchema = inboundLineInputSchema.extend({
   productName: z.string(),
   productModel: z.string().nullable().optional(),
   packageType: z.string().nullable().optional(),
+  memo: z.string().nullable().default(null),
 });
 export const inboundReceiptSchema = z.object({
   id: codeSchema,
@@ -43,6 +48,8 @@ export const inboundReceiptSchema = z.object({
   supplierName: z.string(),
   warehouseCode: codeSchema,
   warehouseName: z.string(),
+  billType: inboundBillTypeSchema.nullable().default(null),
+  containerNo: z.string().nullable().default(null),
   contactId: z.uuid().nullable().optional(),
   deliveryName: z.string().nullable().optional(),
   deliveryPhone: z.string().nullable().optional(),
@@ -67,5 +74,5 @@ export const inboundListSchema = z.object({
   page: z.number().int(),
   pageSize: z.number().int(),
 });
-export type CreateInbound = z.infer<typeof createInboundSchema>;
+export type CreateInbound = z.input<typeof createInboundSchema>;
 export type InboundReceipt = z.infer<typeof inboundReceiptSchema>;

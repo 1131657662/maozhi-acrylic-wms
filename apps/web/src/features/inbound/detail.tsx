@@ -1,8 +1,9 @@
+import { documentExtraCopy } from '@wms/contracts';
 import { RequestError } from '../../components/RequestError';
 import { Button, Result, Skeleton, Space, theme } from 'antd';
 import { useParams } from '@umijs/max';
 import { PageContainer, ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
-import { tonnes, snapshotText, type InboundReceipt } from '@wms/contracts';
+import { billTypeText, tonnes, snapshotText, type InboundReceipt } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
 import { useReceipt } from './use-receipt';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
@@ -24,6 +25,7 @@ export function InboundDetail() {
     { title: '型号', render: (_, line) => snapshotText(line.productModel) },
     { title: '包数', dataIndex: 'packages' },
     { title: '总重量（吨）', render: (_, line) => tonnes(line.weightGrams) },
+    { title: documentExtraCopy.lineMemo, render: (_, line) => snapshotText(line.memo) },
   ];
   return (
     <PageContainer
@@ -60,6 +62,8 @@ export function InboundDetail() {
             columns={[
               { title: '供应商', dataIndex: 'supplierName' },
               { title: '仓库', dataIndex: 'warehouseName' },
+              { title: documentExtraCopy.billType, render: () => billTypeText('inbound', data.billType) },
+              { title: documentExtraCopy.containerNo, render: () => snapshotText(data.containerNo) },
               { title: '送货人', render: () => snapshotText(data.deliveryName) },
               { title: '电话', render: () => snapshotText(data.deliveryPhone) },
               { title: '地址', render: () => snapshotText(data.deliveryAddress) },

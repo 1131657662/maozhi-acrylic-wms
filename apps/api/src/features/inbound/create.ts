@@ -28,13 +28,15 @@ export async function createInbound(db: Database, input: CreateInbound, key: str
       const createdAt = sqlDate(new Date().toISOString());
       const receiptNo = await allocateNumber(tx, 'inbound', payload.receiptNo, date.businessDate.replaceAll('-', ''));
       await tx.run(
-        `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,memo,created_by,created_at,business_date,status,posting_state)
-        VALUES(?,?,?,?,?,?,?,?,'pending','pending')`,
+        `INSERT INTO inbound_receipts(id,receipt_no,supplier_code,warehouse_code,bill_type,container_no,memo,created_by,created_at,business_date,status,posting_state)
+        VALUES(?,?,?,?,?,?,?,?,?,?,'pending','pending')`,
         [
           id,
           receiptNo,
           supplier.code,
           warehouse.code,
+          payload.billType,
+          payload.containerNo || null,
           payload.memo ?? null,
           actor.username,
           createdAt,
@@ -68,13 +70,10 @@ async function addLines(
     const product = products[index]!;
     await requireInventoryProduct(db, product.code);
     const weight = gramsToDecimal(line.weightGrams);
-    await db.run('INSERT INTO inbound_lines(id,receipt_id,product_code,packages,weight_tonnes) VALUES(?,?,?,?,?)', [
-      randomUUID(),
-      id,
-      product.code,
-      line.packages,
-      weight,
-    ]);
+    await db.run(
+      'INSERT INTO inbound_lines(id,receipt_id,product_code,packages,weight_tonnes,memo) VALUES(?,?,?,?,?,?)',
+      [randomUUID(), id, product.code, line.packages, weight, line.memo || null],
+    );
   }
 }
 function duplicate(error: unknown): boolean {

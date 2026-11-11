@@ -3,6 +3,7 @@ import { scanContextInputSchema } from './scan-context.ts';
 import { plannedWeightGramsSchema } from './outbound-plan.ts';
 import { correctionSummarySchema } from './corrections.ts';
 export * from './business-date.ts';
+export * from './document-types.ts';
 export * from './corrections.ts';
 export * from './catalog.ts';
 export * from './scan-context.ts';
@@ -44,6 +45,8 @@ export const lineSchema = z.object({
   productName: z.string(),
   productModel: z.string().nullable().optional(),
   packageType: z.string().nullable().optional(),
+  contractNo: z.string().nullable().default(null),
+  memo: z.string().nullable().default(null),
   plannedPackages: z.number().int(),
   plannedWeightGrams: plannedWeightGramsSchema,
   scanPackages: z.number().int().nullable().default(null),
@@ -83,6 +86,8 @@ export const orderSchema = z.object({
   shipToName: z.string().nullable().optional(),
   shipToPhone: z.string().nullable().optional(),
   shipToAddress: z.string().nullable().optional(),
+  billType: z.enum(['sales', 'sample', 'return', 'other']).nullable().default(null),
+  containerNo: z.string().nullable().default(null),
   vehicleId: z.uuid().nullable().optional(),
   vehicleNo: z.string(),
   memo: z.string().max(500).nullable().default(null),

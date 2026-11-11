@@ -1,4 +1,5 @@
-import { knownStatus, postingText, statusText } from '@wms/contracts';
+import { documentExtraCopy } from '@wms/contracts';
+import { billTypeText, knownStatus, postingText, statusText } from '@wms/contracts';
 
 export const FILTER_DRAWER_WIDTH = 480;
 export const filterText = {
@@ -18,6 +19,7 @@ export const filterText = {
     status: '状态',
     statusMissing: '状态',
     postingState: '入账状态',
+    billType: documentExtraCopy.billType,
     product: '商品',
     from: '开始日期',
     to: '结束日期',
@@ -28,6 +30,7 @@ export const filterText = {
 export function filterValue(key: string, value: string, kind: 'inbound' | 'outbound'): string {
   if (key === 'productMode') return filterText.mode[value] ?? '待识别';
   if (key === 'postingState') return postingText[value as keyof typeof postingText] ?? '待识别';
+  if (key === 'billType') return billTypeText(kind, value);
   if (key === 'statusMissing') return '未记录';
   if (key === 'status') return knownStatus(value, kind) ? statusText(value, kind) : '待识别';
   if (key === 'from' || key === 'to') return value.slice(0, 10);
