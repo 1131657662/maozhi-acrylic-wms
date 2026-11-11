@@ -9,8 +9,8 @@ object LoginScreen {
         Ui.title(parent, "茂智腈纶仓")
         Ui.text(parent, "茂智云仓 · 腈纶仓储管理系统", 15f)
         Ui.text(parent, "Maozhi Acrylic Fiber WMS", 14f)
-        Ui.text(parent, "本地合成环境 · 扫码事实独立保存", 15f)
-        val server = Ui.input(parent, "本地 API 地址").apply { setText(endpoint) }
+        Ui.text(parent, "本地演示环境 · 扫码记录保存在本机", 15f)
+        val server = Ui.input(parent, "服务器地址").apply { setText(endpoint) }
         val username = Ui.input(parent, "用户名").apply { setText("owner") }
         val password = Ui.input(parent, "密码").apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
@@ -20,6 +20,6 @@ object LoginScreen {
             password.setText("")
             submit(credentials)
         }
-        Ui.text(parent, "真机先执行 adb reverse tcp:4310 tcp:4310；模拟器可用 10.0.2.2。凭据见项目 .local/demo-access.txt。", 14f)
+        Ui.text(parent, "请连接本地演示环境；模拟器可使用 10.0.2.2。", 14f)
     }
 }

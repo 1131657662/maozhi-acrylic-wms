@@ -12,7 +12,7 @@ class ScanRepository(private val dao: ScanDao, private val session: SessionStore
         require(dao.findBarcode(barcode) == null) { "本机已记录此条码，请勿重复扫描" }
         val plan = JSONObject(dao.plan(planId)?.json ?: error("请先在线下载计划"))
         require(plan.getString("status") == "open" && plan.isNull("scanClosedAt")) { "该单已结束扫码或出库" }
-        require(dao.submission(planId) == null) { "结束扫码请求待核验，暂不能继续扫码" }
+        require(dao.submission(planId) == null) { "结束扫码结果待核对，暂不能继续扫码" }
         val version = dao.currentCatalog() ?: error("请先下载完整目录")
         val item = dao.versionEntry(version.version, barcode) ?: error("本机 v${version.version} 无此条码；联网刷新后可用原单继续扫")
         val line = selectLine(plan, selectedLine, if (version.verified) null else item.legacyProduct)
@@ -28,8 +28,8 @@ class ScanRepository(private val dao: ScanDao, private val session: SessionStore
         val lines = (0 until rows.length()).map { rows.getJSONObject(it) }
         val line = if (selected != null) lines.singleOrNull { it.getString("id") == selected }
             else if (lines.size == 1) lines.single() else lines.singleOrNull { it.getString("productCode") == legacyProduct }
-        require(line != null) { "请先选择原单 ERP 作业行，目录规格不自动映射库存商品" }
-        if (legacyProduct != null) require(line.getString("productCode") == legacyProduct) { "旧缓存需先完成目录同步与作业行核验" }
+        require(line != null) { "请先选择本单商品行，扫码目录不会自动替您选择商品" }
+        if (legacyProduct != null) require(line.getString("productCode") == legacyProduct) { "请先同步完整条码目录并核对本单商品行" }
         return line
     }
     private suspend fun checkCapacity(plan: JSONObject, line: JSONObject) {
@@ -42,7 +42,7 @@ class ScanRepository(private val dao: ScanDao, private val session: SessionStore
             // Unbound legacy records reserve capacity until the original ERP line is verified.
             if (context == null || JSONObject(context.json).getString("outboundLineId") == line.getString("id")) count++
         }
-        require(line.getInt("actualPackages") + count < line.getInt("plannedPackages")) { "已达到本行计划包数（含待补传/冲突）" }
+        require(line.getInt("actualPackages") + count < line.getInt("plannedPackages")) { "已达到本行计划包数（包含待上传和待核对的记录）" }
     }
     companion object { private val mutex = Mutex() }
 }

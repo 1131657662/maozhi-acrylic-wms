@@ -12,9 +12,9 @@ import type { Page } from '@playwright/test';
 async function shot(page: Page, name: string) {
   for (const width of [1440, 1280]) {
     await page.setViewportSize({ width, height: 960 });
-    if (await page.getByRole('dialog', { name: '设备交接明细 · 原事实保留', exact: true }).isVisible())
-      await page.getByText('设备交接明细 · 原事实保留', { exact: true }).click();
-    else await page.getByText('发布门禁 · 设备与待补传队列', { exact: true }).click();
+    if (await page.getByRole('dialog', { name: '设备交接明细 · 扫码记录保留', exact: true }).isVisible())
+      await page.getByText('设备交接明细 · 扫码记录保留', { exact: true }).click();
+    else await page.getByText('发布前检查 · 设备与待上传记录', { exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: `.local/evidence/b1c2-${name}-${width}.png`, fullPage: true });
   }
@@ -34,18 +34,18 @@ test('catalog-handoff-batch：60条按原单批量交接，门禁展示未收妥
       })),
     );
   await loginCatalog(page);
-  await expect(page.getByText('发布门禁 · 设备与待补传队列', { exact: true })).toBeVisible();
+  await expect(page.getByText('发布前检查 · 设备与待上传记录', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '确认交接', exact: true })).toBeDisabled();
   await shot(page, 'handoff-blocked');
   await page.getByRole('button', { name: '查看记录', exact: true }).click();
   await expect(page.getByText('已收妥 2/60 · 未收妥 58', { exact: true })).toBeVisible();
   await page.getByLabel('原出库单', { exact: true }).click();
   await page.getByTitle(handoffPlan, { exact: true }).click();
-  await page.getByLabel('ERP 作业行', { exact: true }).click();
+  await page.getByLabel('本单商品行', { exact: true }).click();
   await page.getByTitle('TEST-ERP · 隔离验证商品 · 61 包', { exact: true }).click();
   await page.getByRole('button', { name: '批量确认本单 58 条', exact: true }).click();
-  await page.getByRole('button', { name: '批量确认原单作业行', exact: true }).click();
-  await expect(page.getByText('待确认原单作业行 58 条：可按单批量处理，无需逐条点击')).not.toBeVisible();
+  await page.getByRole('button', { name: '批量确认原单商品行', exact: true }).click();
+  await expect(page.getByText('待确认商品行 58 条：可按单批量处理，无需逐条点击')).not.toBeVisible();
   await expect(page.getByRole('dialog', { name: /^将原单 / })).not.toBeVisible();
   await shot(page, 'handoff-records');
   const detail = await handoffDetail(db, header.id);

@@ -18,7 +18,7 @@ export function CatalogPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const { data: overview, error, isLoading, refetch } = useQuery(catalogKeys.overview);
   if (error instanceof ApiError && error.status === 403)
-    return <Result status="403" title="仅 Web 登录用户可管理条码目录" />;
+    return <Result status="403" title="请在网页端登录后管理条码目录" />;
   return (
     <PageContainer
       title="条码目录"

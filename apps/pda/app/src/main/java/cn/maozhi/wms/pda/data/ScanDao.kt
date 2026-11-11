@@ -43,7 +43,7 @@ interface ScanDao {
     }
     @Transaction suspend fun sealContext(context: LocalFactContext) {
         val old = context(context.factId)
-        if (old == null) insertContext(context) else require(old.json == context.json) { "原事实上下文不可修改" }
+        if (old == null) insertContext(context) else require(old.json == context.json) { "已保存的扫码记录信息不能修改" }
     }
     @Query("SELECT * FROM facts WHERE planId = :planId ORDER BY rowid")
     suspend fun facts(planId: String): List<ScanFact>

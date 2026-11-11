@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
     private fun page(): LinearLayout {
         val root = Ui.column(this)
         root.setBackgroundColor(Ui.teal)
-        notice = Ui.text(root, "本地合成环境 · 非生产作业", 14f)
+        notice = Ui.text(root, "本地演示环境 · 不连接真实作业", 14f)
         notice.setTextColor(android.graphics.Color.WHITE)
         notice.setPadding(Ui.dp(this, 18), Ui.dp(this, 10), Ui.dp(this, 18), Ui.dp(this, 10))
         val scroll = ScrollView(this)
@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
             try { action() }
             catch (error: Exception) {
                 if (!::notice.isInitialized) page()
-                notice.text = "未完成：${error.message}。本机记录保留，可重试或重新登录。"
+                notice.text = "操作未完成，扫码记录已保留。请检查网络后重试或联系管理员。"
                 notice.setTextColor(android.graphics.Color.rgb(168, 44, 44))
             } finally { busy = false }
         }
@@ -107,13 +107,13 @@ class MainActivity : ComponentActivity() {
         val model = withContext(Dispatchers.IO) { Pair(JSONObject(dao.plan(id)?.json ?: error("计划未缓存")), dao.facts(id)) }
         val version = withContext(Dispatchers.IO) { dao.currentCatalog() }
         val parent = page()
-        Ui.text(parent, "本机目录 v${version?.version ?: "未下载"} · ${if(version?.verified == true) "完整校验" else "旧缓存待交接"} · 离线可作业", 14f)
+        Ui.text(parent, "本机条码目录 ${version?.version?.let { "第 ${it} 版" } ?: "未下载"} · ${if(version?.verified == true) "目录完整" else "待核对"} · 可离线作业", 14f)
         ScanScreen.render(parent, model, selectedLine, ScanActions(
             scan = { barcode -> perform { scan(id, barcode) } },
             line = { selectedLine = it },
             recheck = { perform { withContext(Dispatchers.IO) {
                 HandoffRepository(dao, api, session).recheck(); HandoffRepository(dao, api, session).exchange()
-            }; showScan(); notice.text = "新交接清单已上报，请在 Web 核验" } },
+            }; showScan(); notice.text = "新交接清单已上报，请在网页端确认" } },
             refreshCatalog = { perform { withContext(Dispatchers.IO) { CatalogRepository(dao, api).refresh(); HandoffRepository(dao, api, session).exchange() }; showScan() } },
             sync = { perform { withContext(Dispatchers.IO) { HandoffRepository(dao, api, session).exchange(); SyncRepository(dao, api).sync(id) }; showScan() } },
             records = { perform { showRecords() } }, freeze = { freezeDialog(model.first) },
@@ -130,27 +130,27 @@ class MainActivity : ComponentActivity() {
         val facts = withContext(Dispatchers.IO) { dao.facts(session.selectedPlan) }
         val parent = page()
         Ui.title(parent, "本机扫码记录")
-        Ui.text(parent, "待补传 ${facts.count { it.state == "pending" }} · 失败/响应待核实 ${facts.count { it.state == "failed" }} · 冲突 ${facts.count { it.state == "conflict" }}", 14f)
-        Ui.text(parent, "丢响应须联网核验，不能按本机失败条数推断。Web 交接清单支持按原单批量确认。", 14f)
+        Ui.text(parent, "扫码记录待上传 ${facts.count { it.state == "pending" }} · 失败/结果待核实 ${facts.count { it.state == "failed" }} · 需要核对 ${facts.count { it.state == "conflict" }}", 14f)
+        Ui.text(parent, "上传结果不明时请联网查看已收到的记录，不能只看本机失败条数判断。网页端支持按原单批量确认交接。", 14f)
         if (facts.isEmpty()) Ui.text(parent, "暂无本机记录")
         facts.forEach { fact ->
             val card = Ui.card(parent)
             Ui.text(card, fact.barcode)
             val raw = JSONObject(fact.payload)
-            val state = mapOf("pending" to "待补传", "failed" to "失败/响应待核实", "conflict" to "冲突待处理", "synced" to "服务端已收妥")[fact.state] ?: fact.state
+            val state = mapOf("pending" to "扫码记录待上传", "failed" to "失败/结果待核实", "conflict" to "需要核对", "synced" to "已收到")[fact.state] ?: "状态未识别"
             Ui.text(card, "$state · ${raw.getLong("weightGrams") / 1000.0} kg · v${raw.getInt("catalogVersion")}", 15f)
-            if (fact.error.isNotEmpty()) Ui.text(card, fact.error, 14f)
+            if (fact.error.isNotEmpty()) Ui.text(card, "上传未完成或结果不明，请联网重试并核对记录。", 14f)
         }
         Ui.button(parent, "返回连续扫码") { perform { showScan() } }
     }
     private fun freezeDialog(plan: JSONObject) {
         AlertDialog.Builder(this).setTitle("结束扫码")
             .setMessage("计划 ${plan.getInt("plannedPackages")} 包 / ${ScanScreen.tonnes(plan.getLong("plannedWeightGrams"))} 吨\n" +
-                "服务端已收 ${plan.getInt("actualPackages")} 包 / ${ScanScreen.tonnes(plan.getLong("actualWeightGrams"))} 吨\n" +
-                "本机未上传或冲突的扫码记录需要先处理。结束扫码不扣库存，出库数量由网页填写并确认。")
+                "已上传 ${plan.getInt("actualPackages")} 包 / ${ScanScreen.tonnes(plan.getLong("actualWeightGrams"))} 吨\n" +
+                "请先处理本机尚未上传或有冲突的扫码记录。结束扫码不扣库存，出库数量以网页填写并确认为准。")
             .setNegativeButton("继续扫码", null).setPositiveButton("结束扫码") { _, _ -> perform {
                 withContext(Dispatchers.IO) { SubmissionRepository(dao, api).freeze(session.selectedPlan) }
-                showScan(); notice.text = "已结束扫码，待网页填写并确认出库数量。"
+                showScan(); notice.text = "已结束扫码，待网页确认出库数量。"
             } }.show()
     }
     private fun logout() {

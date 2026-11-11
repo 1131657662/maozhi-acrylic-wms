@@ -39,7 +39,7 @@ export function StocktakeDetail() {
                 showIcon
                 type="warning"
                 title={`${take.warehouseName} 暂停确认中`}
-                description="暂停入库确认、出库确认、调整与撤销；PDA 扫码、补传及冻结照常。正常回写完成自动恢复；进行中仅“作废盘点”可提前释放。没有手动或超时解锁，离开本页或退出登录不会解除暂停。"
+                description="暂停入库确认、出库确认、调整与撤销；PDA 扫码和上传照常。库存更新完成后自动恢复；盘点进行中只能作废后提前恢复。离开本页或退出登录不会解除暂停。"
               />
             )}
             <ProDescriptions

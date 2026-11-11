@@ -16,7 +16,7 @@ class SyncRepository(private val dao: ScanDao, private val api: ApiClient) {
         for (fact in dao.allFacts().filter { it.state != "synced" && (planId == null || it.planId == planId) }) {
             val context = dao.context(fact.id)
             if (context == null) {
-                dao.updateState(fact.id, "conflict", "待交接原单作业行；请在 Web 交接清单批量核验后重试")
+                dao.updateState(fact.id, "conflict", "该扫码记录尚未关联商品行；请在网页端交接清单中处理后重试")
                 failed++; continue
             }
             val envelope = JSONObject().put("schemaVersion", 2).put("fact", JSONObject(fact.payload)).put("context", JSONObject(context.json)).toString()
@@ -30,7 +30,7 @@ class SyncRepository(private val dao: ScanDao, private val api: ApiClient) {
                 failed++
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
-                dao.updateState(fact.id, "failed", "响应未核实，原 UUID/正文保留；联网重试会核验是否已收妥")
+                dao.updateState(fact.id, "failed", "上传结果待核对，扫码记录已保留；联网重试会检查记录是否已收到")
                 throw error
             }
         }

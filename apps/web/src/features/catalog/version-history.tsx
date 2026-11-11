@@ -26,7 +26,7 @@ export function VersionHistory({
         <Alert
           type="info"
           title="历史版长期保留"
-          description="发布纠正版请重新上传完整文件。不能删除旧版本或直接退回 v1；历史事实须继续追溯。"
+          description="发布纠正版请重新上传完整文件。不能删除旧版本或直接退回 v1；历史扫码记录须继续追溯。"
         />
         {isLoading && <Skeleton active />}
         {error && (

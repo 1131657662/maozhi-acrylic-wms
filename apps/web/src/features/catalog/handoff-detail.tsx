@@ -9,10 +9,10 @@ import { HandoffBind } from './handoff-bind';
 export function HandoffDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const { data, error, isLoading, refetch } = useQuery(handoffKeys.detail(id));
   return (
-    <Drawer title="设备交接明细 · 原事实保留" open onClose={onClose} size={960}>
+    <Drawer title="设备交接明细 · 扫码记录保留" open onClose={onClose} size={960}>
       {isLoading && <Skeleton active />}
       {error instanceof ApiError && error.status === 403 ? (
-        <Result status="403" title="仅 Web 用户可核验交接" />
+        <Result status="403" title="仅网页端登录用户可确认交接" />
       ) : (
         error && (
           <RequestError
@@ -27,7 +27,7 @@ export function HandoffDetail({ id, onClose }: { id: string; onClose: () => void
           <Alert
             type={data.summary.ready ? 'success' : 'warning'}
             title={`已收妥 ${data.summary.received}/${data.summary.expectedCount} · 未收妥 ${data.summary.unresolved}`}
-            description={data.summary.reasons.join('；') || '全部事实已收妥，可在设备列表确认交接。'}
+            description={data.summary.reasons.join('；') || '已收到全部扫码记录，可在设备列表确认交接。'}
           />
           <Button onClick={() => void refetch()}>刷新收妥结果</Button>
           {!data.summary.confirmedAt && <HandoffBind id={id} records={data.items} />}
@@ -50,12 +50,12 @@ export function HandoffDetail({ id, onClose }: { id: string; onClose: () => void
                   width: 150,
                 },
                 {
-                  title: '收妥核验',
+                  title: '记录状态',
                   render: (_, r) =>
-                    r.payloadMatches ? '原正文一致 / 已收妥' : r.received ? '正文冲突，原记录保留' : '未收到',
+                    r.payloadMatches ? '扫码记录一致 / 已收到' : r.received ? '记录内容冲突，原扫码记录保留' : '未收到',
                   width: 180,
                 },
-                { title: 'ERP 作业行', render: (_, r) => r.context?.outboundLineId ?? '待批量确认', width: 210 },
+                { title: '本单商品行', render: (_, r) => r.context?.outboundLineId ?? '待批量确认', width: 210 },
               ]}
             />
           )}

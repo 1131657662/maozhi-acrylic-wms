@@ -29,7 +29,7 @@ test('catalog-publish-failure-keeps-v1：数据库中途失败可用原键恢复
   await catalogShot(page, 'rollback');
   await db.run('DROP TRIGGER fail_publish');
   await page.getByRole('button', { name: '确认发布整版', exact: true }).click();
-  await expect(page.getByText('整版发布成功，已有事实未改变')).toBeVisible();
+  await expect(page.getByText('整版发布成功，已有扫码记录未改变')).toBeVisible();
   expect(pageErrors).toEqual([]);
   console.log('B1C1_E2E_ROLLBACK after_head_failure=current_v1 all_tables_unchanged=true same_key_retry=success');
 });
@@ -46,7 +46,7 @@ test('catalog-publish-response-lost：提交后丢响应自动核验不重复发
     { times: 1 },
   );
   await publishFile(page);
-  await expect(page.getByText('整版发布成功，已有事实未改变')).toBeVisible();
+  await expect(page.getByText('整版发布成功，已有扫码记录未改变')).toBeVisible();
   expect((await db.get("SELECT COUNT(*) AS n FROM operation_log WHERE action='catalog.publish'"))?.n).toBe('1');
   console.log('B1C1_E2E_LOST_RESPONSE recovered=true publish_audits=1');
 });

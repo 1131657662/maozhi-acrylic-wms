@@ -22,6 +22,7 @@ object ScanScreen {
     fun render(parent: LinearLayout, model: Pair<JSONObject, List<ScanFact>>, selectedLine: String?, actions: ScanActions) {
         val (plan, facts) = model
         Ui.title(parent, plan.getString("orderNo"))
+        Ui.text(parent, "扫码只做计数参考，出库数量以网页填写为准", 15f)
         Ui.text(parent, "${plan.getString("customerName")} · ${plan.getString("vehicleNo")}")
         val card = Ui.card(parent)
         card.backgroundTintList = ColorStateList.valueOf(Ui.teal)
@@ -31,19 +32,19 @@ object ScanScreen {
         val localOnly = facts.filter { it.id !in ids && it.state != "conflict" }
         val count = plan.getInt("actualPackages") + localOnly.size
         Ui.title(card, "当前进度 $count / ${plan.getInt("plannedPackages")} 包").setTextColor(Color.WHITE)
-        Ui.text(card, "服务端 ${plan.getInt("actualPackages")} 包 · 本机待处理 $pending 条").setTextColor(Color.WHITE)
+        Ui.text(card, "已上传 ${plan.getInt("actualPackages")} 包 · 本机待处理 $pending 条").setTextColor(Color.WHITE)
         Ui.text(card, "${tonnes(plan.getLong("actualWeightGrams"))} 吨已回传 · ${status(plan.getString("status"), !plan.isNull("scanClosedAt"))}", 14f).setTextColor(Color.WHITE)
         val canScan = plan.getString("status") == "open" && plan.isNull("scanClosedAt")
         if (canScan) {
             lineSelector(parent, plan, selectedLine, actions.line)
             barcodeInput(parent, actions)
         }
-        Ui.button(parent, "补传 / 同步状态", actions.sync)
-        Ui.button(parent, "联网刷新目录（保留本单与队列）", actions.refreshCatalog)
+        Ui.button(parent, "上传扫码记录", actions.sync)
+        Ui.button(parent, "联网更新条码目录（保留本单与记录）", actions.refreshCatalog)
         Ui.button(parent, "扫码记录", actions.records)
         Ui.button(parent, if (canScan) "结束扫码" else "已结束扫码", actions.freeze).isEnabled = canScan
-        Ui.text(parent, "结束扫码不扣库存；出库数量由网页填写并确认。", 14f)
-        Ui.button(parent, "重新清点交接（保留原事实）", actions.recheck)
+        Ui.text(parent, "扫码记录用于核对，不会直接扣减库存。", 14f)
+        Ui.button(parent, "重新清点交接（保留扫码记录）", actions.recheck)
         Ui.button(parent, "返回扫码计划", actions.home)
     }
     private fun barcodeInput(parent: LinearLayout, actions: ScanActions) {
@@ -62,11 +63,11 @@ object ScanScreen {
     private fun lineSelector(parent: LinearLayout, plan: JSONObject, selected: String?, choose: (String?) -> Unit) {
         val rows = plan.getJSONArray("lines")
         val lines = (0 until rows.length()).map { rows.getJSONObject(it) }
-        Ui.text(parent, "ERP 作业行（目录规格不自动映射商品）", 14f)
+        Ui.text(parent, "本单商品行（不会自动按条码目录选择商品）", 14f)
         if (lines.size == 1) { choose(lines.single().getString("id")); Ui.text(parent, lines.single().getString("productCode")); return }
         val spinner = Spinner(parent.context)
-        spinner.contentDescription = "ERP 作业行"
-        val labels = listOf("请选择原单作业行") + lines.map { "${it.getString("productCode")} · ${it.getInt("plannedPackages")} 包" }
+        spinner.contentDescription = "本单商品行"
+        val labels = listOf("请选择出库单商品") + lines.map { "${it.getString("productCode")} · ${it.getInt("plannedPackages")} 包" }
         spinner.adapter = ArrayAdapter(parent.context, android.R.layout.simple_spinner_dropdown_item, labels)
         spinner.setSelection(lines.indexOfFirst { it.getString("id") == selected } + 1)
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
