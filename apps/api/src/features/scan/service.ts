@@ -57,7 +57,11 @@ export async function recordFact(db: Database, command: ScanCommand): Promise<De
     const acceptsLate =
       plan.status === 'confirmed' &&
       (await tx.get('SELECT id FROM outbound_shipments WHERE order_id=? LIMIT 1', [planId]));
-    ensure(plan.status === 'open' || acceptsLate, 'PLAN_CLOSED', '单据已结束扫码或终结，原有记录保留');
+    ensure(
+      (plan.status === 'open' && !plan.scanClosedAt) || acceptsLate,
+      'PLAN_CLOSED',
+      '单据已结束扫码或终结，原有记录保留',
+    );
     const context = await resolveContext(tx, command);
     await validateFact(tx, plan, fact, context.outboundLineId);
     try {

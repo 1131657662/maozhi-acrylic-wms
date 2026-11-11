@@ -28,7 +28,7 @@ export function CatalogOverview({ overview }: { overview: z.infer<typeof catalog
       ) : (
         <Empty description="目录尚未初始化，请先完成 v1 迁移" />
       )}
-      {current?.entryCount === 0 && <Empty description="当前版本无有效条码；已有扫码事实仍可冻结、确认" />}
+      {current?.entryCount === 0 && <Empty description="当前目录无有效条码；已有扫码记录仍可结束扫码并确认出库" />}
       {!gate.allowed && (
         <Alert
           type="warning"

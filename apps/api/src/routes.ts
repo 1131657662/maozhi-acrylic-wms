@@ -60,6 +60,7 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   router.post('/outbound', requireChannel('web', origins), outboundPlans.create);
   router.patch('/outbound/:id', requireChannel('web', origins), outboundPlans.edit);
   router.post('/outbound/:id/confirm', requireChannel('web', origins), outbound.confirm);
+  router.post('/outbound/:id/scan-reopen', requireChannel('web', origins), scan.reopen);
   router.get('/inbound', requireChannel('web', origins), inbound.list);
   router.get('/inbound/:id', requireChannel('web', origins), inbound.detail);
   router.post('/inbound', requireChannel('web', origins), inbound.create);

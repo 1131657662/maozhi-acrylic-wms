@@ -10,6 +10,13 @@ interface RouteRule {
   channel?: AuditChannel;
 }
 const routes: RouteRule[] = [
+  {
+    pattern: /^\/outbound\/([^/]+)\/scan-reopen$/,
+    action: () => 'scan.reopen',
+    kind: 'outbound',
+    id: 1,
+    channel: 'web',
+  },
   { pattern: /^\/auth\/(login|logout|me)$/, action: (m) => `auth.${m[1]}`, kind: 'account' },
   {
     pattern: /^\/(inbound|outbound)\/([^/]+)\/(confirm|reverse|void|corrections|business-date)$/,

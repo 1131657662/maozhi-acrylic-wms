@@ -1,3 +1,8 @@
+ALTER TABLE outbound_orders ADD COLUMN scan_closed_at DATETIME(3) NULL;
+UPDATE outbound_orders o SET scan_closed_at=COALESCE(
+  (SELECT s.created_at FROM scan_submissions s WHERE s.plan_id=o.id),
+  (SELECT MAX(l.created_at) FROM operation_log l WHERE l.target_id=o.id AND l.action='scan.freeze'),
+  o.created_at), status='open' WHERE o.status='frozen';
 CREATE TABLE outbound_shipments (
   id CHAR(36) PRIMARY KEY,
   order_id VARCHAR(80) NOT NULL,

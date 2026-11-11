@@ -1,4 +1,5 @@
 ALTER TABLE outbound_lines DROP COLUMN line_position, DROP COLUMN scan_packages, DROP COLUMN scan_weight_grams;
+ALTER TABLE outbound_orders DROP COLUMN scan_closed_at;
 DROP TABLE outbound_shipment_lines;
 DROP TABLE outbound_shipments;
 ALTER TABLE document_correction_lines

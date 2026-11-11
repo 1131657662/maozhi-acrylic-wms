@@ -2,6 +2,7 @@ import { auditAction, type AuditChange, statusText, postingText } from '@wms/con
 import { auditObject } from './input-summary.ts';
 import { businessText } from './projection.ts';
 const fields: Record<string, { label: string; unit: string }> = {
+  scanClosedAt: { label: '扫码进度', unit: '' },
   status: { label: '状态', unit: '' },
   postingState: { label: '入账状态', unit: '' },
   packages: { label: '包数', unit: '包' },
@@ -32,6 +33,7 @@ export function parsedAuditObject(value: unknown) {
   }
 }
 function display(field: string, value: unknown, kind: string): string {
+  if (field === 'scanClosedAt') return value == null ? '可扫码' : '已结束扫码';
   if (value == null) return '未记录';
   if (field === 'status' && kind === 'stocktake') return stocktakeStates.get(String(value)) ?? '未识别';
   if (field === 'status') return statusText(String(value), kind === 'inbound' ? 'inbound' : 'outbound');

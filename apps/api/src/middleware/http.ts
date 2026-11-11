@@ -62,8 +62,8 @@ export function actorFrom(res: Response): Actor {
   return { ...sessionSchema.parse(res.locals.session), traceId: String(res.locals.traceId) };
 }
 
-export function ok(res: Response, data: unknown): void {
-  res.json({ code: 'OK', message: '成功', data, traceId: res.locals.traceId });
+export function ok(res: Response, data: unknown, message = '成功'): void {
+  res.json({ code: 'OK', message, data, traceId: res.locals.traceId });
 }
 
 export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) => {

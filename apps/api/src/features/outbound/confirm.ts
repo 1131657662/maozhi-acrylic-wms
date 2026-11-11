@@ -36,7 +36,10 @@ export async function confirmOutbound(
     const operation = await createOperation(tx, 'outbound.confirm', before.id, '人工确认实发出库', command.actor);
     const shipmentId = await createShipment(tx, before, lines, operation.id, command.actor);
     await postInventory(tx, operation, before.warehouseCode, shipmentStockChanges(before, lines));
-    await tx.run("UPDATE outbound_orders SET status='confirmed',revision=revision+1 WHERE id=?", [before.id]);
+    await tx.run(
+      "UPDATE outbound_orders SET status='confirmed',scan_closed_at=COALESCE(scan_closed_at,UTC_TIMESTAMP(3)),revision=revision+1 WHERE id=?",
+      [before.id],
+    );
     const after = await getOrder(tx, before.id);
     await audit(tx, command.actor, {
       action: operation.type,

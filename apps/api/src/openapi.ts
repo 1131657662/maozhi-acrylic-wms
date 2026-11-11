@@ -63,6 +63,15 @@ export interface Operation {
 }
 export const operations: Operation[] = [
   {
+    method: 'post',
+    path: '/outbound/{id}/scan-reopen',
+    summary: '重新扫码：仅未发货的计划中单据',
+    body: revisionSchema,
+    response: detailSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
     method: 'get',
     path: '/outbound/{id}/prefill',
     summary: '按商品汇总扫码并按计划行序分配；仅预填不扣库存',
@@ -248,7 +257,7 @@ export const operations: Operation[] = [
   {
     method: 'post',
     path: '/scan/plans/{id}/submit',
-    summary: '冻结事实；校验 revision/digest；不扣库存',
+    summary: '结束扫码；校验 revision/digest；不比较计划、不改单据状态、不扣库存',
     body: revisionSchema,
     response: detailSchema,
     channel: 'pda',

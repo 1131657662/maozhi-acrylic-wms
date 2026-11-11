@@ -42,7 +42,8 @@ test('库存不足使确认、流水和状态一起回滚', async () => {
     await assert.rejects(confirmOutbound(db, { planId: frozen.id, key: randomUUID(), expected: frozen, actor }), {
       code: 'INSUFFICIENT_STOCK',
     });
-    assert.equal((await getOrder(db, frozen.id)).status, 'frozen');
+    assert.equal((await getOrder(db, frozen.id)).status, 'open');
+    assert.equal((await getOrder(db, frozen.id)).scanClosedAt, frozen.scanClosedAt);
     assert.equal((await db.all('SELECT * FROM stock_journal')).length, 0);
     assert.equal((await db.get('SELECT packages FROM stock'))?.packages, 6);
   } finally {

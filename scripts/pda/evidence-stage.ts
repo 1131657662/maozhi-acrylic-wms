@@ -52,7 +52,8 @@ try {
     console.log('B1C2_PHYSICAL_PUBLISH v2=published old_order_digest_unchanged=true legacy_received=60');
   } else if (action === 'confirm') {
     const order = await getOrder(db, 'pda-handoff-plan');
-    assert.equal(order.status, 'frozen');
+    assert.equal(order.status, 'open');
+    assert.ok(order.scanClosedAt);
     await confirmOutbound(db, {
       planId: order.id,
       lines: order.lines.map((line) => ({

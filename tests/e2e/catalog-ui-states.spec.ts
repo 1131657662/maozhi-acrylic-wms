@@ -27,7 +27,7 @@ test('catalog-four-states：错误可重试、无权限可理解、零条版显�
   await expect(page.getByRole('button', { name: '重试目录状态' })).toBeHidden();
   await uploadFile(page, '');
   await publishFile(page);
-  await expect(page.getByText('当前版本无有效条码；已有扫码事实仍可冻结、确认')).toBeVisible();
+  await expect(page.getByText('当前目录无有效条码；已有扫码记录仍可结束扫码并确认出库')).toBeVisible();
   await page.route('**/api/v1/catalog', (route) =>
     route.fulfill({
       status: 403,

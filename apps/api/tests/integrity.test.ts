@@ -69,7 +69,8 @@ test('后续商品库存不足回滚此前商品的扣减与流水', async () =>
     });
     assert.equal((await db.get('SELECT packages FROM stock'))?.packages, 6);
     assert.equal((await db.all('SELECT * FROM stock_journal')).length, 0);
-    assert.equal((await getOrder(db, plan.id)).status, 'frozen');
+    assert.equal((await getOrder(db, plan.id)).status, 'open');
+    assert.equal((await getOrder(db, plan.id)).scanClosedAt, frozen.scanClosedAt);
   } finally {
     await dispose();
   }

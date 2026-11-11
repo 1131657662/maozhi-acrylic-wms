@@ -5,6 +5,7 @@ import { scanRequestSchema, idSchema, revisionSchema, sessionSchema } from '@wms
 import { pdaScanProjection } from './projection.ts';
 import { recordFact } from './service.ts';
 import { freezePlan } from './freeze.ts';
+import { reopenScan } from './reopen.ts';
 import { listCatalog } from './catalog.ts';
 import { actorFrom, ok } from '../../middleware/http.ts';
 import { tokenFrom } from '../../middleware/http.ts';
@@ -35,6 +36,17 @@ export function scanController(db: Database) {
         ),
       );
     },
+    reopen: async (req: Request, res: Response): Promise<void> =>
+      ok(
+        res,
+        await reopenScan(db, {
+          planId: idSchema.parse(req.params.id),
+          key: z.uuid().parse(req.get('idempotency-key')),
+          expected: revisionSchema.parse(req.body),
+          actor: actorFrom(res),
+        }),
+        '已重新开启扫码',
+      ),
     freeze: async (req: Request, res: Response): Promise<void> =>
       ok(
         res,
@@ -46,6 +58,7 @@ export function scanController(db: Database) {
             actor: actorFrom(res),
           }),
         ),
+        '已结束扫码',
       ),
   };
 }

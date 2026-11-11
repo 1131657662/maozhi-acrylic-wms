@@ -87,6 +87,7 @@ export const orderSchema = z.object({
   vehicleNo: z.string(),
   memo: z.string().max(500).nullable().default(null),
   status: statusSchema,
+  scanClosedAt: z.string().nullable().default(null),
   revision: z.number().int(),
   planVersion: z.literal(1),
   createdAt: z.string(),
