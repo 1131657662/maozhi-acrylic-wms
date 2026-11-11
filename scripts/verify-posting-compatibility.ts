@@ -22,7 +22,7 @@ try {
   await migrateDown(db);
   await seedFromSamples(db, 'compatibility-isolated-test-only');
   const before = await digest(db);
-  await migrateUp(db,'005_inventory_posting');
+  await migrateUp(db, '005_inventory_posting');
   assert.equal(await digest(db), before);
   const inbound = await db.all(
     'SELECT status,posting_state,COUNT(*) AS rows_count FROM inbound_receipts GROUP BY status,posting_state',
@@ -45,6 +45,7 @@ try {
   await assert.rejects(
     confirmOutbound(db, {
       planId: String(order?.id),
+      lines: [{ lineId: 'legacy-read-only', actualPackages: 1, actualWeightGrams: 100 }],
       key: randomUUID(),
       actor,
       expected: { revision: 0, digest: '0'.repeat(64) },

@@ -12,7 +12,9 @@ async function assemble(db: Database, headers: z.infer<typeof headerSchema>[]): 
   const slots = ids.map(() => '?').join(',');
   const lines = z
     .array(rawLineSchema)
-    .parse(await db.all(`${lineSql} WHERE order_id IN (${slots}) AND source_del_flag=0 ORDER BY product_code`, ids));
+    .parse(
+      await db.all(`${lineSql} WHERE order_id IN (${slots}) AND source_del_flag=0 ORDER BY line_position,id`, ids),
+    );
   const facts = z.array(rawFactSchema).parse(await db.all(`${factSql} WHERE plan_id IN (${slots}) ORDER BY id`, ids));
   const contexts = z.array(z.object({ factId: z.string(), lineId: z.string() })).parse(
     await db.all(

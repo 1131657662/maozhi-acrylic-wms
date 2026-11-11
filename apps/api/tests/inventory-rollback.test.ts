@@ -6,7 +6,7 @@ import { newReceipt } from './numbering-fixture.ts';
 import { adjustment, failAfter, frozenOrder, inventorySnapshot } from './inventory-fixture.ts';
 import { createInbound } from '../src/features/inbound/create.ts';
 import { confirmInbound } from '../src/features/inbound/confirm.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { adjustStock } from '../src/features/stock/adjust.ts';
 
 for (const kind of ['inbound', 'outbound', 'adjustment'] as const) {

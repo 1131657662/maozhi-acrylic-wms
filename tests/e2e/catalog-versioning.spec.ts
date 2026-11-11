@@ -76,6 +76,11 @@ test('catalog-mixed-version-continuation：Web 发布后旧单继续扫码冻结
   const confirm = await catalogPost(page, '/outbound/DEMO-001/confirm', {
     revision: frozen.revision,
     digest: frozen.digest,
+    lines: frozen.lines.map((l) => ({
+      lineId: l.id,
+      actualPackages: l.actualPackages,
+      actualWeightGrams: l.actualWeightGrams,
+    })),
   });
   expect(confirm.status()).toBe(200);
   expect((await confirm.json()).data.status).toBe('confirmed');

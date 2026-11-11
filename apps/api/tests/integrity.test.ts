@@ -6,7 +6,7 @@ import { fixture, fact, actor } from './fixture.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
 import { recordFact } from '../src/features/scan/service.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { addV1Fixture } from './catalog-fixture.ts';
 
 test('零重、负重、非100克精度与缺少来源被边界拒绝', () => {

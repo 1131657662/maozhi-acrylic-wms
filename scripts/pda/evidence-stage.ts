@@ -55,6 +55,11 @@ try {
     assert.equal(order.status, 'frozen');
     await confirmOutbound(db, {
       planId: order.id,
+      lines: order.lines.map((line) => ({
+        lineId: line.id,
+        actualPackages: line.scanPackages ?? 0,
+        actualWeightGrams: line.scanWeightGrams ?? 0,
+      })),
       expected: { revision: order.revision, digest: order.digest },
       key: randomUUID(),
       actor,

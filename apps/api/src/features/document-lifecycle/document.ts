@@ -2,6 +2,7 @@ import type { LifecycleKind } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { getInbound } from '../inbound/repository.ts';
 import { getOrder } from '../outbound/repository.ts';
+import { shipmentStockChanges } from '../outbound/shipments.ts';
 import { AppError } from '../../shared/errors.ts';
 
 export const documentTables = {
@@ -48,11 +49,14 @@ export async function readDocument(db: Database, target: DocumentTarget) {
     confirmationId: null,
     facts: doc.facts.length,
     fingerprint: doc,
-    lines: doc.lines.map((l) => ({
-      productCode: l.productCode,
-      packages: -l.actualPackages,
-      grams: -l.actualWeightGrams,
-    })),
+    lines: shipmentStockChanges(
+      doc,
+      doc.lines.map((l) => ({
+        lineId: l.id,
+        actualPackages: l.actualPackages,
+        actualWeightGrams: l.actualWeightGrams,
+      })),
+    ).map((l) => ({ productCode: l.productCode, packages: l.packagesDelta, grams: l.weightDeltaGrams })),
   };
 }
 export type LifecycleDocument = Awaited<ReturnType<typeof readDocument>>;

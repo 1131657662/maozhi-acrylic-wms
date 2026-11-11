@@ -157,3 +157,7 @@ MASTER_DATA_SPEC归B6a、STOCKTAKE_SPEC归B6e、PRINT_SPEC归B9、CUTOVER_PLAN�
 修订记录：C16 索引指向定点修订闭环及UI实施编号，区分规格/代码/数据库/现场验收。
 修订记录：C17 索引指向定点修订闭环及UI实施编号，区分规格/代码/数据库/现场验收。
 修订记录：C18 索引指向定点修订闭环及UI实施编号，区分规格/代码/数据库/现场验收。
+
+### B4d 本轮验收登记（2026-11-11）
+
+[B4D_ACCEPTANCE.md](B4D_ACCEPTANCE.md)：人工实发、发货 #1、016 迁移与合成库验证；扫码状态拆分留后续。依据：[OUTBOUND_FACT_SPEC.md](OUTBOUND_FACT_SPEC.md)、[B5C_SPEC.md](B5C_SPEC.md) §3.1。

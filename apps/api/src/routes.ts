@@ -55,6 +55,8 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   );
   router.get('/outbound', outbound.list);
   router.get('/outbound/:id', outbound.detail);
+  router.get('/outbound/:id/scan-records.xlsx', requireChannel('web', origins), outbound.scanExport);
+  router.get('/outbound/:id/prefill', requireChannel('web', origins), outbound.prefill);
   router.post('/outbound', requireChannel('web', origins), outboundPlans.create);
   router.patch('/outbound/:id', requireChannel('web', origins), outboundPlans.edit);
   router.post('/outbound/:id/confirm', requireChannel('web', origins), outbound.confirm);

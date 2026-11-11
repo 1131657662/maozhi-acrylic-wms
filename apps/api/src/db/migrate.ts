@@ -115,6 +115,10 @@ const migrations = [
     ],
   },
   { id: '015_audit_attempts', guardedTables: ['operation_attempts', 'operation_log'] },
+  {
+    id: '016_outbound_shipments',
+    guardedTables: ['outbound_shipment_lines', 'outbound_shipments', 'document_correction_lines'],
+  },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -189,6 +193,13 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (
+          migration.id === '016_outbound_shipments' &&
+          (await connection.get(
+            'SELECT id FROM outbound_lines WHERE scan_packages IS NOT NULL OR scan_weight_grams IS NOT NULL OR line_position<>0 LIMIT 1',
+          ))
+        )
+          throw new Error('拒绝回退：outbound_lines 含有发货快照或行序数据');
         if (migration.id === '011_corrections_business_date') await guardCorrectionDown(connection);
         if (
           migration.id === '010_outbound_memo' &&

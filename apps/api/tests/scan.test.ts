@@ -17,7 +17,7 @@ test('不同逐包实重独立累计，冻结不扣库存', async () => {
       actor,
     });
     const frozen = await freezePlan(db, { planId: plan.id, key: randomUUID(), expected: plan, actor });
-    assert.equal(frozen.actualWeightGrams, 600000);
+    assert.equal(frozen.scanWeightGrams, 600000);
     assert.equal(frozen.status, 'frozen');
     assert.deepEqual(await db.all('SELECT * FROM stock'), before);
     assert.equal((await db.all('SELECT * FROM stock_journal')).length, 0);
@@ -31,7 +31,7 @@ test('同一事实重试不新增记录，正文冲突拒绝', async () => {
     const command = { planId: 'DEMO-001', fact: fact(), actor };
     await recordFact(db, command);
     await recordFact(db, command);
-    assert.equal((await getOrder(db, command.planId)).actualPackages, 1);
+    assert.equal((await getOrder(db, command.planId)).scanPackages, 1);
     await assert.rejects(recordFact(db, { ...command, fact: { ...command.fact, deviceId: 'changed' } }), {
       code: 'IDEMPOTENCY_CONFLICT',
     });

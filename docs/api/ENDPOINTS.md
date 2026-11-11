@@ -4,6 +4,8 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/outbound/{id}/prefill | web | 按商品汇总扫码并按计划行序分配；仅预填不扣库存 |
+| GET | /api/v1/outbound/{id}/scan-records.xlsx | web | 完整生成本单扫码清单；含合计，上限十万条 |
 | GET | /api/v1/audit/timeline | web | 最近 20 个业务对象及批量事件安全投影 |
 | GET | /api/v1/audit/objects/{kind}/{targetId} | web | 按对象类型与主键继续加载记录（含失败尝试） |
 | GET | /api/v1/audit/{id}/events | web | 对象事件游标分页 |

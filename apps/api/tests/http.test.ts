@@ -71,7 +71,15 @@ test('HTTP 完整闭环：登录、扫码、冻结、Web 确认、只读查询',
       .post('/api/v1/outbound/DEMO-001/confirm')
       .set('Origin', 'http://127.0.0.1:5173')
       .set('Idempotency-Key', randomUUID())
-      .send({ revision: frozen.revision, digest: frozen.digest })
+      .send({
+        revision: frozen.revision,
+        digest: frozen.digest,
+        lines: frozen.lines.map((line: { id: string; actualPackages: number; actualWeightGrams: number }) => ({
+          lineId: line.id,
+          actualPackages: line.actualPackages,
+          actualWeightGrams: line.actualWeightGrams,
+        })),
+      })
       .expect(200);
     const final = (await api.get('/api/v1/outbound/DEMO-001').auth(token, { type: 'bearer' }).expect(200)).body.data;
     assert.equal(final.status, 'confirmed');

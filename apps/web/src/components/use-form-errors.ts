@@ -9,7 +9,13 @@ export function useFormErrors(error: unknown, form: FormInstance) {
     if (info.kind !== 'VALIDATION') return;
     const fields = info.fields.map(({ path, message }) => ({
       name: path.map((part) =>
-        part === 'weightGrams' ? 'weightTonnes' : part === 'plannedWeightGrams' ? 'plannedWeightTonnes' : part,
+        part === 'actualWeightGrams'
+          ? 'actualWeightTonnes'
+          : part === 'weightGrams'
+            ? 'weightTonnes'
+            : part === 'plannedWeightGrams'
+              ? 'plannedWeightTonnes'
+              : part,
       ),
       errors: [message],
     }));

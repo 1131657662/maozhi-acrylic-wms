@@ -8,7 +8,7 @@ import { executeLifecycle } from '../src/features/document-lifecycle/execute.ts'
 import { recordFact } from '../src/features/scan/service.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
 import { confirmInbound } from '../src/features/inbound/confirm.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
 
 for (const kind of ['inbound', 'outbound'] as const) {
@@ -55,7 +55,7 @@ for (const kind of ['inbound', 'outbound'] as const) {
       else {
         const closed = await getOrder(db, target.id);
         await assert.rejects(confirmOutbound(db, { planId: target.id, key: randomUUID(), expected: closed, actor }), {
-          code: 'NOT_FROZEN',
+          code: 'PLAN_CLOSED',
         });
         await assert.rejects(freezePlan(db, { planId: target.id, key: randomUUID(), expected: closed, actor }), {
           code: 'PLAN_CLOSED',
@@ -63,7 +63,7 @@ for (const kind of ['inbound', 'outbound'] as const) {
         await assert.rejects(recordFact(db, { planId: target.id, fact: fact({ barcode: 'DEMO-032-13' }), actor }), {
           code: 'PLAN_CLOSED',
         });
-        const { planId, recordedBy, receivedAt, ...oldFact } = closed.facts[0]!;
+        const { planId, recordedBy, receivedAt, productCode, productName, ...oldFact } = closed.facts[0]!;
         assert.equal((await recordFact(db, { planId, fact: oldFact, actor })).status, 'cancelled');
       }
       assert.deepEqual(await businessFingerprint(db), unchanged);

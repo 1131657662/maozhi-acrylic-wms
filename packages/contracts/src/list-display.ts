@@ -82,8 +82,8 @@ export const listFields: Record<ExportKind, ListField[]> = {
     ...[f('products', '商品明细'), f('productModels', '商品型号')].map((field) => ({ ...field, defaultHidden: true })),
     f('plannedPackages', '计划包数', 'integer', 14),
     f('plannedWeightGrams', '计划重量（吨）', 'tonnes', 20),
-    f('actualPackages', '实扫包数', 'integer', 14),
-    f('actualWeightGrams', '实扫重量（吨）', 'tonnes', 20),
+    f('actualPackages', '实发包数', 'integer', 14),
+    f('actualWeightGrams', '实发重量（吨）', 'tonnes', 20),
     f('status', '状态', 'text', 30),
     f('customerName', '客户'),
     ...[f('shipToName', '收货人'), f('shipToPhone', '收货电话'), f('shipToAddress', '收货地址')].map((field) => ({

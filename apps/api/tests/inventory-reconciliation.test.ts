@@ -7,7 +7,7 @@ import { newReceipt } from './numbering-fixture.ts';
 import { frozenOrder, adjustment } from './inventory-fixture.ts';
 import { createInbound } from '../src/features/inbound/create.ts';
 import { confirmInbound } from '../src/features/inbound/confirm.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { adjustStock } from '../src/features/stock/adjust.ts';
 
 test('跨单调整：两张入库和一张出库共用库存格；SQL 验证整条流水与当前库存一致', async () => {

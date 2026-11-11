@@ -1,3 +1,4 @@
+import { actualPackagesSql, actualGramsSql, outboundActuals } from './outbound-actual.ts';
 import { z } from 'zod';
 import { webOutboundListSchema, SNAPSHOT_MISSING_TEXT, type WebOutboundQuery } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
@@ -25,8 +26,8 @@ const sortColumns = {
     '(SELECT COALESCE(SUM(sl.planned_packages),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
   plannedWeightGrams:
     '(SELECT COALESCE(SUM(sl.planned_weight_tonnes),0) FROM outbound_lines sl WHERE sl.order_id=o.id AND sl.source_del_flag=0)',
-  actualPackages: '(SELECT COUNT(*) FROM scan_facts sf WHERE sf.plan_id=o.id)',
-  actualWeightGrams: '(SELECT COALESCE(SUM(sf.weight_tonnes),0) FROM scan_facts sf WHERE sf.plan_id=o.id)',
+  actualPackages: actualPackagesSql,
+  actualWeightGrams: actualGramsSql,
 };
 export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { pageSize: number }) {
   const parts = {
@@ -64,11 +65,7 @@ async function summaries(db: Database, ids: string[]) {
     FROM outbound_lines WHERE source_del_flag=0 AND order_id IN (${placeholders}) GROUP BY order_id`,
     ids,
   );
-  const actual = await db.all(
-    `SELECT plan_id AS id,COUNT(*) AS packages,SUM(weight_tonnes) AS tonnes
-    FROM scan_facts WHERE plan_id IN (${placeholders}) GROUP BY plan_id`,
-    ids,
-  );
+  const actual = await outboundActuals(db, ids);
   const values = (rows: typeof planned) =>
     new Map(
       rows.map((row) => [String(row.id), { packages: Number(row.packages), weightGrams: aggregateGrams(row.tonnes) }]),
@@ -89,7 +86,7 @@ async function summaries(db: Database, ids: string[]) {
       },
     ]),
   );
-  return { planned: plannedValues, actual: values(actual) };
+  return { planned: plannedValues, actual };
 }
 type MatchedLine = {
   lineId: string;

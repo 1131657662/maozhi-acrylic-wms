@@ -17,6 +17,7 @@ export * from './vehicles.ts';
 export * from './snapshots.ts';
 export * from './inbound.ts';
 export * from './outbound-plan.ts';
+export * from './outbound-actual.ts';
 
 export const idSchema = z
   .string()
@@ -45,6 +46,8 @@ export const lineSchema = z.object({
   packageType: z.string().nullable().optional(),
   plannedPackages: z.number().int(),
   plannedWeightGrams: plannedWeightGramsSchema,
+  scanPackages: z.number().int().nullable().default(null),
+  scanWeightGrams: z.number().int().nullable().default(null),
   actualPackages: z.number().int(),
   actualWeightGrams: z.number().int(),
 });
@@ -58,7 +61,13 @@ export const factInputSchema = z.strictObject({
   scannedAt: z.iso.datetime(),
   planVersion: z.literal(1),
 });
-export const factSchema = factInputSchema.extend({ planId: idSchema, recordedBy: z.string(), receivedAt: z.string() });
+export const factSchema = factInputSchema.extend({
+  planId: idSchema,
+  recordedBy: z.string(),
+  receivedAt: z.string(),
+  productCode: z.string().optional(),
+  productName: z.string().optional(),
+});
 export const scanRequestSchema = z.union([
   factInputSchema.extend({ catalogVersion: z.literal(1) }),
   z.strictObject({ schemaVersion: z.literal(2), fact: factInputSchema, context: scanContextInputSchema }),
@@ -84,6 +93,8 @@ export const orderSchema = z.object({
   businessDate: z.string().nullable().default(null),
   plannedPackages: z.number().int(),
   plannedWeightGrams: z.number().int(),
+  scanPackages: z.number().int().nullable().default(null),
+  scanWeightGrams: z.number().int().nullable().default(null),
   actualPackages: z.number().int(),
   actualWeightGrams: z.number().int(),
 });

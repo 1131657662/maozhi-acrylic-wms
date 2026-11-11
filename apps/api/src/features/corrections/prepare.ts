@@ -71,10 +71,11 @@ export async function prepareCorrection(db: Database, target: CorrectionTarget, 
   const posted = await prepareInventory(
     db,
     original.warehouse,
-    lines.map((line) => ({
-      productCode: line.productCode,
-      packagesDelta: sign * line.delta.packages,
-      weightDeltaGrams: sign * line.delta.weightGrams,
+    [...new Set(lines.map((line) => line.productCode))].map((code) => ({
+      productCode: code,
+      packagesDelta: sign * lines.filter((l) => l.productCode === code).reduce((sum, l) => sum + l.delta.packages, 0),
+      weightDeltaGrams:
+        sign * lines.filter((l) => l.productCode === code).reduce((sum, l) => sum + l.delta.weightGrams, 0),
     })),
   );
   return { ...original, lines, posted };

@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { catalogFixture, fact, actor, upload, publish, catalogSnapshot } from './catalog-fixture.ts';
 import { recordFact } from '../src/features/scan/service.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { versionEntries } from '../src/features/catalog/read.ts';
 import type { Database } from '../src/db/mysql.ts';
 

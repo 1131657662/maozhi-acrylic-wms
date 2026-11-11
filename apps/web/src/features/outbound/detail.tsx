@@ -1,5 +1,5 @@
 import { Link, useParams } from '@umijs/max';
-import { Alert, Button, Card, Skeleton, Steps, Space } from 'antd';
+import { Alert, Button, Card, Skeleton, Space } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { tonnes, snapshotText } from '@wms/contracts';
 import { useOrder } from './use-order';
@@ -43,21 +43,9 @@ export function OrderDetail() {
         </Space>
       </div>
       <StatusNotice status={order.status} kind="outbound" />
-      {['open', 'frozen', 'confirmed'].includes(order.status) && (
-        <Card>
-          <Steps
-            current={{ open: 0, frozen: 1, confirmed: 2 }[order.status]}
-            items={[
-              { title: 'PDA 扫码', description: '保存逐包实重' },
-              { title: '已扫码，待确认', description: '事实已锁定，库存未扣减' },
-              { title: 'Web 确认出库', description: '一次扣减并记录流水' },
-            ]}
-          />
-        </Card>
-      )}
       <div className="metrics">
         <Card>
-          <small>计划包数 / 扫码包数</small>
+          <small>计划包数 / 实发包数</small>
           <h2>
             {order.plannedPackages} / {order.actualPackages}
             <small> 包</small>
@@ -71,7 +59,7 @@ export function OrderDetail() {
           </h2>
         </Card>
         <Card>
-          <small>扫码实际重量</small>
+          <small>实发重量</small>
           <h2>
             {tonnes(order.actualWeightGrams)}
             <small> 吨</small>
@@ -91,29 +79,19 @@ export function OrderDetail() {
             { title: '收货人', render: () => snapshotText(order.shipToName) },
             { title: '电话', render: () => snapshotText(order.shipToPhone) },
             { title: '地址', render: () => snapshotText(order.shipToAddress) },
-            { title: '计划版本', dataIndex: 'planVersion' },
-            { title: '事实修订号', dataIndex: 'revision' },
+
             { title: '建单时间', dataIndex: 'createdAt', render: () => formatTime(order.createdAt) },
             { title: '业务日期', render: () => order.businessDate ?? '未记录' },
           ]}
         />
-        <div className="line-summary">
-          {order.lines.map((line) => (
-            <p key={line.id}>
-              {line.productCode} · {snapshotText(line.productName)}（{snapshotText(line.productModel)}） — 计划{' '}
-              {line.plannedPackages} 包 / {tonnes(line.plannedWeightGrams)} 吨；实扫 {line.actualPackages} 包 /{' '}
-              {tonnes(line.actualWeightGrams)} 吨
-            </p>
-          ))}
-        </div>
       </Card>
+      <Confirm key={`${order.id}:${order.status}`} order={order} />
       <Facts order={order} />
       {order.corrections && (
         <CorrectionSummaryPanel summary={order.corrections} number={order.orderNo} createdAt={order.createdAt} />
       )}
       <LifecyclePanel kind="outbound" id={order.id} />
       <ObjectAuditTimeline kind="outbound" id={order.id} />
-      <Confirm order={order} />
       <CorrectionDetailActions
         kind="outbound"
         id={order.id}

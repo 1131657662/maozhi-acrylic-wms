@@ -5,7 +5,7 @@ import { catalogFixture, upload, publish, fact, actor } from './catalog-fixture.
 import { recordFact } from '../src/features/scan/service.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { factContexts } from '../src/features/scan/notices.ts';
 
 test('同单混版：目录移除旧码、改重后，原事实/摘要不变且仍可冻结确认', async () => {
@@ -30,7 +30,7 @@ test('同单混版：目录移除旧码、改重后，原事实/摘要不变且�
       actor,
     });
     assert.deepEqual(mixed.facts.map((f) => f.catalogVersion).sort(), [1, 1, 2]);
-    assert.equal(mixed.actualWeightGrams, 900000);
+    assert.equal(mixed.scanWeightGrams, 900000);
     const frozen = await freezePlan(db, { planId: mixed.id, expected: mixed, key: randomUUID(), actor });
     const empty = (await upload(db, '')).version!;
     await publish(db, empty.versionId);
