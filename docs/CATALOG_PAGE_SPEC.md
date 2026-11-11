@@ -149,7 +149,7 @@
 |---|---|---|---|
 | 登记标识的业务别名 | 实际登记时间 | 以交接清单为准 | expected − received |
 
-当前目录版本的设备安装覆盖率、实时离线待传队列、未登记设备总数均为「不支持」；最后一条扫码事实版本只证明该事实上下文，不代表设备现在的版本。无记录显示未知，不能填0。未来设备观测须新增协议与M-DEVICE-OBSERVATIONS（device_id、reported_version/hash、observed_at、queue_observation及过期策略），本批不实现、不据推断放行。发布门禁仍检查已登记交接和未知客户端人工核验。
+当前目录版本的设备安装覆盖率、实时离线待传队列、未登记设备总数均为「不支持」；最后一条扫码记录版本只证明该事实上下文，不代表设备现在的版本。无记录显示未知，不能填0。未来设备观测须新增协议与M-DEVICE-OBSERVATIONS（device_id、reported_version/hash、observed_at、queue_observation及过期策略），本批不实现、不据推断放行。发布门禁仍检查已登记交接和未知客户端人工核验。
 
 ## 10. 扫描测试
 

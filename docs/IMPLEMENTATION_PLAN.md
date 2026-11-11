@@ -460,10 +460,43 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |
 | B5c | DOMAIN §5–6，短溢发/分批/短关/取样 | M-SHIPMENTS、M-SAMPLE-MARKS；发货头/行/事实唯一归属、包吨独立剩余量；样品出库类型走普通扣库，取样不扣库；B6a之后、B6f之前 |
 | B5d | DOMAIN §2/7 + REPORT_SPEC §10，分列/重述/日期更正/详情单张导出 | M-DATE-CORRECTIONS，原日期不覆盖；更正单无业务日期；打印仅占位；B5c后、B7a前 |
+| **B4d 出库手工实发** | OUTBOUND_FACT_SPEC §11、B5C_SPEC §3.1 | 016 发货头/行、scan_* 快照、行序与更正行主键兼容；人工实发、发货 #1、预填/XLSX；按用户确认保留 frozen，扫码状态拆分留后续；验证见本文顶部 |
+| **B4f PDA 文案改口** | PDA_SCAN_SPEC §8.1 | 无迁移；只改文案，B4d 合并后立即做 |
+| **B4e 单据字段扩展** | MASTER_DATA_SPEC §9 | 柜号、合同号、行备注、收货地址快照、送货联系人、单据类型；B4d 后 |
+| **B4g Web 清点工作台** | OUTBOUND_FACT_SPEC §5.1 | scan-records / scan-candidates / batch；无新表，复用发货与扫码记录；B4e 后 |
+| **B6i 性能专项** | LIST_UX_AUDIT、B6B_ACCEPTANCE | 排序绘制 579ms、反查翻页 850ms、10 万导出 45.6s；B7b 前 |
+| **B8d 小程序补页** | README 术语表 | 补入库、库存、流水只读页；B8c 后 |
+| **B11 PDA 连续扫码** | PDA_SCAN_SPEC | 广播优先 + 键盘楔兜底、手工输完整条码、撤销、声音；B9 前 |
 | B9 打印接入 | PRINT_SPEC | M-PRINT-TEMPLATES（含请求去重），依赖主数据快照/B5c/B5d数据契约及真实模板配置，先合成样本PDF验收 |
-| B10 切换专项 | CUTOVER_PLAN | M-CUTOVER-ANCHOR（含legacy-open承接头行）、PD编号对齐；B6a/B5c/B8a及业务页面/打印完成后，先隔离演练再另行执行切换 |
+| B10 切换专项 | CUTOVER_PLAN | **不承接未完成单据、不迁移历史单据**；只导主数据与期初库存，主数据编码重编，PD 编号对齐；B6a/B5c/B8a及业务页面/打印完成后，先隔离演练再另行执行切换 |
 
-建议主链：011应用专项 → B6a → B6b → B6c → B6d → B6e → B5b/B5c → B6f → B5d → B7a → B7b。B8a/B8b可独立前置，B8c接稳定事件；B9取得模板输入后实施，B10最后。此表仅排期，不授权任何实际开工/迁移/生产切换。
+**当前主链（2026-11-11 更新）**
+
+```
+B4d 出库手工实发
+ → B4f PDA 文案
+ → B4e 单据字段
+ → B4g Web 清点工作台
+ → B5b 入库异常
+ → B5c 分批发货（1/2/3 三步）
+ → B5d 报表分列
+ → B6g 联想搜索
+ → B6d 目录页
+ → B6f 库存页
+ → B6e 盘点增强
+ → B7a 报表页
+ → B6i 性能专项
+ → B7b 工作台/看板
+ → B8a/B8b/B8c 运维
+ → B8d 小程序补页
+ → B11 PDA 连续扫码
+ → B9 打印
+ → B10 切换
+```
+
+已完成：B1a、B1b、B1c、B2a、B3a、B3b、B3c、B4a、B4b、B5a、B6a、B6a-num、B6b（含修复）、B6c。
+
+此表仅排期，不授权任何实际开工/迁移/生产切换。
 
 所有M-*只是迁移职责，不是现存文件或已占编号；真实迁移从012按实施顺序编号，明确up/down、原列/来源指纹及非空拒绝破坏性down，不重写001–011。跨批次复用字段不得重复ADD COLUMN。设备观测M-DEVICE-OBSERVATIONS留后续未排期，页面不等待它来伪造实时指标。
 
