@@ -56,7 +56,7 @@ test('B1a 未知状态/流水类型中文回退灰色显示，无异常和伪流
   await expect(page.getByTestId('unknown-status-notice')).toContainText('请按单号核对原始单据');
   await expect(tag).toHaveClass(/ant-tag-default/);
   await expect(page.getByText('PDA 扫码', { exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: '核对并确认出库' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '核对并确认出库' })).toHaveCount(0);
   await page.screenshot({ path: '.local/evidence/b1a2-unknown-status-1440.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   await noPageOverflow(page);

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OUTBOUND_MAX_LINES } from './outbound-actual.ts';
 import { businessDateFields } from './business-date.ts';
 import { plateSchema } from './vehicles.ts';
 
@@ -26,8 +27,7 @@ export const outboundPlanFieldsSchema = z.strictObject({
       }),
     )
     .min(1)
-    .max(50)
-    .refine((lines) => new Set(lines.map((line) => line.productCode)).size === lines.length, '商品不能重复'),
+    .max(OUTBOUND_MAX_LINES),
 });
 export const createOutboundPlanSchema = outboundPlanFieldsSchema;
 export const editOutboundPlanSchema = z.strictObject({
@@ -38,7 +38,7 @@ export const editOutboundPlanSchema = z.strictObject({
     .partial()
     .required({ vehicleNo: true })
     .extend({
-      lines: z.array(outboundPlanFieldsSchema.shape.lines.element).max(50).optional(),
+      lines: z.array(outboundPlanFieldsSchema.shape.lines.element).max(OUTBOUND_MAX_LINES).optional(),
     }),
 });
 export type OutboundPlanFields = z.infer<typeof outboundPlanFieldsSchema>;

@@ -11,8 +11,8 @@ class ScanRepository(private val dao: ScanDao, private val session: SessionStore
         require(barcode.isNotBlank()) { "请扫描条码" }
         require(dao.findBarcode(barcode) == null) { "本机已记录此条码，请勿重复扫描" }
         val plan = JSONObject(dao.plan(planId)?.json ?: error("请先在线下载计划"))
-        require(plan.getString("status") == "open") { "计划已冻结或已出库" }
-        require(dao.submission(planId) == null) { "冻结请求待核验，禁止继续扫码" }
+        require(plan.getString("status") == "open" && plan.isNull("scanClosedAt")) { "该单已结束扫码或出库" }
+        require(dao.submission(planId) == null) { "结束扫码请求待核验，暂不能继续扫码" }
         val version = dao.currentCatalog() ?: error("请先下载完整目录")
         val item = dao.versionEntry(version.version, barcode) ?: error("本机 v${version.version} 无此条码；联网刷新后可用原单继续扫")
         val line = selectLine(plan, selectedLine, if (version.verified) null else item.legacyProduct)

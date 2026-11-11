@@ -17,7 +17,7 @@ async function records(db: Database, headers: Row[]): Promise<Correction[]> {
   if (!headers.length) return [];
   const rows = await db.all(
     `SELECT * FROM document_correction_lines
-    WHERE correction_id IN (${headers.map(() => '?').join(',')}) ORDER BY product_code`,
+    WHERE correction_id IN (${headers.map(() => '?').join(',')}) ORDER BY product_code,inbound_line_id,outbound_line_id`,
     headers.map((h) => String(h.id)),
   );
   return headers.map((h) =>

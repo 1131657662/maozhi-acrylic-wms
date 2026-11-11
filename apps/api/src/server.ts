@@ -32,6 +32,8 @@ try {
   await assertCorrectionsReady(db);
   await assertMasterReady(db);
   await assertAuditReady(db);
+  if ((await db.get("SELECT state FROM schema_migrations WHERE id='016_outbound_shipments'"))?.state !== 'applied')
+    throw new Error('016 发货记录迁移未完成，拒绝启动写服务');
 } catch (error) {
   await db.close();
   throw error;

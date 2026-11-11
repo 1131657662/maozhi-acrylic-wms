@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { numberingFixture } from './numbering-fixture.ts';
 import { seedListEvidence } from '../../../scripts/e2e-list-fixtures.ts';
+import { confirmScannedFixture, actor } from './fixture.ts';
+import { randomUUID } from 'node:crypto';
 import { frozenOrder } from './inventory-fixture.ts';
 
 test('Web 包吨排序覆盖完整结果，软删行不影响排序与分页', async () => {
@@ -36,11 +38,12 @@ test('Web 包吨排序覆盖完整结果，软删行不影响排序与分页', a
   }
 });
 
-test('Web 实扫包吨支持服务端排序', async () => {
+test('Web 人工实发包吨支持服务端排序', async () => {
   const context = await numberingFixture();
   try {
     await seedListEvidence(context.db);
-    await frozenOrder(context.db);
+    const order = await frozenOrder(context.db);
+    await confirmScannedFixture(context.db, { planId: order.id, expected: order, key: randomUUID(), actor });
     for (const sortBy of ['actualPackages', 'actualWeightGrams']) {
       const response = await context.web
         .get('/api/v1/web/lists/outbound')

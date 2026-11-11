@@ -18,6 +18,9 @@ export async function inventorySnapshot(db: Database) {
     'inbound_receipts',
     'inbound_lines',
     'outbound_orders',
+    'outbound_lines',
+    'outbound_shipments',
+    'outbound_shipment_lines',
     'stock',
     'stock_journal',
     'inventory_operations',
@@ -25,7 +28,12 @@ export async function inventorySnapshot(db: Database) {
     'idempotent_commands',
   ];
   const entries = [];
+  const existing = new Set((await db.all('SHOW TABLES')).map((row) => String(Object.values(row)[0])));
   for (const table of tables) {
+    if (!existing.has(table)) {
+      entries.push([table, null]);
+      continue;
+    }
     const rows = await db.all(`SELECT * FROM ${table}`);
     entries.push([table, rows.map((row) => JSON.stringify(row)).sort()]);
   }
@@ -48,6 +56,9 @@ export async function failAfter(db: Database, table: string, event: 'INSERT' | '
     'stock_journal',
     'inbound_receipts',
     'outbound_orders',
+    'outbound_lines',
+    'outbound_shipments',
+    'outbound_shipment_lines',
     'operation_log',
     'idempotent_commands',
   ];

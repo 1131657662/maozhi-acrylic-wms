@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { businessErrorText } from '@wms/contracts';
+import { businessErrorText, listTime } from '@wms/contracts';
 import { errorCopy, errorUi } from '../text';
 
 export type ErrorKind = keyof typeof errorCopy;
@@ -24,7 +24,7 @@ export function safeBusinessMessage(message: string, fallback: string): string {
     : fallback;
 }
 export class ApiError extends Error {
-  readonly time = new Date().toLocaleString('zh-CN', { hour12: false });
+  readonly time = listTime(new Date().toISOString());
   readonly fields: { path: (string | number)[]; message: string }[];
   constructor(
     message: string,

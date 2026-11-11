@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { fixture, fact, actor } from './fixture.ts';
 import { recordFact } from '../src/features/scan/service.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
 import type { Database } from '../src/db/mysql.ts';
 
@@ -42,7 +42,8 @@ test('库存不足使确认、流水和状态一起回滚', async () => {
     await assert.rejects(confirmOutbound(db, { planId: frozen.id, key: randomUUID(), expected: frozen, actor }), {
       code: 'INSUFFICIENT_STOCK',
     });
-    assert.equal((await getOrder(db, frozen.id)).status, 'frozen');
+    assert.equal((await getOrder(db, frozen.id)).status, 'open');
+    assert.equal((await getOrder(db, frozen.id)).scanClosedAt, frozen.scanClosedAt);
     assert.equal((await db.all('SELECT * FROM stock_journal')).length, 0);
     assert.equal((await db.get('SELECT packages FROM stock'))?.packages, 6);
   } finally {
@@ -60,7 +61,7 @@ test('冻结后禁止新事实但保留已接收事实的重试能力', async ()
       actor,
     });
     await freezePlan(db, { planId: plan.id, key: randomUUID(), expected: plan, actor });
-    assert.equal((await recordFact(db, { planId: plan.id, fact: original, actor })).actualPackages, 2);
+    assert.equal((await recordFact(db, { planId: plan.id, fact: original, actor })).scanPackages, 2);
     await assert.rejects(
       recordFact(db, { planId: plan.id, fact: fact({ barcode: 'DEMO-032-21', weightGrams: 280000 }), actor }),
       { code: 'PLAN_CLOSED' },

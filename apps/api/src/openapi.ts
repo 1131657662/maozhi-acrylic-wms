@@ -23,6 +23,8 @@ import {
   detailSchema,
   scanRequestSchema,
   revisionSchema,
+  confirmOutboundSchema,
+  outboundPrefillSchema,
   catalogSchema,
   stockSchema,
   auditSchema,
@@ -60,6 +62,30 @@ export interface Operation {
   safeEnvelope?: boolean;
 }
 export const operations: Operation[] = [
+  {
+    method: 'post',
+    path: '/outbound/{id}/scan-reopen',
+    summary: '重新扫码：仅未发货的计划中单据',
+    body: revisionSchema,
+    response: detailSchema,
+    channel: 'web',
+    idempotent: true,
+  },
+  {
+    method: 'get',
+    path: '/outbound/{id}/prefill',
+    summary: '按商品汇总扫码并按计划行序分配；仅预填不扣库存',
+    response: outboundPrefillSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/outbound/{id}/scan-records.xlsx',
+    summary: '完整生成本单扫码清单；含合计，上限十万条',
+    response: z.string(),
+    responseMedia: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    channel: 'web',
+  },
   ...auditOperations,
   ...listPreferencesOperations,
   ...masterOperations,
@@ -175,7 +201,7 @@ export const operations: Operation[] = [
     method: 'post',
     path: '/outbound/{id}/confirm',
     summary: 'Web 唯一库存扣减入口；单事务确认',
-    body: revisionSchema,
+    body: confirmOutboundSchema,
     response: detailSchema,
     channel: 'web',
     idempotent: true,
@@ -231,7 +257,7 @@ export const operations: Operation[] = [
   {
     method: 'post',
     path: '/scan/plans/{id}/submit',
-    summary: '冻结事实；校验 revision/digest；不扣库存',
+    summary: '结束扫码；校验 revision/digest；不比较计划、不改单据状态、不扣库存',
     body: revisionSchema,
     response: detailSchema,
     channel: 'pda',

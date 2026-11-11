@@ -5,7 +5,7 @@ import { listCellText, type ListField, type ExportKind, type ReportMeta, type De
 import { AppError } from '../../shared/errors.ts';
 import { writeReconciliation } from './report-sheet.ts';
 
-const formats = { text: '@', integer: '0', tonnes: '0.0000', date: 'yyyy/mm/dd hh:mm:ss' };
+const formats = { text: '@', integer: '0', tonnes: '0.0000', date: 'yyyy-mm-dd hh:mm:ss' };
 const maxExcelInteger = 999_999_999_999_999;
 export interface ExportWriter {
   append(row: Record<string, unknown>): string[];

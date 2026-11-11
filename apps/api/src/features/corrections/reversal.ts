@@ -4,7 +4,15 @@ import { decimalToGrams, gramsToDecimal } from '../../db/weight.ts';
 import type { LifecycleDocument } from '../document-lifecycle/document.ts';
 
 function validJournal(row: Row, item: Correction, product: string, sign: number) {
-  const line = item.lines.find((l) => l.productCode === product);
+  const matching = item.lines.filter((l) => l.productCode === product);
+  const line = matching.length
+    ? {
+        delta: {
+          packages: matching.reduce((s, l) => s + l.delta.packages, 0),
+          weightGrams: matching.reduce((s, l) => s + l.delta.weightGrams, 0),
+        },
+      }
+    : undefined;
   return (
     line &&
     row.correction_id === item.id &&

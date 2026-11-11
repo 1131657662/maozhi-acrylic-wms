@@ -74,9 +74,9 @@ class B1c2DeviceTest {
         SyncRepository(dao, api).sync()
         SubmissionRepository(dao, api).freeze("pda-handoff-plan")
         val plan = api.get("/scan/plans/pda-handoff-plan") as JSONObject
-        check(plan.getString("status") == "frozen"); check(plan.getLong("actualWeightGrams") == 18302000L)
+        check(plan.getString("status") == "open"); check(!plan.isNull("scanClosedAt")); check(plan.getLong("actualWeightGrams") == 18302000L)
         session.selectedPlan = "pda-handoff-plan"
-        DeviceEvidence.record("B1C2_MIXED original_order=pda-handoff-plan versions=60*v1+1*v2 weight_grams=18302000 frozen=true old_payloads=60/60 offline101_uploaded_after_v2=true")
+        DeviceEvidence.record("B1C2_MIXED original_order=pda-handoff-plan versions=60*v1+1*v2 weight_grams=18302000 scan_closed=true old_payloads=60/60 offline101_uploaded_after_v2=true")
         db.close()
     }
 }

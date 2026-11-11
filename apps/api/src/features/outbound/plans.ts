@@ -105,7 +105,7 @@ async function insertLines(
   for (const [index, line] of plan.lines.entries())
     await db.run(
       `INSERT INTO outbound_lines
-    (id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes) VALUES(?,?,?,?,?,?)`,
+    (id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes,line_position) VALUES(?,?,?,?,?,?,?)`,
       [
         randomUUID(),
         id,
@@ -113,6 +113,7 @@ async function insertLines(
         products[index]!.name,
         line.plannedPackages,
         gramsToDecimal(line.plannedWeightGrams),
+        index + 1,
       ],
     );
 }

@@ -62,12 +62,12 @@ test('出库摘要与旧详情一致，多明细与多事实不放大汇总', as
     const legacy = (await context.web.get('/api/v1/outbound/DEMO-001').expect(200)).body.data;
     for (const key of ['plannedPackages', 'plannedWeightGrams', 'actualPackages', 'actualWeightGrams'] as const)
       assert.equal(row[key], legacy[key]);
-    assert.equal(row.actualPackages, 2);
-    assert.equal(row.actualWeightGrams, 600000);
+    assert.equal(row.actualPackages, 0);
+    assert.equal(row.actualWeightGrams, 0);
     assert.equal(row.plannedPackages, 3);
     assert.equal(row.plannedWeightGrams, 700000);
     assert.deepEqual(await inventorySnapshot(context.db), before);
-    console.log('B1B1_AGGREGATION planned=3/0.7000 actual=2/0.6000 fanout=0 business_writes=0');
+    console.log('B1B1_AGGREGATION planned=3/0.7000 actual=0/0.0000 scan_only=true fanout=0 business_writes=0');
   } finally {
     await context.dispose();
   }

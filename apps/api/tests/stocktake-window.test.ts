@@ -7,7 +7,7 @@ import { voidStocktake } from '../src/features/stocktake/void.ts';
 import { saveReading } from '../src/features/stocktake/save-reading.ts';
 import { createInbound } from '../src/features/inbound/create.ts';
 import { confirmInbound } from '../src/features/inbound/confirm.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { adjustStock } from '../src/features/stock/adjust.ts';
 import { newReceipt } from './numbering-fixture.ts';
 import { adjustment, frozenOrder } from './inventory-fixture.ts';

@@ -72,10 +72,15 @@ test('catalog-mixed-version-continuation：Web 发布后旧单继续扫码冻结
   await expect(page.getByRole('dialog')).toBeHidden();
   await uploadFile(page, '');
   await publishFile(page);
-  await expect(page.getByText('当前版本无有效条码；已有扫码事实仍可冻结、确认')).toBeVisible();
+  await expect(page.getByText('当前目录无有效条码；已有扫码记录仍可结束扫码并确认出库')).toBeVisible();
   const confirm = await catalogPost(page, '/outbound/DEMO-001/confirm', {
     revision: frozen.revision,
     digest: frozen.digest,
+    lines: frozen.lines.map((l) => ({
+      lineId: l.id,
+      actualPackages: l.actualPackages,
+      actualWeightGrams: l.actualWeightGrams,
+    })),
   });
   expect(confirm.status()).toBe(200);
   expect((await confirm.json()).data.status).toBe('confirmed');

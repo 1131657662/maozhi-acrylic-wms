@@ -144,13 +144,13 @@ class MainActivity : ComponentActivity() {
         Ui.button(parent, "返回连续扫码") { perform { showScan() } }
     }
     private fun freezeDialog(plan: JSONObject) {
-        AlertDialog.Builder(this).setTitle("差异核对 / 冻结")
+        AlertDialog.Builder(this).setTitle("结束扫码")
             .setMessage("计划 ${plan.getInt("plannedPackages")} 包 / ${ScanScreen.tonnes(plan.getLong("plannedWeightGrams"))} 吨\n" +
                 "服务端已收 ${plan.getInt("actualPackages")} 包 / ${ScanScreen.tonnes(plan.getLong("actualWeightGrams"))} 吨\n" +
-                "本机未同步、冲突或计划差异会阻止冻结。冻结不会扣库存。")
-            .setNegativeButton("继续核对", null).setPositiveButton("确认冻结") { _, _ -> perform {
+                "本机未上传或冲突的扫码记录需要先处理。结束扫码不扣库存，出库数量由网页填写并确认。")
+            .setNegativeButton("继续扫码", null).setPositiveButton("结束扫码") { _, _ -> perform {
                 withContext(Dispatchers.IO) { SubmissionRepository(dao, api).freeze(session.selectedPlan) }
-                showScan(); notice.text = "扫码已冻结，待 Web 确认出库。"
+                showScan(); notice.text = "已结束扫码，待网页填写并确认出库数量。"
             } }.show()
     }
     private fun logout() {

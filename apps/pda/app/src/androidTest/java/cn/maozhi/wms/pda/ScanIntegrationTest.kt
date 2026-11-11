@@ -38,7 +38,8 @@ class ScanIntegrationTest {
         assertEquals(0, db.dao().pending().size)
         SubmissionRepository(db.dao(), api).freeze("DEMO-002")
         val plan = api.get("/scan/plans/DEMO-002") as JSONObject
-        assertEquals("frozen", plan.getString("status"))
+        assertEquals("open", plan.getString("status"))
+        assertEquals(false, plan.isNull("scanClosedAt"))
         assertEquals(600000, plan.getInt("actualWeightGrams"))
         val stock = api.get("/stock") as JSONArray
         assertEquals(6, stock.getJSONObject(0).getInt("packages"))

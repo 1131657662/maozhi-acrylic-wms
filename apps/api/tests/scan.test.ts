@@ -17,8 +17,9 @@ test('不同逐包实重独立累计，冻结不扣库存', async () => {
       actor,
     });
     const frozen = await freezePlan(db, { planId: plan.id, key: randomUUID(), expected: plan, actor });
-    assert.equal(frozen.actualWeightGrams, 600000);
-    assert.equal(frozen.status, 'frozen');
+    assert.equal(frozen.scanWeightGrams, 600000);
+    assert.equal(frozen.status, 'open');
+    assert.ok(frozen.scanClosedAt);
     assert.deepEqual(await db.all('SELECT * FROM stock'), before);
     assert.equal((await db.all('SELECT * FROM stock_journal')).length, 0);
   } finally {
@@ -31,7 +32,7 @@ test('同一事实重试不新增记录，正文冲突拒绝', async () => {
     const command = { planId: 'DEMO-001', fact: fact(), actor };
     await recordFact(db, command);
     await recordFact(db, command);
-    assert.equal((await getOrder(db, command.planId)).actualPackages, 1);
+    assert.equal((await getOrder(db, command.planId)).scanPackages, 1);
     await assert.rejects(recordFact(db, { ...command, fact: { ...command.fact, deviceId: 'changed' } }), {
       code: 'IDEMPOTENCY_CONFLICT',
     });
@@ -62,7 +63,7 @@ test('目录实重不符与未知码不得入队服务端', async () => {
     await dispose();
   }
 });
-test('短装、旧修订号均禁止冻结', async () => {
+test('旧修订号拒绝结束扫码，短装允许结束且状态不变', async () => {
   const { db, dispose } = await fixture();
   try {
     const before = await getOrder(db, 'DEMO-001');
@@ -70,9 +71,9 @@ test('短装、旧修订号均禁止冻结', async () => {
     await assert.rejects(freezePlan(db, { planId: before.id, key: randomUUID(), expected: before, actor }), {
       code: 'STALE_PLAN',
     });
-    await assert.rejects(freezePlan(db, { planId: after.id, key: randomUUID(), expected: after, actor }), {
-      code: 'PLAN_DIFFERENCE',
-    });
+    const closed = await freezePlan(db, { planId: after.id, key: randomUUID(), expected: after, actor });
+    assert.equal(closed.status, 'open');
+    assert.ok(closed.scanClosedAt);
   } finally {
     await dispose();
   }

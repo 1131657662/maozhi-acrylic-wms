@@ -6,7 +6,7 @@ import { newReceipt } from './numbering-fixture.ts';
 import { frozenOrder } from './inventory-fixture.ts';
 import { createInbound } from '../src/features/inbound/create.ts';
 import { confirmInbound } from '../src/features/inbound/confirm.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { lifecyclePreview } from '../src/features/document-lifecycle/preview.ts';
 import { hash } from '../src/shared/hash.ts';
 import { tableFingerprints } from '../../../scripts/b4a-fingerprint.ts';

@@ -33,9 +33,9 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     align: 'right',
     render: (_, row) => tonnes(row.plannedWeightGrams),
   },
-  { title: '实扫包数', dataIndex: 'actualPackages', sorter: true, width: 110, align: 'right' },
+  { title: '实发包数', dataIndex: 'actualPackages', sorter: true, width: 110, align: 'right' },
   {
-    title: '实扫重量（吨）',
+    title: '实发重量（吨）',
     dataIndex: 'actualWeightGrams',
     sorter: true,
     width: 150,

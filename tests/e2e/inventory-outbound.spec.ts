@@ -11,7 +11,7 @@ test('B1a3 出库不足 409 全回滚；PDA/小程序确认和调整全部 403',
     const cell = await inventoryCell(db);
     await db.run('UPDATE stock SET packages=0,weight_tonnes=0 WHERE product_code=?', [cell.productCode]);
     const barcode = `TEST-${randomUUID()}`;
-    await addV1Fixture(db,{barcode,product:cell.productCode,tonnes:'0.3025'});
+    await addV1Fixture(db, { barcode, product: cell.productCode, tonnes: '0.3025' });
     const planResponse = await post(page, '/outbound', {
       orderNo: `TX-OUT-${randomUUID()}`,
       warehouseCode: cell.warehouseCode,
@@ -50,6 +50,7 @@ test('B1a3 出库不足 409 全回滚；PDA/小程序确认和调整全部 403',
     const rejected = await post(page, `/outbound/${id}/confirm`, {
       revision: frozenData.revision,
       digest: frozenData.digest,
+      lines: [{ lineId: frozenData.lines[0].id, actualPackages: 1, actualWeightGrams: 302500 }],
     });
     expect(rejected.status()).toBe(409);
     expect((await rejected.json()).code).toBe('INSUFFICIENT_STOCK');

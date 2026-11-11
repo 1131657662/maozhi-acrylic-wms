@@ -6,7 +6,7 @@ import { fixture, fact, actor } from './fixture.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
 import { recordFact } from '../src/features/scan/service.ts';
 import { freezePlan } from '../src/features/scan/freeze.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { addV1Fixture } from './catalog-fixture.ts';
 
 test('零重、负重、非100克精度与缺少来源被边界拒绝', () => {
@@ -69,7 +69,8 @@ test('后续商品库存不足回滚此前商品的扣减与流水', async () =>
     });
     assert.equal((await db.get('SELECT packages FROM stock'))?.packages, 6);
     assert.equal((await db.all('SELECT * FROM stock_journal')).length, 0);
-    assert.equal((await getOrder(db, plan.id)).status, 'frozen');
+    assert.equal((await getOrder(db, plan.id)).status, 'open');
+    assert.equal((await getOrder(db, plan.id)).scanClosedAt, frozen.scanClosedAt);
   } finally {
     await dispose();
   }

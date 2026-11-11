@@ -115,10 +115,22 @@ const migrations = [
     ],
   },
   { id: '015_audit_attempts', guardedTables: ['operation_attempts', 'operation_log'] },
+  {
+    id: '016_outbound_shipments',
+    guardedTables: ['outbound_shipment_lines', 'outbound_shipments', 'document_correction_lines'],
+  },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
   return readFileSync(new URL(`../../migrations/${id}.${direction}.sql`, import.meta.url), 'utf8');
+}
+function migrationChecksum(sql: string): string {
+  return createHash('sha256').update(sql.replace(/\r\n/g, '\n')).digest('hex');
+}
+function migrationChecksumMatches(sql: string, checksum: string): boolean {
+  const lf = sql.replace(/\r\n/g, '\n');
+  const crlf = lf.replace(/\n/g, '\r\n');
+  return [sql, lf, crlf].some((value) => createHash('sha256').update(value).digest('hex') === checksum);
 }
 async function statements(db: Database, sql: string): Promise<void> {
   for (const statement of sql
@@ -154,10 +166,10 @@ export async function migrateUp(db: Database, through?: string): Promise<void> {
     for (const migration of migrations) {
       if (through && migration.id > through) break;
       const sql = migrationSql(migration.id, 'up');
-      const checksum = createHash('sha256').update(sql).digest('hex');
+      const checksum = migrationChecksum(sql);
       const previous = await connection.get('SELECT checksum,state FROM schema_migrations WHERE id=?', [migration.id]);
       if (previous) {
-        if (previous.checksum !== checksum || previous.state !== 'applied')
+        if (!migrationChecksumMatches(sql, String(previous.checksum)) || previous.state !== 'applied')
           throw new Error(`迁移 ${migration.id} 已变更或中断，须检查后恢复`);
         continue;
       }
@@ -189,6 +201,18 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (
+          migration.id === '016_outbound_shipments' &&
+          (await connection.get('SELECT id FROM outbound_orders WHERE scan_closed_at IS NOT NULL LIMIT 1'))
+        )
+          throw new Error('拒绝回退：outbound_orders 含有结束扫码记录');
+        if (
+          migration.id === '016_outbound_shipments' &&
+          (await connection.get(
+            'SELECT id FROM outbound_lines WHERE scan_packages IS NOT NULL OR scan_weight_grams IS NOT NULL OR line_position<>0 LIMIT 1',
+          ))
+        )
+          throw new Error('拒绝回退：outbound_lines 含有发货快照或行序数据');
         if (migration.id === '011_corrections_business_date') await guardCorrectionDown(connection);
         if (
           migration.id === '010_outbound_memo' &&

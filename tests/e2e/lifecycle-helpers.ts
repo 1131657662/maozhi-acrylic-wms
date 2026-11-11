@@ -57,7 +57,17 @@ export async function confirmedDocument(page: Page, db: Database, kind: Lifecycl
   expect(freeze.status()).toBe(200);
   const frozen = detailSchema.parse((await freeze.json()).data);
   expect(
-    (await post(page, `/outbound/${plan.id}/confirm`, { revision: frozen.revision, digest: frozen.digest })).status(),
+    (
+      await post(page, `/outbound/${plan.id}/confirm`, {
+        revision: frozen.revision,
+        digest: frozen.digest,
+        lines: frozen.lines.map((l) => ({
+          lineId: l.id,
+          actualPackages: l.actualPackages,
+          actualWeightGrams: l.actualWeightGrams,
+        })),
+      })
+    ).status(),
   ).toBe(200);
   return { ...cell, id: plan.id };
 }

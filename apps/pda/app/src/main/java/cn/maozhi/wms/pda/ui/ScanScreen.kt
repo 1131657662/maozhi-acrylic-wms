@@ -32,16 +32,17 @@ object ScanScreen {
         val count = plan.getInt("actualPackages") + localOnly.size
         Ui.title(card, "当前进度 $count / ${plan.getInt("plannedPackages")} 包").setTextColor(Color.WHITE)
         Ui.text(card, "服务端 ${plan.getInt("actualPackages")} 包 · 本机待处理 $pending 条").setTextColor(Color.WHITE)
-        Ui.text(card, "${tonnes(plan.getLong("actualWeightGrams"))} 吨已回传 · ${status(plan.getString("status"))}", 14f).setTextColor(Color.WHITE)
-        if (plan.getString("status") == "open") {
+        Ui.text(card, "${tonnes(plan.getLong("actualWeightGrams"))} 吨已回传 · ${status(plan.getString("status"), !plan.isNull("scanClosedAt"))}", 14f).setTextColor(Color.WHITE)
+        val canScan = plan.getString("status") == "open" && plan.isNull("scanClosedAt")
+        if (canScan) {
             lineSelector(parent, plan, selectedLine, actions.line)
             barcodeInput(parent, actions)
         }
         Ui.button(parent, "补传 / 同步状态", actions.sync)
         Ui.button(parent, "联网刷新目录（保留本单与队列）", actions.refreshCatalog)
         Ui.button(parent, "扫码记录", actions.records)
-        Ui.button(parent, "结束核对 · 冻结", actions.freeze).isEnabled = plan.getString("status") == "open"
-        Ui.text(parent, "冻结只锁定扫码事实。库存由 Web 确认出库后扣减。", 14f)
+        Ui.button(parent, if (canScan) "结束扫码" else "已结束扫码", actions.freeze).isEnabled = canScan
+        Ui.text(parent, "结束扫码不扣库存；出库数量由网页填写并确认。", 14f)
         Ui.button(parent, "重新清点交接（保留原事实）", actions.recheck)
         Ui.button(parent, "返回扫码计划", actions.home)
     }
@@ -75,10 +76,11 @@ object ScanScreen {
         parent.addView(spinner)
     }
     fun tonnes(grams: Long): String = String.format(Locale.ROOT, "%.4f", grams / 1000000.0)
-    fun status(value: String): String = when (value) {
-        "open" -> "扫码中"
-        "frozen" -> "已冻结，待 Web 确认"
-        "confirmed" -> "已出库（只读）"
-        else -> "状态未识别：$value；已保留原值，停止新增扫码"
+    fun status(value: String, scanClosed: Boolean = false): String = when {
+        value == "open" && scanClosed -> "已结束扫码，待网页确认出库数量"
+        value == "open" -> "扫码中"
+        value == "frozen" -> "已结束扫码，待网页确认出库数量"
+        value == "confirmed" -> "已出库（只读）"
+        else -> "状态未识别，停止新增扫码"
     }
 }

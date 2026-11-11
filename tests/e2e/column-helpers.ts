@@ -63,7 +63,7 @@ export async function reorderColumn(page: Page, kind: string) {
   );
   const source = page
     .getByRole('treeitem')
-    .filter({ hasText: kind === 'inbound' ? /^总重量（吨）$/ : /^实扫重量（吨）$/ })
+    .filter({ hasText: kind === 'inbound' ? /^总重量（吨）$/ : /^实发重量（吨）$/ })
     .locator('.ant-tree-node-content-wrapper');
   const target = page
     .getByRole('treeitem')

@@ -1,5 +1,7 @@
 # 第一里程碑验收记录
 
+- 2026-11-11：**B4d 人工实发与发货 #1** 代码与本地合成验证完成，test 252/252、build exit 0、E2E 117/117（主108 + catalog9）；未应用开发样本库，未合并或推送，详见 [B4D_ACCEPTANCE.md](B4D_ACCEPTANCE.md)。
+
 - 2026-11-11：**B6c 三小步完成并通过用户验收，240/116/0**（test 240/240、完整 E2E 116/0、build exit 0；三项 exit 均为 0），详见 [B6C_3_ACCEPTANCE.md](B6C_3_ACCEPTANCE.md)。
 
 ## B6c-3：操作记录页面与导出（2026-11-11）

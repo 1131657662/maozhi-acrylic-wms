@@ -6,7 +6,7 @@ import { migrateUp, migrateDown } from '../src/db/migrate.ts';
 import { seedDemo } from '../src/db/seed-test.ts';
 import { rawFactSchema, factSql } from '../src/features/outbound/rows.ts';
 import { getOrder } from '../src/features/outbound/repository.ts';
-import { confirmOutbound } from '../src/features/outbound/confirm.ts';
+import { confirmScannedFixture as confirmOutbound } from './fixture.ts';
 import { hash } from '../src/shared/hash.ts';
 import { actor, fact } from './fixture.ts';
 import { gramsToDecimal } from '../src/db/weight.ts';

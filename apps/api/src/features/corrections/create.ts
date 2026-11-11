@@ -46,11 +46,12 @@ async function saveLines(
   for (const line of lines)
     await db.run(
       `INSERT INTO document_correction_lines
-    (correction_id,product_code,${ref},packages_before,packages_after,tonnes_before,tonnes_after,packages_delta,tonnes_delta)
-    VALUES(?,?,?,?,?,?,?,?,?)`,
+    (correction_id,product_code,${ref},original_line_id,packages_before,packages_after,tonnes_before,tonnes_after,packages_delta,tonnes_delta)
+    VALUES(?,?,?,?,?,?,?,?,?,?)`,
       [
         target.correctionId,
         line.productCode,
+        line.originalLineId,
         line.originalLineId,
         line.before.packages,
         line.after.packages,
