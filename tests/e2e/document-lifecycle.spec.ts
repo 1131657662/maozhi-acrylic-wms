@@ -148,7 +148,12 @@ test('B2a 下游依赖可见且零写入；未入账作废不占库存/不复用
     expect((await rejected.json()).code).toBe('DOWNSTREAM_DEPENDENCY');
     expect(await businessFingerprint(db)).toEqual(before);
     await page.goto(`/inbound/${doc.id}`);
-    await expect(page.getByText(/存在后续库存动作/)).toBeVisible();
+    await expect(
+      page
+        .getByRole('alert')
+        .filter({ hasText: '本单暂不能撤销或作废' })
+        .getByText(/存在后续库存动作/),
+    ).toBeVisible();
     await expect(page.getByRole('button', { name: '核对撤销误确认' })).toHaveCount(0);
     await screenshotWidths(page, 'b2a-dependency-blocked');
     const cell = await inventoryCell(db),

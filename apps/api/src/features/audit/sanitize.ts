@@ -2,8 +2,9 @@ const MAX_DEPTH = 32;
 const HIDDEN = '[已隐藏]';
 const OMITTED = '[内容超限，已省略]';
 const secretKey =
-  /password|passwd|pwd|token|secret|credential|authorization|cookie|session.?hash|private.?key|api.?key/i;
-const secretText = /(?:bearer\s|(?:password|token|authorization|cookie)["']?\s*[:=]|-----BEGIN .*PRIVATE KEY)/i;
+  /password|passwd|pwd|token|secret|credential|authorization|cookie|session.?hash|private.?key|api.?key|密码|口令|令牌|凭证|私钥|密钥/i;
+const secretText =
+  /(?:bearer\s|(?:password|passwd|pwd|token|secret|credential|authorization|cookie|private.?key|api.?key|密码|口令|令牌|凭证|私钥|密钥)["']?\s*[:=：]|-----BEGIN .*PRIVATE KEY)/i;
 
 function sanitizeText(text: string, depth: number): string {
   try {

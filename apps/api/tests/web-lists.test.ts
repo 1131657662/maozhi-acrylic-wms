@@ -201,7 +201,9 @@ test('日志不再截断 100 条，列表不传大 JSON，详情按 ID 查询', 
     assert.equal(result.items.length, 40);
     assert.ok(result.items.every((row) => !('beforeJson' in row)));
     const detail = await context.web.get('/api/v1/web/lists/audit/' + result.items[0]!.id).expect(200);
-    assert.deepEqual(JSON.parse(detail.body.data.beforeJson), { packages: 1 });
+    assert.equal('beforeJson' in detail.body.data, false);
+    const raw = await context.web.get('/api/v1/web/lists/audit/' + result.items[0]!.id + '/raw').expect(200);
+    assert.deepEqual(JSON.parse(raw.body.data.items[0].record.before_json), { packages: 1 });
     await context.web.get('/api/v1/web/lists/audit/999999999').expect(404);
     console.log('B1B1_AUDIT total=240 page2=40 before_after_detail=matched');
   } finally {

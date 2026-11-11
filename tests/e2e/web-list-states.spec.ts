@@ -41,7 +41,7 @@ for (const [kind, path] of [
     });
     await page.goto(path!);
     await expect(page.getByRole('status', { name: '正在查询列表', exact: true })).toBeVisible();
-    await expect(page.locator('.ant-skeleton')).toHaveCount(0);
+    await expect(page.locator('.ant-skeleton')).toHaveCount(kind === 'audit' ? 1 : 0);
     mode = 'error';
     release();
     await expect(page.getByText('系统出错了，已记录')).toBeVisible();
@@ -51,7 +51,9 @@ for (const [kind, path] of [
     await expect(page.getByTestId('list-results')).toBeVisible();
     mode = 'empty';
     await page.reload();
-    await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
+    await expect(
+      page.getByText(kind === 'audit' ? '该时间范围内没有操作记录' : '没有符合条件的记录，可调整筛选条件或重置后重试'),
+    ).toBeVisible();
     mode = 'forbidden';
     await page.reload();
     await expect(page.getByText('没有权限执行此操作')).toBeVisible();

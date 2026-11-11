@@ -10,6 +10,8 @@ import { reportOperations } from './features/reports/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
 import { listPreferencesOperations } from './features/list-preferences/openapi.ts';
+import { auditOperations } from './features/audit/openapi.ts';
+import { auditObjectNames } from '@wms/contracts';
 import { exportKindSchema } from '@wms/contracts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
 import {
@@ -55,8 +57,10 @@ export interface Operation {
   idempotent?: boolean;
   responseMedia?: string | string[];
   successStatus?: number;
+  safeEnvelope?: boolean;
 }
 export const operations: Operation[] = [
+  ...auditOperations,
   ...listPreferencesOperations,
   ...masterOperations,
   ...correctionOperations,
@@ -234,7 +238,14 @@ export const operations: Operation[] = [
     idempotent: true,
   },
   { method: 'get', path: '/stock', summary: '只读库存（包数、整数克）', response: stockSchema, channel: 'any' },
-  { method: 'get', path: '/audit', summary: '最近 100 条操作日志', response: auditSchema, channel: 'web' },
+  {
+    method: 'get',
+    path: '/audit',
+    summary: '近 7 天最近 100 条安全操作记录（含失败尝试）',
+    response: auditSchema,
+    channel: 'web',
+    safeEnvelope: true,
+  },
 ];
 function parameters(operation: Operation): object[] {
   const result: object[] = [];
@@ -253,11 +264,17 @@ function parameters(operation: Operation): object[] {
       name: 'kind',
       required: true,
       schema: z.toJSONSchema(
-        operation.path.startsWith('/me/list-preferences/') ? exportKindSchema : documentKindSchema,
+        operation.path.includes('/audit/objects/')
+          ? z.enum(Object.keys(auditObjectNames))
+          : operation.path.startsWith('/me/list-preferences/')
+            ? exportKindSchema
+            : documentKindSchema,
       ),
     });
   if (operation.path.includes('{id}'))
     result.push({ in: 'path', name: 'id', required: true, schema: { type: 'string' } });
+  if (operation.path.includes('{targetId}'))
+    result.push({ in: 'path', name: 'targetId', required: true, schema: { type: 'string', maxLength: 100 } });
   if (operation.path.includes('{catalog}'))
     result.push({ in: 'path', name: 'catalog', required: true, schema: z.toJSONSchema(masterCatalogSchema) });
   if (operation.path.includes('{code}'))
@@ -276,7 +293,7 @@ function operationDocument(operation: Operation): object {
     code: z.literal('OK'),
     message: z.string(),
     data: operation.response,
-    traceId: z.string(),
+    ...(operation.safeEnvelope ? {} : { traceId: z.string() }),
   });
   const error = z.toJSONSchema(
     z.object({

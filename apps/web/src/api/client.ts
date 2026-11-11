@@ -3,7 +3,12 @@ import { ApiError, diagnosticPath } from './errors';
 import { reportRequestError } from './error-events';
 import { WEB_REQUEST_TIMEOUT_MS } from '../text';
 export { ApiError } from './errors';
-const envelope = z.object({ code: z.string(), message: z.string(), data: z.unknown(), traceId: z.string() });
+const envelope = z.object({
+  code: z.string(),
+  message: z.string(),
+  data: z.unknown(),
+  traceId: z.string().default(''),
+});
 
 export async function request<T>(path: string, schema: z.ZodType<T>, init: RequestInit = {}): Promise<T> {
   try {

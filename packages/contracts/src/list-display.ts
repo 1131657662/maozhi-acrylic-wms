@@ -1,7 +1,7 @@
 import { snapshotText } from './snapshots.ts';
 import type { ExportKind } from './export-kind.ts';
 import { reportFields } from './report-fields.ts';
-import { auditActionText, businessLabels } from './business-labels.ts';
+import { businessLabels } from './business-labels.ts';
 
 export const WEB_LIST_PAGE_SIZES = [20, 50, 100, 200] as const;
 export const WEB_LIST_DEFAULT_PAGE_SIZE = 50;
@@ -102,10 +102,13 @@ export const listFields: Record<ExportKind, ListField[]> = {
     f('warehouseCode', '仓库', 'text', 32),
   ],
   audit: [
-    f('action', '动作'),
-    f('targetId', '对象', 'text', 40),
-    f('actor', '操作者'),
     f('createdAt', '时间', 'date', 24),
+    f('action', '类型'),
+    f('objectLabel', '对象', 'text', 40),
+    f('summary', '变更摘要', 'text', 60),
+    f('channel', '渠道'),
+    f('result', '结果'),
+    { ...f('actor', '操作人'), defaultHidden: true },
   ],
 };
 export function matchedLineFields(kind: 'inbound' | 'outbound'): ListField[] {
@@ -119,8 +122,6 @@ export function matchedLineFields(kind: 'inbound' | 'outbound'): ListField[] {
 }
 export function listCellText(kind: ExportKind, field: ListField, row: Record<string, unknown>): string {
   const value = row[field.key];
-  if (kind === 'audit' && field.key === 'action') return auditActionText(value);
-  if (kind === 'audit' && field.key === 'targetId') return businessLabels.relatedRecord;
   if (kind.startsWith('report-') && field.key === 'source')
     return ['erp-product', 'inventory-eligible'].includes(String(value)) ? '库存商品' : businessLabels.unknown;
   if (kind.startsWith('report-') && field.key === 'billType')

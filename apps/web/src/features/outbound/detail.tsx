@@ -11,6 +11,7 @@ import { ListBackLink } from '../../components/BusinessList/navigation';
 import { LifecyclePanel } from '../document-lifecycle/panel';
 import { CorrectionSummaryPanel } from '../corrections/summary';
 import { CorrectionDetailActions } from '../corrections/detail-actions';
+import { ObjectAuditTimeline } from '../audit/events';
 
 export function OrderDetail() {
   const { id = '' } = useParams();
@@ -111,6 +112,7 @@ export function OrderDetail() {
         <CorrectionSummaryPanel summary={order.corrections} number={order.orderNo} createdAt={order.createdAt} />
       )}
       <LifecyclePanel kind="outbound" id={order.id} />
+      <ObjectAuditTimeline kind="outbound" id={order.id} />
       <Confirm order={order} />
       <CorrectionDetailActions
         kind="outbound"

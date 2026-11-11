@@ -32,7 +32,7 @@ for (const config of pages)
     await list.locator('tbody tr[data-row-key]').first().getByRole('checkbox').check();
     const selectedLabel = `选中记录 · 2 ${['inbound', 'outbound'].includes(config.kind) ? '单' : '条'}`;
     for (const scope of ['all', 'page', 'selected']) {
-      await list.getByRole('button', { name: '导出', exact: true }).click();
+      await (config.kind === 'audit' ? page : list).getByRole('button', { name: '导出', exact: true }).click();
       await expect(page.getByRole('radio', { name: '全部筛选结果 · 240 条' })).toBeVisible();
       await expect(page.getByRole('radio', { name: '当前页 · 40 条' })).toBeVisible();
       await expect(page.getByRole('radio', { name: selectedLabel })).toBeVisible();

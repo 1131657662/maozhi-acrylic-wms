@@ -120,18 +120,11 @@ export const stockSchema = z.array(
 );
 export const sessionSchema = z.object({ username: z.string(), channel: channelSchema });
 export const loginResultSchema = sessionSchema.extend({ token: z.string().optional() });
-export const auditSchema = z.array(
-  z.object({
-    id: z.number(),
-    action: z.string(),
-    targetId: z.string(),
-    actor: z.string(),
-    traceId: z.string(),
-    createdAt: z.string(),
-    beforeJson: z.string(),
-    afterJson: z.string(),
-  }),
-);
+export { auditRowSchema } from './audit.ts';
+import { auditRowSchema } from './audit.ts';
+export const auditSchema = z.array(auditRowSchema);
+export * from './audit.ts';
+export * from './audit-registry.ts';
 export type Order = z.infer<typeof orderSchema>;
 export type Detail = z.infer<typeof detailSchema>;
 export type FactInput = z.infer<typeof factInputSchema>;

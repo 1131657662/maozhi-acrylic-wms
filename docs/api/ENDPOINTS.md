@@ -4,6 +4,19 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/audit/timeline | web | 最近 20 个业务对象及批量事件安全投影 |
+| GET | /api/v1/audit/objects/{kind}/{targetId} | web | 按对象类型与主键继续加载记录（含失败尝试） |
+| GET | /api/v1/audit/{id}/events | web | 对象事件游标分页 |
+| GET | /api/v1/audit/{id}/related | web | 同次请求的安全摘要；不返回追踪号 |
+| GET | /api/v1/audit/{id}/raw | web | 仅登录网页端读取脱敏原始数据；no-store；256 KiB/10 万条硬上限 |
+| GET | /api/v1/audit/{id}/trace.json | web | 完整生成脱敏诊断 JSON 后下载；重新鉴权；100 MiB/10 万条硬上限 |
+| GET | /api/v1/web/lists/audit/timeline | web | 最近 20 个业务对象及批量事件安全投影 |
+| GET | /api/v1/web/lists/audit/objects/{kind}/{targetId} | web | 按对象类型与主键继续加载记录（含失败尝试） |
+| GET | /api/v1/web/lists/audit/{id}/events | web | 对象事件游标分页 |
+| GET | /api/v1/web/lists/audit/{id}/related | web | 同次请求的安全摘要；不返回追踪号 |
+| GET | /api/v1/web/lists/audit/{id}/raw | web | 仅登录网页端读取脱敏原始数据；no-store；256 KiB/10 万条硬上限 |
+| GET | /api/v1/web/lists/audit/{id}/trace.json | web | 完整生成脱敏诊断 JSON 后下载；重新鉴权；100 MiB/10 万条硬上限 |
+| GET | /api/v1/audit/{id} | web | 结构化变化与关联摘要；无原始数据 |
 | GET | /api/v1/me/list-preferences/{kind} | web | 当前登录身份的列偏好；未保存时返回空值 |
 | PUT | /api/v1/me/list-preferences/{kind} | web | 保存当前登录身份的列偏好；空 columns 重置；旧版本按列键保留 |
 | GET | /api/v1/master/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
@@ -70,8 +83,8 @@
 | GET | /api/v1/web/lists/inbound | web | Web 入库分页；登记时间、原始状态与入账状态独立筛选 |
 | GET | /api/v1/web/lists/outbound | web | Web 出库分页；计划与扫码实绩分别汇总 |
 | GET | /api/v1/web/lists/stock | web | Web ERP 库存分页与同筛选范围小计；拒绝其他来源及总计参数 |
-| GET | /api/v1/web/lists/audit | web | Web 操作日志分页；不再截断最近 100 条 |
-| GET | /api/v1/web/lists/audit/{id} | web | 操作日志详情与前后值 |
+| GET | /api/v1/web/lists/audit | web | 近 7 天统一安全记录分页；不读取原始 JSON |
+| GET | /api/v1/web/lists/audit/{id} | web | 服务端结构化变化与关联摘要；原始数据需专用入口 |
 | GET | /api/v1/web/lists/{kind}/statuses | web | 入库/出库原始状态选项，保留未知值和空值 |
 | POST | /api/v1/web/exports | web | 固定筛选、列与视图摘要，异步生成 XLSX 或 CSV；第二任务返回 EXPORT_BUSY |
 | GET | /api/v1/web/exports/active | web | 当前生成任务；没有任务返回 null |
@@ -120,7 +133,7 @@
 | POST | /api/v1/scan/plans/{id}/facts | pda | 记录不可变扫码事实；同 UUID 同正文重试幂等 |
 | POST | /api/v1/scan/plans/{id}/submit | pda | 冻结事实；校验 revision/digest；不扣库存 |
 | GET | /api/v1/stock | any | 只读库存（包数、整数克） |
-| GET | /api/v1/audit | web | 最近 100 条操作日志 |
+| GET | /api/v1/audit | web | 近 7 天最近 100 条安全操作记录（含失败尝试） |
 
 统一响应 `{ code, message, data, traceId }`；重量整数克，吨数展示除以 1,000,000，保留四位小数。
 Web 确认要求 Cookie + 允许的 Origin，PDA 与小程序 Bearer 会话不能确认库存。

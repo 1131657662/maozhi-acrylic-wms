@@ -100,8 +100,11 @@ export const webAuditQuerySchema = z
     ...dates,
     action: text,
     target: text,
-    traceId: text,
-    sortBy: z.enum(['createdAt', 'id', 'action', 'targetId', 'actor']).default('createdAt'),
+    keyword: text,
+    channel: z.enum(['web', 'pda', 'miniapp', 'missing']).optional(),
+    result: z.enum(['success', 'failed', 'cancelled', 'unknown', 'missing']).optional(),
+    dangerous: z.enum(['true', 'false']).optional(),
+    sortBy: z.enum(['createdAt', 'id', 'action', 'targetId', 'objectLabel', 'actor']).default('createdAt'),
   })
   .refine(validRange, '开始时间不能晚于结束时间');
 export const webStatusOptionsSchema = z.array(z.string().nullable());

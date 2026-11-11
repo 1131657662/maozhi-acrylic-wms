@@ -40,16 +40,18 @@ export const webListOperations: Operation[] = [
   {
     method: 'get',
     path: '/web/lists/audit',
-    summary: 'Web 操作日志分页；不再截断最近 100 条',
+    summary: '近 7 天统一安全记录分页；不读取原始 JSON',
     query: webAuditQuerySchema,
     response: webAuditListSchema,
+    safeEnvelope: true,
     channel: 'web',
   },
   {
     method: 'get',
     path: '/web/lists/audit/{id}',
-    summary: '操作日志详情与前后值',
+    summary: '服务端结构化变化与关联摘要；原始数据需专用入口',
     response: webAuditDetailSchema,
+    safeEnvelope: true,
     channel: 'web',
   },
   {
