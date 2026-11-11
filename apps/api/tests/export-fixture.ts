@@ -45,7 +45,7 @@ export async function exportInput(
       'status',
     ],
     stock: ['productName', 'productCode', 'packages', 'weightGrams', 'warehouseCode'],
-    audit: ['action', 'objectLabel', 'actor', 'createdAt'],
+    audit: ['createdAt', 'objectLabel', 'actor', 'action'],
   };
   const input: ExportRequest = {
     requestId: randomUUID(),

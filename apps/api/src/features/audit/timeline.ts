@@ -3,6 +3,7 @@ import type { Database, Row } from '../../db/mysql.ts';
 import { auditPredicate, auditSafeFields, auditUnion, type AuditQuery } from './query.ts';
 import { eventPage, nextCursor } from './records.ts';
 import { projectAuditRows } from './projection.ts';
+import { auditStatistics } from './statistics.ts';
 export async function objectEvents(db: Database, kind: string, id: string, cursor?: string) {
   return db.readSnapshot(async (tx) => {
     const page = await eventPage(
@@ -25,7 +26,13 @@ export async function auditTimeline(db: Database, query: AuditQuery) {
       (query.page - 1) * AUDIT_OBJECT_PAGE_SIZE,
     ]);
     const items = await timelineGroups(tx, objects);
-    return { items, total, page: query.page, pageSize: AUDIT_OBJECT_PAGE_SIZE };
+    return {
+      items,
+      total,
+      page: query.page,
+      pageSize: AUDIT_OBJECT_PAGE_SIZE,
+      statistics: await auditStatistics(tx, query),
+    };
   });
 }
 async function timelineGroups(db: Database, objects: Row[]) {

@@ -527,27 +527,6 @@
           "null"
         ]
       },
-      "S_16b7870a24e03df4": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_ca796e0dc75b5553"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data"
-        ],
-        "type": "object"
-      },
       "S_174e29b899b9ef91": {
         "type": [
           "string",
@@ -1403,6 +1382,27 @@
           "lines",
           "blockers",
           "closure"
+        ],
+        "type": "object"
+      },
+      "S_466c886c65b38106": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_b04d1c4d0dc44bac"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
         ],
         "type": "object"
       },
@@ -2910,6 +2910,33 @@
         ],
         "type": "object"
       },
+      "S_b04d1c4d0dc44bac": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "$ref": "#/components/schemas/S_1eafc60d1302e0c8"
+          },
+          "page": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "statistics": {
+            "$ref": "#/components/schemas/S_d3d580f55fc1026e"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object"
+      },
       "S_b0abd84f5b3e9f3c": {
         "additionalProperties": false,
         "properties": {
@@ -3387,30 +3414,6 @@
         ],
         "type": "object"
       },
-      "S_ca796e0dc75b5553": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "$ref": "#/components/schemas/S_1eafc60d1302e0c8"
-          },
-          "page": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "pageSize": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          }
-        },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "pageSize"
-        ],
-        "type": "object"
-      },
       "S_caef89ca90cb67b5": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -3800,6 +3803,34 @@
           "result",
           "effect",
           "dangerous"
+        ],
+        "type": "object"
+      },
+      "S_d3d580f55fc1026e": {
+        "additionalProperties": false,
+        "properties": {
+          "dangerous": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "failures": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "objects": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "records": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "today": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          }
+        },
+        "required": [
+          "records",
+          "failures",
+          "objects",
+          "dangerous",
+          "today"
         ],
         "type": "object"
       },
@@ -4590,7 +4621,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_16b7870a24e03df4"
+                  "$ref": "#/components/schemas/S_466c886c65b38106"
                 }
               }
             },
@@ -22280,6 +22311,9 @@
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
                         },
+                        "statistics": {
+                          "$ref": "#/components/schemas/S_d3d580f55fc1026e"
+                        },
                         "total": {
                           "$ref": "#/components/schemas/S_83f6485d0d169a84"
                         },
@@ -22661,7 +22695,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_16b7870a24e03df4"
+                  "$ref": "#/components/schemas/S_466c886c65b38106"
                 }
               }
             },

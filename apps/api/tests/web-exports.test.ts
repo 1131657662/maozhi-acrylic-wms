@@ -36,7 +36,7 @@ for (const kind of ['inbound', 'outbound', 'stock', 'audit'] as WebListKind[]) {
         const idColumn = kind === 'stock' || kind === 'audit' ? 2 : 1;
         if (kind === 'audit') {
           assert.equal(sheet.getCell(2, idColumn).value, '未记录');
-          assert.equal(sheet.getCell(2, 1).value, '未识别');
+          assert.equal(sheet.getCell(2, 4).value, '未识别');
           assert.equal(sheet.getCell(2, 3).value, 'owner');
           assert.equal(
             job.columns.some((column) => column.key === 'traceId'),

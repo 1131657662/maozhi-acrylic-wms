@@ -1,15 +1,17 @@
-import type { ExportKind } from '@wms/contracts';
+import { WEB_LIST_DEFAULT_PAGE_SIZE, type ExportKind } from '@wms/contracts';
 import type { Key, ReactNode } from 'react';
 import { PageContainer, type ProColumns } from '@ant-design/pro-components';
-import { Spin, theme } from 'antd';
+import { Spin, Skeleton, theme } from 'antd';
+import { ListExportPanel } from './list-export';
 import { RequestError } from '../RequestError';
 
 import { useSession } from '../../features/auth/use-session';
-import { ListTable, type ListData } from './table';
+import type { ListData } from './table';
+import { ListResults } from './results';
 import { ListViewToolbar } from './list-view-toolbar';
-import { useListColumns, type ListColumnPreferences } from './use-list-columns';
+import { useListColumns } from './use-list-columns';
 import type { ListState } from './use-list-state';
-import { useListSelection, type ListSelectionRow, type SelectionKeys } from './use-list-selection';
+import { useListSelection } from './use-list-selection';
 import { useListViews } from './use-list-views';
 import './style.css';
 import { listFeedback } from './list-feedback';
@@ -22,6 +24,9 @@ interface Config<Row> {
   extra?: ReactNode;
   columns: ProColumns<Row>[];
   emptyText?: ReactNode;
+  exportInHeader?: boolean;
+  onExportOpen?: () => void;
+  skeleton?: boolean;
 }
 interface Props<Row> {
   config: Config<Row>;
@@ -37,52 +42,8 @@ interface Props<Row> {
   filters: ReactNode;
   children?: ReactNode;
   summary?: ReactNode;
-}
-interface ResultsProps<Row extends { id: Key }> {
-  config: Config<Row>;
-  data: ListData<Row>;
-  state: ListState;
-  selection: {
-    tokens: Record<string, string>;
-    keys: Key[];
-    rows: Record<string, ListSelectionRow>;
-    change: (keys: SelectionKeys, rows?: ListSelectionRow[]) => void;
-  };
-  columnPrefs: ListColumnPreferences<Row>;
-  refreshing: boolean;
-  placeholder: boolean;
-  reload: () => unknown;
-  summary?: ReactNode;
-  emptyText?: ReactNode;
-}
-function ListResults<Row extends { id: Key }>({
-  config,
-  data,
-  state,
-  selection,
-  columnPrefs,
-  refreshing,
-  placeholder,
-  reload,
-  summary,
-  emptyText,
-}: ResultsProps<Row>) {
-  return (
-    <section data-testid={config.name + '-list'}>
-      {summary}
-      <ListTable
-        name={config.name}
-        data={data}
-        state={state}
-        refreshing={refreshing}
-        placeholder={placeholder}
-        reload={reload}
-        selection={selection}
-        columnPrefs={columnPrefs}
-        emptyText={emptyText}
-      />
-    </section>
-  );
+  beforeResults?: ReactNode;
+  resultView?: ReactNode;
 }
 function ListError({ error, reload }: { error: Error; reload: () => unknown }) {
   return <RequestError error={error} retry={reload} />;
@@ -114,7 +75,23 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
         </h1>
       }
       content={config.description}
-      extra={config.extra}
+      extra={
+        config.exportInHeader ? (
+          <ListExportPanel
+            name={config.name}
+            state={state}
+            data={query.data ?? { items: [], total: 0, page: 1, pageSize: WEB_LIST_DEFAULT_PAGE_SIZE }}
+            refreshing={query.isFetching || Boolean(query.error)}
+            placeholder={query.isPlaceholderData ?? false}
+            reload={query.refetch}
+            selection={selection}
+            columnPrefs={columns}
+            onOpen={config.onExportOpen}
+          />
+        ) : (
+          config.extra
+        )
+      }
       className="business-list"
       token={{ paddingInlinePageContainerContent: token.paddingLG }}
       style={{ minWidth: 0, maxWidth: '100%' }}
@@ -142,26 +119,29 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
         )}
         {props.filters}
       </div>
+      {props.beforeResults}
       {query.error ? (
         <ListError error={query.error} reload={query.refetch} />
       ) : query.isPending || !query.data ? (
         <div role="status" aria-label={listFeedback.loading}>
-          <Spin size="small" />
+          {config.skeleton ? <Skeleton active /> : <Spin size="small" />}
         </div>
       ) : (
         <div data-testid="list-results" className="business-list-results">
-          <ListResults
-            config={config}
-            data={query.data}
-            state={state}
-            selection={selection}
-            columnPrefs={columns}
-            refreshing={query.isFetching}
-            placeholder={query.isPlaceholderData ?? false}
-            reload={query.refetch}
-            summary={props.summary}
-            emptyText={config.emptyText}
-          />
+          {props.resultView ?? (
+            <ListResults
+              config={config}
+              data={query.data}
+              state={state}
+              selection={selection}
+              columnPrefs={columns}
+              refreshing={query.isFetching}
+              placeholder={query.isPlaceholderData ?? false}
+              reload={query.refetch}
+              summary={props.summary}
+              emptyText={config.emptyText}
+            />
+          )}
           {props.children}
         </div>
       )}

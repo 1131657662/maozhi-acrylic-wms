@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Collapse, Drawer, Skeleton, Table } from 'antd';
+import { Alert, Button, Collapse, Drawer, Skeleton, Table } from 'antd';
+import { AuditResultLabel } from '../audit/labels';
 import { listTime, type WebAuditDetail } from '@wms/contracts';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { RequestError } from '../../components/RequestError';
@@ -17,7 +18,7 @@ export function AuditDetail({ id, onClose }: { id: string; onClose: () => void }
       ) : !query.data ? (
         <Skeleton active />
       ) : (
-        <AuditDetailBody entry={query.data} />
+        <AuditDetailBody key={query.data.id} entry={query.data} />
       )}
     </Drawer>
   );
@@ -35,9 +36,22 @@ function AuditDetailBody({ entry }: { entry: WebAuditDetail }) {
           { title: t.actor, dataIndex: 'actor' },
           { title: t.time, render: () => listTime(entry.createdAt) },
           { title: t.channel, dataIndex: 'channel' },
-          { title: t.result, dataIndex: 'result' },
+          { title: t.result, render: () => <AuditResultLabel result={entry.result} /> },
         ]}
       />
+      {['已取消', '结果待核实', '未记录'].includes(entry.result) && (
+        <Alert
+          showIcon
+          type={entry.result === '结果待核实' ? 'warning' : 'info'}
+          title={
+            entry.result === '已取消'
+              ? t.cancelledHelp
+              : entry.result === '结果待核实'
+                ? t.uncertainHelp
+                : t.missingHelp
+          }
+        />
+      )}
       <Table
         rowKey="field"
         size="small"

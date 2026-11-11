@@ -16,12 +16,15 @@ function readable(value: unknown): string {
 }
 export function AuditRawPanel({ id }: { id: string }) {
   const [params, setParams] = useState<Record<string, string>>({});
-  const query = useQuery({ ...auditKeys.raw(id, params), gcTime: 0, staleTime: 0 });
+  const query = useQuery({ ...auditKeys.raw(id, params), gcTime: 0, staleTime: Infinity, refetchOnWindowFocus: false });
   if (query.error) return <RequestError error={query.error} retry={() => void query.refetch()} />;
   if (!query.data) return <Spin />;
   return (
     <div data-testid="audit-raw">
       <Typography.Paragraph copyable>{query.data.traceId}</Typography.Paragraph>
+      <Typography.Paragraph copyable={{ text: JSON.stringify(query.data.items, null, 2) }}>
+        {t.copyRaw}
+      </Typography.Paragraph>
       <Space wrap>
         <Button onClick={() => setParams({ traceId: query.data!.traceId })}>{t.trace}</Button>
         <Button href={`/api/v1/web/lists/audit/${id}/trace.json`} download>

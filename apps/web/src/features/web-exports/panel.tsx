@@ -1,16 +1,9 @@
 import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
-import { businessCopy } from '../../business-copy';
+import { ExportScope } from './scope';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Button, Drawer, Radio, Space } from 'antd';
-import {
-  listFields,
-  matchedLineFields,
-  WEB_EXPORT_MAX_ROWS,
-  WEB_EXPORT_SELECTED_MAX,
-  type ExportRequest,
-  type ExportKind,
-} from '@wms/contracts';
+import { matchedLineFields, WEB_EXPORT_SELECTED_MAX, type ExportRequest, type ExportKind } from '@wms/contracts';
 import { useExportSession } from './use-export-session';
 import { ExportJobView } from './job-view';
 
@@ -25,11 +18,26 @@ export interface ExportContext {
   matchedLineTotal?: number;
   matchedLinePageCount?: number;
 }
-export function ExportPanel({ context, refreshing }: { context: ExportContext; refreshing: boolean }) {
+export function ExportPanel({
+  context,
+  refreshing,
+  onOpen,
+}: {
+  context: ExportContext;
+  refreshing: boolean;
+  onOpen?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button aria-label="导出" disabled={refreshing || !context.viewToken} onClick={() => setOpen(true)}>
+      <Button
+        aria-label="导出"
+        disabled={refreshing || !context.viewToken}
+        onClick={() => {
+          onOpen?.();
+          setOpen(true);
+        }}
+      >
         导出
       </Button>
       <Drawer
@@ -117,57 +125,6 @@ function ExportControls({ context, refreshing }: { context: ExportContext; refre
       {job && <ExportJobView job={job} />}
       <p>生成期间可关闭面板继续操作列表；重新打开可查看进度。一次只运行一个导出任务。</p>
     </Space>
-  );
-}
-function ExportScope({
-  context,
-  scope,
-  setScope,
-  schema,
-}: {
-  context: ExportContext;
-  scope: ExportRequest['scope'];
-  setScope: (scope: ExportRequest['scope']) => void;
-  schema: NonNullable<ExportRequest['schema']>;
-}) {
-  const matchedLines = schema === 'matched_lines';
-  const fields =
-    matchedLines && (context.kind === 'inbound' || context.kind === 'outbound')
-      ? matchedLineFields(context.kind)
-      : context.columns.map((key) => listFields[context.kind].find((field) => field.key === key)!).filter(Boolean);
-  return (
-    <>
-      <Radio.Group
-        aria-label="导出范围"
-        value={scope}
-        onChange={(e) => setScope(e.target.value)}
-        options={[
-          {
-            value: 'all',
-            label: `全部筛选结果 · ${matchedLines ? (context.matchedLineTotal ?? 0) : context.total} ${matchedLines ? '行' : '条'}`,
-            disabled: !context.total,
-          },
-          {
-            value: 'page',
-            label: `当前页 · ${matchedLines ? (context.matchedLinePageCount ?? 0) : context.pageCount} ${matchedLines ? '行' : '条'}`,
-            disabled: !context.pageCount,
-          },
-          {
-            value: 'selected',
-            label: `选中记录 · ${context.selected.length} ${['inbound', 'outbound'].includes(context.kind) ? '单' : '条'}`,
-            disabled: !context.selected.length,
-          },
-        ]}
-      />
-      <p data-testid="export-fields">
-        {businessCopy.webExportsPanel1}
-        {fields.map((field) => field.label).join('、')}
-      </p>
-      <p>
-        跨页选中最多 {WEB_EXPORT_SELECTED_MAX.toLocaleString('zh-CN')} 条；更多记录请用全部筛选结果。单文件最多{' '}
-        {WEB_EXPORT_MAX_ROWS.toLocaleString('zh-CN')} 行，超限会提示实际条数。
-      </p>
-    </>
   );
 }
 function ExportErrors({ session }: { session: ReturnType<typeof useExportSession> }) {

@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, Empty, Pagination, Spin, theme } from 'antd';
-import { AuditOutlined } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
+import { Card, Pagination, Skeleton, Space, theme } from 'antd';
 import { auditKeys } from './keys';
-import { auditCopy as t } from './text';
 import { AuditEvents, AuditEventContinuation } from './events';
+import { AuditEmpty } from './empty';
 import { RequestError } from '../../components/RequestError';
 export function AuditTimelineView({
   params,
@@ -16,34 +14,28 @@ export function AuditTimelineView({
   const query = useQuery(auditKeys.timeline(params));
   const { token } = theme.useToken();
   if (query.error) return <RequestError error={query.error} retry={() => void query.refetch()} />;
-  if (!query.data) return <Spin />;
+  if (!query.data) return <Skeleton active />;
   return (
-    <PageContainer
-      title={
-        <h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>
-          <AuditOutlined style={{ fontSize: token.fontSizeLG, marginInlineEnd: token.marginXS }} />
-          {t.title}
-        </h1>
-      }
-      content={t.description}
-      token={{ paddingInlinePageContainerContent: token.paddingLG }}
+    <Space
+      orientation="vertical"
+      data-testid="audit-timeline"
+      size="middle"
+      style={{ width: '100%', marginTop: token.margin }}
     >
-      <div data-testid="audit-timeline">
-        {!query.data.items.length && <Empty description={t.empty} />}
-        {query.data.items.map((group) => (
-          <Card key={group.id} title={`${group.objectLabel} · ${group.objectType}`}>
-            <AuditEvents items={group.events.items} />
-            {group.events.nextCursor && <AuditEventContinuation id={group.id} cursor={group.events.nextCursor} />}
-          </Card>
-        ))}
-        <Pagination
-          current={query.data.page}
-          total={query.data.total}
-          pageSize={query.data.pageSize}
-          showSizeChanger={false}
-          onChange={onPage}
-        />
-      </div>
-    </PageContainer>
+      {!query.data.items.length && <AuditEmpty />}
+      {query.data.items.map((group) => (
+        <Card key={group.id} title={`${group.objectLabel} · ${group.objectType}`}>
+          <AuditEvents items={group.events.items} />
+          {group.events.nextCursor && <AuditEventContinuation id={group.id} cursor={group.events.nextCursor} />}
+        </Card>
+      ))}
+      <Pagination
+        current={query.data.page}
+        total={query.data.total}
+        pageSize={query.data.pageSize}
+        showSizeChanger={false}
+        onChange={onPage}
+      />
+    </Space>
   );
 }

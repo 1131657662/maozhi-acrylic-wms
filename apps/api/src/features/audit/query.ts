@@ -1,5 +1,6 @@
 import { auditActions, AUDIT_DEFAULT_DAYS, shanghaiToday, type WebAuditQuery } from '@wms/contracts';
 import { dateFilter, textFilter, type Predicate, type ListReadQuery } from '../web-lists/query.ts';
+import { auditKeyword } from './keyword.ts';
 const kinds = Object.entries(auditActions)
   .map(
     ([action, value]) =>
@@ -28,7 +29,7 @@ export function auditPredicate(query: AuditQuery): Predicate {
     } else textFilter(parts, ['action'], query.action);
   }
   textFilter(parts, ['target_no', 'target_label'], query.target);
-  textFilter(parts, ['target_no', 'target_label', 'actor'], query.keyword);
+  auditKeyword(parts, query.keyword);
   dateFilter(parts, 'created_at', auditDates(query));
   for (const key of ['channel', 'result'] as const) {
     if (query[key] === 'missing') parts.sql += ` AND ${key} IS NULL`;

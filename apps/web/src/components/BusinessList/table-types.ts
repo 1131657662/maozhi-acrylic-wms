@@ -28,4 +28,5 @@ export interface ListTableProps<Row> {
   };
   columnPrefs: ListColumnPreferences<Row>;
   emptyText?: ReactNode;
+  exportInHeader?: boolean;
 }

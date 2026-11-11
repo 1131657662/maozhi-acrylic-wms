@@ -7,6 +7,14 @@ export const AUDIT_OBJECT_PAGE_SIZE = 20;
 export const AUDIT_EVENT_PAGE_SIZE = 50;
 export const AUDIT_DEFAULT_DAYS = 7;
 export const AUDIT_RAW_MAX_PAGE_SIZE = 200;
+export const auditStatisticsSchema = z.strictObject({
+  records: z.number().int().nonnegative(),
+  failures: z.number().int().nonnegative(),
+  objects: z.number().int().nonnegative(),
+  dangerous: z.number().int().nonnegative(),
+  today: z.boolean(),
+});
+export type AuditStatistics = z.infer<typeof auditStatisticsSchema>;
 export const auditCursorQuerySchema = z.strictObject({ cursor: z.string().max(1000).optional() });
 export const auditRawQuerySchema = auditCursorQuerySchema.extend({
   traceId: z.string().min(1).max(80).optional(),
@@ -46,6 +54,7 @@ export const auditDetailSchema = auditRowSchema.extend({
   related: auditPageSchema,
 });
 export const auditTimelineSchema = z.strictObject({
+  statistics: auditStatisticsSchema.optional(),
   items: z.array(
     z.strictObject({
       id: auditIdSchema,

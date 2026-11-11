@@ -102,13 +102,13 @@ export const listFields: Record<ExportKind, ListField[]> = {
     f('warehouseCode', '仓库', 'text', 32),
   ],
   audit: [
-    f('action', '动作'),
+    f('createdAt', '时间', 'date', 24),
+    f('action', '类型'),
     f('objectLabel', '对象', 'text', 40),
     f('summary', '变更摘要', 'text', 60),
     f('channel', '渠道'),
     f('result', '结果'),
-    f('actor', '操作者'),
-    f('createdAt', '时间', 'date', 24),
+    { ...f('actor', '操作人'), defaultHidden: true },
   ],
 };
 export function matchedLineFields(kind: 'inbound' | 'outbound'): ListField[] {

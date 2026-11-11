@@ -150,7 +150,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                     />,
                   ]
                 : []),
-              <ListExportPanel key="export" {...props} />,
+              ...(!props.exportInHeader ? [<ListExportPanel key="export" {...props} />] : []),
             ]}
             scroll={{ x: layout.width, y: 480, scrollToFirstRowOnChange: false }}
             locale={{ emptyText: props.emptyText ?? '没有符合条件的记录，可调整筛选条件或重置后重试' }}

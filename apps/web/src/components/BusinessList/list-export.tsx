@@ -9,10 +9,12 @@ export function ListExportPanel<Row extends { id: Key }>({
   columnPrefs,
   selection,
   refreshing,
-}: ListTableProps<Row>) {
+  onOpen,
+}: ListTableProps<Row> & { onOpen?: () => void }) {
   return (
     <div className="business-list-toolbar-slot">
       <ExportPanel
+        onOpen={onOpen}
         refreshing={refreshing}
         context={{
           kind: name,

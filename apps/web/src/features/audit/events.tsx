@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Empty, Spin, Timeline, Tag } from 'antd';
+import { Button, Card, Empty, Spin, Timeline } from 'antd';
 import { Link } from '@umijs/max';
 import { listTime, type AuditRow } from '@wms/contracts';
 import { RequestError } from '../../components/RequestError';
 import { auditKeys } from './keys';
 import { auditCopy as t } from './text';
+import { AuditActionLabel, AuditResultLabel } from './labels';
 export function AuditEvents({ items }: { items: AuditRow[] }) {
   if (!items.length) return <Empty description={t.empty} />;
   return (
@@ -16,8 +17,7 @@ export function AuditEvents({ items }: { items: AuditRow[] }) {
         title: listTime(row.createdAt),
         content: (
           <>
-            <strong>{row.action}</strong>{' '}
-            <Tag color={row.result === '失败' ? 'error' : row.dangerous ? 'warning' : 'default'}>{row.result}</Tag>
+            <AuditActionLabel row={row} /> <AuditResultLabel result={row.result} />
             <div>
               {row.actor} · {row.channel} · {row.effect}
             </div>

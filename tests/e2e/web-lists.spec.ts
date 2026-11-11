@@ -58,12 +58,18 @@ for (const item of pages) {
     );
     await expect(table.getByRole('status').filter({ hasText: '变更筛选将清空选择' })).toContainText('已选择 1 条');
     const input =
-      item.field === 'keyword'
-        ? page.getByRole('searchbox', { name: item.label })
-        : page.getByRole('textbox', { name: new RegExp('^' + item.label) });
+      item.kind === 'audit'
+        ? page.getByRole('textbox', { name: '关键字' })
+        : item.field === 'keyword'
+          ? page.getByRole('searchbox', { name: item.label })
+          : page.getByRole('textbox', { name: new RegExp('^' + item.label) });
     await input.fill('NO-MATCH');
     await input.press('Enter');
-    await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
+    await expect(
+      page.getByText(
+        item.kind === 'audit' ? '该时间范围内没有操作记录' : '没有符合条件的记录，可调整筛选条件或重置后重试',
+      ),
+    ).toBeVisible();
     await expect(page.getByText(/已选择 1 条/)).toHaveCount(0);
     await page.getByRole('button', { name: /重\s*置/ }).click();
     await expect(
