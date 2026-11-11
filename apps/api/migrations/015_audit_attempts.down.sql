@@ -1,0 +1,20 @@
+-- The runner refuses nonempty operation_attempts OR operation_log before any DDL.
+ALTER TABLE operation_log
+  DROP CHECK audit_channel,
+  DROP CHECK audit_result,
+  DROP CHECK audit_effect,
+  DROP INDEX audit_time,
+  DROP INDEX audit_action,
+  DROP INDEX audit_object,
+  DROP INDEX audit_trace,
+  DROP COLUMN attempt_id,
+  DROP COLUMN channel,
+  DROP COLUMN result,
+  DROP COLUMN effect_state,
+  DROP COLUMN target_kind,
+  DROP COLUMN target_no,
+  DROP COLUMN target_label,
+  DROP COLUMN summary,
+  DROP COLUMN projection_json,
+  DROP COLUMN projection_version;
+DROP TABLE operation_attempts;
