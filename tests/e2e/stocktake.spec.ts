@@ -111,7 +111,7 @@ test('B3a 遗忘暂停409可见入口定位、作废不改库存，四态与窄�
     expect((await denied.json()).message).toContain(take.number);
     await page.getByTestId('active-stocktakes').click();
     await expect(page).toHaveURL(`/stocktakes/${take.id}`);
-    await expect(page.getByText(/进行中仅“作废盘点”可提前释放/)).toBeVisible();
+    await expect(page.getByText(/盘点进行中只能作废后提前恢复/)).toBeVisible();
     await screenshotWidths(page, 'b3a-forgotten-window');
     const before = await db.all('SELECT * FROM stock'),
       journal = await db.all('SELECT * FROM stock_journal');

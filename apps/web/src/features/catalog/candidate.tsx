@@ -15,7 +15,7 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
   const confirm = () =>
     modal.confirm({
       title: `发布第 ${version.versionId} 版完整目录？`,
-      content: `发布后当前目录为 ${version.entryCount} 条。消失条码不需失效确认；已有事实仍保留原版本和重量。${version.entryCount === 0 ? businessCopy.catalogCandidate1 : ''}`,
+      content: `发布后当前目录为 ${version.entryCount} 条。消失条码不需失效确认；已有扫码记录仍保留原重量和版本。${version.entryCount === 0 ? businessCopy.catalogCandidate1 : ''}`,
       okText: '确认发布整版',
       cancelText: '返回核对',
       onOk: () => publish(version),
@@ -35,11 +35,11 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
         <Alert
           type="info"
           title="消失不等于删除历史"
-          description="仅影响刷新到新版后的新扫码；已扫码的包仍可冻结、确认和对账。重量变化不重称已扫包。"
+          description="仅影响刷新到新版后的新扫码；已有扫码记录仍可查看和核对，出库数量以网页填写并确认为准。重量变化不会改动已有记录。"
         />
         {error && <RequestError type="error" showIcon error={error} />}
         {published ? (
-          <Alert type="success" showIcon title="整版发布成功，已有事实未改变" />
+          <Alert type="success" showIcon title="整版发布成功，已有扫码记录未改变" />
         ) : (
           <Button type="primary" loading={isPending} disabled={!allowed || modal.busy} onClick={confirm}>
             {modal.busy ? formCopy.submitting : '发布整版'}

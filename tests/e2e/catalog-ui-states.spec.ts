@@ -9,7 +9,7 @@ test('catalog-candidate-recovery：刷新后从版本历史恢复候选并发布
   await page.getByRole('button', { name: '继续核对第 2 版' }).click();
   await expect(page.getByRole('button', { name: '发布整版', exact: true })).toBeVisible();
   await publishFile(page);
-  await expect(page.getByText('整版发布成功，已有事实未改变')).toBeVisible();
+  await expect(page.getByText('整版发布成功，已有扫码记录未改变')).toBeVisible();
 });
 
 test('catalog-four-states：错误可重试、无权限可理解、零条版显示空态', async ({ page }) => {
@@ -35,5 +35,5 @@ test('catalog-four-states：错误可重试、无权限可理解、零条版显�
     }),
   );
   await page.getByRole('button', { name: '刷新状态', exact: true }).click();
-  await expect(page.getByText('仅 Web 登录用户可管理条码目录')).toBeVisible();
+  await expect(page.getByText('请在网页端登录后管理条码目录')).toBeVisible();
 });

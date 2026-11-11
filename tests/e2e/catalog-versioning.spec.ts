@@ -39,7 +39,7 @@ test('catalog-mixed-version-continuation：Web 发布后旧单继续扫码冻结
   await expect(page.getByText('重量变更 1 条', { exact: true })).toBeVisible();
   await catalogShot(page, 'diff');
   await publishFile(page);
-  await expect(page.getByText('整版发布成功，已有事实未改变')).toBeVisible();
+  await expect(page.getByText('整版发布成功，已有扫码记录未改变')).toBeVisible();
   const after = (await (await page.request.get('/api/v1/outbound/DEMO-001')).json()).data;
   expect(after).toEqual(before);
   expect(await db.all('SELECT * FROM scan_facts ORDER BY id')).toEqual(factsBefore);
@@ -91,7 +91,7 @@ test('catalog-duplicate：重复文件不建版，只有二次确认才重建', 
   await loginCatalog(page);
   await uploadFile(page, '目录规格 CATALOG-A 300');
   await publishFile(page);
-  await expect(page.getByText('整版发布成功，已有事实未改变')).toBeVisible();
+  await expect(page.getByText('整版发布成功，已有扫码记录未改变')).toBeVisible();
   const before = await db.get('SELECT COUNT(*) AS n FROM catalog_versions');
   await uploadFile(page, '目录规格 CATALOG-A 300');
   await expect(page.getByText('与第 2 版内容一致', { exact: true })).toBeVisible();

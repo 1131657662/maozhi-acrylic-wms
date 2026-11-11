@@ -16,10 +16,10 @@ export function HandoffPanel() {
   const { data, error, isLoading, refetch } = useQuery(handoffKeys.overview);
   const command = useHandoffCommand();
   return (
-    <Card title="发布门禁 · 设备与待补传队列" extra={<Button onClick={() => void refetch()}>刷新交接清单</Button>}>
+    <Card title="发布前检查 · 设备与待上传记录" extra={<Button onClick={() => void refetch()}>刷新交接清单</Button>}>
       {isLoading && <Skeleton active />}
       {error instanceof ApiError && error.status === 403 ? (
-        <Result status="403" title="仅 Web 用户可核验交接" />
+        <Result status="403" title="仅网页端登录用户可确认交接" />
       ) : (
         error && (
           <RequestError
@@ -33,8 +33,8 @@ export function HandoffPanel() {
         <Space orientation="vertical" style={{ width: '100%' }} size="middle">
           <Alert
             type="info"
-            title="解除条件：设备清点完成 + 清单完整 + 原正文全部收妥 + 作业行明确 + 无后续旧协议请求"
-            description="服务端无法发现从未联网的设备，仍须人工确认设备范围。此处清单按原单支持批量核验，确认交接不扣库存。"
+            title="解除条件：设备清点完成 + 清单完整 + 扫码记录全部收到 + 商品行已明确 + 没有后续旧设备请求"
+            description="系统无法发现从未联网的设备，仍须人工确认设备范围。此处清单按原单支持批量确认，确认交接不扣库存。"
           />
           {!data.devices.length ? (
             <Empty description="尚无设备上报交接清单；PDA 联网刷新完整目录后上报" />
@@ -53,7 +53,7 @@ export function HandoffPanel() {
                 { title: '待归属', dataIndex: 'missingContext', width: 90 },
                 {
                   title: '阻断原因',
-                  render: (_, r) => (r.confirmedAt ? '已确认交接' : r.reasons.join('；') || '待 Web 确认交接'),
+                  render: (_, r) => (r.confirmedAt ? '已确认交接' : r.reasons.join('；') || '待网页端确认交接'),
                   width: 240,
                 },
                 {
@@ -72,7 +72,7 @@ export function HandoffPanel() {
                       onClick={() =>
                         modal.confirm({
                           title: '确认本设备清点和旧队列交接完成？',
-                          content: `${r.expectedCount} 条原事实已收妥。确认只记录核验水位，后续旧请求会重新阻断。`,
+                          content: `${r.expectedCount} 条扫码记录已收到。确认只保存本次核对结果，后续旧请求会重新阻止发布。`,
                           okText: '确认交接完成',
                           cancelText: '返回核对',
                           onOk: () => command.mutateAsync({ id: r.id, action: 'confirm' }),

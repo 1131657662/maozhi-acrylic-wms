@@ -1,7 +1,7 @@
 // Business language shared by the repaired screens.
 export const businessCopy = {
   catalogCandidate1: '本次为空条码目录，请确认没有遗漏文件内容。',
-  catalogOverview1: '每次上传全部有效条码。新文件中消失的条码不再供新版扫码使用；已扫事实、原重量和原版本永远保留。',
+  catalogOverview1: '每次上传全部有效条码。新文件中消失的条码不再供新版扫码使用；已有扫码记录、原重量和原版本都会保留。',
   catalogPage1: '更换或上传全部条码',
   catalogUpload1: '文件未丢失。核对编码或更换文件后可再次检查。',
   catalogUpload2: '检查中，当前版本仍可用',

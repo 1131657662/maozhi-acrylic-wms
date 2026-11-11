@@ -19,9 +19,9 @@ export function HandoffBind({ id, records }: { id: string; records: z.infer<type
   if (!pending.length) return null;
   const bind = () =>
     modal.confirm({
-      title: `将原单 ${plan} 的 ${rows.length} 条记录绑定到所选 ERP 行？`,
-      content: '只补齐作业上下文；原 UUID、正文、目录版本和重量不改变。其他单据的记录不会绑定。',
-      okText: '批量确认原单作业行',
+      title: `将原单 ${plan} 的 ${rows.length} 条记录关联到所选商品行？`,
+      content: '只补充商品归属；已有扫码记录、条码目录版本和重量都不改变。其他单据的记录不会关联。',
+      okText: '批量确认原单商品行',
       cancelText: '返回核对',
       onOk: () =>
         command.mutateAsync({
@@ -32,7 +32,7 @@ export function HandoffBind({ id, records }: { id: string; records: z.infer<type
     });
   return (
     <Space orientation="vertical" style={{ width: '100%' }}>
-      <Alert type="warning" title={`待确认原单作业行 ${pending.length} 条：可按单批量处理，无需逐条点击`} />
+      <Alert type="warning" title={`待确认商品行 ${pending.length} 条：可按单批量处理，无需逐条点击`} />
       <label htmlFor="handoff-plan">原出库单</label>
       <Select
         id="handoff-plan"
@@ -45,14 +45,14 @@ export function HandoffBind({ id, records }: { id: string; records: z.infer<type
         placeholder="选择原单"
         options={[...new Set(pending.map((r) => r.planId))].map((value) => ({ value, label: value }))}
       />
-      <label htmlFor="handoff-line">ERP 作业行</label>
+      <label htmlFor="handoff-line">本单商品行</label>
       <Select
         id="handoff-line"
         value={line}
         onChange={setLine}
         loading={query.isLoading}
         style={{ width: '100%' }}
-        placeholder="选择原单内 ERP 行"
+        placeholder="选择出库单中的商品"
         options={query.data?.lines.map((l) => ({
           value: l.id,
           label: `${l.productCode} · ${l.productName} · ${l.plannedPackages} 包`,
@@ -62,7 +62,7 @@ export function HandoffBind({ id, records }: { id: string; records: z.infer<type
         <RequestError
           type="error"
           error={query.error}
-          action={<Button onClick={() => void query.refetch()}>重试作业行</Button>}
+          action={<Button onClick={() => void query.refetch()}>重新加载商品行</Button>}
         />
       )}
       {command.error && <RequestError type="error" error={command.error} />}

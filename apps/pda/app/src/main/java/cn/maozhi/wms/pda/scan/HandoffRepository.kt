@@ -23,13 +23,13 @@ class HandoffRepository(private val dao: ScanDao, private val api: ApiClient, pr
         val old = dao.handoff()
         if (old != null) {
             val result = api.get("/scan/handoffs/${JSONObject(old.header).getString("id")}") as JSONObject
-            require(!result.getJSONObject("summary").isNull("confirmedAt")) { "原交接尚未完成，请补传或在 Web 核验，不能丢弃原清单" }
+            require(!result.getJSONObject("summary").isNull("confirmedAt")) { "原交接尚未完成，请先上传扫码记录或在网页端确认，不能丢弃现有清单" }
         }
         snapshot(replace = true)
     }
     private suspend fun snapshot(replace: Boolean = false): LocalHandoff {
-        val version = dao.currentCatalog() ?: error("交接前须同步完整目录，旧队列仍保留")
-        require(version.verified) { "交接前须校验本地目录，旧队列仍保留" }
+        val version = dao.currentCatalog() ?: error("交接前请先下载完整条码目录，旧扫码记录仍会保留")
+        require(version.verified) { "交接前请确认本机条码目录完整，旧扫码记录仍会保留" }
         val records = JSONArray(); val manifest = JSONArray()
         for (fact in dao.allFacts().sortedBy { it.id }) {
             val sha = CatalogHash.sha(fact.payload)
@@ -63,7 +63,7 @@ class HandoffRepository(private val dao: ScanDao, private val api: ApiClient, pr
                     val factId = r.getString("factId")
                     val c = r.getJSONObject("context"); val old = dao.context(factId)
                     if (old == null) dao.sealContext(LocalFactContext(factId, c.toString()))
-                    else require(sameContext(JSONObject(old.json), c)) { "交接上下文冲突，原事实保留" }
+                    else require(sameContext(JSONObject(old.json), c)) { "扫码记录信息冲突，原扫码记录仍会保留" }
                 }
             }
             page++
