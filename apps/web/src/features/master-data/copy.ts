@@ -49,6 +49,7 @@ export const masterCopy = {
   retry: '重试',
   search: '按编码或名称搜索',
   complete: '完成',
+  confirm: '确认',
   origin: { local: '本地新建', legacy: '历史导入', unknown: '来源待核实' },
   vehicleSource: { manual: '手工建档', auto: '自动建档' },
 };

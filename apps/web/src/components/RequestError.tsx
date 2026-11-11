@@ -72,7 +72,9 @@ export function RequestError({
         action ?? (
           <Space>
             {info.kind !== 'FORBIDDEN' && (retry || ['UNAUTHORIZED', 'NOT_FOUND'].includes(info.kind)) && (
-              <Button onClick={act}>{errorCopy[info.kind][1]}</Button>
+              <Button aria-label={errorCopy[info.kind][1]} onClick={act}>
+                {errorCopy[info.kind][1]}
+              </Button>
             )}
           </Space>
         )

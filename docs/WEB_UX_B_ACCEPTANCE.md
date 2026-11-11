@@ -3,6 +3,17 @@
 本批在 `codex/web-ux-repair-b` 开发；A 批已合并并推送，merge/远端 master 为 `0d8d293cc1fa60de20be8e0d505f4968cd559633`。
 测试使用独立、随机命名的合成测试库，不连接生产。下面只记录本轮实际执行的结果。
 
+## 最终完整验证（2026-11-11）
+
+| 命令 | exit code | 通过 / 失败 | 证据 |
+|---|---:|---|---|
+| `npm run test` | 0 | 212 / 0 | `.local/evidence/web-ux-b/full-test-final.log` |
+| `npm run build` | 0 | 严格类型检查与 Web 构建通过 | `.local/evidence/web-ux-b/final-build.log` |
+| `npm run test:e2e` | 0 | 113 / 0（主 104 + catalog 9） | `.local/evidence/web-ux-b/final-e2e.log` |
+
+完整 E2E 为最终源码下的一次完整命令，主套件 12.9 分钟、目录套件 1.7 分钟，没有跳过失败用例。后续只补验收文档。单元测试后新增的千克错误文案断言另经 `errors-final-unit.log` 验证 3/3、exit 0；最终构建和完整 E2E 均包含该修改。
+提交前审查覆盖请求错误、草稿生命周期、确认弹窗、请求键及服务端事务；`git diff --check` 通过。生成目录与本地证据不入库。
+
 ## 4. 错误提示
 
 - 请求层统一十类错误；非 JSON、响应结构不符、网络断开、30 秒超时分别处理。主提示不输出英文异常、状态码或堆栈。
@@ -15,7 +26,7 @@
 
 ## 5. 业务文案
 
-- Web 手写源码禁止词出现次数 49 → 0；排除生成目录，菜单配置、报表服务与共享文案也同步检查。逐条原文/替换在 `WEB_UX_B_COPY_CHANGES.md`，机器清单在 `.local/evidence/web-ux-b/copy-replacements.json`。
+- Web 手写源码禁止词出现次数：相对 A 合并点 50 → 0；文案子项开始时（错误提示子项已移除 1 处）49 → 0。排除生成目录，菜单配置、报表服务与共享文案也同步检查。逐条原文/替换在 `WEB_UX_B_COPY_CHANGES.md`，机器清单在 `.local/evidence/web-ux-b/copy-replacements.json`，全批基线计数在 `copy-final-count.json`。
 - 状态/类型中文显示，未知值不输出原始库值；基础资料列表及选择器统一名称优先、编码辅助小字并可复制。报表明确按入账日期统计。
 - 五页定向 E2E：exit 0，5/5。截图：`copy-master-1440.png`、`copy-inbound-1440.png`、`copy-report-1440.png`、`copy-stocktake-1440.png`、`copy-catalog-1440.png`；均位于 `.local/evidence/web-ux-b/`，已检查。
 - 本项只调整审计界面文案及原始信息的折叠显示，不改审计查询接口、数据模型或 B6c 的检索能力。
@@ -26,3 +37,47 @@
 - 路由离开与抽屉关闭需确认，刷新/关闭页面使用浏览器原生提示；修改后 2 秒保存本机草稿。键按身份、类型、单据标识隔离；恢复后仍拦截离开，提交成功同步清除草稿。库存回写的危险确认需重新勾选，不由草稿代替。
 - 定向 E2E：exit 0，3/3；类型检查 exit 0。日志：`drafts-e2e.log`、`drafts-typecheck.log`；截图 `leave-confirm-1440.png`（已检查），均位于 `.local/evidence/web-ux-b/`。
 - 草稿只存浏览器本地；服务端提交仍检查单据版本和库存条件。
+
+## 7. 防重复提交
+
+- 表单提交使用 `useSubmitLock` 的同步 ref 锁，锁窗至少 500ms；锁定期间按钮禁用并显示「提交中…」。原生回车重复事件在捕获阶段忽略，文本框多行输入不受影响。
+- 入/出库创建、编辑与确认、数量更正、撤销/作废、库存调整、盘点命令和基础资料创建复用表单打开时生成的 UUID。失败不换键，成功清除；首个请求已写入但响应丢失时，同内容重放返回首次结果，修改内容重试则被服务端拒绝，避免创建第二条。
+- 联系人/车辆创建补齐可选 Idempotency-Key，复用现有写锁与 idempotent_commands 表，同事务保存业务结果与审计；未新增迁移。既有客户端不传键的兼容行为保留，Web 创建必传。
+- 定向 E2E exit 0，4/4；服务端并发重放测试 exit 0，1/1；类型检查 exit 0。截图 `submitting-1440.png` 已检查。
+
+| 实测场景 | 请求数 | 唯一请求键 | 数据库结果 |
+|---|---:|---:|---|
+| 同一轮连续点击 10 次创建 | 1 | 1 | 1 张入库单 |
+| 服务端已提交，响应延迟超过 30 秒；失败后重试 | 2 | 1 | 1 张入库单 |
+| 回车 repeat 10 次 | 1 | 1 | 1 张入库单 |
+| 确认入库按钮双击 | 1 | 1 | 1 条入账操作 |
+| 联系人同键并发调用 10 次 | 10 | 1 | 1 个联系人、1 条审计 |
+| 车辆同键并发调用 10 次 | 10 | 1 | 1 辆车、1 条审计 |
+
+原始输出：`.local/evidence/web-ux-b/submit-{click,timeout,enter,confirm}.json`；日志 `submit-e2e.log`、`submit-unit.log`。E2E 使用 Chromium，未宣称 Firefox/WebKit 或生产验收。
+
+## 完整回归修正与边界
+
+- 修复未保存保护误拦截干净页面的浏览器返回：只在脏表单存在时阻断，历史导航重试完成后才恢复监听。定向检查中入/出库行选择位移 0px，拖拽长任务（>50ms）均 0。
+- 数量更正的二次确认在请求完成前保持锁定，错误时原弹窗可重试；连续双击确认仍复用同键。
+- 基础资料、联系人、车辆的受控抽屉保存后只由父组件关闭，避免提交锁结束时 ProForm 再次关闭、误关刚打开的编辑抽屉；系统发号及连续打开编辑回归通过。
+- 发布失败的确认弹窗保留原按钮重试，并处理异步拒绝，页面不产生未处理异常；上传锁定期间同时禁用文件修改和重建入口，避免按钮可点但操作被锁忽略。目录完整定向回归 9/9，exit 0。
+- 入库确认失败由统一中文错误区展示，确认气泡处理异步失败；再次确认复用原请求键。新增浏览器回归验证两次请求、一个请求键、无未处理异常，exit 0。
+- 报表原因不展示内部流水编号、英文未知类型或 delta；移除页面/导出中的内部操作 ID、水位列，计算与一致性令牌保留。三范围逐字段和对账合计比对差异均 0。
+- 旧 E2E 同步名称优先的选择器、中文错误文案、审计原始数据折叠和草稿恢复流程；出库数量断言改为独立读取当前库存再核对差值，避免用其他用例已改写的固定余额。未放宽 A 批 50ms 长任务阈值。
+- 本批未新增数据库迁移。随机测试库用于库存/重复请求验证；没有修改 3307 开发样本库或生产。
+
+## 截图索引
+
+全部截图宽度 1440，保存在本机忽略目录 `.local/evidence/web-ux-b/`。
+
+| 场景 | 截图 |
+|---|---|
+| 中文错误提示 | [error-1440.png](../.local/evidence/web-ux-b/error-1440.png) |
+| 未保存离开确认 | [leave-confirm-1440.png](../.local/evidence/web-ux-b/leave-confirm-1440.png) |
+| 提交中按钮 | [submitting-1440.png](../.local/evidence/web-ux-b/submitting-1440.png) |
+| 基础资料文案 | [copy-master-1440.png](../.local/evidence/web-ux-b/copy-master-1440.png) |
+| 入库文案 | [copy-inbound-1440.png](../.local/evidence/web-ux-b/copy-inbound-1440.png) |
+| 报表文案 | [copy-report-1440.png](../.local/evidence/web-ux-b/copy-report-1440.png) |
+| 盘点文案 | [copy-stocktake-1440.png](../.local/evidence/web-ux-b/copy-stocktake-1440.png) |
+| 条码目录文案 | [copy-catalog-1440.png](../.local/evidence/web-ux-b/copy-catalog-1440.png) |

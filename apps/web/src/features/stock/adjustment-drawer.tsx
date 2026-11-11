@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { RequestError } from '../../components/RequestError';
@@ -17,6 +18,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
   const adjust = useAdjustStock();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stock-adjust`, `${row.warehouseCode}:${row.productCode}`);
+  const lock = useSubmitLock();
   useFormErrors(adjust.error, form);
   async function refresh() {
     const result = await stock.refetch();
@@ -105,10 +107,14 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
             <ProForm<AdjustmentValues>
               form={form}
               onValuesChange={draft.change}
-              onFinish={submit}
-              disabled={adjust.isPending}
+              onFinish={(values) => lock.run(() => submit(values))}
+              disabled={lock.busy || adjust.isPending}
               initialValues={{ packagesDelta: 0, weightTonnesDelta: 0 }}
-              submitter={{ searchConfig: { submitText: '确认调整库存' }, resetButtonProps: false }}
+              submitter={{
+                submitButtonProps: lock.button,
+                searchConfig: { submitText: lock.text('确认调整库存') },
+                resetButtonProps: false,
+              }}
             >
               <AdjustmentFields before={before} />
             </ProForm>

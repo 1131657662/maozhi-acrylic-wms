@@ -12,6 +12,7 @@ import {
 } from '@wms/contracts';
 import { request } from '../../api/client';
 import { useBatchReverse } from '../../features/document-lifecycle/use-batch-reverse';
+import { useSubmitLock } from '../form-protection/use-submit-lock';
 
 export interface BatchRow {
   id: string;
@@ -42,6 +43,7 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
   const [result, setResult] = useState<BatchReverseResponse | null>(null);
   const pendingCommand = useRef<BatchReverseCommand | null>(null);
   const mutation = useBatchReverse();
+  const lock = useSubmitLock();
   const preparing = open && Object.keys(previews).length !== rows.length && !prepareError && !result;
   const visible = selectedCount > 0;
   async function openModal() {
@@ -116,11 +118,14 @@ export function BatchReverseActions({ kind, rows, excluded, selectedCount, onCle
             setResult(null);
           }
         }}
-        onOk={() => void submit()}
-        okText="确认批量撤销"
+        onOk={() => void lock.run(submit).catch(() => undefined)}
+        okText={lock.text('确认批量撤销')}
         cancelText="取消"
-        okButtonProps={{ danger: true, disabled: refreshing || preparing || Boolean(prepareError) || Boolean(result) }}
-        confirmLoading={mutation.isPending}
+        okButtonProps={{
+          danger: true,
+          disabled: lock.busy || refreshing || preparing || Boolean(prepareError) || Boolean(result),
+        }}
+        confirmLoading={lock.busy}
         destroyOnHidden
       >
         {preparing && <Spin description="正在核对单据状态" />}

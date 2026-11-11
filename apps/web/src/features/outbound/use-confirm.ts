@@ -1,5 +1,5 @@
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
 import { detailSchema, type Detail } from '@wms/contracts';
 import { request } from '../../api/client';
 import { outboundKeys } from './keys';
@@ -8,19 +8,18 @@ import { webListKeys } from '../web-lists/keys';
 import { lifecycleKeys } from '../document-lifecycle/keys';
 export function useConfirm() {
   const client = useQueryClient();
-  const pending = useRef<{ input: string; key: string } | null>(null);
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: (order: Detail) => {
       const body = JSON.stringify({ revision: order.revision, digest: order.digest });
-      const input = `${order.id}:${body}`;
-      if (pending.current?.input !== input) pending.current = { input, key: crypto.randomUUID() };
       return request(`/outbound/${order.id}/confirm`, detailSchema, {
         method: 'POST',
-        headers: { 'Idempotency-Key': pending.current.key },
+        headers: { 'Idempotency-Key': intent.value() },
         body,
       });
     },
     onSuccess: async () => {
+      intent.clear();
       await Promise.all([
         client.invalidateQueries({ queryKey: lifecycleKeys._def }),
         client.invalidateQueries({ queryKey: outboundKeys._def }),

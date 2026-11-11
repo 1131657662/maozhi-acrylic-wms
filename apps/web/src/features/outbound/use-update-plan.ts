@@ -1,3 +1,4 @@
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { detailSchema, type EditOutboundPlan } from '@wms/contracts';
 import { request } from '../../api/client';
@@ -13,17 +14,20 @@ interface UpdatePlanInput {
 
 export function useUpdatePlan() {
   const client = useQueryClient();
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: ({ id, revision, digest, plan }: UpdatePlanInput) =>
       request(`/outbound/${id}`, detailSchema, {
         method: 'PATCH',
-        headers: { 'Idempotency-Key': crypto.randomUUID() },
+        headers: { 'Idempotency-Key': intent.value() },
         body: JSON.stringify({ revision, digest, plan }),
       }),
-    onSuccess: () =>
-      Promise.all([
+    onSuccess: () => {
+      intent.clear();
+      return Promise.all([
         client.invalidateQueries({ queryKey: outboundKeys._def }),
         client.invalidateQueries({ queryKey: webListKeys._def }),
-      ]),
+      ]);
+    },
   });
 }

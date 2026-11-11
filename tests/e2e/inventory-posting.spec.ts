@@ -62,7 +62,7 @@ test('B1a3 调整空原因 422、库存不足 409；错误保留输入且数据�
     const response = page.waitForResponse((res) => res.url().endsWith('/stock/adjustments'));
     await page.getByRole('button', { name: '确认调整库存' }).click();
     expect((await response).status()).toBe(409);
-    await expect(page.getByText(/库存包数或实重不足，操作未执行/)).toBeVisible();
+    await expect(page.locator('.ant-alert').filter({ hasText: '库存包数或实重不足，操作未执行' })).toBeVisible();
     await expect(page.getByLabel('调整原因', { exact: true })).toHaveValue('核验库存不足时的恢复');
     expect(await inventorySnapshot(db)).toEqual(before);
     console.log('B1A3_E2E empty_reason=422 insufficient=409 all_tables_unchanged=true input_preserved=true');

@@ -17,6 +17,7 @@ export function errorKind(status: number): ErrorKind {
   return 'VALIDATION';
 }
 export function safeBusinessMessage(message: string, fallback: string): string {
+  message = message.replace(/\bkg\b/g, errorUi.kilograms);
   // Never display exception text, embedded identifiers or a server stack.
   return message.length <= 240 && /^[\p{Script=Han}\d\s，。；：、！？（）《》【】“”‘’.,:+\-/%]+$/u.test(message)
     ? businessErrorText(message)
@@ -34,7 +35,7 @@ export class ApiError extends Error {
     public path = '',
   ) {
     const fallback = errorCopy[kind][0];
-    const detail = ['VALIDATION'].includes(kind) || (kind === 'CONFLICT' && message.startsWith('库存不足'));
+    const detail = kind === 'VALIDATION' || (kind === 'CONFLICT' && /^库存(?:不足|包数或实重不足)/.test(message));
     super(detail ? safeBusinessMessage(message, fallback) : fallback);
     this.name = 'ApiError';
     const parsed = fieldsSchema.safeParse(data);

@@ -45,6 +45,8 @@ test('B6a-num 三类基础资料系统发号、只读编码、改名、复制与
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.screenshot({ path: `.local/evidence/b6a-num-${catalog}-1440.png`, fullPage: true });
     await page.goto(catalog === 'customers' ? '/outbound/new' : '/inbound/new');
+    // The previous supplier selection left a local inbound draft; discard it explicitly.
+    if (catalog === 'warehouses') await page.getByRole('button', { name: /^丢\s*弃$/ }).click();
     await page.getByLabel(selectLabel, { exact: true }).fill(item.code);
     const option = page.locator('.ant-select-item-option').filter({ hasText: item.code });
     await expect(option).toContainText(`${name}已改名`);
@@ -54,6 +56,10 @@ test('B6a-num 三类基础资料系统发号、只读编码、改名、复制与
     await expect(
       page.locator('.ant-select').filter({ has: page.getByLabel(selectLabel, { exact: true }) }),
     ).toContainText(`${name}已改名`);
+    // This selection intentionally remains unsaved; leave through the protected menu.
+    await page.getByRole('menuitem').filter({ hasText: '基础资料' }).click();
+    await page.getByRole('button', { name: '放弃修改', exact: true }).click();
+    await expect(page).toHaveURL(/\/master-data$/);
     results.push({ catalog, code: item.code, codeInput: false, renamed: true, copied: true, dropdown: true });
   }
   console.log('B6A_NUM_UI', JSON.stringify(results));

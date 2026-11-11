@@ -121,6 +121,10 @@ export function listCellText(kind: ExportKind, field: ListField, row: Record<str
   const value = row[field.key];
   if (kind === 'audit' && field.key === 'action') return auditActionText(value);
   if (kind === 'audit' && field.key === 'targetId') return businessLabels.relatedRecord;
+  if (kind.startsWith('report-') && field.key === 'source')
+    return ['erp-product', 'inventory-eligible'].includes(String(value)) ? '库存商品' : businessLabels.unknown;
+  if (kind.startsWith('report-') && field.key === 'billType')
+    return value && /^[\p{Script=Han}]+$/u.test(String(value)) ? String(value) : businessLabels.unknown;
   if (field.key === 'status' && !kind.startsWith('report-'))
     return statusText(value == null ? null : String(value), kind === 'inbound' ? 'inbound' : 'outbound');
   if (

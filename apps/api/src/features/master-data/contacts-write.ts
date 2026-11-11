@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { createContactSchema, updateContactSchema, type PartyOwner } from '@wms/contracts';
+import { contactSchema, createContactSchema, updateContactSchema, type PartyOwner } from '@wms/contracts';
+import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import type { Database } from '../../db/mysql.ts';
 import { audit, type Actor } from '../../shared/audit.ts';
 import { AppError } from '../../shared/errors.ts';
@@ -12,10 +13,12 @@ async function lockOwner(db: Database, owner: PartyOwner): Promise<void> {
   await db.get(`SELECT code FROM ${table} WHERE code=? FOR UPDATE`, [owner.partyCode]);
   await activeMaster(db, owner.partyType === 'customer' ? 'customers' : 'suppliers', owner.partyCode);
 }
-export async function createContact(db: Database, input: unknown, actor: Actor) {
+export async function createContact(db: Database, input: unknown, actor: Actor, key?: string) {
   const data = createContactSchema.parse(input);
   return db.transaction(async (tx) => {
     await lockInventoryWriter(tx);
+    const replay = key ? await replayCommand(tx, 'contact.create', key, data, actor, contactSchema) : undefined;
+    if (replay) return replay;
     await lockOwner(tx, data);
     const id = randomUUID();
     await tx.run(
@@ -33,6 +36,7 @@ export async function createContact(db: Database, input: unknown, actor: Actor) 
     );
     const after = await readContact(tx, id);
     await audit(tx, actor, { action: 'contact.create', targetId: id, before: null, after });
+    if (key) await saveCommand(tx, 'contact.create', key, data, actor, after);
     return after;
   });
 }

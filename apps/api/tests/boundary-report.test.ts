@@ -29,7 +29,9 @@ test('B4a R6 constructor/__proto__ 保留原类型并回退未分类，月报不
       assert.equal(feb.unknownPackages, 2);
       assert.equal(feb.unknownGrams, 610000);
       assert.equal(feb.checkState, '不可验证');
-      assert.ok(feb.reasons.some((reason) => reason.includes(type)));
+      assert.ok(feb.reasons.some((reason) => reason.includes('未分类库存变动')));
+      assert.ok(feb.reasons.every((reason) => !reason.includes(type)));
+      assert.ok(await f.db.get('SELECT id FROM stock_journal WHERE source_business_type=? LIMIT 1', [type]));
       console.log(
         'B4A_R6_REPORT',
         JSON.stringify({ type, httpStatus: 200, detailReconciliation: details.report.reconciliation, monthly: feb }),

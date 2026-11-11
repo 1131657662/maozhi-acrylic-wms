@@ -19,7 +19,7 @@ function classification(type: string): Pick<LedgerEvent, 'family' | 'reverse' | 
     ['stock.correct', ['correction', '数量更正']],
     ['stocktake.post', ['count', '盘点回写']],
   ]);
-  const [family, operationLabel] = labels.get(type) ?? ['unknown', `未分类：${type || '未记录'}`];
+  const [family, operationLabel] = labels.get(type) ?? ['unknown', '未分类库存变动'];
   return {
     family,
     reverse: type.endsWith('.reverse'),
@@ -79,7 +79,7 @@ function identityFields(row: Row, source: Record<string, unknown>) {
     productCode: String(row.productCode),
     productName: String(source.product_name ?? row.productName),
     productModel: String(source.product_model ?? row.productModel ?? ''),
-    nameBasis: `${source.product_name ? '商品：原流水开始时库存' : '商品：当前基础资料'}；${source.warehouse_name ? '仓库：原流水开始时库存' : '仓库：当前基础资料'}`,
+    nameBasis: `${source.product_name ? '商品：当时名称' : '商品：当前名称'}；${source.warehouse_name ? '仓库：当时名称' : '仓库：当前名称'}`,
     operationId: row.operation_id == null ? null : String(row.operation_id),
     originalOperationId: row.originalOperationId == null ? null : String(row.originalOperationId),
   };

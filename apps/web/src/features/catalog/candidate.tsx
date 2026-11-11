@@ -1,14 +1,16 @@
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
+import { formCopy } from '../../components/form-protection/copy';
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
-import { Alert, App, Button, Card, Space, Tag } from 'antd';
+import { Alert, Button, Card, Space, Tag } from 'antd';
 import type { CatalogUploadResult } from '@wms/contracts';
 import { DiffPreview } from './diff-preview';
 import { usePublish } from './use-publish';
 
 export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadResult; allowed: boolean }) {
   const version = upload.version!;
-  const { modal } = App.useApp();
-  const { mutate: publish, isPending, isSuccess, error } = usePublish(upload.uploadId);
+  const modal = useLockedConfirm();
+  const { mutateAsync: publish, isPending, isSuccess, error } = usePublish(upload.uploadId);
   const published = isSuccess || version.status === 'published';
   const confirm = () =>
     modal.confirm({
@@ -16,9 +18,7 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
       content: `发布后当前目录为 ${version.entryCount} 条。消失条码不需失效确认；已有事实仍保留原版本和重量。${version.entryCount === 0 ? businessCopy.catalogCandidate1 : ''}`,
       okText: '确认发布整版',
       cancelText: '返回核对',
-      onOk: () => {
-        publish(version);
-      },
+      onOk: () => publish(version),
     });
   return (
     <Card
@@ -41,8 +41,8 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
         {published ? (
           <Alert type="success" showIcon title="整版发布成功，已有事实未改变" />
         ) : (
-          <Button type="primary" loading={isPending} disabled={!allowed} onClick={confirm}>
-            {isPending ? '正在发布 / 核验结果' : '发布整版'}
+          <Button type="primary" loading={isPending} disabled={!allowed || modal.busy} onClick={confirm}>
+            {modal.busy ? formCopy.submitting : '发布整版'}
           </Button>
         )}
         <DiffPreview key={version.versionId} version={version} />

@@ -1,7 +1,8 @@
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, App, Button, Select, Space } from 'antd';
+import { Alert, Button, Select, Space } from 'antd';
 import type { z } from 'zod';
 import { handoffRecordSchema } from '@wms/contracts';
 import { handoffKeys } from './handoff-keys';
@@ -12,7 +13,7 @@ export function HandoffBind({ id, records }: { id: string; records: z.infer<type
   const [line, setLine] = useState<string>();
   const query = useQuery({ ...handoffKeys.plan(plan ?? ''), enabled: !!plan });
   const command = useHandoffCommand();
-  const { modal } = App.useApp();
+  const modal = useLockedConfirm();
   const pending = records.filter((r) => !r.context);
   const rows = pending.filter((r) => r.planId === plan);
   if (!pending.length) return null;

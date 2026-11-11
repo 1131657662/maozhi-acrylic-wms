@@ -114,6 +114,8 @@ test('B1b1 日志历史分页与前后值抽屉', async ({ page }) => {
   await page.goto('/audit?action=list.fixture&page=2&pageSize=200');
   await rowsReady(page, 'audit', 40);
   await page.getByTestId('audit-list').getByRole('button', { name: '查看详情' }).first().click();
+  await expect(page.getByRole('heading', { name: '操作前' })).not.toBeVisible();
+  await page.getByRole('dialog').getByText('原始数据', { exact: true }).click();
   await expect(page.getByRole('heading', { name: '操作前' })).toBeVisible();
   await expect(page.getByRole('dialog').getByText('"packages": 1', { exact: false })).toBeVisible();
   await page.keyboard.press('Escape');

@@ -14,7 +14,7 @@ async function fillReceipt(page: Page) {
   await page.getByLabel('仓库').click();
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品').click();
-  await page.getByText('腈纶原料 · 合成样本 · ACR-032', { exact: true }).click();
+  await page.locator('.ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');
   await page.getByLabel('本次总重量（吨）').fill('0.3025');
 }
@@ -35,7 +35,7 @@ test('B1a 创建入库已成功但响应丢失，同表单重试使用原键和�
     return route.fulfill({ response });
   });
   await page.getByRole('button', { name: '创建待确认入库单', exact: true }).click();
-  await expect(page.getByRole('alert').filter({ hasText: /fetch|network|网络/i })).toBeVisible();
+  await expect(page.locator('.ant-alert').filter({ hasText: '网络连接中断' })).toBeVisible();
   await expect(page.getByLabel('包数', { exact: true })).toHaveValue('1');
   const retry = page.getByRole('button', { name: /创建待确认入库单$/ });
   await expect(retry).toBeEnabled();

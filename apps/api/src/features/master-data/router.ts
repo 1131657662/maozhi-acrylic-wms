@@ -12,7 +12,9 @@ export function masterRouter(db: Database, origins: string[]): Router {
     master = masterDataController(db);
   router.use(requireChannel('web', origins));
   router.get('/contacts', async (req, res) => ok(res, await listContacts(db, partyOwnerSchema.parse(req.query))));
-  router.post('/contacts', async (req, res) => ok(res, await createContact(db, req.body, actorFrom(res))));
+  router.post('/contacts', async (req, res) =>
+    ok(res, await createContact(db, req.body, actorFrom(res), z.uuid().optional().parse(req.get('idempotency-key')))),
+  );
   router.patch('/contacts/:id', async (req, res) =>
     ok(res, await updateContact(db, z.uuid().parse(req.params.id), req.body, actorFrom(res))),
   );
@@ -26,7 +28,9 @@ export function masterRouter(db: Database, origins: string[]): Router {
   });
   router.get('/vehicles', async (req, res) => ok(res, await listVehicles(db, req.query)));
   router.get('/vehicles/:id', async (req, res) => ok(res, await readVehicle(db, z.uuid().parse(req.params.id))));
-  router.post('/vehicles', async (req, res) => ok(res, await createVehicle(db, req.body, actorFrom(res))));
+  router.post('/vehicles', async (req, res) =>
+    ok(res, await createVehicle(db, req.body, actorFrom(res), z.uuid().optional().parse(req.get('idempotency-key')))),
+  );
   router.patch('/vehicles/:id', async (req, res) =>
     ok(res, await updateVehicle(db, z.uuid().parse(req.params.id), req.body, actorFrom(res))),
   );

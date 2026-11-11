@@ -64,6 +64,7 @@ test('Web 请求区分断网、超时和异常数据，提交错误发出统一�
   }
 });
 test('422 只保留位置和安全中文原因', () => {
+  assert.equal(new ApiError('第 1 行：重量必须为正十进制 kg', 422, '').message, '第 1 行：重量必须为正十进制 千克');
   const error = new ApiError('Unexpected token', 422, 'trace', {
     fields: [{ path: ['lines', 0, 'weightGrams'], message: 'SQL stack' }],
   });

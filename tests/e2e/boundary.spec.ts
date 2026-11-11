@@ -145,20 +145,20 @@ test('B4a R2/R3 商品可维护；605条列表及单据选择器分页/搜索/�
     await page.goto('/inbound/new');
     const product = page.getByLabel('商品', { exact: true });
     await product.fill(prefix);
-    await expect(page.getByText(`${first} · 翻页验收-1`, { exact: true })).toBeVisible();
+    await expect(page.locator('.ant-select-item-option').filter({ hasText: first })).toBeVisible();
     await page.getByRole('button', { name: '下一页资料' }).click();
-    await expect(page.getByText(`${prefix}0021 · 翻页验收-21`, { exact: true })).toBeVisible();
+    await expect(page.locator('.ant-select-item-option').filter({ hasText: `${prefix}0021` })).toBeVisible();
     await product.fill(last);
     const selectedRead = page.waitForResponse((r) => r.url().endsWith(`/master/products/${last}`));
-    await page.getByText(`${last} · 翻页验收-605`, { exact: true }).click();
+    await page.locator('.ant-select-item-option').filter({ hasText: last }).click();
     // Refetch on reload is unnecessary: the exact-code query runs as soon as selection changes.
     const selectedLabel = page.locator('.ant-select-content').filter({ has: product });
-    await expect(selectedLabel).toContainText(`${last} · 翻页验收-605`);
+    await expect(selectedLabel).toContainText(`翻页验收-605${last}`);
     expect((await selectedRead).status()).toBe(200);
     await product.fill(first);
-    await expect(page.getByText(`${first} · 翻页验收-1`, { exact: true })).toBeVisible();
+    await expect(page.locator('.ant-select-item-option').filter({ hasText: first })).toBeVisible();
     await product.press('Escape');
-    await expect(selectedLabel).toContainText(`${last} · 翻页验收-605`);
+    await expect(selectedLabel).toContainText(`翻页验收-605${last}`);
     await page.screenshot({ path: '.local/evidence/b4a-r3-selected.png', fullPage: true });
     console.log(
       'B4A_R3_E2E',

@@ -91,7 +91,7 @@ test('商品库存加载及错源重试：无资格 响应不显示、不残留�
   await expect(page.locator('.ant-skeleton')).toHaveCount(0);
   await expect(page.getByTestId('source-stock')).toHaveCount(0);
   release?.();
-  await expect(page.getByText('系统出错了，已记录')).toBeVisible();
+  await expect(page.getByText('数据异常，已记录')).toBeVisible();
   await expect(page.getByTestId('stock-subtotal-packages')).toHaveCount(0);
   incorrect = false;
   await page.getByRole('button', { name: /重\s*试/ }).click();

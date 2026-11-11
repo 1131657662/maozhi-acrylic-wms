@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { App, type FormInstance } from 'antd';
 import { useSession } from '../../features/auth/use-session';
 import { draftKey, serializeValues, parseValues, readDraft } from './draft-storage';
-import { registerUnsaved } from './unsaved-registry';
+import { registerUnsaved, notifyUnsaved } from './unsaved-registry';
 import { DRAFT_DELAY_MS, formCopy } from './copy';
 
 export function useFormDraft(form: FormInstance, kind: string, id = 'new') {
@@ -29,6 +29,7 @@ export function useFormDraft(form: FormInstance, kind: string, id = 'new') {
     if (!state.current.ready) return;
     state.current.values = serializeValues(form.getFieldsValue(true));
     state.current.dirty = state.current.values !== state.current.initial;
+    notifyUnsaved();
     clearTimeout(state.current.timer);
     state.current.timer = window.setTimeout(flush, DRAFT_DELAY_MS);
   };
@@ -76,6 +77,7 @@ export function useFormDraft(form: FormInstance, kind: string, id = 'new') {
   const saved = () => {
     state.current.initial = state.current.values;
     state.current.dirty = false;
+    notifyUnsaved();
     flush();
   };
   const leave = async (action: () => void) => {

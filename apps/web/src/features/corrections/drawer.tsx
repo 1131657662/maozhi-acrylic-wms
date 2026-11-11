@@ -1,7 +1,9 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { RequestError } from '../../components/RequestError';
-import { Alert, App, Button, Drawer, Form, Input, Space } from 'antd';
+import { Alert, Button, Drawer, Form, Input, Space } from 'antd';
 import { tonnes, type CorrectionSummary, type CorrectionTarget } from '@wms/contracts';
 import { gramsToTonnes, tonnesDeltaToGrams } from '../../lib/weight-input';
 import { CorrectionLineFields, type CorrectionFormValues } from './fields';
@@ -14,10 +16,11 @@ interface Props {
   onClose: () => void;
 }
 export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
-  const { modal } = App.useApp(),
+  const modal = useLockedConfirm(),
     mutation = useCorrect(target);
   const [form] = Form.useForm<CorrectionFormValues>();
   const draft = useFormDraft(form, `correction-${target.kind}`, target.id);
+  const lock = useSubmitLock();
   useFormErrors(mutation.error, form);
   async function submit(values: CorrectionFormValues) {
     const lines = values.lines.map((line, index) => ({
@@ -39,20 +42,17 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
       okText: '确认更正并入账',
       cancelText: '返回核对',
       okButtonProps: { type: 'default' },
+      onOk: async () => {
+        await mutation.mutateAsync({
+          expectedCorrectionRevision: initial.revision,
+          previousCorrectionId: initial.latest?.id ?? null,
+          reason: values.reason,
+          lines,
+        });
+        draft.saved();
+      },
     });
-    if (!confirmed) return;
-    try {
-      await mutation.mutateAsync({
-        expectedCorrectionRevision: initial.revision,
-        previousCorrectionId: initial.latest?.id ?? null,
-        reason: values.reason,
-        lines,
-      });
-      draft.saved();
-      onClose();
-    } catch {
-      /* The drawer retains the exact snapshot, values and idempotency key for retry. */
-    }
+    if (confirmed) onClose();
   }
   return (
     <Drawer
@@ -67,8 +67,8 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
         form={form}
         onValuesChange={draft.change}
         layout="vertical"
-        onFinish={submit}
-        disabled={mutation.isPending}
+        onFinish={(values) => lock.run(() => submit(values))}
+        disabled={lock.busy || mutation.isPending}
         initialValues={{
           lines: initial.lines.map((line) => ({
             packages: line.effective.packages,
@@ -102,11 +102,11 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
             <Input.TextArea maxLength={500} showCount rows={3} />
           </Form.Item>
           <Space>
-            <Button onClick={() => void draft.leave(onClose)} disabled={mutation.isPending}>
+            <Button onClick={() => void draft.leave(onClose)} disabled={lock.busy || mutation.isPending}>
               取消
             </Button>
-            <Button htmlType="submit" loading={mutation.isPending}>
-              核对并提交
+            <Button htmlType="submit" loading={lock.busy || mutation.isPending} disabled={lock.busy}>
+              {lock.text('核对并提交')}
             </Button>
           </Space>
         </Space>

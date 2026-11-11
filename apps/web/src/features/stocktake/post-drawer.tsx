@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
@@ -16,6 +17,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
   const { mutateAsync: post, isPending: isPosting, error: postError } = usePostStocktake();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stocktake-post`, initial.stocktake.id);
+  const lock = useSubmitLock();
   useFormErrors(postError, form);
   const acknowledged = ackToken === preview.token,
     take = preview.stocktake;
@@ -72,7 +74,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
         {preview.unposted.length > 0 && (
           <Checkbox
             checked={acknowledged}
-            disabled={isPosting}
+            disabled={lock.busy || isPosting}
             onChange={(e) => setAckToken(e.target.checked ? preview.token : '')}
           >
             {businessCopy.stocktakePostDrawer2}
@@ -85,15 +87,15 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
             description="原因与输入保留；网络失败可原键重试。清单或实盘变化须刷新预览，重新核对并勾选。"
           />
         )}
-        <Button onClick={() => void refresh()} disabled={isPosting}>
+        <Button onClick={() => void refresh()} disabled={lock.busy || isPosting}>
           刷新回写预览
         </Button>
         <ProForm<{ reason: string }>
           form={form}
           onValuesChange={draft.change}
-          onFinish={submit}
-          loading={isPosting}
-          disabled={isPosting}
+          onFinish={(values) => lock.run(() => submit(values))}
+          loading={lock.busy || isPosting}
+          disabled={lock.busy || isPosting}
           submitter={false}
         >
           <ProFormTextArea
@@ -107,10 +109,10 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
             htmlType="submit"
             aria-label="人工确认并回写库存"
             aria-busy={isPosting}
-            loading={isPosting}
-            disabled={preview.blockers.length > 0 || (preview.unposted.length > 0 && !acknowledged)}
+            loading={lock.busy || isPosting}
+            disabled={lock.busy || preview.blockers.length > 0 || (preview.unposted.length > 0 && !acknowledged)}
           >
-            人工确认并回写库存
+            {lock.text('人工确认并回写库存')}
           </Button>
         </ProForm>
       </Space>

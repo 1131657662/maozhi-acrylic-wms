@@ -14,6 +14,7 @@ import { ActiveStocktakeLink } from './features/stocktake/active-link';
 import { ErrorNotifications } from './components/ErrorNotifications';
 import { ERROR_MAX_VISIBLE } from './text';
 import { UnsavedNavigation } from './components/form-protection/UnsavedNavigation';
+import { RepeatKeyGuard } from './components/form-protection/RepeatKeyGuard';
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: 1 }, mutations: { networkMode: 'always', retry: false } },
@@ -47,6 +48,7 @@ export function rootContainer(container: ReactNode) {
             <ErrorNotifications />
             <QueryClientProvider client={client}>
               <UnsavedNavigation />
+              <RepeatKeyGuard />
               {container}
             </QueryClientProvider>
           </AntApp>

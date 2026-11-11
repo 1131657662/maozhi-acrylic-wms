@@ -1,5 +1,5 @@
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
 import { masterItemSchema, type MasterCatalog, type CreateMasterItem } from '@wms/contracts';
 import { request } from '../../api/client';
 import { masterDataKeys } from './keys';
@@ -11,19 +11,17 @@ interface CreateMasterItemInput extends CreateMasterItem {
 
 export function useCreateMasterItem() {
   const client = useQueryClient();
-  const pending = useRef<{ payload: string; key: string } | null>(null);
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: ({ catalog, ...body }: CreateMasterItemInput) => {
-      const payload = JSON.stringify({ catalog, ...body });
-      if (pending.current?.payload !== payload) pending.current = { payload, key: crypto.randomUUID() };
       return request(`/master/${catalog}`, masterItemSchema, {
         method: 'POST',
         body: JSON.stringify(body),
-        headers: { 'Idempotency-Key': pending.current.key },
+        headers: { 'Idempotency-Key': intent.value() },
       });
     },
     onSuccess: () => {
-      pending.current = null;
+      intent.clear();
       return client.invalidateQueries({ queryKey: masterDataKeys._def });
     },
   });

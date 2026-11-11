@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { Form } from 'antd';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { useFormErrors } from '../../components/use-form-errors';
@@ -13,10 +14,12 @@ export function VehicleEditor({ editing, onClose }: { editing: Vehicle | null; o
     update = useUpdateVehicle();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `vehicle`, editing?.id ?? 'new');
+  const lock = useSubmitLock();
   useFormErrors(create.error ?? update.error, form);
   return (
     <DrawerForm<z.infer<typeof createVehicleSchema>>
       form={form}
+      disabled={lock.busy}
       onValuesChange={draft.change}
       open
       title={editing ? t.edit : t.newVehicle}
@@ -28,20 +31,25 @@ export function VehicleEditor({ editing, onClose }: { editing: Vehicle | null; o
       initialValues={
         editing ? { plate: editing.plate, driver: editing.driver, phone: editing.phone, memo: editing.memo } : undefined
       }
-      submitter={{ searchConfig: { submitText: t.save, resetText: t.cancel } }}
-      onFinish={async (values) => {
-        try {
-          const { plate, ...fields } = values;
-          if (editing) await update.mutateAsync({ id: editing.id, ...fields });
-          else await create.mutateAsync(values);
-          draft.saved();
-          onClose();
-          return true;
-        } catch (error) {
-          notifyError(error);
-          return false;
-        }
+      submitter={{
+        submitButtonProps: lock.button,
+        searchConfig: { submitText: lock.text(t.save), resetText: t.cancel },
       }}
+      onFinish={(values) =>
+        lock.run(async () => {
+          try {
+            const { plate, ...fields } = values;
+            if (editing) await update.mutateAsync({ id: editing.id, ...fields });
+            else await create.mutateAsync(values);
+            draft.saved();
+            onClose();
+            return false; // The controlled drawer is already closed by its owner.
+          } catch (error) {
+            notifyError(error);
+            return false;
+          }
+        })
+      }
     >
       <ProFormText
         name="plate"

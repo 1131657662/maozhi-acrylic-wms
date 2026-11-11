@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { notifyError } from '../../api/error-events';
 import { useFormErrors } from '../../components/use-form-errors';
@@ -31,6 +32,7 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
   const update = useUpdateMasterItem();
   const [form] = Form.useForm<CreateMasterItem>();
   const draft = useFormDraft(form, `master-${catalog}`, editing?.code ?? 'new');
+  const lock = useSubmitLock();
   useFormErrors(create.error ?? update.error, form);
   const generated = hasGeneratedMasterCode(catalog);
   async function save(values: CreateMasterItem): Promise<boolean> {
@@ -45,15 +47,17 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
       message.success(t.saved);
       draft.saved();
       onSaved(saved);
-      return true;
+      // Controlled close already ran; a delayed ProForm close can dismiss the next editor.
+      return false;
     } catch (error) {
       notifyError(error);
       return false;
     }
   }
   return (
-    <DrawerForm
+    <DrawerForm<CreateMasterItem>
       form={form}
+      disabled={lock.busy}
       onValuesChange={draft.change}
       key={editing?.code ?? 'new'}
       title={editing ? `${editing.name} · ${t.edit}` : t.newItem}
@@ -91,9 +95,10 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
           : undefined
       }
       drawerProps={{ destroyOnHidden: true, onClose: () => void draft.leave(onClose) }}
-      onFinish={save}
+      onFinish={(values) => lock.run(() => save(values))}
       submitter={{
-        searchConfig: { submitText: t.save, resetText: t.cancel },
+        submitButtonProps: lock.button,
+        searchConfig: { submitText: lock.text(t.save), resetText: t.cancel },
         onReset: () => void draft.leave(onClose),
       }}
     >

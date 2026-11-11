@@ -1,8 +1,9 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
-import { App, Popconfirm, Space, Tag, Button, Input } from 'antd';
+import { Popconfirm, Space, Tag, Button, Input } from 'antd';
 import type { MasterCatalog, MasterItem } from '@wms/contracts';
 import { MasterLabel } from './master-label';
 import { useMasterItems } from './use-master-items';
@@ -14,13 +15,17 @@ import { z } from 'zod';
 import { ItemEditor, NewItemButton } from './item-editor';
 
 export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
-  const { message } = App.useApp();
   const [contactOwner, setContactOwner] = useState<string | null>(null);
   const [editing, setEditing] = useState<MasterItem | null>(null);
   const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState({ page: 1, pageSize: MASTER_PAGE_SIZE, keyword: '' });
   const { data, isLoading, error, refetch } = useMasterItems(catalog, query);
   const update = useUpdateMasterItem();
+  const lock = useSubmitLock();
+  const references =
+    update.error instanceof ApiError
+      ? z.object({ references: z.array(z.object({ documentNo: z.string() })) }).safeParse(update.error.data)
+      : null;
   const columns: ProColumns<MasterItem>[] = [
     { title: t.name, dataIndex: 'name', render: (_, row) => <MasterLabel item={row} /> },
     ...(catalog === 'products'
@@ -54,20 +59,17 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
           </Button>
           <Popconfirm
             title={`确认${row.active ? '停用' : '启用'} ${row.name}？`}
-            onConfirm={async () => {
-              try {
-                await update.mutateAsync({ catalog, code: row.code, active: !row.active });
-              } catch (reason) {
-                const refs =
-                  reason instanceof ApiError
-                    ? z.object({ references: z.array(z.object({ documentNo: z.string() })) }).safeParse(reason.data)
-                    : null;
-                message.error(
-                  (reason instanceof Error ? reason.message : '状态更新失败') +
-                    (refs?.success ? '：' + refs.data.references.map((r) => r.documentNo).join('、') : ''),
-                );
-              }
-            }}
+            okText={lock.text(t.confirm)}
+            okButtonProps={lock.button}
+            onConfirm={() =>
+              lock.run(async () => {
+                try {
+                  await update.mutateAsync({ catalog, code: row.code, active: !row.active });
+                } catch {
+                  /* RequestError retains the failure and related documents below. */
+                }
+              })
+            }
           >
             <Button type="link" loading={update.isPending}>
               {row.active ? '停用' : '启用'}
@@ -87,6 +89,14 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
       />
       {error && (
         <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />
+      )}
+      {update.error && (
+        <RequestError
+          error={update.error}
+          description={
+            references?.success ? references.data.references.map((row) => row.documentNo).join('、') : undefined
+          }
+        />
       )}
       <ProTable<MasterItem>
         rowKey="code"

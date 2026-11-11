@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { errorMessage } from '../../api/errors';
@@ -15,6 +16,7 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
   const { mutateAsync: closeDocument, isPending: isClosing, error: closeError } = useCloseDocument();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `lifecycle-${initial.kind}-${initial.action}`, initial.id);
+  const lock = useSubmitLock();
   useFormErrors(closeError, form);
   async function refresh() {
     try {
@@ -52,7 +54,7 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
             title={refreshError || closeError?.message}
             description="原因与原请求已保留。网络失败可重试；数据变化时请刷新预览，核对后再提交。"
             action={
-              <Button disabled={isClosing} onClick={() => void refresh()}>
+              <Button disabled={lock.busy || isClosing} onClick={() => void refresh()}>
                 刷新预览
               </Button>
             }
@@ -61,15 +63,16 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
         <ProForm<{ reason: string }>
           form={form}
           onValuesChange={draft.change}
-          onFinish={submit}
-          disabled={isClosing}
+          onFinish={(values) => lock.run(() => submit(values))}
+          disabled={lock.busy || isClosing}
           submitter={{
             resetButtonProps: false,
-            searchConfig: { submitText: initial.action === 'reverse' ? '确认撤销入账' : '确认作废' },
+            searchConfig: { submitText: lock.text(initial.action === 'reverse' ? '确认撤销入账' : '确认作废') },
             submitButtonProps: {
+              ...lock.button,
               type: 'default',
               danger: true,
-              disabled: !preview.allowed || preview.action !== initial.action,
+              disabled: lock.busy || !preview.allowed || preview.action !== initial.action,
             },
           }}
         >

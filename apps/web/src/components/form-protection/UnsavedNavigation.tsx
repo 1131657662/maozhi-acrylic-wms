@@ -1,14 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { history } from '@umijs/max';
 import { App } from 'antd';
-import { unsavedEntries } from './unsaved-registry';
+import { unsavedEntries, hasUnsaved, subscribeUnsaved } from './unsaved-registry';
 import { formCopy } from './copy';
 
 export function UnsavedNavigation() {
   const { modal } = App.useApp();
+  const dirty = useSyncExternalStore(subscribeUnsaved, hasUnsaved, () => false);
   useEffect(() => {
+    if (!dirty) return;
     let asking = false,
       disposed = false;
+    let stopListening = () => {};
     const arm = () =>
       history.block(async (transition) => {
         if (asking) return;
@@ -27,10 +30,14 @@ export function UnsavedNavigation() {
           dirty.forEach((entry) => entry.flush());
         }
         unblock();
-        transition.retry();
-        queueMicrotask(() => {
-          if (!disposed) unblock = arm();
+        // POP retries complete asynchronously; rearm only after history applied it.
+        stopListening = history.listen(() => {
+          stopListening();
+          queueMicrotask(() => {
+            if (!disposed && hasUnsaved()) unblock = arm();
+          });
         });
+        transition.retry();
       });
     let unblock = arm();
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -44,8 +51,9 @@ export function UnsavedNavigation() {
     return () => {
       disposed = true;
       unblock();
+      stopListening();
       window.removeEventListener('beforeunload', beforeUnload);
     };
-  }, [modal]);
+  }, [modal, dirty]);
   return null;
 }

@@ -59,10 +59,13 @@ for (const kind of ['inbound', 'outbound'] as const)
       await expect(drawer.getByText(/原值、填写内容和请求已保留/)).toBeVisible();
       await expect(drawer.getByLabel(`${doc.productCode} 更正后包数`)).toHaveValue('2');
       await expect(drawer.getByLabel('更正原因', { exact: true })).toHaveValue('B5a 只修正包数，吨数保持原值');
-      const retry = drawer.getByRole('button', { name: /核对并提交$/ });
+      const retry = page.getByRole('button', { name: '确认更正并入账', exact: true });
+      await expect(retry).toBeEnabled();
       await expect(retry).not.toHaveClass(/ant-btn-loading/);
-      await retry.click();
-      await page.getByRole('button', { name: '确认更正并入账' }).click();
+      await retry.evaluate((button) => {
+        (button as HTMLButtonElement).click();
+        (button as HTMLButtonElement).click();
+      });
       await expect(drawer).toHaveCount(0);
       expect(attempts).toHaveLength(2);
       expect(attempts[1]).toEqual(attempts[0]);

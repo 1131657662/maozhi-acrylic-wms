@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
@@ -14,6 +15,7 @@ export function StocktakeCreate() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stocktake`, 'new');
+  const lock = useSubmitLock();
   const { mutateAsync: create, isPending: isCreating, error: createError } = useCreateStocktake();
   useFormErrors(createError, form);
   async function submit(values: CreateStocktake) {
@@ -44,10 +46,14 @@ export function StocktakeCreate() {
       <ProForm<CreateStocktake>
         form={form}
         onValuesChange={draft.change}
-        onFinish={submit}
-        loading={isCreating}
-        disabled={isCreating}
-        submitter={{ resetButtonProps: false, searchConfig: { submitText: businessCopy.stocktakeCreate3 } }}
+        onFinish={(values) => lock.run(() => submit(values))}
+        loading={lock.busy || isCreating}
+        disabled={lock.busy || isCreating}
+        submitter={{
+          submitButtonProps: lock.button,
+          resetButtonProps: false,
+          searchConfig: { submitText: lock.text(businessCopy.stocktakeCreate3) },
+        }}
       >
         <ProForm.Item name="warehouseCode" label="盘点仓库" rules={[{ required: true }]}>
           <MasterSelect catalog="warehouses" />

@@ -1,10 +1,12 @@
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, App, Button, Space, Upload } from 'antd';
+import { Alert, Button, Space, Upload } from 'antd';
 import { ProForm, ProFormSelect } from '@ant-design/pro-components';
 import type { CatalogUploadResult } from '@wms/contracts';
 import { useUpload } from './use-upload';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
 
 export function CatalogUpload({
   onCandidate,
@@ -15,15 +17,18 @@ export function CatalogUpload({
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [encoding, setEncoding] = useState('gb18030');
-  const { mutate: upload, data: result, error, isPending, reset } = useUpload();
+  const { mutateAsync: upload, data: result, error, reset } = useUpload();
+  const lock = useSubmitLock();
   const run = (rebuildOfVersionId?: number) =>
-    file && upload({ file, encoding, rebuildOfVersionId }, { onSuccess: onCandidate });
+    lock.run(async () => {
+      if (file) return upload({ file, encoding, rebuildOfVersionId }, { onSuccess: onCandidate });
+    });
   return (
     <ProForm submitter={false} layout="vertical" initialValues={{ encoding: 'gb18030' }}>
       <SnapshotFields
         file={file}
         encoding={encoding}
-        pending={isPending}
+        pending={lock.busy}
         onFile={(value) => {
           setFile(value);
           reset();
@@ -35,16 +40,16 @@ export function CatalogUpload({
       />
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         {error && <RequestError type="error" showIcon error={error} description={businessCopy.catalogUpload1} />}
-        {result?.duplicate && <DuplicateNotice result={result} pending={isPending} onRebuild={run} />}
+        {result?.duplicate && <DuplicateNotice result={result} pending={lock.busy} onRebuild={run} />}
         <Button
           type={hasCandidate ? 'default' : 'primary'}
-          loading={isPending}
-          disabled={!file}
+          loading={lock.busy}
+          disabled={!file || lock.busy}
           onClick={() => {
-            run();
+            void run().catch(() => undefined);
           }}
         >
-          {isPending ? businessCopy.catalogUpload2 : businessCopy.catalogUpload3}
+          {lock.text(businessCopy.catalogUpload3)}
         </Button>
       </Space>
     </ProForm>
@@ -95,18 +100,16 @@ function DuplicateNotice({
 }: {
   result: CatalogUploadResult;
   pending: boolean;
-  onRebuild: (id?: number) => void;
+  onRebuild: (id?: number) => Promise<unknown>;
 }) {
-  const { modal } = App.useApp();
+  const modal = useLockedConfirm();
   const rebuild = () =>
     modal.confirm({
       title: '确认重建相同内容的版本？',
       content: `内容与第 ${result.matchedVersionId} 版相同。重建会保留一条新的版本历史，仍需另行发布。`,
       okText: '确认重建版本',
       cancelText: '不重建',
-      onOk: () => {
-        onRebuild(result.matchedVersionId ?? undefined);
-      },
+      onOk: () => onRebuild(result.matchedVersionId ?? undefined),
     });
   return (
     <Alert

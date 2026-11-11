@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
 import { useFormErrors } from '../../components/use-form-errors';
@@ -42,6 +43,7 @@ function LoadedPlanEditor({ id, order }: { id: string; order?: Detail }) {
   const update = useUpdatePlan();
   const [form] = Form.useForm<PlanFormValues>();
   const draft = useFormDraft(form, 'outbound', id || 'new');
+  const lock = useSubmitLock();
   useFormErrors(create.error ?? update.error, form);
   const confirmBackdate = useBackdateConfirmation();
   async function submit(values: PlanFormValues): Promise<boolean> {
@@ -83,16 +85,16 @@ function LoadedPlanEditor({ id, order }: { id: string; order?: Detail }) {
         <RequestError error={create.error ?? update.error} retry={() => form.submit()} />
       )}
       <ProForm<PlanFormValues>
-        loading={create.isPending || update.isPending}
+        loading={lock.busy || create.isPending || update.isPending}
         form={form}
         onValuesChange={draft.change}
-        disabled={create.isPending || update.isPending}
+        disabled={lock.busy || create.isPending || update.isPending}
         key={id || 'new-plan'}
         initialValues={order ? { vehicleNo: order.vehicleNo, memo: order.memo } : undefined}
-        onFinish={submit}
+        onFinish={(values) => lock.run(() => submit(values))}
         submitter={{
-          submitButtonProps: { loading: create.isPending || update.isPending },
-          searchConfig: { submitText: order ? '保存修改' : '创建计划', resetText: '取消' },
+          submitButtonProps: lock.button,
+          searchConfig: { submitText: lock.text(order ? '保存修改' : '创建计划'), resetText: '取消' },
           render: (_, dom) => (
             <Space>
               <Link to={order ? `/outbound/${order.id}` : '/'}>

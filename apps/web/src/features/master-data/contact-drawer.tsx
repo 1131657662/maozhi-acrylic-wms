@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { notifyError } from '../../api/error-events';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
@@ -14,6 +15,7 @@ export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: 
   const [editor, setEditor] = useState<{ item: Contact | null } | null>(null),
     setDefault = useSetDefaultContact(),
     update = useUpdateContact();
+  const lock = useSubmitLock();
   const report = (error: unknown) => notifyError(error);
   return (
     <Drawer
@@ -36,8 +38,8 @@ export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: 
               <Radio
                 aria-label={`${t.defaultContact} ${row.name}`}
                 checked={row.isDefault}
-                disabled={!row.active || setDefault.isPending}
-                onChange={() => setDefault.mutate(row.id, { onError: report })}
+                disabled={!row.active || setDefault.isPending || lock.busy}
+                onChange={() => void lock.run(() => setDefault.mutateAsync(row.id)).catch(report)}
               />
             ),
           },
@@ -53,7 +55,11 @@ export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: 
                 </Button>
                 <Popconfirm
                   title={row.active ? t.confirmDisable : t.confirmEnable}
-                  onConfirm={() => update.mutateAsync({ id: row.id, active: !row.active }).catch(report)}
+                  okText={lock.text(t.confirm)}
+                  okButtonProps={lock.button}
+                  onConfirm={() =>
+                    lock.run(() => update.mutateAsync({ id: row.id, active: !row.active })).catch(report)
+                  }
                 >
                   <Button type="link" disabled={update.isPending}>
                     {row.active ? t.inactive : t.active}

@@ -2,9 +2,11 @@ import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Popconfirm, Space } from 'antd';
 import { tonnes, type InboundReceipt } from '@wms/contracts';
 import { useConfirmReceipt } from './use-confirm-receipt';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 
 export function InboundConfirmation({ receipt }: { receipt: InboundReceipt }) {
   const confirm = useConfirmReceipt(receipt.id);
+  const lock = useSubmitLock();
   if (['cancelled', 'voided'].includes(receipt.status ?? '')) return null;
   if (receipt.postingState === 'legacy')
     return (
@@ -32,13 +34,15 @@ export function InboundConfirmation({ receipt }: { receipt: InboundReceipt }) {
       <Popconfirm
         title="确认本单实物及总重量已核对？"
         description="确认后增加库存并保存审计记录；仅误确认可核对依赖后撤销，更正与退货另行处理。"
-        okText="确认入账"
+        okText={lock.text('确认入账')}
+        okButtonProps={lock.button}
+        cancelButtonProps={{ disabled: lock.busy }}
         cancelText="返回核对"
-        onConfirm={() => confirm.mutateAsync()}
+        onConfirm={() => lock.run(() => confirm.mutateAsync()).catch(() => undefined)}
         disabled={!pending || confirm.isPending}
       >
-        <Button type="primary" loading={confirm.isPending} disabled={!pending}>
-          核对并确认入库
+        <Button type="primary" loading={lock.busy} disabled={!pending || lock.busy}>
+          {lock.text('核对并确认入库')}
         </Button>
       </Popconfirm>
     </Space>

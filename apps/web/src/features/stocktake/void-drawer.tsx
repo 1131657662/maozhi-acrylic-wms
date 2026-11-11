@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
@@ -11,6 +12,7 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
   const { mutateAsync: voidTake, isPending: isVoiding, error: voidError } = useVoidStocktake();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stocktake-void`, take.id);
+  const lock = useSubmitLock();
   useFormErrors(voidError, form);
   async function submit(v: { reason: string }) {
     try {
@@ -47,13 +49,13 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
       <ProForm<{ reason: string }>
         form={form}
         onValuesChange={draft.change}
-        onFinish={submit}
-        loading={isVoiding}
-        disabled={isVoiding}
+        onFinish={(values) => lock.run(() => submit(values))}
+        loading={lock.busy || isVoiding}
+        disabled={lock.busy || isVoiding}
         submitter={{
           resetButtonProps: false,
-          searchConfig: { submitText: '确认作废盘点' },
-          submitButtonProps: { danger: true },
+          searchConfig: { submitText: lock.text('确认作废盘点') },
+          submitButtonProps: { ...lock.button, danger: true },
         }}
       >
         <ProFormTextArea

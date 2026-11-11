@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { useFormErrors } from '../../components/use-form-errors';
 import { RequestError } from '../../components/RequestError';
@@ -22,6 +23,7 @@ export function InboundEditor() {
   const create = useCreateReceipt();
   const [form] = Form.useForm<ReceiptFormValues>();
   const draft = useFormDraft(form, `inbound`, 'new');
+  const lock = useSubmitLock();
   useFormErrors(create.error, form);
   const confirmBackdate = useBackdateConfirmation();
   async function submit(values: ReceiptFormValues): Promise<boolean> {
@@ -80,16 +82,16 @@ export function InboundEditor() {
             <RequestError error={create.error} retry={() => form.submit()} style={{ marginBottom: token.margin }} />
           )}
           <ProForm<ReceiptFormValues>
-            loading={create.isPending}
+            loading={lock.busy || create.isPending}
             form={form}
             onValuesChange={draft.change}
             grid
             rowProps={{ gutter: token.marginLG }}
-            disabled={create.isPending}
-            onFinish={submit}
+            disabled={lock.busy || create.isPending}
+            onFinish={(values) => lock.run(() => submit(values))}
             submitter={{
-              submitButtonProps: { loading: create.isPending },
-              searchConfig: { submitText: '创建待确认入库单', resetText: '取消' },
+              submitButtonProps: lock.button,
+              searchConfig: { submitText: lock.text('创建待确认入库单'), resetText: '取消' },
               render: (_, dom) => (
                 <Space>
                   <Link to="/inbound">

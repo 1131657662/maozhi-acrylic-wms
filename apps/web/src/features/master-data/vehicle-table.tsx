@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { notifyError } from '../../api/error-events';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
@@ -14,6 +15,7 @@ export function VehicleTable() {
     [editor, setEditor] = useState<{ item: Vehicle | null } | null>(null);
   const { data: vehicles, isLoading: loading, error } = useQuery(vehicleKeys.list(query)),
     update = useUpdateVehicle();
+  const lock = useSubmitLock();
   return (
     <>
       <Input.Search
@@ -60,13 +62,17 @@ export function VehicleTable() {
                 </Button>
                 <Popconfirm
                   title={row.active ? t.confirmDisable : t.confirmEnable}
-                  onConfirm={async () => {
-                    try {
-                      await update.mutateAsync({ id: row.id, active: !row.active });
-                    } catch (error) {
-                      notifyError(error);
-                    }
-                  }}
+                  okText={lock.text(t.confirm)}
+                  okButtonProps={lock.button}
+                  onConfirm={() =>
+                    lock.run(async () => {
+                      try {
+                        await update.mutateAsync({ id: row.id, active: !row.active });
+                      } catch (error) {
+                        notifyError(error);
+                      }
+                    })
+                  }
                 >
                   <Button type="link">{row.active ? t.inactive : t.active}</Button>
                 </Popconfirm>

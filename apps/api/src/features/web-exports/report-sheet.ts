@@ -1,7 +1,10 @@
 import type ExcelJS from 'exceljs';
 import { reconciliationLines, type ReportMeta, type DerivedReportMeta } from '@wms/contracts';
 
-export function writeReconciliation(book: ExcelJS.stream.xlsx.WorkbookWriter, report: ReportMeta | DerivedReportMeta): void {
+export function writeReconciliation(
+  book: ExcelJS.stream.xlsx.WorkbookWriter,
+  report: ReportMeta | DerivedReportMeta,
+): void {
   const sheet = book.addWorksheet('收发存对账');
   sheet.columns = [
     { header: '全部筛选区间对账（不随导出行范围缩小）', width: 54 },
@@ -10,11 +13,11 @@ export function writeReconciliation(book: ExcelJS.stream.xlsx.WorkbookWriter, re
   ];
   sheet.getRow(1).font = { bold: true };
   sheet.getRow(1).commit();
-  sheet
-    .addRow([`ERP 商品 · ${report.fromDay} 至 ${report.toDay}`, report.timeStatus, `流水水位 ${report.watermark}`])
-    .commit();
+  sheet.addRow([`库存商品 · ${report.fromDay} 至 ${report.toDay}`, report.timeStatus]).commit();
   if ('adjustmentCount' in report)
-    sheet.addRow(['本期库存变化说明', `本期含调整 ${report.adjustmentCount} 笔、含盘点回写 ${report.stocktakeCount} 次`]).commit();
+    sheet
+      .addRow(['本期库存变化说明', `本期含调整 ${report.adjustmentCount} 笔、含盘点回写 ${report.stocktakeCount} 次`])
+      .commit();
   for (const item of reconciliationLines(report.reconciliation)) {
     const row = sheet.addRow([
       item.label,
@@ -34,7 +37,7 @@ export function writeReconciliation(book: ExcelJS.stream.xlsx.WorkbookWriter, re
     .commit();
   sheet.addRow(['范围说明', '仅ERP商品；对账含全部收发/调整，不受明细方向筛选影响；主表按选择方向及范围']).commit();
   if ('adjustmentCount' in report) {
-    sheet.addRow(['公式与口径', report.formula]).commit();
+    sheet.addRow(['公式与统计方式', report.formula]).commit();
   }
   sheet
     .addRow([

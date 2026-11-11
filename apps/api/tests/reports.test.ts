@@ -98,7 +98,7 @@ test('B3b: gaps stay unverifiable with visible difference; unknown opening is nu
     assert.equal(march.differencePackages, 1);
     assert.equal(march.differenceGrams, 300000);
     assert.equal(march.adjustmentPackages, 0);
-    assert.ok(march.reasons.some((r) => r.includes('流水链断点')));
+    assert.ok(march.reasons.some((r) => r.includes('相邻库存记录的前后数量不衔接')));
     const before = await f.api
       .get('/api/v1/web/reports/monthly')
       .query({ ...reportParams, fromDay: '2025-12-01', toDay: '2025-12-31' })

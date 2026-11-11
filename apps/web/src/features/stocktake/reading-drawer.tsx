@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormErrors } from '../../components/use-form-errors';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { businessCopy } from '../../business-copy';
@@ -15,6 +16,7 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
   const { mutateAsync: save, isPending: isSaving, error: saveError } = useSaveReading();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stocktake-reading`, `${id}:${line.productCode}`);
+  const lock = useSubmitLock();
   useFormErrors(saveError, form);
   async function refresh() {
     try {
@@ -75,11 +77,15 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
       <ProForm<{ packages: number; tonnes: number }>
         form={form}
         onValuesChange={draft.change}
-        onFinish={submit}
-        loading={isSaving}
-        disabled={isSaving}
+        onFinish={(values) => lock.run(() => submit(values))}
+        loading={lock.busy || isSaving}
+        disabled={lock.busy || isSaving}
         initialValues={line.actual ? { packages: line.actual.packages, tonnes: line.actual.weightGrams / 1000000 } : {}}
-        submitter={{ resetButtonProps: false, searchConfig: { submitText: '保存实盘' } }}
+        submitter={{
+          submitButtonProps: lock.button,
+          resetButtonProps: false,
+          searchConfig: { submitText: lock.text('保存实盘') },
+        }}
       >
         <ProFormDigit
           name="packages"

@@ -65,7 +65,7 @@ export function Reconciliation({ report }: { report: ReportMeta }) {
       <p style={{ marginTop: 0 }}>
         <Tag>{businessCopy.reportsReconciliation1}</Tag>
         <Tag color={report.timeStatus === '时间未核实' ? 'warning' : undefined}>{report.timeStatus}</Tag>
-        <strong>全部筛选区间对账</strong> · {report.fromDay} 至 {report.toDay} · 水位 {report.watermark}
+        <strong>全部筛选区间对账</strong> · {report.fromDay} 至 {report.toDay}
       </p>
       <BalanceTable balance={report.reconciliation} />
       <BalanceNotice report={report} />

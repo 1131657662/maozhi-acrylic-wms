@@ -1,7 +1,8 @@
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, App, Button, Card, Empty, Result, Skeleton, Space } from 'antd';
+import { Alert, Button, Card, Empty, Result, Skeleton, Space } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import { ApiError } from '../../api/client';
 import { handoffKeys } from './handoff-keys';
@@ -11,7 +12,7 @@ import { HandoffClients } from './handoff-clients';
 
 export function HandoffPanel() {
   const [id, setId] = useState<string>();
-  const { modal } = App.useApp();
+  const modal = useLockedConfirm();
   const { data, error, isLoading, refetch } = useQuery(handoffKeys.overview);
   const command = useHandoffCommand();
   return (

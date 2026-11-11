@@ -1,5 +1,6 @@
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { e2eDatabase } from './inventory-helpers';
 
 async function login(page: Page): Promise<void> {
   await page.goto('/user/login?redirect=%2F');
@@ -42,6 +43,16 @@ async function freezeViaPda(api: APIRequestContext): Promise<void> {
   expect(freeze.ok()).toBeTruthy();
 }
 test('Web 登录、详情核对与一次出库确认', async ({ page, request }) => {
+  const db = e2eDatabase();
+  let before = 0;
+  try {
+    before = Number(
+      (await db.get("SELECT weight_tonnes FROM stock WHERE warehouse_code='DEMO-WH' AND product_code='ACR-032'"))
+        ?.weight_tonnes,
+    );
+  } finally {
+    await db.close();
+  }
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await freezeViaPda(request);
@@ -57,9 +68,12 @@ test('Web 登录、详情核对与一次出库确认', async ({ page, request })
   await expect(page.getByRole('button', { name: '已确认出库' })).toBeDisabled();
   await page.getByText('库存概览', { exact: true }).click();
   await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
-  await expect(page.getByRole('cell', { name: '1.2000', exact: true })).toBeVisible();
+  await page.goto('/stock?product=ACR-032');
+  await expect(
+    page.getByTestId('stock-list').getByRole('cell', { name: (before - 0.6).toFixed(4), exact: true }),
+  ).toBeVisible();
   await page.getByText('操作记录', { exact: true }).click();
-  await expect(page.getByText('outbound.confirm', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('audit-list').getByText('确认出库', { exact: true }).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
 test('1280 布局、空态和退出登录', async ({ page }) => {
@@ -84,7 +98,7 @@ test('Web 可登记独立包数与总吨数的入库单并维护基础资料', a
   await page.getByLabel('仓库').click();
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品').click();
-  await page.getByText('腈纶原料 · 合成样本 · ACR-032', { exact: true }).click();
+  await page.locator('.ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('包数').fill('2');
   await page.getByLabel('本次总重量（吨）').fill('0.7150');
   await page.getByRole('button', { name: '创建待确认入库单' }).click();
@@ -114,7 +128,7 @@ test('Web 可新建并编辑尚未扫码的出库计划', async ({ page }) => {
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('车牌').fill('E2E-VEHICLE');
   await page.getByLabel('商品').click();
-  await page.getByText('腈纶原料 · 合成样本 · ACR-032', { exact: true }).click();
+  await page.locator('.ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('计划包数').fill('1');
   await page.getByLabel('计划重量（吨）').fill('0.3025');
   await page.getByRole('button', { name: '创建计划' }).click();

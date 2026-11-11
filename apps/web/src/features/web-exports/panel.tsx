@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
@@ -52,6 +53,7 @@ function ExportControls({ context, refreshing }: { context: ExportContext; refre
   const [schema, setSchema] = useState<NonNullable<ExportRequest['schema']>>('document_summary');
   const [format, setFormat] = useState<NonNullable<ExportRequest['format']>>('xlsx');
   const session = useExportSession();
+  const lock = useSubmitLock();
   const { data: job } = session;
   const generate = () => {
     if (refreshing) return;
@@ -100,15 +102,16 @@ function ExportControls({ context, refreshing }: { context: ExportContext; refre
       />
       <Button
         type={job?.state === 'ready' ? 'default' : 'primary'}
-        loading={session.starting}
+        loading={session.starting || lock.busy}
         disabled={
+          lock.busy ||
           refreshing ||
           !context.total ||
           (scope === 'selected' && (!context.selected.length || context.selected.length > WEB_EXPORT_SELECTED_MAX))
         }
-        onClick={() => void generate()}
+        onClick={() => void lock.run(async () => generate())}
       >
-        生成 {format.toUpperCase()}
+        {lock.text(`生成 ${format.toUpperCase()}`)}
       </Button>
       <ExportErrors session={session} />
       {job && <ExportJobView job={job} />}
