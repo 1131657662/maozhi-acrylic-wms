@@ -15,13 +15,13 @@
 | POST | /api/v1/master/suppliers | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
 | PATCH | /api/v1/master/{catalog}/{code} | web | 更新资料；停用检查四类进行中引用，422 data.references返回单号 |
 | GET | /api/v1/master/contacts | web | 客户/供应商收送货档案与默认建议 |
-| POST | /api/v1/master/contacts | web | 新增指定往来单位档案 |
+| POST | /api/v1/master/contacts | web | 新增指定往来单位档案；可选 Idempotency-Key，同键同内容返回首次结果，不重复建档 |
 | PATCH | /api/v1/master/contacts/{id} | web | 修改档案；停用同时清除默认，不改历史快照 |
 | DELETE | /api/v1/master/contacts/{id} | web | 仅删除非默认且从未被引用的档案 |
 | PUT | /api/v1/master/contacts/{id}/default | web | 同归属启用档案设默认，事务中替换唯一默认 |
 | GET | /api/v1/master/vehicles | web | 按归一化车牌分页查询车辆 |
 | GET | /api/v1/master/vehicles/{id} | web | 读取车辆档案 |
-| POST | /api/v1/master/vehicles | web | 手工建档；归一化车牌唯一 |
+| POST | /api/v1/master/vehicles | web | 手工建档；归一化车牌唯一；可选 Idempotency-Key，同键同内容返回首次结果 |
 | PATCH | /api/v1/master/vehicles/{id} | web | 修改司机、电话、备注及启停；不改历史单据车牌 |
 | GET | /api/v1/master-data/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
 | GET | /api/v1/master-data/{catalog}/{code} | web | 按编码读取资料，含停用项 |
@@ -32,13 +32,13 @@
 | POST | /api/v1/master-data/suppliers | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
 | PATCH | /api/v1/master-data/{catalog}/{code} | web | 更新资料；停用检查四类进行中引用，422 data.references返回单号 |
 | GET | /api/v1/master-data/contacts | web | 客户/供应商收送货档案与默认建议 |
-| POST | /api/v1/master-data/contacts | web | 新增指定往来单位档案 |
+| POST | /api/v1/master-data/contacts | web | 新增指定往来单位档案；可选 Idempotency-Key，同键同内容返回首次结果，不重复建档 |
 | PATCH | /api/v1/master-data/contacts/{id} | web | 修改档案；停用同时清除默认，不改历史快照 |
 | DELETE | /api/v1/master-data/contacts/{id} | web | 仅删除非默认且从未被引用的档案 |
 | PUT | /api/v1/master-data/contacts/{id}/default | web | 同归属启用档案设默认，事务中替换唯一默认 |
 | GET | /api/v1/master-data/vehicles | web | 按归一化车牌分页查询车辆 |
 | GET | /api/v1/master-data/vehicles/{id} | web | 读取车辆档案 |
-| POST | /api/v1/master-data/vehicles | web | 手工建档；归一化车牌唯一 |
+| POST | /api/v1/master-data/vehicles | web | 手工建档；归一化车牌唯一；可选 Idempotency-Key，同键同内容返回首次结果 |
 | PATCH | /api/v1/master-data/vehicles/{id} | web | 修改司机、电话、备注及启停；不改历史单据车牌 |
 | GET | /api/v1/corrections/{id} | web | 查询更正单与原单引用 |
 | POST | /api/v1/inbound/{id}/corrections | web | 只更正包数/吨数；原单版本互斥，历史/成环/盘点/负库存拒绝；原子写流水审计幂等 |

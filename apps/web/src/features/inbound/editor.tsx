@@ -1,4 +1,8 @@
-import { Alert, Button, Col, Result, Space, theme } from 'antd';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { useFormErrors } from '../../components/use-form-errors';
+import { RequestError } from '../../components/RequestError';
+import { Alert, Button, Form, Col, Result, Space, theme } from 'antd';
 import { Link, useNavigate } from '@umijs/max';
 import { PageContainer, ProForm, ProFormDigit, ProFormList, ProFormTextArea } from '@ant-design/pro-components';
 import type { CreateInbound } from '@wms/contracts';
@@ -17,6 +21,10 @@ interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
 export function InboundEditor() {
   const navigate = useNavigate();
   const create = useCreateReceipt();
+  const [form] = Form.useForm<ReceiptFormValues>();
+  const draft = useFormDraft(form, `inbound`, 'new');
+  const lock = useSubmitLock();
+  useFormErrors(create.error, form);
   const confirmBackdate = useBackdateConfirmation();
   async function submit(values: ReceiptFormValues): Promise<boolean> {
     try {
@@ -31,6 +39,7 @@ export function InboundEditor() {
         })),
       };
       const receipt = await create.mutateAsync(input);
+      draft.saved();
       navigate(`/inbound/${receipt.id}`);
       return true;
     } catch {
@@ -70,15 +79,19 @@ export function InboundEditor() {
             style={{ marginBottom: token.margin }}
           />
           {create.error && (
-            <Alert type="error" showIcon title={create.error.message} style={{ marginBottom: token.margin }} />
+            <RequestError error={create.error} retry={() => form.submit()} style={{ marginBottom: token.margin }} />
           )}
           <ProForm<ReceiptFormValues>
+            loading={lock.busy || create.isPending}
+            form={form}
+            onValuesChange={draft.change}
             grid
             rowProps={{ gutter: token.marginLG }}
-            loading={create.isPending}
-            onFinish={submit}
+            disabled={lock.busy || create.isPending}
+            onFinish={(values) => lock.run(() => submit(values))}
             submitter={{
-              searchConfig: { submitText: '创建待确认入库单', resetText: '取消' },
+              submitButtonProps: lock.button,
+              searchConfig: { submitText: lock.text('创建待确认入库单'), resetText: '取消' },
               render: (_, dom) => (
                 <Space>
                   <Link to="/inbound">

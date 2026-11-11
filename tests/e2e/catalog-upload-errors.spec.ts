@@ -5,7 +5,7 @@ test('catalog-invalid-snapshot-rejected：坏文件整版拒绝并保留文件',
   await loginCatalog(page);
   const before = await catalogSnapshot(db);
   await uploadFile(page, '规格 BROKEN 非数字');
-  await expect(page.getByText(/第 1 行：重量必须为正十进制 kg/)).toBeVisible();
+  await expect(page.locator('.ant-alert').filter({ hasText: /第 1 行：重量必须为正十进制 千克/ })).toBeVisible();
   await expect(page.getByText('sku.txt', { exact: true })).toBeVisible();
   expect(await catalogSnapshot(db)).toEqual(before);
   await catalogShot(page, 'invalid');
@@ -13,6 +13,8 @@ test('catalog-invalid-snapshot-rejected：坏文件整版拒绝并保留文件',
 });
 
 test('catalog-publish-failure-keeps-v1：数据库中途失败可用原键恢复', async ({ page, catalogDb: db }) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
   await loginCatalog(page);
   await uploadFile(page, '规格 RECOVERY-A 300');
   await expect(page.getByText('第 2 版待发布', { exact: true })).toBeVisible();
@@ -26,8 +28,9 @@ test('catalog-publish-failure-keeps-v1：数据库中途失败可用原键恢复
   expect((await db.get('SELECT active_version_id FROM catalog_head'))?.active_version_id).toBe(1);
   await catalogShot(page, 'rollback');
   await db.run('DROP TRIGGER fail_publish');
-  await publishFile(page);
+  await page.getByRole('button', { name: '确认发布整版', exact: true }).click();
   await expect(page.getByText('整版发布成功，已有事实未改变')).toBeVisible();
+  expect(pageErrors).toEqual([]);
   console.log('B1C1_E2E_ROLLBACK after_head_failure=current_v1 all_tables_unchanged=true same_key_retry=success');
 });
 

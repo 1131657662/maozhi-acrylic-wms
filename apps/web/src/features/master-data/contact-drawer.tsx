@@ -1,6 +1,9 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { notifyError } from '../../api/error-events';
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, App, Button, Drawer, Popconfirm, Radio, Space, Table } from 'antd';
+import { Button, Drawer, Popconfirm, Radio, Space, Table } from 'antd';
 import type { Contact, PartyOwner } from '@wms/contracts';
 import { contactKeys } from './contact-keys';
 import { useSetDefaultContact } from './use-set-default-contact';
@@ -8,12 +11,12 @@ import { useUpdateContact } from './use-update-contact';
 import { ContactEditor } from './contact-editor';
 import { masterCopy as t, MASTER_DRAWER_SIZE, MASTER_PAGE_SIZE } from './copy';
 export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: () => void }) {
-  const { message } = App.useApp(),
-    { data: contacts, isLoading: loading, error } = useQuery(contactKeys.list(owner));
+  const { data: contacts, isLoading: loading, error } = useQuery(contactKeys.list(owner));
   const [editor, setEditor] = useState<{ item: Contact | null } | null>(null),
     setDefault = useSetDefaultContact(),
     update = useUpdateContact();
-  const report = (error: unknown) => message.error(error instanceof Error ? error.message : t.failed);
+  const lock = useSubmitLock();
+  const report = (error: unknown) => notifyError(error);
   return (
     <Drawer
       open
@@ -22,7 +25,7 @@ export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: 
       onClose={onClose}
       extra={<Button onClick={onClose}>{t.complete}</Button>}
     >
-      {error && <Alert type="error" title={error.message} />}
+      {error && <RequestError type="error" error={error} />}
       <Table<Contact>
         rowKey="id"
         loading={loading}
@@ -35,8 +38,8 @@ export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: 
               <Radio
                 aria-label={`${t.defaultContact} ${row.name}`}
                 checked={row.isDefault}
-                disabled={!row.active || setDefault.isPending}
-                onChange={() => setDefault.mutate(row.id, { onError: report })}
+                disabled={!row.active || setDefault.isPending || lock.busy}
+                onChange={() => void lock.run(() => setDefault.mutateAsync(row.id)).catch(report)}
               />
             ),
           },
@@ -52,7 +55,11 @@ export function ContactDrawer({ owner, onClose }: { owner: PartyOwner; onClose: 
                 </Button>
                 <Popconfirm
                   title={row.active ? t.confirmDisable : t.confirmEnable}
-                  onConfirm={() => update.mutateAsync({ id: row.id, active: !row.active }).catch(report)}
+                  okText={lock.text(t.confirm)}
+                  okButtonProps={lock.button}
+                  onConfirm={() =>
+                    lock.run(() => update.mutateAsync({ id: row.id, active: !row.active })).catch(report)
+                  }
                 >
                   <Button type="link" disabled={update.isPending}>
                     {row.active ? t.inactive : t.active}

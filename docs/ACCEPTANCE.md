@@ -1,5 +1,11 @@
 # 第一里程碑验收记录
 
+## 体验修复 B：系统文案与保护（2026-11-11）
+
+本地独立合成库验收与原始证据见 [WEB_UX_B_ACCEPTANCE.md](WEB_UX_B_ACCEPTANCE.md)，逐条文案清单见 [WEB_UX_B_COPY_CHANGES.md](WEB_UX_B_COPY_CHANGES.md)。A 批已按用户授权合并并推送；B 批保留独立开发分支，未合并、未推送。仅验证 Chromium，不代表其他浏览器、实体设备或生产验收。
+
+本轮最终结果：test 212/212、build exit 0、完整 E2E 113/0（主 104 + catalog 9），三项 exit 均为 0；禁止词 50 → 0，四种重复提交场景均只产生 1 条记录或操作。代码及本地验证完成，等待用户验收。
+
 ## B6a-num：系统生成编码与三位单据号（2026-11-10）
 
 **B6a-num 已完成，用户验收通过：test 208/208、E2E 86/0（主 77 + catalog 9）、build exit 0（208/86/0），三项 exit 均为 0；014 已备份后应用 3307 开发样本库，预期结构差异及旧数据指纹核验通过。详见 [docs/B6A_NUM_ACCEPTANCE.md](B6A_NUM_ACCEPTANCE.md)。**

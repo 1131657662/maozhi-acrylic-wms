@@ -1,6 +1,7 @@
+import { businessCopy } from '../../business-copy';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
-import type { ReportDetailRow, ReportMonthlyRow } from '@wms/contracts';
+import { businessLabels, type ReportDetailRow, type ReportMonthlyRow } from '@wms/contracts';
 import { BusinessList } from '../../components/BusinessList';
 import { useListState } from '../../components/BusinessList/use-list-state';
 import { reportKeys } from './queries';
@@ -29,12 +30,18 @@ export function ReportDetails() {
               new URLSearchParams({ ...state.params, movement: 'all', page: '1', sortBy: 'period' })
             }
           >
-            同口径月度汇总
+            {businessCopy.reportsPages1}
           </Link>
         ),
       }}
       filters={<ReportFilters state={state} detail />}
-      summary={query.data && <Reconciliation report={query.data.report} />}
+      summary={
+        <>
+          <strong>{businessLabels.reportDates}</strong>
+          <p>{businessLabels.reportExplanation}</p>
+          {query.data && <Reconciliation report={query.data.report} />}
+        </>
+      }
     />
   );
 }
@@ -53,12 +60,18 @@ export function ReportMonthly() {
           '按仓库 × 库存商品 × 入账月份核对。部分月份按所选日期截取；入出库净额含撤销，期初/期末不跨月相加。列设置可展开各类调整及补偿。',
         extra: (
           <Link to={'/reports/details?' + new URLSearchParams({ ...state.params, page: '1', sortBy: 'postedAt' })}>
-            同口径出入库明细
+            {businessCopy.reportsPages2}
           </Link>
         ),
       }}
       filters={<ReportFilters state={state} />}
-      summary={query.data && <Reconciliation report={query.data.report} />}
+      summary={
+        <>
+          <strong>{businessLabels.reportDates}</strong>
+          <p>{businessLabels.reportExplanation}</p>
+          {query.data && <Reconciliation report={query.data.report} />}
+        </>
+      }
     />
   );
 }

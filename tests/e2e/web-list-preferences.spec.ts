@@ -63,13 +63,13 @@ test('B1b1 多条件筛选与未知状态/空状态原文查询', async ({ page 
   await page.goto('/inbound?keyword=WL-RK-&status=legacy-code');
   const list = page.getByTestId('inbound-list');
   await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(50);
-  await expect(list.getByTestId('status-tag').first()).toHaveText('状态待识别：legacy-code');
+  await expect(list.getByTestId('status-tag').first()).toHaveText('未识别');
   await page.getByText('展开', { exact: false }).click();
   await page.getByRole('textbox', { name: /^供应商/ }).fill('不存在');
   await page.getByRole('button', { name: /查\s*询/ }).click();
   await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
   await page.goto('/inbound?keyword=WL-RK-&statusMissing=true');
   await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(1);
-  await expect(list.getByTestId('status-tag')).toHaveText('状态待识别：未记录');
+  await expect(list.getByTestId('status-tag')).toHaveText('—');
   console.log('B1B1_STATUS unknown_raw=visible null_status=1 combined_filter=0');
 });

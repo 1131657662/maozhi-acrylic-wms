@@ -1,5 +1,8 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { businessCopy } from '../../business-copy';
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Radio, Space } from 'antd';
+import { Button, Drawer, Radio, Space } from 'antd';
 import {
   listFields,
   matchedLineFields,
@@ -50,6 +53,7 @@ function ExportControls({ context, refreshing }: { context: ExportContext; refre
   const [schema, setSchema] = useState<NonNullable<ExportRequest['schema']>>('document_summary');
   const [format, setFormat] = useState<NonNullable<ExportRequest['format']>>('xlsx');
   const session = useExportSession();
+  const lock = useSubmitLock();
   const { data: job } = session;
   const generate = () => {
     if (refreshing) return;
@@ -98,15 +102,16 @@ function ExportControls({ context, refreshing }: { context: ExportContext; refre
       />
       <Button
         type={job?.state === 'ready' ? 'default' : 'primary'}
-        loading={session.starting}
+        loading={session.starting || lock.busy}
         disabled={
+          lock.busy ||
           refreshing ||
           !context.total ||
           (scope === 'selected' && (!context.selected.length || context.selected.length > WEB_EXPORT_SELECTED_MAX))
         }
-        onClick={() => void generate()}
+        onClick={() => void lock.run(async () => generate())}
       >
-        生成 {format.toUpperCase()}
+        {lock.text(`生成 ${format.toUpperCase()}`)}
       </Button>
       <ExportErrors session={session} />
       {job && <ExportJobView job={job} />}
@@ -154,7 +159,10 @@ function ExportScope({
           },
         ]}
       />
-      <p data-testid="export-fields">字段顺序：{fields.map((field) => field.label).join('、')}</p>
+      <p data-testid="export-fields">
+        {businessCopy.webExportsPanel1}
+        {fields.map((field) => field.label).join('、')}
+      </p>
       <p>
         跨页选中最多 {WEB_EXPORT_SELECTED_MAX.toLocaleString('zh-CN')} 条；更多记录请用全部筛选结果。单文件最多{' '}
         {WEB_EXPORT_MAX_ROWS.toLocaleString('zh-CN')} 行，超限会提示实际条数。
@@ -166,16 +174,16 @@ function ExportErrors({ session }: { session: ReturnType<typeof useExportSession
   return (
     <>
       {session.startError && (
-        <Alert
+        <RequestError
           type="error"
-          title={session.startError.message}
+          error={session.startError}
           description="筛选和选择已保留。列表变化时请关闭面板，刷新核对后重试。"
         />
       )}
       {session.error && (
-        <Alert
+        <RequestError
           type="error"
-          title={session.error.message}
+          error={session.error}
           action={<Button onClick={() => void session.refetch()}>重试查询进度</Button>}
         />
       )}

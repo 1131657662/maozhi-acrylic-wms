@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from 'antd';
@@ -22,7 +23,7 @@ const columns: ProColumns<StocktakeLine>[] = [
     ),
   },
   {
-    title: '快照（包 / 吨）',
+    title: businessCopy.stocktakeLines1,
     width: 160,
     render: (_, r) => `${r.snapshot.packages} / ${tonnes(r.snapshot.weightGrams)}`,
   },
@@ -52,7 +53,7 @@ export function StocktakeLines({ id, editable }: { id: string; editable: boolean
     <StocktakeQueryState query={query}>
       <ProTable<StocktakeLine>
         rowKey="productCode"
-        headerTitle="实盘明细 · 差异 = 实盘 − 固定快照"
+        headerTitle={businessCopy.stocktakeLines2}
         search={false}
         options={false}
         scroll={{ x: 788 }}

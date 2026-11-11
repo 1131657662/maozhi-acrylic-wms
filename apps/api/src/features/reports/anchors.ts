@@ -6,6 +6,7 @@ import { dimensionFilter } from './sql.ts';
 import { cellFor, mark } from './periods.ts';
 import { markInterval } from './accumulate.ts';
 import { objectJson, nullableInt, optionalGrams } from './source-values.ts';
+import { reportCopy } from './copy.ts';
 
 interface Anchors {
   cells: Map<string, Cell>;
@@ -16,14 +17,14 @@ interface Anchors {
 function validateStock(cell: Cell, row: Row, periods: Period[]): void {
   const last = cell.previous;
   if (!last) {
-    for (const item of cell.periods.values()) mark(item, '仅有库存快照，未记录可定位的切账时间/流水；不可验证');
+    for (const item of cell.periods.values()) mark(item, reportCopy.stockOnly);
     return;
   }
   if (last.afterPackages !== nullableInt(row.packages) || last.afterGrams !== optionalGrams(row.weight_tonnes))
     markInterval(cell, periods, {
       start: last.localTime ?? '',
       end: '9999',
-      reason: '末笔流水与独立库存快照不一致',
+      reason: reportCopy.stockMismatch,
     });
   const source = objectJson(row.source_row_json),
     legacy = cell.lastHistorical;
@@ -31,9 +32,9 @@ function validateStock(cell: Cell, row: Row, periods: Period[]): void {
   const packages = nullableInt(source.stock_qty),
     grams = optionalGrams(source.stock_weight);
   if (packages === null || grams === null) {
-    for (const item of cell.periods.values()) mark(item, '历史流水缺少有效的原始导入库存锚点；不可验证');
+    for (const item of cell.periods.values()) mark(item, reportCopy.missingImportedStock);
   } else if (packages !== legacy.afterPackages || grams !== legacy.afterGrams) {
-    for (const item of cell.periods.values()) mark(item, '历史流水末值与导入原始库存锚点不一致');
+    for (const item of cell.periods.values()) mark(item, reportCopy.importedStockMismatch);
   }
 }
 function observeStock(row: Row, state: Anchors): string {
@@ -70,5 +71,5 @@ export async function validateAnchors(db: Database, state: Anchors): Promise<voi
     seen.add(observeStock(row, state));
   }
   for (const [key, cell] of state.cells)
-    if (!seen.has(key)) for (const row of cell.periods.values()) mark(row, '缺少独立期末库存快照，未按零处理');
+    if (!seen.has(key)) for (const row of cell.periods.values()) mark(row, reportCopy.missingClosing);
 }

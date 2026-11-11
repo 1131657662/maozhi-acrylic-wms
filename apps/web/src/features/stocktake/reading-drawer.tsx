@@ -1,5 +1,9 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
-import { Alert, Button, Drawer } from 'antd';
+import { Form, Alert, Button, Drawer } from 'antd';
 import { ProForm, ProFormDigit } from '@ant-design/pro-components';
 import { tonnes, stocktakeLinesSchema, type StocktakeLine } from '@wms/contracts';
 import { tonnesDeltaToGrams } from '../../lib/weight-input';
@@ -10,6 +14,10 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
   const [current, setCurrent] = useState(line),
     [reloadError, setReloadError] = useState('');
   const { mutateAsync: save, isPending: isSaving, error: saveError } = useSaveReading();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stocktake-reading`, `${id}:${line.productCode}`);
+  const lock = useSubmitLock();
+  useFormErrors(saveError, form);
   async function refresh() {
     try {
       const data = await request(
@@ -33,6 +41,7 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
           actual: { packages: v.packages, weightGrams: tonnesDeltaToGrams(v.tonnes) },
         },
       });
+      draft.saved();
       onClose();
       return true;
     } catch {
@@ -44,12 +53,13 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
       open
       title={`实盘录入 · ${line.productName}`}
       size={480}
-      onClose={isSaving ? undefined : onClose}
+      onClose={isSaving ? undefined : () => void draft.leave(onClose)}
       keyboard={!isSaving}
       mask={{ closable: false }}
     >
       <p>
-        固定快照：{line.snapshot.packages} 包 / {tonnes(line.snapshot.weightGrams)} 吨
+        {businessCopy.stocktakeReadingDrawer1}
+        {line.snapshot.packages} 包 / {tonnes(line.snapshot.weightGrams)} 吨
       </p>
       <p>
         当前已保存：
@@ -65,11 +75,17 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
         />
       )}
       <ProForm<{ packages: number; tonnes: number }>
-        onFinish={submit}
-        loading={isSaving}
-        disabled={isSaving}
+        form={form}
+        onValuesChange={draft.change}
+        onFinish={(values) => lock.run(() => submit(values))}
+        loading={lock.busy || isSaving}
+        disabled={lock.busy || isSaving}
         initialValues={line.actual ? { packages: line.actual.packages, tonnes: line.actual.weightGrams / 1000000 } : {}}
-        submitter={{ resetButtonProps: false, searchConfig: { submitText: '保存实盘' } }}
+        submitter={{
+          submitButtonProps: lock.button,
+          resetButtonProps: false,
+          searchConfig: { submitText: lock.text('保存实盘') },
+        }}
       >
         <ProFormDigit
           name="packages"

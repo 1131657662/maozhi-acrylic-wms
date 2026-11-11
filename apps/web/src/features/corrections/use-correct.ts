@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { correctionInputSchema, correctionSchema, type CorrectionInput, type CorrectionTarget } from '@wms/contracts';
 import { request } from '../../api/client';
@@ -11,19 +11,18 @@ import { webListKeys } from '../web-lists/keys';
 
 export function useCorrect(target: CorrectionTarget) {
   const client = useQueryClient();
-  const pending = useRef<{ body: string; key: string } | null>(null);
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: (input: CorrectionInput) => {
       const body = JSON.stringify(correctionInputSchema.parse(input));
-      if (pending.current?.body !== body) pending.current = { body, key: crypto.randomUUID() };
       return request(`/${target.kind}/${target.id}/corrections`, correctionSchema, {
         method: 'POST',
         body,
-        headers: { 'Idempotency-Key': pending.current.key },
+        headers: { 'Idempotency-Key': intent.value() },
       });
     },
     onSuccess: async () => {
-      pending.current = null;
+      intent.clear();
       await Promise.all(
         [correctionKeys, lifecycleKeys, inboundKeys, outboundKeys, stockKeys, webListKeys].map((keys) =>
           client.invalidateQueries({ queryKey: keys._def }),

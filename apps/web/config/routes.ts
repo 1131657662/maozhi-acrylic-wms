@@ -70,7 +70,7 @@ export default [
   },
   {
     path: '/master-data',
-    name: '主数据',
+    name: '基础资料',
     icon: 'appstore',
     component: './master-data/index',
   },

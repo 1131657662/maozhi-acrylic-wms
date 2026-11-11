@@ -1,3 +1,4 @@
+import { RequestError } from '../../components/RequestError';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Drawer, Empty, Result, Skeleton, Space } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
@@ -14,9 +15,9 @@ export function HandoffDetail({ id, onClose }: { id: string; onClose: () => void
         <Result status="403" title="仅 Web 用户可核验交接" />
       ) : (
         error && (
-          <Alert
+          <RequestError
             type="error"
-            title={error.message}
+            error={error}
             action={<Button onClick={() => void refetch()}>重试交接明细</Button>}
           />
         )

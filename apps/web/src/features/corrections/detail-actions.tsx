@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { Button, Card, Space, Tooltip } from 'antd';
 import type { CorrectionKind } from '@wms/contracts';
 import { CorrectionDrawer } from './drawer';
@@ -27,7 +28,7 @@ export function CorrectionDetailActions({
         >
           数量更正
         </Button>
-        <Tooltip title="待接入积木报表">
+        <Tooltip title={businessCopy.correctionsDetailActions1}>
           <span>
             <Button disabled>打印</Button>
           </span>

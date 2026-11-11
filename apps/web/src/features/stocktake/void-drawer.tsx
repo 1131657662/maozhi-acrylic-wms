@@ -1,13 +1,23 @@
-import { Alert, Drawer } from 'antd';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { businessCopy } from '../../business-copy';
+import { RequestError } from '../../components/RequestError';
+import { Form, Alert, Drawer } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import type { Stocktake } from '@wms/contracts';
 import { useVoidStocktake } from './use-void-stocktake';
 
 export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClose: () => void }) {
   const { mutateAsync: voidTake, isPending: isVoiding, error: voidError } = useVoidStocktake();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stocktake-void`, take.id);
+  const lock = useSubmitLock();
+  useFormErrors(voidError, form);
   async function submit(v: { reason: string }) {
     try {
       await voidTake({ take, reason: v.reason });
+      draft.saved();
       onClose();
       return true;
     } catch {
@@ -19,7 +29,7 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
       open
       size={480}
       title="作废盘点并释放暂停"
-      onClose={isVoiding ? undefined : onClose}
+      onClose={isVoiding ? undefined : () => void draft.leave(onClose)}
       mask={{ closable: false }}
       keyboard={!isVoiding}
     >
@@ -27,23 +37,25 @@ export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClos
         showIcon
         type="warning"
         title="作废不修改库存、不写库存流水"
-        description="原快照和实盘记录保留。作废后不能重开，需要时新建盘点；该仓恢复确认。"
+        description={businessCopy.stocktakeVoidDrawer1}
       />
       {voidError && (
-        <Alert
+        <RequestError
           type="error"
-          title={voidError.message}
+          error={voidError}
           description="原因已保留。网络失败可重试；盘点变更时关闭抽屉、刷新详情再核对。"
         />
       )}
       <ProForm<{ reason: string }>
-        onFinish={submit}
-        loading={isVoiding}
-        disabled={isVoiding}
+        form={form}
+        onValuesChange={draft.change}
+        onFinish={(values) => lock.run(() => submit(values))}
+        loading={lock.busy || isVoiding}
+        disabled={lock.busy || isVoiding}
         submitter={{
           resetButtonProps: false,
-          searchConfig: { submitText: '确认作废盘点' },
-          submitButtonProps: { danger: true },
+          searchConfig: { submitText: lock.text('确认作废盘点') },
+          submitButtonProps: { ...lock.button, danger: true },
         }}
       >
         <ProFormTextArea

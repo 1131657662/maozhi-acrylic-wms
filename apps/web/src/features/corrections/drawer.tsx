@@ -1,4 +1,9 @@
-import { Alert, App, Button, Drawer, Form, Input, Space } from 'antd';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { RequestError } from '../../components/RequestError';
+import { Alert, Button, Drawer, Form, Input, Space } from 'antd';
 import { tonnes, type CorrectionSummary, type CorrectionTarget } from '@wms/contracts';
 import { gramsToTonnes, tonnesDeltaToGrams } from '../../lib/weight-input';
 import { CorrectionLineFields, type CorrectionFormValues } from './fields';
@@ -11,9 +16,12 @@ interface Props {
   onClose: () => void;
 }
 export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
-  const { modal } = App.useApp(),
+  const modal = useLockedConfirm(),
     mutation = useCorrect(target);
   const [form] = Form.useForm<CorrectionFormValues>();
+  const draft = useFormDraft(form, `correction-${target.kind}`, target.id);
+  const lock = useSubmitLock();
+  useFormErrors(mutation.error, form);
   async function submit(values: CorrectionFormValues) {
     const lines = values.lines.map((line, index) => ({
       originalLineId: initial.lines[index]!.originalLineId,
@@ -34,19 +42,17 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
       okText: '确认更正并入账',
       cancelText: '返回核对',
       okButtonProps: { type: 'default' },
+      onOk: async () => {
+        await mutation.mutateAsync({
+          expectedCorrectionRevision: initial.revision,
+          previousCorrectionId: initial.latest?.id ?? null,
+          reason: values.reason,
+          lines,
+        });
+        draft.saved();
+      },
     });
-    if (!confirmed) return;
-    try {
-      await mutation.mutateAsync({
-        expectedCorrectionRevision: initial.revision,
-        previousCorrectionId: initial.latest?.id ?? null,
-        reason: values.reason,
-        lines,
-      });
-      onClose();
-    } catch {
-      /* The drawer retains the exact snapshot, values and idempotency key for retry. */
-    }
+    if (confirmed) onClose();
   }
   return (
     <Drawer
@@ -55,13 +61,14 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
       size={560}
       mask={{ closable: false }}
       keyboard={!mutation.isPending}
-      onClose={mutation.isPending ? undefined : onClose}
+      onClose={mutation.isPending ? undefined : () => void draft.leave(onClose)}
     >
       <Form
         form={form}
+        onValuesChange={draft.change}
         layout="vertical"
-        onFinish={submit}
-        disabled={mutation.isPending}
+        onFinish={(values) => lock.run(() => submit(values))}
+        disabled={lock.busy || mutation.isPending}
         initialValues={{
           lines: initial.lines.map((line) => ({
             packages: line.effective.packages,
@@ -77,10 +84,10 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
             description="可只改包数，保持吨数不变。商品、仓库、往来单位、单号与业务日期不可修改。"
           />
           {mutation.error && (
-            <Alert
+            <RequestError
               type="error"
               showIcon
-              title={mutation.error.message}
+              error={mutation.error}
               description="原值、填写内容和请求已保留。网络失败可重试；若原单版本已变化，请关闭抽屉并重新核对。"
             />
           )}
@@ -95,11 +102,11 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
             <Input.TextArea maxLength={500} showCount rows={3} />
           </Form.Item>
           <Space>
-            <Button onClick={onClose} disabled={mutation.isPending}>
+            <Button onClick={() => void draft.leave(onClose)} disabled={lock.busy || mutation.isPending}>
               取消
             </Button>
-            <Button htmlType="submit" loading={mutation.isPending}>
-              核对并提交
+            <Button htmlType="submit" loading={lock.busy || mutation.isPending} disabled={lock.busy}>
+              {lock.text('核对并提交')}
             </Button>
           </Space>
         </Space>

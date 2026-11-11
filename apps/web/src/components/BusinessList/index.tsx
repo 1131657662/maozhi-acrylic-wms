@@ -1,9 +1,9 @@
 import type { ExportKind } from '@wms/contracts';
 import type { Key, ReactNode } from 'react';
 import { PageContainer, type ProColumns } from '@ant-design/pro-components';
-import { Alert, Button, Result, Spin, theme } from 'antd';
-import { ZodError } from 'zod';
-import { ApiError } from '../../api/client';
+import { Spin, theme } from 'antd';
+import { RequestError } from '../RequestError';
+
 import { useSession } from '../../features/auth/use-session';
 import { ListTable, type ListData } from './table';
 import { ListViewToolbar } from './list-view-toolbar';
@@ -84,25 +84,7 @@ function ListResults<Row extends { id: Key }>({
   );
 }
 function ListError({ error, reload }: { error: Error; reload: () => unknown }) {
-  if (error instanceof ApiError && error.status === 403) return <Result status="403" title="无权查看此列表" />;
-  return (
-    <Alert
-      type="error"
-      showIcon
-      title="列表加载失败，已停止展示旧数据"
-      description={error instanceof ZodError ? '返回数据未通过契约校验，未展示记录或小计。请重试。' : error.message}
-      action={
-        <Button
-          aria-label="重试"
-          onClick={() => {
-            reload();
-          }}
-        >
-          重试
-        </Button>
-      }
-    />
-  );
+  return <RequestError error={error} retry={reload} />;
 }
 export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
   const { config, query, state } = props;

@@ -1,5 +1,5 @@
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
 import { inboundReceiptSchema } from '@wms/contracts';
 import { request } from '../../api/client';
 import { inboundKeys } from './keys';
@@ -9,15 +9,16 @@ import { lifecycleKeys } from '../document-lifecycle/keys';
 
 export function useConfirmReceipt(id: string) {
   const client = useQueryClient();
-  const key = useRef(crypto.randomUUID());
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: () =>
       request(`/inbound/${id}/confirm`, inboundReceiptSchema, {
         method: 'POST',
-        headers: { 'Idempotency-Key': key.current },
+        headers: { 'Idempotency-Key': intent.value() },
         body: '{}',
       }),
     onSuccess: async () => {
+      intent.clear();
       await Promise.all([
         client.invalidateQueries({ queryKey: lifecycleKeys._def }),
         client.invalidateQueries({ queryKey: inboundKeys._def }),

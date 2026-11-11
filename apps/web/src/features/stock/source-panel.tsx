@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { Alert, Button, Result, Skeleton } from 'antd';
 import { ZodError } from 'zod';
 import { ApiError } from '../../api/client';
@@ -15,9 +16,7 @@ export function SourcePanel() {
         type="error"
         showIcon
         title="商品库存加载失败，已停止展示旧数据"
-        description={
-          stockError instanceof ZodError ? '返回数据未通过来源校验，请重试；未展示任何小计。' : stockError.message
-        }
+        description={stockError instanceof ZodError ? businessCopy.stockSourcePanel1 : stockError.message}
         action={<Button onClick={() => void reloadStock()}>重试</Button>}
       />
     );

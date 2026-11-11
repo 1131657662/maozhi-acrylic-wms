@@ -1,4 +1,9 @@
-import { Alert, Button } from 'antd';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { businessCopy } from '../../business-copy';
+import { RequestError } from '../../components/RequestError';
+import { Form, Alert, Button } from 'antd';
 import { PageContainer, ProForm, ProFormSelect } from '@ant-design/pro-components';
 import { Link, useNavigate } from '@umijs/max';
 import { masterItemsSchema, type CreateStocktake } from '@wms/contracts';
@@ -8,13 +13,18 @@ import { request } from '../../api/client';
 
 export function StocktakeCreate() {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stocktake`, 'new');
+  const lock = useSubmitLock();
   const { mutateAsync: create, isPending: isCreating, error: createError } = useCreateStocktake();
+  useFormErrors(createError, form);
   async function submit(values: CreateStocktake) {
     try {
       const take = await create({
         ...values,
         productCodes: values.productCodes?.length ? values.productCodes : undefined,
       });
+      draft.saved();
       navigate(`/stocktakes/${take.id}`);
       return true;
     } catch {
@@ -24,25 +34,26 @@ export function StocktakeCreate() {
   return (
     <PageContainer
       title="新建库存盘点"
-      content="生成快照即开始盘点；范围此后不可修改。"
+      content={businessCopy.stocktakeCreate1}
       extra={
         <Link to="/stocktakes">
           <Button>返回盘点列表</Button>
         </Link>
       }
     >
-      <Alert
-        type="warning"
-        showIcon
-        title="开始后暂停该仓库存写入"
-        description="暂停入库确认、出库确认、库存调整与误确认撤销；其他仓库、PDA 扫码和补传不受影响。请确认现场可以按快照时点实盘。"
-      />
-      {createError && <Alert type="error" title={createError.message} description="已填内容保留，可修正后重试。" />}
+      <Alert type="warning" showIcon title="开始后暂停该仓库存写入" description={businessCopy.stocktakeCreate2} />
+      {createError && <RequestError type="error" error={createError} description="已填内容保留，可修正后重试。" />}
       <ProForm<CreateStocktake>
-        onFinish={submit}
-        loading={isCreating}
-        disabled={isCreating}
-        submitter={{ resetButtonProps: false, searchConfig: { submitText: '生成快照并开始盘点' } }}
+        form={form}
+        onValuesChange={draft.change}
+        onFinish={(values) => lock.run(() => submit(values))}
+        loading={lock.busy || isCreating}
+        disabled={lock.busy || isCreating}
+        submitter={{
+          submitButtonProps: lock.button,
+          resetButtonProps: false,
+          searchConfig: { submitText: lock.text(businessCopy.stocktakeCreate3) },
+        }}
       >
         <ProForm.Item name="warehouseCode" label="盘点仓库" rules={[{ required: true }]}>
           <MasterSelect catalog="warehouses" />
@@ -62,7 +73,7 @@ export function StocktakeCreate() {
             ).map((p) => ({ value: p.code, label: `${p.code} · ${p.name}` }))
           }
           fieldProps={{ maxCount: 100 }}
-          extra="不选时盘点该仓全部 商品库存。指定商品即使当前无库存，也生成零库存快照；最多指定 100 个商品。"
+          extra={businessCopy.stocktakeCreate4}
         />
       </ProForm>
     </PageContainer>

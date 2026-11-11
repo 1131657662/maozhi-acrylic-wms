@@ -1,3 +1,7 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { notifyError } from '../../api/error-events';
+import { useFormErrors } from '../../components/use-form-errors';
 import { DrawerForm, ProFormText } from '@ant-design/pro-components';
 import { App, Button, Form, Typography } from 'antd';
 import { createMasterItemSchema, hasGeneratedMasterCode, masterCreateSchema } from '@wms/contracts';
@@ -26,6 +30,10 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
   const { message } = App.useApp();
   const create = useCreateMasterItem();
   const update = useUpdateMasterItem();
+  const [form] = Form.useForm<CreateMasterItem>();
+  const draft = useFormDraft(form, `master-${catalog}`, editing?.code ?? 'new');
+  const lock = useSubmitLock();
+  useFormErrors(create.error ?? update.error, form);
   const generated = hasGeneratedMasterCode(catalog);
   async function save(values: CreateMasterItem): Promise<boolean> {
     try {
@@ -37,21 +45,26 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
             ...masterCreateSchema(catalog).parse(generated ? fields : { code, ...fields }),
           });
       message.success(t.saved);
+      draft.saved();
       onSaved(saved);
-      return true;
+      // Controlled close already ran; a delayed ProForm close can dismiss the next editor.
+      return false;
     } catch (error) {
-      message.error(error instanceof Error ? error.message : t.failed);
+      notifyError(error);
       return false;
     }
   }
   return (
-    <DrawerForm
+    <DrawerForm<CreateMasterItem>
+      form={form}
+      disabled={lock.busy}
+      onValuesChange={draft.change}
       key={editing?.code ?? 'new'}
       title={editing ? `${editing.name} · ${t.edit}` : t.newItem}
       open
       width={MASTER_DRAWER_SIZE}
       onOpenChange={(next) => {
-        if (!next) onClose();
+        if (!next) void draft.leave(onClose);
       }}
       initialValues={
         editing
@@ -81,9 +94,13 @@ export function ItemEditor({ catalog, editing, onClose, onSaved }: ItemEditorPro
             )
           : undefined
       }
-      drawerProps={{ destroyOnHidden: true, onClose }}
-      onFinish={save}
-      submitter={{ searchConfig: { submitText: t.save, resetText: t.cancel }, onReset: onClose }}
+      drawerProps={{ destroyOnHidden: true, onClose: () => void draft.leave(onClose) }}
+      onFinish={(values) => lock.run(() => save(values))}
+      submitter={{
+        submitButtonProps: lock.button,
+        searchConfig: { submitText: lock.text(t.save), resetText: t.cancel },
+        onReset: () => void draft.leave(onClose),
+      }}
     >
       {generated ? (
         <Form.Item label={t.code}>

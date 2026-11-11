@@ -25,7 +25,7 @@ export function OrderList() {
         name: 'outbound',
         title: '出库工作台',
         columns: outboundColumns,
-        description: '扫码与冻结只记录事实，Web 明确确认才扣减库存。计划与实扫分别展示。',
+        description: '扫码仅记录收发情况，核对并确认出库后才扣减库存。计划数量和扫码数量分别展示。',
         extra: (
           <Link to="/outbound/new">
             <Button type="primary">新建计划</Button>

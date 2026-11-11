@@ -1,5 +1,9 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Space, Typography } from 'antd';
+import { Form, Alert, Button, Drawer, Space } from 'antd';
 import { ProDescriptions, ProForm } from '@ant-design/pro-components';
 import { tonnes, type SourceStockRow } from '@wms/contracts';
 import { tonnesDeltaToGrams } from '../../lib/weight-input';
@@ -12,6 +16,10 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
   const [reloadError, setReloadError] = useState('');
   const stock = useSourceStock();
   const adjust = useAdjustStock();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `stock-adjust`, `${row.warehouseCode}:${row.productCode}`);
+  const lock = useSubmitLock();
+  useFormErrors(adjust.error, form);
   async function refresh() {
     const result = await stock.refetch();
     const latest = result.data?.items.find(
@@ -34,6 +42,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
         weightDeltaGrams: tonnesDeltaToGrams(values.weightTonnesDelta),
         reason: values.reason,
       });
+      draft.saved();
       return true;
     } catch {
       return false;
@@ -44,7 +53,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
       open
       title="库存调整 · 库存商品"
       size={560}
-      onClose={onClose}
+      onClose={() => void draft.leave(onClose)}
       closable={{ disabled: adjust.isPending }}
       mask={{ closable: false }}
       keyboard={!adjust.isPending}
@@ -70,7 +79,6 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
                 <p>
                   {adjust.data.after.packages} 包 / {tonnes(adjust.data.after.weightGrams)} 吨
                 </p>
-                <Typography.Text copyable>操作 ID：{adjust.data.operationId}</Typography.Text>
               </>
             }
           />
@@ -83,10 +91,10 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
               description="这不是修改某一张单据。调整量、前后值和原因将一起写入流水及审计，不能在此撤销。"
             />
             {adjust.error && (
-              <Alert
+              <RequestError
                 type="error"
                 showIcon
-                title={adjust.error.message}
+                error={adjust.error}
                 description="已保留输入，可核对后重试；刷新当前库存不会清空原因或调整量。"
                 action={
                   <Button onClick={() => void refresh()} loading={stock.isFetching}>
@@ -97,10 +105,16 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
             )}
             {reloadError && <Alert type="error" title={reloadError} />}
             <ProForm<AdjustmentValues>
-              onFinish={submit}
-              disabled={adjust.isPending}
+              form={form}
+              onValuesChange={draft.change}
+              onFinish={(values) => lock.run(() => submit(values))}
+              disabled={lock.busy || adjust.isPending}
               initialValues={{ packagesDelta: 0, weightTonnesDelta: 0 }}
-              submitter={{ searchConfig: { submitText: '确认调整库存' }, resetButtonProps: false }}
+              submitter={{
+                submitButtonProps: lock.button,
+                searchConfig: { submitText: lock.text('确认调整库存') },
+                resetButtonProps: false,
+              }}
             >
               <AdjustmentFields before={before} />
             </ProForm>

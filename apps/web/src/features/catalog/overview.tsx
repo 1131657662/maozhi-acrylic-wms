@@ -1,3 +1,4 @@
+import { businessCopy } from '../../business-copy';
 import { Alert, Empty, Space, Tag } from 'antd';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { catalogOverviewSchema } from '@wms/contracts';
@@ -11,7 +12,7 @@ export function CatalogOverview({ overview }: { overview: z.infer<typeof catalog
         type="info"
         showIcon
         title="条码目录只用于扫码查重量，不是库存"
-        description="每次上传当前有效条码的全量快照。新文件中消失的条码不再供新版扫码使用；已扫事实、原重量和原版本永远保留。"
+        description={businessCopy.catalogOverview1}
       />
       {current ? (
         <ProDescriptions

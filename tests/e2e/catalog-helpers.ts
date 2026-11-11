@@ -38,7 +38,7 @@ export async function uploadFile(page: Page, content: string) {
   await page
     .locator('input[type=file]')
     .setInputFiles({ name: 'sku.txt', mimeType: 'text/plain', buffer: Buffer.from(content) });
-  await page.getByRole('button', { name: '上传并校验' }).click();
+  await page.getByRole('button', { name: '上传并检查' }).click();
 }
 export async function publishFile(page: Page) {
   await page.getByRole('button', { name: '发布整版', exact: true }).click();

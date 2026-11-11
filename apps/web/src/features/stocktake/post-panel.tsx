@@ -1,6 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button } from 'antd';
+import { Button } from 'antd';
 import { stocktakeKeys } from './keys';
 import { StocktakePostDrawer } from './post-drawer';
 
@@ -22,7 +23,7 @@ export function StocktakePostPanel({ id }: { id: string }) {
         核对差异并回写
       </Button>
       {previewError && (
-        <Alert type="error" title={previewError.message} description="预览未载入，未执行回写。请重试。" />
+        <RequestError type="error" error={previewError} description="预览未载入，未执行回写。请重试。" />
       )}
       {open && preview && <StocktakePostDrawer initial={preview} onClose={() => setOpen(false)} />}
     </>

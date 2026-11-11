@@ -1,7 +1,7 @@
 export const masterCopy = {
-  title: '主数据',
+  title: '基础资料',
   description: '维护商品、分类与往来资料，单据保存后保留当时的资料。',
-  newItem: '新增主数据',
+  newItem: '新增基础资料',
   edit: '编辑',
   save: '保存',
   cancel: '取消',
@@ -49,6 +49,7 @@ export const masterCopy = {
   retry: '重试',
   search: '按编码或名称搜索',
   complete: '完成',
+  confirm: '确认',
   origin: { local: '本地新建', legacy: '历史导入', unknown: '来源待核实' },
   vehicleSource: { manual: '手工建档', auto: '自动建档' },
 };

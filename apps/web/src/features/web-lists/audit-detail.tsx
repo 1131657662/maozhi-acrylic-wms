@@ -1,5 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Drawer, Skeleton } from 'antd';
+import { Button, Collapse, Drawer, Skeleton, Typography } from 'antd';
+import { auditActionText, businessLabels } from '@wms/contracts';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { webListKeys } from './keys';
 import { formatTime } from '../../lib/format-time';
@@ -16,7 +18,7 @@ export function AuditDetail({ id, onClose }: { id: number; onClose: () => void }
   return (
     <Drawer open title="操作日志详情" size={640} onClose={onClose}>
       {error ? (
-        <Alert type="error" title={error.message} action={<Button onClick={() => void refetch()}>重试</Button>} />
+        <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />
       ) : isPending || !entry ? (
         <Skeleton active />
       ) : (
@@ -25,17 +27,29 @@ export function AuditDetail({ id, onClose }: { id: number; onClose: () => void }
             column={1}
             dataSource={entry}
             columns={[
-              { title: '动作', dataIndex: 'action' },
-              { title: '对象', dataIndex: 'targetId' },
+              { title: '动作', render: () => auditActionText(entry.action) },
+              { title: '对象', render: () => businessLabels.relatedRecord },
               { title: '操作者', dataIndex: 'actor' },
               { title: '时间', render: () => formatTime(entry.createdAt) },
-              { title: '请求编号', dataIndex: 'traceId', copyable: true },
             ]}
           />
-          <h3>操作前</h3>
-          <pre className="business-list-json">{readable(entry.beforeJson)}</pre>
-          <h3>操作后</h3>
-          <pre className="business-list-json">{readable(entry.afterJson)}</pre>
+          <Collapse
+            items={[
+              {
+                key: 'raw',
+                label: '原始数据',
+                children: (
+                  <>
+                    <Typography.Paragraph copyable>{entry.traceId}</Typography.Paragraph>
+                    <h3>操作前</h3>
+                    <pre className="business-list-json">{readable(entry.beforeJson)}</pre>
+                    <h3>操作后</h3>
+                    <pre className="business-list-json">{readable(entry.afterJson)}</pre>
+                  </>
+                ),
+              },
+            ]}
+          />
         </>
       )}
     </Drawer>

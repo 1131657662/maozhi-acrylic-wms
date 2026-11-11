@@ -1,7 +1,12 @@
-﻿import { Alert, Button, Skeleton, Space } from 'antd';
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { businessCopy } from '../../business-copy';
+import { useFormErrors } from '../../components/use-form-errors';
+import { RequestError } from '../../components/RequestError';
+import { Alert, Button, Form, Skeleton, Space } from 'antd';
 import { Link, useNavigate, useParams } from '@umijs/max';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
-import type { OutboundPlanFields } from '@wms/contracts';
+import type { Detail, OutboundPlanFields } from '@wms/contracts';
 import { tonnesToGrams } from '../../lib/weight-input';
 import { useOrder } from './use-order';
 import { useCreatePlan } from './use-create-plan';
@@ -17,24 +22,30 @@ interface PlanFormValues extends Omit<OutboundPlanFields, 'lines' | 'orderNo'> {
 
 export function OutboundPlanEditor() {
   const { id = '' } = useParams();
-  const navigate = useNavigate();
   const orderQuery = useOrder(id);
-  const create = useCreatePlan();
-  const update = useUpdatePlan();
-  const confirmBackdate = useBackdateConfirmation();
   const order = orderQuery.data;
   if (id && orderQuery.isLoading) return <Skeleton active />;
-  if (orderQuery.error || (id && !order))
-    return <Alert type="error" title={orderQuery.error?.message ?? '出库计划不存在'} />;
+  if (orderQuery.error || (id && !order)) return <RequestError error={orderQuery.error} retry={orderQuery.refetch} />;
   if (order && order.status !== 'open')
     return (
       <Alert
         type="warning"
-        title="当前计划已冻结或进入终态，不能编辑。"
+        title="当前计划已提交或处理完成，不能编辑。"
         action={<Link to={`/outbound/${id}`}>返回计划详情</Link>}
       />
     );
 
+  return <LoadedPlanEditor key={id || 'new'} id={id} order={order} />;
+}
+function LoadedPlanEditor({ id, order }: { id: string; order?: Detail }) {
+  const navigate = useNavigate();
+  const create = useCreatePlan();
+  const update = useUpdatePlan();
+  const [form] = Form.useForm<PlanFormValues>();
+  const draft = useFormDraft(form, 'outbound', id || 'new');
+  const lock = useSubmitLock();
+  useFormErrors(create.error ?? update.error, form);
+  const confirmBackdate = useBackdateConfirmation();
   async function submit(values: PlanFormValues): Promise<boolean> {
     try {
       if (!order && !(await confirmBackdate(values.businessDate))) return false;
@@ -54,6 +65,7 @@ export function OutboundPlanEditor() {
               plannedWeightGrams: tonnesToGrams(line.plannedWeightTonnes!),
             })),
           });
+      draft.saved();
       navigate(`/outbound/${saved.id}`);
       return true;
     } catch {
@@ -64,23 +76,25 @@ export function OutboundPlanEditor() {
     <section>
       <div className="page-title">
         <div>
-          <span className="eyebrow">OUTBOUND PLAN</span>
+          <span className="eyebrow">出库计划</span>
           <h1>{order ? '编辑出库计划' : '新建出库计划'}</h1>
-          <p>
-            {order
-              ? '只能修改车号和备注，客户、仓库及明细保持不变。'
-              : '计划不会预占库存；库存仅由 Web 出库确认事务扣减。'}
-          </p>
+          <p>{order ? '只能修改车号和备注，客户、仓库及明细保持不变。' : businessCopy.outboundEditor1}</p>
         </div>
       </div>
-      {(create.error || update.error) && <Alert type="error" title={(create.error ?? update.error)?.message} />}
+      {(create.error || update.error) && (
+        <RequestError error={create.error ?? update.error} retry={() => form.submit()} />
+      )}
       <ProForm<PlanFormValues>
-        loading={create.isPending || update.isPending}
+        loading={lock.busy || create.isPending || update.isPending}
+        form={form}
+        onValuesChange={draft.change}
+        disabled={lock.busy || create.isPending || update.isPending}
         key={id || 'new-plan'}
         initialValues={order ? { vehicleNo: order.vehicleNo, memo: order.memo } : undefined}
-        onFinish={submit}
+        onFinish={(values) => lock.run(() => submit(values))}
         submitter={{
-          searchConfig: { submitText: order ? '保存修改' : '创建计划', resetText: '取消' },
+          submitButtonProps: lock.button,
+          searchConfig: { submitText: lock.text(order ? '保存修改' : '创建计划'), resetText: '取消' },
           render: (_, dom) => (
             <Space>
               <Link to={order ? `/outbound/${order.id}` : '/'}>

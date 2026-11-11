@@ -1,5 +1,9 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
+import { useFormErrors } from '../../components/use-form-errors';
+import { useFormDraft } from '../../components/form-protection/use-form-draft';
+import { errorMessage } from '../../api/errors';
 import { useState } from 'react';
-import { Alert, Button, Drawer, Space } from 'antd';
+import { Form, Alert, Button, Drawer, Space } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
 import { lifecyclePreviewSchema, type LifecyclePreview } from '@wms/contracts';
 import { request } from '../../api/client';
@@ -10,17 +14,22 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
   const [preview, setPreview] = useState(initial),
     [refreshError, setRefreshError] = useState('');
   const { mutateAsync: closeDocument, isPending: isClosing, error: closeError } = useCloseDocument();
+  const [form] = Form.useForm();
+  const draft = useFormDraft(form, `lifecycle-${initial.kind}-${initial.action}`, initial.id);
+  const lock = useSubmitLock();
+  useFormErrors(closeError, form);
   async function refresh() {
     try {
       setPreview(await request(`/${initial.kind}/${initial.id}/lifecycle`, lifecyclePreviewSchema));
       setRefreshError('');
     } catch (error) {
-      setRefreshError(error instanceof Error ? error.message : '预览刷新失败，请重试');
+      setRefreshError(errorMessage(error));
     }
   }
   async function submit(values: { reason: string }) {
     try {
       await closeDocument({ preview, reason: values.reason });
+      draft.saved();
       onClose();
       return true;
     } catch {
@@ -32,7 +41,7 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
       open
       title={`${initial.action === 'reverse' ? '撤销误确认' : '作废未入账单据'} · ${initial.number}`}
       size={560}
-      onClose={isClosing ? undefined : onClose}
+      onClose={isClosing ? undefined : () => void draft.leave(onClose)}
       mask={{ closable: false }}
       keyboard={!isClosing}
     >
@@ -45,22 +54,25 @@ export function LifecycleDrawer({ initial, onClose }: { initial: LifecyclePrevie
             title={refreshError || closeError?.message}
             description="原因与原请求已保留。网络失败可重试；数据变化时请刷新预览，核对后再提交。"
             action={
-              <Button disabled={isClosing} onClick={() => void refresh()}>
+              <Button disabled={lock.busy || isClosing} onClick={() => void refresh()}>
                 刷新预览
               </Button>
             }
           />
         )}
         <ProForm<{ reason: string }>
-          onFinish={submit}
-          disabled={isClosing}
+          form={form}
+          onValuesChange={draft.change}
+          onFinish={(values) => lock.run(() => submit(values))}
+          disabled={lock.busy || isClosing}
           submitter={{
             resetButtonProps: false,
-            searchConfig: { submitText: initial.action === 'reverse' ? '确认撤销入账' : '确认作废' },
+            searchConfig: { submitText: lock.text(initial.action === 'reverse' ? '确认撤销入账' : '确认作废') },
             submitButtonProps: {
+              ...lock.button,
               type: 'default',
               danger: true,
-              disabled: !preview.allowed || preview.action !== initial.action,
+              disabled: lock.busy || !preview.allowed || preview.action !== initial.action,
             },
           }}
         >

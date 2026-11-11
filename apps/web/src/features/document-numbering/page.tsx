@@ -1,6 +1,7 @@
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Empty, Segmented, Skeleton, Result, Space } from 'antd';
+import { Button, Empty, Segmented, Skeleton, Result, Space } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import type { DocumentKind } from '@wms/contracts';
 import { ApiError } from '../../api/client';
@@ -15,9 +16,9 @@ export function NumberingPage() {
     return <Result status="403" title="无权查看编号规则" />;
   if (query.error && !query.data)
     return (
-      <Alert
+      <RequestError
         type="error"
-        title={query.error.message}
+        error={query.error}
         action={<Button onClick={() => void query.refetch()}>重试</Button>}
       />
     );
@@ -26,9 +27,9 @@ export function NumberingPage() {
     <PageContainer title="单据编号配置" subTitle="预览不占号；以创建成功返回的单号为准。">
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         {query.error && (
-          <Alert
+          <RequestError
             type="error"
-            title={query.error.message}
+            error={query.error}
             action={<Button onClick={() => void query.refetch()}>重试</Button>}
           />
         )}

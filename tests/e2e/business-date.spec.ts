@@ -16,7 +16,7 @@ test('B5a 新建业务日期上海默认与超过三个月二次确认', async (
   await page.getByLabel('仓库', { exact: true }).click();
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
   await page.getByLabel('商品', { exact: true }).click();
-  await page.getByText('ACR-032 · 腈纶原料 · 合成样本', { exact: true }).click();
+  await page.locator('.ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');
   await page.getByLabel('本次总重量（吨）').fill('0.3025');
   const old = new Date(Date.parse(backdateThreshold(shanghaiToday())) - 86400000).toISOString().slice(0, 10);

@@ -2,6 +2,7 @@ import type { ReportMonthlyRow } from '@wms/contracts';
 import type { Cell, LedgerEvent, Period } from './types.ts';
 import { mark } from './periods.ts';
 import { addExact } from './arithmetic.ts';
+import { reportCopy } from './copy.ts';
 
 export function addMovement(row: ReportMonthlyRow, event: LedgerEvent): void {
   // A corrected original reverses its effective quantity. Attribute the correction
@@ -37,7 +38,7 @@ export function addMovement(row: ReportMonthlyRow, event: LedgerEvent): void {
     row.adjustmentGrams = addExact(row.adjustmentGrams, event.deltaGrams);
     row[`${event.family}Packages`] = addExact(row[`${event.family}Packages`], event.deltaPackages);
     row[`${event.family}Grams`] = addExact(row[`${event.family}Grams`], event.deltaGrams);
-    if (event.family === 'unknown') mark(row, `未分类流水类型：${event.operationType || '未记录'}`);
+    if (event.family === 'unknown') mark(row, reportCopy.unknown);
   }
 }
 export function invalidEvent(event: LedgerEvent): string | null {
@@ -47,19 +48,19 @@ export function invalidEvent(event: LedgerEvent): string | null {
     event.afterPackages === null ||
     event.afterGrams === null
   )
-    return `流水 #${event.id} 前后值缺失`;
+    return reportCopy.missingBalance;
   if (
     event.beforePackages + event.deltaPackages !== event.afterPackages ||
     event.beforeGrams + event.deltaGrams !== event.afterGrams
   )
-    return `流水 #${event.id} 前后值与 delta 不一致`;
+    return reportCopy.inconsistentChange;
   if (Math.min(event.beforePackages, event.afterPackages, event.beforeGrams, event.afterGrams) < 0)
-    return `流水 #${event.id} 出现负余额`;
+    return reportCopy.negativeBalance;
   if (
     ['inbound', 'outbound'].includes(event.family) &&
     (event.reverse ? event.packages > 0 || event.weightGrams > 0 : event.packages < 0 || event.weightGrams < 0)
   )
-    return `流水 #${event.id} 方向与类型不符，保留原符号`;
+    return reportCopy.inconsistentDirection;
   return null;
 }
 function observeBoundary(cell: Cell, row: ReportMonthlyRow, period: Period, event: LedgerEvent): void {
@@ -102,13 +103,13 @@ function checkChain(cell: Cell, event: LedgerEvent, periods: Period[]): void {
   markInterval(cell, periods, {
     start: prior.localTime < event.localTime ? prior.localTime : event.localTime,
     end: prior.localTime > event.localTime ? prior.localTime : event.localTime,
-    reason: `流水链断点 #${prior.id} → #${event.id}；未补期初或调整`,
+    reason: reportCopy.brokenChain,
   });
 }
 export function consumeEvent(cell: Cell, event: LedgerEvent, periods: Period[]): void {
   if (!event.localTime) {
     cell.missingTime = true;
-    for (const row of cell.periods.values()) mark(row, `流水 #${event.id} 缺少有效入账时间`);
+    for (const row of cell.periods.values()) mark(row, reportCopy.missingTime);
     return;
   }
   cell.firstTime ??= event.localTime;

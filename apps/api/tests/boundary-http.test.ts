@@ -158,7 +158,7 @@ test('B4a R5 每行1000吨边界输入输出一致，超限不留单据', async 
           tonnes: tonnes(grams),
           httpStatus: response.status,
           code: response.body.code,
-          returnedGrams: response.body.data?.lines[0]?.plannedWeightGrams ?? null,
+          returnedGrams: response.body.data?.lines?.[0]?.plannedWeightGrams ?? null,
         }),
       );
     }

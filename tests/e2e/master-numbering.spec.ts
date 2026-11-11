@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { test } from './list-test';
 import { randomUUID } from 'node:crypto';
 
-test('B6a-num 三类主数据系统发号、只读编码、改名、复制与名称优先下拉', async ({ page, context }) => {
+test('B6a-num 三类基础资料系统发号、只读编码、改名、复制与名称优先下拉', async ({ page, context }) => {
   test.setTimeout(120000);
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const results: object[] = [];
@@ -15,7 +15,7 @@ test('B6a-num 三类主数据系统发号、只读编码、改名、复制与名
     await page.goto('/master-data');
     await page.getByRole('tab', { name: tab, exact: true }).click();
     const panel = page.getByRole('tabpanel', { name: tab, exact: true });
-    await panel.getByRole('button', { name: '新增主数据' }).click();
+    await panel.getByRole('button', { name: '新增基础资料' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('编码由系统生成')).toBeVisible();
     await expect(dialog.getByRole('textbox', { name: '编码', exact: true })).toHaveCount(0);
@@ -30,8 +30,8 @@ test('B6a-num 三类主数据系统发号、只读编码、改名、复制与名
     const item = (await created.json()).data;
     expect(item.code).toMatch(pattern);
     await expect(dialog).toHaveCount(0);
-    await panel.getByLabel('搜索主数据').fill(item.code);
-    await panel.getByLabel('搜索主数据').press('Enter');
+    await panel.getByLabel('搜索基础资料').fill(item.code);
+    await panel.getByLabel('搜索基础资料').press('Enter');
     const row = panel.getByRole('row').filter({ hasText: name });
     await expect(row).toContainText(item.code);
     await row.getByRole('button', { name: '复制编码' }).click();
@@ -45,6 +45,8 @@ test('B6a-num 三类主数据系统发号、只读编码、改名、复制与名
     await page.setViewportSize({ width: 1440, height: 960 });
     await page.screenshot({ path: `.local/evidence/b6a-num-${catalog}-1440.png`, fullPage: true });
     await page.goto(catalog === 'customers' ? '/outbound/new' : '/inbound/new');
+    // The previous supplier selection left a local inbound draft; discard it explicitly.
+    if (catalog === 'warehouses') await page.getByRole('button', { name: /^丢\s*弃$/ }).click();
     await page.getByLabel(selectLabel, { exact: true }).fill(item.code);
     const option = page.locator('.ant-select-item-option').filter({ hasText: item.code });
     await expect(option).toContainText(`${name}已改名`);
@@ -54,6 +56,10 @@ test('B6a-num 三类主数据系统发号、只读编码、改名、复制与名
     await expect(
       page.locator('.ant-select').filter({ has: page.getByLabel(selectLabel, { exact: true }) }),
     ).toContainText(`${name}已改名`);
+    // This selection intentionally remains unsaved; leave through the protected menu.
+    await page.getByRole('menuitem').filter({ hasText: '基础资料' }).click();
+    await page.getByRole('button', { name: '放弃修改', exact: true }).click();
+    await expect(page).toHaveURL(/\/master-data$/);
     results.push({ catalog, code: item.code, codeInput: false, renamed: true, copied: true, dropdown: true });
   }
   console.log('B6A_NUM_UI', JSON.stringify(results));

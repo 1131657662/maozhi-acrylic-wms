@@ -1,5 +1,5 @@
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
 import { createInboundSchema, inboundReceiptSchema, type CreateInbound } from '@wms/contracts';
 import { request } from '../../api/client';
 import { stockKeys } from '../stock/keys';
@@ -8,18 +8,18 @@ import { webListKeys } from '../web-lists/keys';
 
 export function useCreateReceipt() {
   const client = useQueryClient();
-  const pending = useRef<{ body: string; key: string } | null>(null);
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: (input: CreateInbound) => {
       const body = JSON.stringify(createInboundSchema.parse(input));
-      if (pending.current?.body !== body) pending.current = { body, key: crypto.randomUUID() };
       return request('/inbound', inboundReceiptSchema, {
         method: 'POST',
-        headers: { 'Idempotency-Key': pending.current.key }, body,
+        headers: { 'Idempotency-Key': intent.value() },
+        body,
       });
     },
     onSuccess: () => {
-      pending.current = null;
+      intent.clear();
       void client.invalidateQueries({ queryKey: inboundKeys._def });
       void client.invalidateQueries({ queryKey: stockKeys._def });
       void client.invalidateQueries({ queryKey: webListKeys._def });

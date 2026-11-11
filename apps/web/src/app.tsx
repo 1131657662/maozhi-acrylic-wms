@@ -11,9 +11,13 @@ import { ApiError } from './api/client';
 import { LogoutButton } from './features/auth/logout';
 import './styles.css';
 import { ActiveStocktakeLink } from './features/stocktake/active-link';
+import { ErrorNotifications } from './components/ErrorNotifications';
+import { ERROR_MAX_VISIBLE } from './text';
+import { UnsavedNavigation } from './components/form-protection/UnsavedNavigation';
+import { RepeatKeyGuard } from './components/form-protection/RepeatKeyGuard';
 
 const client = new QueryClient({
-  defaultOptions: { queries: { retry: 1 } },
+  defaultOptions: { queries: { retry: 1 }, mutations: { networkMode: 'always', retry: false } },
   queryCache: new QueryCache({
     onError: (error) => {
       if (error instanceof ApiError && error.status === 401) client.setQueryData(authKeys.session.queryKey, null);
@@ -40,8 +44,13 @@ export function rootContainer(container: ReactNode) {
             },
           }}
         >
-          <AntApp>
-            <QueryClientProvider client={client}>{container}</QueryClientProvider>
+          <AntApp notification={{ maxCount: ERROR_MAX_VISIBLE }} message={{ maxCount: ERROR_MAX_VISIBLE }}>
+            <ErrorNotifications />
+            <QueryClientProvider client={client}>
+              <UnsavedNavigation />
+              <RepeatKeyGuard />
+              {container}
+            </QueryClientProvider>
           </AntApp>
         </ConfigProvider>
       </ErrorBoundary>

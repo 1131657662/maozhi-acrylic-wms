@@ -44,7 +44,7 @@ for (const [kind, path] of [
     await expect(page.locator('.ant-skeleton')).toHaveCount(0);
     mode = 'error';
     release();
-    await expect(page.getByText('列表加载失败，已停止展示旧数据')).toBeVisible();
+    await expect(page.getByText('系统出错了，已记录')).toBeVisible();
     await expect(page.getByTestId('list-results')).toHaveCount(0);
     mode = 'success';
     await page.getByRole('button', { name: /重\s*试/ }).click();
@@ -54,7 +54,7 @@ for (const [kind, path] of [
     await expect(page.getByText('没有符合条件的记录，可调整筛选条件或重置后重试')).toBeVisible();
     mode = 'forbidden';
     await page.reload();
-    await expect(page.getByText('无权查看此列表')).toBeVisible();
+    await expect(page.getByText('没有权限执行此操作')).toBeVisible();
     await expect(page.getByTestId('list-results')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
     console.log('B1B1_STATES ' + kind + ' loading/empty/retry/403=verified stale_rows=0');

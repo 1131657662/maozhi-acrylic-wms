@@ -1,22 +1,24 @@
-import { useRef } from 'react';
+import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { stocktakeSchema, type CreateStocktake } from '@wms/contracts';
 import { request } from '../../api/client';
 import { stocktakeKeys } from './keys';
 
 export function useCreateStocktake() {
-  const client = useQueryClient(),
-    pending = useRef({ body: '', key: '' });
+  const client = useQueryClient();
+  const intent = useSubmissionKey();
   return useMutation({
     mutationFn: (input: CreateStocktake) => {
       const body = JSON.stringify(input);
-      if (pending.current.body !== body) pending.current = { body, key: crypto.randomUUID() };
       return request('/stocktakes', stocktakeSchema, {
         method: 'POST',
         body,
-        headers: { 'Idempotency-Key': pending.current.key },
+        headers: { 'Idempotency-Key': intent.value() },
       });
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: stocktakeKeys._def }),
+    onSuccess: () => {
+      intent.clear();
+      return client.invalidateQueries({ queryKey: stocktakeKeys._def });
+    },
   });
 }

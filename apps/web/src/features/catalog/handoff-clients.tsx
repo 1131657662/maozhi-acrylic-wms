@@ -1,5 +1,8 @@
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
+import { formCopy } from '../../components/form-protection/copy';
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
-import { Alert, App, Button, Select, Space } from 'antd';
+import { Alert, Button, Select, Space } from 'antd';
 import type { z } from 'zod';
 import { handoffOverviewSchema } from '@wms/contracts';
 import { useHandoffCommand } from './use-handoff-command';
@@ -7,7 +10,7 @@ import { useHandoffCommand } from './use-handoff-command';
 export function HandoffClients({ data }: { data: z.infer<typeof handoffOverviewSchema> }) {
   const [id, setId] = useState<string>();
   const command = useHandoffCommand();
-  const { modal } = App.useApp();
+  const modal = useLockedConfirm();
   if (!data.clients.length) return <Alert type="success" title="没有未核验的旧协议客户端活动" />;
   return (
     <Space orientation="vertical" style={{ width: '100%' }}>
@@ -45,11 +48,11 @@ export function HandoffClients({ data }: { data: z.infer<typeof handoffOverviewS
               })
             }
           >
-            关联已盘点设备
+            {modal.busy ? formCopy.submitting : '关联已盘点设备'}
           </Button>
         </Space>
       ))}
-      {command.error && <Alert type="error" title={command.error.message} />}
+      {command.error && <RequestError type="error" error={command.error} />}
     </Space>
   );
 }

@@ -1,6 +1,8 @@
+import { businessCopy } from '../../business-copy';
+import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Card, Result, Skeleton, Space } from 'antd';
+import { Button, Card, Result, Skeleton, Space } from 'antd';
 import { PageContainer } from '@ant-design/pro-components';
 import type { CatalogUploadResult } from '@wms/contracts';
 import { ApiError } from '../../api/client';
@@ -33,9 +35,9 @@ export function CatalogPage() {
       <Space orientation="vertical" size="large" style={{ width: '100%', maxWidth: 1440 }}>
         {isLoading && <Skeleton active />}
         {error && (
-          <Alert
+          <RequestError
             type="error"
-            title={error.message}
+            error={error}
             action={<Button onClick={() => void refetch()}>重试目录状态</Button>}
           />
         )}
@@ -45,7 +47,7 @@ export function CatalogPage() {
           <CatalogCandidate key={candidate.uploadId} upload={candidate} allowed={!!overview?.gate.allowed && !error} />
         )}
         {overview && (
-          <Card title={candidate?.version ? '更换 / 上传下一份全量快照' : '上传全量快照'}>
+          <Card title={candidate?.version ? businessCopy.catalogPage1 : '上传全部条码'}>
             <CatalogUpload
               hasCandidate={!!candidate?.version && candidate.version.versionId !== overview.current?.versionId}
               onCandidate={(result) => setCandidate(result.version ? result : null)}

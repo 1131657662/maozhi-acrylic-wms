@@ -61,7 +61,7 @@ const routes: Operation[] = [
   {
     method: 'post',
     path: '/contacts',
-    summary: '新增指定往来单位档案',
+    summary: '新增指定往来单位档案；可选 Idempotency-Key，同键同内容返回首次结果，不重复建档',
     body: createContactSchema,
     response: contactSchema,
     channel: 'web',
@@ -101,7 +101,7 @@ const routes: Operation[] = [
   {
     method: 'post',
     path: '/vehicles',
-    summary: '手工建档；归一化车牌唯一',
+    summary: '手工建档；归一化车牌唯一；可选 Idempotency-Key，同键同内容返回首次结果',
     body: createVehicleSchema,
     response: vehicleSchema,
     channel: 'web',

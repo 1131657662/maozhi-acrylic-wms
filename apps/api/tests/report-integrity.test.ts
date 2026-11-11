@@ -26,7 +26,8 @@ test('B3b: unknown types and missing/invalid dates cannot silently become verifi
     assert.equal(feb.unknownGrams, 610000);
     assert.equal(feb.differenceGrams, 0);
     assert.equal(feb.checkState, '不可验证');
-    assert.ok(feb.reasons.some((r) => r.includes('opaque-type')));
+    assert.ok(feb.reasons.some((r) => r.includes('未分类库存变动')));
+    assert.ok(feb.reasons.every((r) => !r.includes('opaque-type')));
     await f.db
       .run(`UPDATE stock_journal SET source_row_json=JSON_SET(source_row_json,'$.create_time','2026-02-30 10:00:00')
       WHERE product_code='RPT-P1' AND warehouse_code='RPT-W1' AND source_business_type='inbound'`);
@@ -39,7 +40,7 @@ test('B3b: unknown types and missing/invalid dates cannot silently become verifi
       WHERE product_code='RPT-P1' AND warehouse_code='RPT-W1'`);
     const invalidAnchor = reportMonthlySchema.parse(await read('monthly'));
     assert.ok(invalidAnchor.items.every((r) => r.checkState === '不可验证'));
-    assert.ok(invalidAnchor.items.every((r) => r.reasons.some((reason) => reason.includes('有效的原始导入库存锚点'))));
+    assert.ok(invalidAnchor.items.every((r) => r.reasons.some((reason) => reason.includes('有效的导入时库存'))));
     console.log('B3B_INTEGRITY unknownType=retained invalidDates=2 excludedFromPeriods=2 state=unverifiable');
   } finally {
     await f.dispose();
@@ -55,7 +56,7 @@ test('B3b: exact arithmetic and Shanghai calendar validation', () => {
       listFields.inbound.find((f) => f.key === 'status')!,
       { status: null },
     ),
-    '状态待识别：未记录',
+    '—',
   );
   assert.equal(localIso('2026-01-31 23:59:59.123456'), '2026-01-31T15:59:59.123Z');
   assert.equal(localIso('2026-02-30 10:00:00'), null);

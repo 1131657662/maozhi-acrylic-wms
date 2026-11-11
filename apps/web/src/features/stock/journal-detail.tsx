@@ -1,4 +1,5 @@
-import { Alert, Button, Drawer, Typography } from 'antd';
+import { businessCopy } from '../../business-copy';
+import { Alert, Button, Drawer } from 'antd';
 import { useState } from 'react';
 import { ProDescriptions } from '@ant-design/pro-components';
 import { tonnes, type SourceJournalRow } from '@wms/contracts';
@@ -16,9 +17,9 @@ export function JournalDetail({ row }: { row: SourceJournalRow }) {
           type="info"
           title={
             row.evidenceKind === 'transaction'
-              ? '本系统事务记录'
+              ? businessCopy.stockJournalDetail1
               : row.evidenceKind === 'source-snapshot'
-                ? 'ERP 历史快照 · 保留原值，ID 为原流水定位'
+                ? businessCopy.stockJournalDetail2
                 : '旧记录未保存前后值，不推算历史'
           }
         />
@@ -26,10 +27,6 @@ export function JournalDetail({ row }: { row: SourceJournalRow }) {
           column={1}
           dataSource={row}
           columns={[
-            {
-              title: '操作 ID',
-              render: () => <Typography.Text copyable>{row.operationId ?? '未记录'}</Typography.Text>,
-            },
             { title: '操作类型', render: () => <JournalTypeTag type={row.operationType} /> },
             {
               title: '调整前',

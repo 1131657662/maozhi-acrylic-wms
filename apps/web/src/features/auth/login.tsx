@@ -1,3 +1,4 @@
+import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useState } from 'react';
 import { history, useLocation } from '@umijs/max';
 import { Alert, Typography } from 'antd';
@@ -14,6 +15,7 @@ interface LoginValues {
 
 export function Login() {
   const client = useQueryClient();
+  const lock = useSubmitLock();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const redirect = new URLSearchParams(location.search).get('redirect') || '/';
@@ -48,11 +50,11 @@ export function Login() {
       </section>
       <ProForm<LoginValues>
         className="login-card"
-        onFinish={submit}
+        onFinish={(values) => lock.run(() => submit(values))}
         submitter={{
-          searchConfig: { submitText: '登录' },
+          searchConfig: { submitText: lock.text('登录') },
           resetButtonProps: false,
-          submitButtonProps: { size: 'large', block: true },
+          submitButtonProps: { ...lock.button, size: 'large', block: true },
         }}
         initialValues={{ username: 'owner' }}
       >

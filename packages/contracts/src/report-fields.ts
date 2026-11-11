@@ -12,8 +12,8 @@ function pair(key: string, label: string, total?: false): ListField[] {
 const dimensions = [
   text('warehouseCode', '仓库编码'),
   text('warehouseName', '仓库'),
-  text('productCode', 'ERP 商品编码'),
-  text('productName', 'ERP 商品名称', 40),
+  text('productCode', '商品编码'),
+  text('productName', '商品名称', 40),
 ];
 export const reportFields: Record<ReportKind, ListField[]> = {
   'report-turnover': [
@@ -27,10 +27,9 @@ export const reportFields: Record<ReportKind, ListField[]> = {
     text('averageInventory', '分母 M（吨）', 20),
     text('turns', '期间周转次数', 18),
     text('turnoverDays', '周转天数', 14),
-    text('formula', '公式与口径', 56),
+    text('formula', '公式与统计方式', 56),
     text('adjustmentSummary', '本期库存变化说明', 42),
-    text('timeStatus', '时间口径', 28),
-    text('watermark', '流水水位', 14),
+    text('timeStatus', '时间统计方式', 28),
     text('source', '数据来源'),
     text('checkState', '完整性'),
     text('reasons', '不可验证原因', 56),
@@ -49,8 +48,7 @@ export const reportFields: Record<ReportKind, ListField[]> = {
     text('coverage', '可归龄覆盖率', 18),
     text('fifoBasis', '起龄/FIFO 依据', 48),
     text('adjustmentSummary', '本期库存变化说明', 42),
-    text('timeStatus', '时间口径', 28),
-    text('watermark', '流水水位', 14),
+    text('timeStatus', '时间统计方式', 28),
     text('source', '数据来源'),
     text('checkState', '完整性'),
     text('reasons', '不可验证原因', 56),
@@ -79,10 +77,9 @@ export const reportFields: Record<ReportKind, ListField[]> = {
     { key: 'outboundDocuments', label: '出库确认单数（不跨商品合计）', type: 'integer', width: 28, total: false },
     { key: 'inboundReversals', label: '入库撤销操作数', type: 'integer', width: 22, total: false },
     { key: 'outboundReversals', label: '出库撤销操作数', type: 'integer', width: 22, total: false },
-    text('timeStatus', '时间口径'),
+    text('timeStatus', '时间统计方式'),
   ],
   'report-details': [
-    text('id', '流水 ID', 14),
     date('postedAt', '入账时间（上海）'),
     text('orderNo', '原单号'),
     ...dimensions,
@@ -96,9 +93,6 @@ export const reportFields: Record<ReportKind, ListField[]> = {
     text('businessDate', '原业务日期'),
     date('createdAt', '制单时间'),
     date('confirmedAt', '审核/确认时间'),
-    text('operationId', '操作 ID', 40),
-    text('originalOperationId', '原操作 ID', 40),
-    text('operationType', '原始类型'),
     text('productModel', '型号'),
     text('nameBasis', '名称依据', 40),
     text('partner', '往来单位'),
@@ -109,7 +103,7 @@ export const reportFields: Record<ReportKind, ListField[]> = {
     text('status', '单据当前状态'),
     text('actor', '操作人'),
     text('reason', '原因/备注', 40),
-    text('timeStatus', '时间口径'),
+    text('timeStatus', '时间统计方式'),
     text('checkState', '区间完整性'),
   ],
 };
@@ -150,7 +144,6 @@ const visible: Record<ReportKind, string[]> = {
     'checkState',
   ],
   'report-details': [
-    'id',
     'postedAt',
     'orderNo',
     'warehouseName',

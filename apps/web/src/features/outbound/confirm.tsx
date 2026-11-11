@@ -1,9 +1,12 @@
-import { Alert, Button, Modal } from 'antd';
+import { RequestError } from '../../components/RequestError';
+import { Button } from 'antd';
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
+import { formCopy } from '../../components/form-protection/copy';
 import { tonnes, type Detail } from '@wms/contracts';
 import { useConfirm } from './use-confirm';
 export function Confirm({ order }: { order: Detail }) {
-  const [modal, contextHolder] = Modal.useModal();
-  const { mutate: confirm, isPending: isConfirming, error: confirmError } = useConfirm();
+  const modal = useLockedConfirm();
+  const { mutateAsync: confirm, isPending: isConfirming, error: confirmError } = useConfirm();
   if (['cancelled', 'voided'].includes(order.status)) return null;
   function ask(): void {
     modal.confirm({
@@ -16,17 +19,16 @@ export function Confirm({ order }: { order: Detail }) {
   }
   return (
     <div className="confirm-bar">
-      {contextHolder}
-      <span>冻结 ≠ 出库；确认后写入库存流水。</span>
-      {confirmError && <Alert type="error" title={confirmError.message} />}
+      <span>已扫码不代表已出库；确认后才扣减库存。</span>
+      {confirmError && <RequestError type="error" error={confirmError} />}
       <Button
         type={order.status === 'frozen' ? 'primary' : 'default'}
         size="large"
-        disabled={order.status !== 'frozen'}
-        loading={isConfirming}
+        disabled={order.status !== 'frozen' || modal.busy}
+        loading={isConfirming || modal.busy}
         onClick={ask}
       >
-        {order.status === 'confirmed' ? '已确认出库' : '核对并确认出库'}
+        {modal.busy ? formCopy.submitting : order.status === 'confirmed' ? '已确认出库' : '核对并确认出库'}
       </Button>
     </div>
   );

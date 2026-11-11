@@ -24,7 +24,7 @@ async function publishAndRecover(version: CatalogVersion, input: { key: string; 
       body: JSON.stringify({ baseRevision: version.baseRevision, contentSha256: version.contentSha256 }),
     });
   } catch (error) {
-    if (error instanceof ApiError && error.status < 500) throw error;
+    if (error instanceof ApiError && error.status >= 400 && error.status < 500) throw error;
     const result = await request(`/catalog/uploads/${input.uploadId}`, catalogUploadResultSchema).catch(() => null);
     if (result?.version?.status === 'published') return;
     throw new Error('发布未完成或结果待核验；当前文件和预览已保留，请重试（沿用原发布编号）');

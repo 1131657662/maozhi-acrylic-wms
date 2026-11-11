@@ -11,6 +11,7 @@ import type { Database, Row } from '../../db/mysql.ts';
 import { audit, type Actor } from '../../shared/audit.ts';
 import { AppError } from '../../shared/errors.ts';
 import { lockInventoryWriter } from '../inventory/operation.ts';
+import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 function vehicle(row: Row) {
   return vehicleSchema.parse({
     id: row.id,
@@ -47,10 +48,12 @@ export async function listVehicles(db: Database, input: unknown) {
     pageSize: query.pageSize,
   }));
 }
-export async function createVehicle(db: Database, input: unknown, actor: Actor) {
+export async function createVehicle(db: Database, input: unknown, actor: Actor, key?: string) {
   const data = createVehicleSchema.parse(input);
   return db.transaction(async (tx) => {
     await lockInventoryWriter(tx);
+    const replay = key ? await replayCommand(tx, 'vehicle.create', key, data, actor, vehicleSchema) : undefined;
+    if (replay) return replay;
     const normalized = normalizePlate(data.plate);
     if (await tx.get('SELECT id FROM master_vehicles WHERE plate_normalized=?', [normalized]))
       throw new AppError('VEHICLE_EXISTS', '车牌已存在', 422);
@@ -62,6 +65,7 @@ export async function createVehicle(db: Database, input: unknown, actor: Actor) 
     );
     const after = await readVehicle(tx, id);
     await audit(tx, actor, { action: 'vehicle.create', targetId: id, before: null, after });
+    if (key) await saveCommand(tx, 'vehicle.create', key, data, actor, after);
     return after;
   });
 }

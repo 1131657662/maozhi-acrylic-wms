@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Card, Result, Skeleton, Typography } from 'antd';
+import { Alert, Button, Card, Result, Skeleton } from 'antd';
 import type { LifecycleKind, LifecyclePreview } from '@wms/contracts';
 import { ApiError } from '../../api/client';
 import { lifecycleKeys } from './keys';
@@ -20,13 +20,6 @@ function ClosedRecord({ data }: { data: LifecyclePreview }) {
             原因：{closure.reason}；操作人：{closure.actor}；时间：{formatTime(closure.createdAt)}
           </p>
           <p>原单与原号保留，不能重新确认或开放扫码。实物退货须另走独立流程。</p>
-          <Typography.Paragraph copyable>终结记录：{closure.id}</Typography.Paragraph>
-          {closure.originalOperationId && (
-            <Typography.Paragraph copyable>原确认操作：{closure.originalOperationId}</Typography.Paragraph>
-          )}
-          {closure.compensationOperationId && (
-            <Typography.Paragraph copyable>补偿操作：{closure.compensationOperationId}</Typography.Paragraph>
-          )}
         </>
       }
     />

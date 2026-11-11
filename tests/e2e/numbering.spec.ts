@@ -28,15 +28,15 @@ test('B6a-num 固定三位只读，刷新失败保留预览并可重试', async 
   await page.route('**/api/v1/document-numbering', (route) =>
     route.fulfill({
       status: 500,
-      json: { code: 'TEST_ERROR', message: '刷新暂时失败', data: null, traceId: 'refresh-test' },
+      json: { code: 'TEST_ERROR', message: '系统出错了，已记录', data: null, traceId: 'refresh-test' },
     }),
   );
   await page.getByRole('button', { name: '刷新预览' }).click();
-  await expect(page.getByText(/刷新暂时失败/)).toBeVisible();
+  await expect(page.getByText(/系统出错了，已记录/)).toBeVisible();
   await expect(preview).toHaveText(original);
   await page.unroute('**/api/v1/document-numbering');
   await page.getByRole('button', { name: /重\s*试/ }).click();
-  await expect(page.getByText(/刷新暂时失败/)).toHaveCount(0);
+  await expect(page.getByText(/系统出错了，已记录/)).toHaveCount(0);
   for (const width of [1440, 1280]) {
     await page.setViewportSize({ width, height: 960 });
     await noPageOverflow(page);
@@ -44,16 +44,14 @@ test('B6a-num 固定三位只读，刷新失败保留预览并可重试', async 
   }
 });
 
-test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和伪流程', async ({ page }) => {
+test('B1a 未知状态/流水类型中文回退灰色显示，无异常和伪流程', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/?status=legacy_future_state');
-  await expect(
-    page.getByTestId('pro-table').getByTestId('status-tag').filter({ hasText: 'legacy_future_state' }),
-  ).toBeVisible();
+  await expect(page.getByTestId('pro-table').getByTestId('status-tag').filter({ hasText: '未识别' })).toBeVisible();
   await page.goto('/outbound/E2E-UNKNOWN-OUT');
   const tag = page.getByTestId('status-tag');
-  await expect(tag).toHaveText('状态待识别：legacy_future_state');
+  await expect(tag).toHaveText('未识别');
   await expect(page.getByTestId('unknown-status-notice')).toContainText('不能据此判断是否已出库');
   await expect(page.getByTestId('unknown-status-notice')).toContainText('请按单号核对原始单据');
   await expect(tag).toHaveClass(/ant-tag-default/);
@@ -64,18 +62,16 @@ test('B1a 未知状态/流水类型真实数据原文灰色显示，无异常和
   await noPageOverflow(page);
   await page.screenshot({ path: '.local/evidence/b1a2-unknown-status-1280.png', fullPage: true });
   await page.goto('/inbound?status=legacy_inbound_state');
-  await expect(
-    page.getByTestId('pro-table').getByTestId('status-tag').filter({ hasText: 'legacy_inbound_state' }),
-  ).toBeVisible();
+  await expect(page.getByTestId('pro-table').getByTestId('status-tag').filter({ hasText: '未识别' })).toBeVisible();
   await page.goto('/inbound/E2E-UNKNOWN-IN');
-  await expect(page.getByTestId('status-tag')).toHaveText('状态待识别：legacy_inbound_state');
+  await expect(page.getByTestId('status-tag')).toHaveText('未识别');
   await expect(page.getByTestId('unknown-status-notice')).toContainText('不能据此判断是否已入库');
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.screenshot({ path: '.local/evidence/b1a2-unknown-inbound-1440.png', fullPage: true });
   await prepareRecentUnknownJournal();
   await page.goto('/stock');
   await expect(page.getByRole('tab')).toHaveCount(0);
-  const journal = page.getByTestId('journal-type-tag').filter({ hasText: 'legacy_journal_type_current_case' });
+  const journal = page.getByTestId('journal-type-tag').filter({ hasText: '未识别' });
   await expect(journal).toBeVisible();
   await expect(journal).toHaveClass(/ant-tag-default/);
   await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
