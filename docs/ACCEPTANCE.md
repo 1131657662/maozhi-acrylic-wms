@@ -2,9 +2,11 @@
 
 ## 体验修复 B：系统文案与保护（2026-11-11）
 
-本地独立合成库验收与原始证据见 [WEB_UX_B_ACCEPTANCE.md](WEB_UX_B_ACCEPTANCE.md)，逐条文案清单见 [WEB_UX_B_COPY_CHANGES.md](WEB_UX_B_COPY_CHANGES.md)。A 批已按用户授权合并并推送；B 批保留独立开发分支，未合并、未推送。仅验证 Chromium，不代表其他浏览器、实体设备或生产验收。
+本地独立合成库验收与原始证据见 [WEB_UX_B_ACCEPTANCE.md](WEB_UX_B_ACCEPTANCE.md)，逐条文案清单见 [WEB_UX_B_COPY_CHANGES.md](WEB_UX_B_COPY_CHANGES.md)。A/B 两批均已按用户授权合并并推送。仅验证 Chromium，不代表其他浏览器、实体设备或生产验收。
 
-本轮最终结果：test 212/212、build exit 0、完整 E2E 113/0（主 104 + catalog 9），三项 exit 均为 0；禁止词 50 → 0，四种重复提交场景均只产生 1 条记录或操作。代码及本地验证完成，等待用户验收。
+本轮最终结果：test 212/212、build exit 0、完整 E2E 113/0（主 104 + catalog 9），三项 exit 均为 0；禁止词 50 → 0，四种重复提交场景均只产生 1 条记录或操作。
+
+- 2026-11-11：**B 批已完成、用户验收通过（212/113/0）**，合并及远端 HEAD `19ebad05a092f0ec7a8e47d8a832e62381697a97`、push exit 0；详见 [WEB_UX_B_ACCEPTANCE.md](WEB_UX_B_ACCEPTANCE.md)。
 
 ## B6a-num：系统生成编码与三位单据号（2026-11-10）
 
