@@ -1,7 +1,9 @@
+import { documentExtraCopy } from '@wms/contracts';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
 import { Button, Empty } from 'antd';
 import { ProFormText, ProFormSelect } from '@ant-design/pro-components';
+import { inboundBillTypeOptions } from '@wms/contracts';
 import { BusinessList } from '../../components/BusinessList';
 import {
   ListFilters,
@@ -44,6 +46,12 @@ export function InboundList() {
             label="入库单号"
             placeholder="支持部分单号"
             fieldProps={{ type: 'search', 'aria-label': '搜索入库单' }}
+          />
+          <ProFormSelect
+            name="billType"
+            label={documentExtraCopy.billType}
+            placeholder={documentExtraCopy.allTypes}
+            options={[...inboundBillTypeOptions]}
           />
           <ListDateFilter key="dateRange" label="登记时间" />
           <ProFormText name="supplier" label="供应商" placeholder="名称或编码" />

@@ -23,12 +23,12 @@ function FilterGroups({ children }: { children: ReactNode }) {
   Children.forEach(children, (child) => {
     if (!isValidElement<{ name?: string }>(child)) return;
     const name = child.props.name ?? String(child.key ?? '');
-    const group = /product/.test(name)
-      ? 'product'
-      : /supplier|customer/.test(name)
-        ? 'party'
-        : /keyword|dateRange|statusChoice|postingState/.test(name)
-          ? 'document'
+    const group = /billType|keyword|dateRange|statusChoice|postingState/.test(name)
+      ? 'document'
+      : /product/.test(name)
+        ? 'product'
+        : /supplier|customer/.test(name)
+          ? 'party'
           : 'other';
     groups[group].push(child);
   });

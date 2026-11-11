@@ -42,10 +42,7 @@ test('B4a R1 下载→离线扫码→Web修改→原UUID/正文补传；明细�
     for (const lines of [[], [{ ...newPlan().lines[0]!, plannedPackages: 2 }]]) {
       const rejected = await edit({ vehicleNo: '不应生效', lines }).expect(409);
       assert.equal(rejected.body.code, 'PLAN_LINES_IMMUTABLE');
-      assert.match(
-        rejected.body.message,
-        /计划已下发或已有扫码事实，明细不可修改，只能改车号\/备注；如需改明细请作废后重建/,
-      );
+      assert.match(rejected.body.message, /只能修改明细行的合同号和备注，商品与计划数量不可修改/);
       console.log('B4A_R1_409', JSON.stringify(rejected.body));
     }
     assert.deepEqual(await businessFingerprint(f.db), before);

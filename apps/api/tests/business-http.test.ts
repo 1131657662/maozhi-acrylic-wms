@@ -59,11 +59,14 @@ test('Web 同源会话可创建入库和出库计划并查询主数据', async (
         receiptNo: 'IN-HTTP-001',
         supplierCode: 'DEMO-SUPPLIER',
         warehouseCode: 'DEMO-WH',
-        lines: [{ productCode: 'ACR-032', packages: 2, weightGrams: 701200 }],
+        billType: 'purchase',
+        lines: [{ productCode: 'ACR-032', packages: 2, weightGrams: 701200, memo: '入库行备注' }],
       })
       .expect(200);
     assert.equal(inbound.body.data.packages, 2);
     assert.equal(inbound.body.data.weightGrams, 701200);
+    assert.equal(inbound.body.data.billType, 'purchase');
+    assert.equal(inbound.body.data.lines[0].memo, '入库行备注');
     assert.equal(
       (await web.get(`/api/v1/inbound/${inbound.body.data.id}`).expect(200)).body.data.lines[0].weightGrams,
       701200,
@@ -74,7 +77,17 @@ test('Web 同源会话可创建入库和出库计划并查询主数据', async (
       customerCode: 'DEMO-CUST-1',
       warehouseCode: 'DEMO-WH',
       vehicleNo: 'HTTP-TEST',
-      lines: [{ productCode: 'ACR-032', plannedPackages: 1, plannedWeightGrams: 302500 }],
+      billType: 'sales',
+      containerNo: '柜-HTTP',
+      lines: [
+        {
+          productCode: 'ACR-032',
+          plannedPackages: 1,
+          plannedWeightGrams: 302500,
+          contractNo: 'HT-HTTP',
+          memo: '出库行备注',
+        },
+      ],
     };
     const plan = (
       await web

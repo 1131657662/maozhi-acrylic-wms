@@ -13,6 +13,7 @@ function filterValues(params: ListParams): Record<string, unknown> {
     'warehouse',
     'vehicle',
     'postingState',
+    'billType',
     'product',
     'action',
     'target',

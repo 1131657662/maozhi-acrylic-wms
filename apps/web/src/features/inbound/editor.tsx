@@ -1,11 +1,20 @@
+import { documentExtraCopy, DOCUMENT_EXTRA_LIMITS } from '@wms/contracts';
 import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useFormDraft } from '../../components/form-protection/use-form-draft';
 import { useFormErrors } from '../../components/use-form-errors';
 import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Form, Col, Result, Space, theme } from 'antd';
 import { Link, useNavigate } from '@umijs/max';
-import { PageContainer, ProForm, ProFormDigit, ProFormList, ProFormTextArea } from '@ant-design/pro-components';
-import type { CreateInbound } from '@wms/contracts';
+import {
+  PageContainer,
+  ProForm,
+  ProFormDigit,
+  ProFormList,
+  ProFormSelect,
+  ProFormText,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
+import { inboundBillTypeOptions, type CreateInbound } from '@wms/contracts';
 import { ApiError } from '../../api/client';
 import { tonnesToGrams } from '../../lib/weight-input';
 import { PartyFields } from '../master-data/party-fields';
@@ -15,7 +24,7 @@ import { BusinessDateField } from '../business-date/field';
 import { useBackdateConfirmation } from '../business-date/use-backdate-confirmation';
 
 interface ReceiptFormValues extends Omit<CreateInbound, 'lines' | 'receiptNo'> {
-  lines: { productCode?: string; packages?: number; weightTonnes?: number }[];
+  lines: { productCode?: string; packages?: number; weightTonnes?: number; memo?: string | null }[];
 }
 
 export function InboundEditor() {
@@ -36,6 +45,7 @@ export function InboundEditor() {
           productCode: line.productCode!,
           packages: line.packages!,
           weightGrams: tonnesToGrams(line.weightTonnes!),
+          memo: line.memo,
         })),
       };
       const receipt = await create.mutateAsync(input);
@@ -88,6 +98,7 @@ export function InboundEditor() {
             grid
             rowProps={{ gutter: token.marginLG }}
             disabled={lock.busy || create.isPending}
+            initialValues={{ billType: 'purchase' }}
             onFinish={(values) => lock.run(() => submit(values))}
             submitter={{
               submitButtonProps: lock.button,
@@ -116,11 +127,24 @@ export function InboundEditor() {
                   <MasterSelect catalog="warehouses" />
                 </ProForm.Item>
               </Col>
+              <ProFormSelect
+                name="billType"
+                label={documentExtraCopy.billType}
+                colProps={{ xs: 24, md: 12 }}
+                options={[...inboundBillTypeOptions]}
+                rules={[{ required: true }]}
+              />
+              <ProFormText
+                name="containerNo"
+                label={documentExtraCopy.containerNo}
+                colProps={{ xs: 24, md: 12 }}
+                fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.containerNo }}
+              />
               <ProFormTextArea
                 name="memo"
                 label="备注"
                 colProps={{ span: 24 }}
-                fieldProps={{ maxLength: 500, rows: 2 }}
+                fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.memo, rows: 2 }}
               />
               <Col span={24}>
                 <BusinessDateField />
@@ -152,6 +176,11 @@ export function InboundEditor() {
                   colProps={{ xs: 24, md: 6 }}
                   rules={[{ required: true }]}
                   fieldProps={{ min: 0.0001, max: 99999999.9999, precision: 4, step: 0.0001 }}
+                />
+                <ProFormTextArea
+                  name="memo"
+                  label={documentExtraCopy.lineMemo}
+                  fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.memo, rows: 2 }}
                 />
               </ProFormList>
             </ProForm.Group>

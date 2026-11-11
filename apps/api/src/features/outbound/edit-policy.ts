@@ -18,14 +18,8 @@ export async function assertEditableHeader(
     'PLAN_NOT_EDITABLE',
     '仅本地待扫码计划可修改车号/备注；历史单据、冻结或终态计划不可编辑',
   );
-  if (plan.lines && !sameLines(before, plan.lines)) {
-    const exposure = await db.get('SELECT plan_id FROM outbound_plan_exposures WHERE plan_id=?', [before.id]);
-    const message =
-      exposure || before.facts.length
-        ? '计划已下发或已有扫码事实，明细不可修改，只能改车号/备注；如需改明细请作废后重建。作废仍须满足原有条件，已下发或已有事实的计划当前不能直接作废。'
-        : '计划创建后明细不可修改，只能改车号/备注；如需改明细请作废后重建';
-    throw new AppError('PLAN_LINES_IMMUTABLE', message);
-  }
+  if (plan.lines && !sameLines(before, plan.lines))
+    throw new AppError('PLAN_LINES_IMMUTABLE', '只能修改明细行的合同号和备注，商品与计划数量不可修改');
   ensure(
     (plan.customerCode === undefined || plan.customerCode === before.customerCode) &&
       (plan.contactId === undefined || plan.contactId === before.contactId) &&
@@ -37,13 +31,19 @@ export async function assertEditableHeader(
 
 function sameLines(before: Detail, lines: NonNullable<EditOutboundPlan['plan']['lines']>): boolean {
   if (lines.length !== before.lines.length) return false;
-  if (new Set(lines.map((line) => line.productCode)).size !== lines.length) return false;
-  return lines.every((line) =>
-    before.lines.some(
-      (old) =>
-        old.productCode === line.productCode &&
-        old.plannedPackages === line.plannedPackages &&
-        old.plannedWeightGrams === line.plannedWeightGrams,
-    ),
-  );
+  if (lines.every((line) => 'id' in line)) {
+    const ids = new Set(lines.map((line) => ('id' in line ? line.id : '')));
+    return ids.size === lines.length && before.lines.every((line) => ids.has(line.id));
+  }
+  if (lines.some((line) => 'id' in line)) return false;
+  return before.lines.every((line, index) => {
+    const candidate = lines[index];
+    return (
+      candidate !== undefined &&
+      !('id' in candidate) &&
+      candidate.productCode === line.productCode &&
+      candidate.plannedPackages === line.plannedPackages &&
+      candidate.plannedWeightGrams === line.plannedWeightGrams
+    );
+  });
 }

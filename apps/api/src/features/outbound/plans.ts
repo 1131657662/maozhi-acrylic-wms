@@ -34,8 +34,8 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
     const orderNo = await allocateNumber(tx, 'outbound', plan.orderNo, date.businessDate.replaceAll('-', ''));
     try {
       await tx.run(
-        `INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,memo,created_at,business_date)
-        VALUES(?,?,?,?,?,?,?,?,?)`,
+        `INSERT INTO outbound_orders(id,order_no,customer_name,customer_code,warehouse_code,vehicle_no,memo,bill_type,container_no,created_at,business_date)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
         [
           id,
           orderNo,
@@ -44,6 +44,8 @@ export async function createOutboundPlan(db: Database, input: OutboundPlanFields
           references.warehouse.code,
           plan.vehicleNo,
           plan.memo ?? null,
+          plan.billType,
+          plan.containerNo || null,
           createdAt,
           date.businessDate,
         ],
@@ -78,11 +80,26 @@ export async function editOutboundPlan(db: Database, id: string, input: unknown,
     checkRevision(before, command);
     if (command.plan.vehicleNo !== before.vehicleNo)
       await captureVehicle(tx, { id, plate: command.plan.vehicleNo }, actor);
-    await tx.run('UPDATE outbound_orders SET vehicle_no=?,memo=?,revision=revision+1 WHERE id=?', [
-      command.plan.vehicleNo,
-      command.plan.memo === undefined ? before.memo : command.plan.memo,
-      id,
-    ]);
+    await tx.run(
+      'UPDATE outbound_orders SET vehicle_no=?,memo=?,bill_type=?,container_no=?,revision=revision+1 WHERE id=?',
+      [
+        command.plan.vehicleNo,
+        command.plan.memo === undefined ? before.memo : command.plan.memo,
+        command.plan.billType === undefined ? before.billType : command.plan.billType,
+        command.plan.containerNo === undefined ? before.containerNo : command.plan.containerNo || null,
+        id,
+      ],
+    );
+    for (const [index, line] of (command.plan.lines ?? []).entries()) {
+      const previous =
+        'id' in line ? before.lines.find((candidate) => candidate.id === line.id)! : before.lines[index]!;
+      await tx.run('UPDATE outbound_lines SET contract_no=?,memo=? WHERE id=? AND order_id=?', [
+        line.contractNo === undefined ? previous.contractNo : line.contractNo || null,
+        line.memo === undefined ? previous.memo : line.memo || null,
+        previous.id,
+        id,
+      ]);
+    }
     const after = await getOrder(tx, id);
     await audit(tx, actor, { action: 'outbound.plan.update', targetId: id, before, after });
     await saveCommand(tx, 'outbound.edit', key, [id, command], actor, after);
@@ -105,7 +122,7 @@ async function insertLines(
   for (const [index, line] of plan.lines.entries())
     await db.run(
       `INSERT INTO outbound_lines
-    (id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes,line_position) VALUES(?,?,?,?,?,?,?)`,
+    (id,order_id,product_code,product_name,planned_packages,planned_weight_tonnes,line_position,contract_no,memo) VALUES(?,?,?,?,?,?,?,?,?)`,
       [
         randomUUID(),
         id,
@@ -114,6 +131,8 @@ async function insertLines(
         line.plannedPackages,
         gramsToDecimal(line.plannedWeightGrams),
         index + 1,
+        line.contractNo || null,
+        line.memo || null,
       ],
     );
 }

@@ -1,7 +1,8 @@
+import { documentExtraCopy } from '@wms/contracts';
 import { Link, useParams } from '@umijs/max';
 import { Alert, Button, Card, Skeleton, Space } from 'antd';
-import { ProDescriptions } from '@ant-design/pro-components';
-import { tonnes, snapshotText } from '@wms/contracts';
+import { ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
+import { billTypeText, tonnes, snapshotText, type Detail } from '@wms/contracts';
 import { useOrder } from './use-order';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { Facts } from './facts';
@@ -25,6 +26,13 @@ export function OrderDetail() {
         action={<Button onClick={() => void reloadOrder()}>重试</Button>}
       />
     );
+  const lineColumns: ProColumns<Detail['lines'][number]>[] = [
+    { title: '商品', render: (_, line) => `${line.productName}（${line.productCode}）` },
+    { title: '计划包数', dataIndex: 'plannedPackages' },
+    { title: '计划重量（吨）', render: (_, line) => tonnes(line.plannedWeightGrams) },
+    { title: documentExtraCopy.contractNo, render: (_, line) => snapshotText(line.contractNo) },
+    { title: documentExtraCopy.lineMemo, render: (_, line) => snapshotText(line.memo) },
+  ];
   return (
     <section>
       <ListBackLink fallback="/">← 返回出库工作台</ListBackLink>
@@ -76,6 +84,8 @@ export function OrderDetail() {
             { title: '车牌', dataIndex: 'vehicleNo' },
             { title: '备注', dataIndex: 'memo' },
             { title: '仓库', render: () => snapshotText(order.warehouseName) },
+            { title: documentExtraCopy.billType, render: () => billTypeText('outbound', order.billType) },
+            { title: documentExtraCopy.containerNo, render: () => snapshotText(order.containerNo) },
             { title: '收货人', render: () => snapshotText(order.shipToName) },
             { title: '电话', render: () => snapshotText(order.shipToPhone) },
             { title: '地址', render: () => snapshotText(order.shipToAddress) },
@@ -85,6 +95,15 @@ export function OrderDetail() {
           ]}
         />
       </Card>
+      <ProTable<Detail['lines'][number]>
+        rowKey="id"
+        headerTitle="商品明细"
+        columns={lineColumns}
+        dataSource={order.lines}
+        search={false}
+        options={false}
+        pagination={false}
+      />
       <Confirm key={`${order.id}:${order.status}`} order={order} />
       <Facts order={order} />
       {order.corrections && (

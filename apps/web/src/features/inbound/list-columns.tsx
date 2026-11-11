@@ -1,5 +1,6 @@
+import { documentExtraCopy } from '@wms/contracts';
 import type { ProColumns } from '@ant-design/pro-components';
-import { tonnes, postingText, type WebInboundRow } from '@wms/contracts';
+import { billTypeText, tonnes, postingText, type WebInboundRow } from '@wms/contracts';
 import { Tag } from 'antd';
 import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
@@ -16,6 +17,12 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     sorter: true,
     hideInSetting: true,
     render: (_, row) => <ListDetailLink to={'/inbound/' + row.id}>{row.receiptNo}</ListDetailLink>,
+  },
+  {
+    title: documentExtraCopy.billType,
+    dataIndex: 'billType',
+    width: 130,
+    render: (_, row) => billTypeText('inbound', row.billType),
   },
   {
     title: '商品反查',

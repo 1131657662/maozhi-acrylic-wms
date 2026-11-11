@@ -1,5 +1,6 @@
+import { documentExtraCopy } from '@wms/contracts';
 import type { ProColumns } from '@ant-design/pro-components';
-import { tonnes, type WebOutboundRow } from '@wms/contracts';
+import { billTypeText, tonnes, type WebOutboundRow } from '@wms/contracts';
 import { StatusTag } from '../../components/StatusTag';
 import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
@@ -15,6 +16,12 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
     sorter: true,
     hideInSetting: true,
     render: (_, row) => <ListDetailLink to={'/outbound/' + row.id}>{row.orderNo}</ListDetailLink>,
+  },
+  {
+    title: documentExtraCopy.billType,
+    dataIndex: 'billType',
+    width: 130,
+    render: (_, row) => billTypeText('outbound', row.billType),
   },
   {
     title: '商品反查',

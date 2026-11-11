@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { inventoryScopeFields, validInventoryScope } from './inventory-scope.ts';
 import { WEB_LIST_DEFAULT_PAGE_SIZE, WEB_LIST_PAGE_SIZES } from './list-display.ts';
+import { inboundBillTypeSchema, outboundBillTypeSchema } from './document-types.ts';
 
 export const webListKindSchema = z.enum(['inbound', 'outbound', 'stock', 'audit']);
 export type WebListKind = z.infer<typeof webListKindSchema>;
@@ -45,6 +46,7 @@ export const webInboundQuerySchema = z
     supplier: text,
     warehouse: text,
     postingState: z.enum(['legacy', 'pending', 'confirmed', 'reversed', 'voided']).optional(),
+    billType: inboundBillTypeSchema.optional(),
     sortBy: z
       .enum([
         'createdAt',
@@ -65,6 +67,7 @@ export const webOutboundQuerySchema = z
     ...dates,
     ...status,
     ...productReverse,
+    billType: outboundBillTypeSchema.optional(),
     keyword: text,
     customer: text,
     warehouse: text,

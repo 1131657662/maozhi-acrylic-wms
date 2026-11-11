@@ -1,4 +1,5 @@
-import { ProForm, ProFormDigit, ProFormList } from '@ant-design/pro-components';
+import { documentExtraCopy, DOCUMENT_EXTRA_LIMITS } from '@wms/contracts';
+import { ProForm, ProFormDigit, ProFormList, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { tonnes, type Detail } from '@wms/contracts';
 import { PartyFields } from '../master-data/party-fields';
 import { MasterSelect } from '../master-data/select';
@@ -33,6 +34,16 @@ export function PlanLinesFields() {
           rules={[{ required: true }]}
           fieldProps={{ min: 0.0001, max: 1000, precision: 4, step: 0.0001 }}
         />
+        <ProFormText
+          name="contractNo"
+          label={documentExtraCopy.contractNo}
+          fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.contractNo }}
+        />
+        <ProFormTextArea
+          name="memo"
+          label={documentExtraCopy.lineMemo}
+          fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.memo, rows: 2 }}
+        />
       </ProFormList>
     </>
   );
@@ -44,11 +55,23 @@ export function PlanReadOnlyLines({ order }: { order: Detail }) {
       <p>
         客户：{order.customerCode} · {order.customerName}；仓库：{order.warehouseCode}
       </p>
-      {order.lines.map((line) => (
-        <p key={line.id}>
-          {line.productCode} · {line.productName} — 计划 {line.plannedPackages} 包 / {tonnes(line.plannedWeightGrams)}{' '}
-          吨
-        </p>
+      {order.lines.map((line, index) => (
+        <div key={line.id}>
+          <p>
+            {line.productCode} · {line.productName} — 计划 {line.plannedPackages} 包 / {tonnes(line.plannedWeightGrams)}{' '}
+            吨
+          </p>
+          <ProFormText
+            name={['lineExtras', index, 'contractNo']}
+            label={documentExtraCopy.contractNo}
+            fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.contractNo }}
+          />
+          <ProFormTextArea
+            name={['lineExtras', index, 'memo']}
+            label={documentExtraCopy.lineMemo}
+            fieldProps={{ maxLength: DOCUMENT_EXTRA_LIMITS.memo, rows: 2 }}
+          />
+        </div>
       ))}
     </div>
   );

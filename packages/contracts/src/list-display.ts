@@ -2,6 +2,7 @@ import { snapshotText } from './snapshots.ts';
 import type { ExportKind } from './export-kind.ts';
 import { reportFields } from './report-fields.ts';
 import { businessLabels } from './business-labels.ts';
+import { billTypeText, documentExtraCopy } from './document-types.ts';
 
 export const WEB_LIST_PAGE_SIZES = [20, 50, 100, 200] as const;
 export const WEB_LIST_DEFAULT_PAGE_SIZE = 50;
@@ -63,6 +64,7 @@ export const listFields: Record<ExportKind, ListField[]> = {
   ...reportFields,
   inbound: [
     f('receiptNo', '入库单号'),
+    f('billType', documentExtraCopy.billType),
     f('packages', '包数', 'integer', 12),
     f('weightGrams', '总重量（吨）', 'tonnes', 18),
     f('status', '原始状态', 'text', 30),
@@ -79,6 +81,7 @@ export const listFields: Record<ExportKind, ListField[]> = {
   ],
   outbound: [
     f('orderNo', '出库单号'),
+    f('billType', documentExtraCopy.billType),
     ...[f('products', '商品明细'), f('productModels', '商品型号')].map((field) => ({ ...field, defaultHidden: true })),
     f('plannedPackages', '计划包数', 'integer', 14),
     f('plannedWeightGrams', '计划重量（吨）', 'tonnes', 20),
@@ -128,6 +131,8 @@ export function listCellText(kind: ExportKind, field: ListField, row: Record<str
     return value && /^[\p{Script=Han}]+$/u.test(String(value)) ? String(value) : businessLabels.unknown;
   if (field.key === 'status' && !kind.startsWith('report-'))
     return statusText(value == null ? null : String(value), kind === 'inbound' ? 'inbound' : 'outbound');
+  if (field.key === 'billType' && (kind === 'inbound' || kind === 'outbound'))
+    return billTypeText(kind, value == null ? null : String(value));
   if (
     ['inbound', 'outbound'].includes(kind) &&
     [

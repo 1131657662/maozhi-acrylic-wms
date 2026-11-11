@@ -31,6 +31,8 @@ export const webInboundRowSchema = inboundReceiptSchema
 export const webOutboundRowSchema = z.strictObject({
   id: z.string(),
   orderNo: z.string(),
+  billType: z.enum(['sales', 'sample', 'return', 'other']).nullable(),
+  containerNo: z.string().nullable(),
   products: z.array(z.string()),
   productModels: z.array(z.string()),
   customerName: z.string(),
