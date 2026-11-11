@@ -326,3 +326,14 @@ PARITY_MATRIX已定点改28个既有功能行并新增八份页面规格正式�
 修订记录：C17 按§9对应规格落点记录处理结果，保留原评审证据与实现未完成边界。
 
 修订记录：C18 按§9对应规格落点记录处理结果，保留原评审证据与实现未完成边界。
+
+## 批次计划复核（B4d 后）
+
+1. **主链的先后关系大体成立，但顺序数字冲突。** B6e 表列为顺序 5、B6f 为顺序 6，主链却是 B6f 后接 B6e；B5b 与 B5c 在本评审中定义为独立业务批次，当前先后只能视为排期选择，不能算技术依赖。证据：`IMPLEMENTATION_PLAN.md:443,459,484`、`DOC_REVIEW.md:234`。
+2. **B4g 引用的是待实现接口，不是现存能力。** 规格列出了候选、单条/批量录入、撤销和汇总 API；当前路由只提供扫码清单 XLSX，AF-032 因而仍是有效计划项。B4g 开工前应按规格逐项验收接口，不把“接口名已写入规格”算作已有模块。证据：`IMPLEMENTATION_PLAN.md:466`、`OUTBOUND_FACT_SPEC.md:184`、`apps/api/src/routes.ts:58`、`AUDIT_FINDINGS.md:42`。
+3. **B5c 的迁移职责与已落地结构有冲突。** 016 已建 `outbound_shipments` / `outbound_shipment_lines`；B5C_SPEC 明确 B5c 只允许第 2…N 次发货并写明不改数据结构，但计划仍列 M-SHIPMENTS。建议后续把它解释为复用 016，而非重复建表/列。证据：`IMPLEMENTATION_PLAN.md:461`、`B5C_SPEC.md:80`、`apps/api/migrations/016_outbound_shipments.up.sql:6`。
+4. **没有发现已分配迁移编号的冲突。** 仓库已有编号到 016；计划明确 M-* 是职责标签、不是预占编号。B5c 按现规格无 DDL；后续确有新结构时须在现有迁移序列后顺排，不能重用 016。证据：`apps/api/src/db/migrate.ts:119`、`IMPLEMENTATION_PLAN.md:501`、`B5C_SPEC.md:83`。
+5. **B4g 与 B5c 的实现量容易被低估。** B4g 不只是抽屉，还包括三种录入、同商品多行匹配、逐条部分成功、撤销、汇总及带入实发；B5c 虽可无迁移，却仍涉及分批状态、行级剩余量、短关和更正关联，宜按独立验收面拆分估算。证据：`OUTBOUND_FACT_SPEC.md:105,151`、`B5C_SPEC.md:88,104`。
+6. **B6g 缺少可定位的批次规格。** 当前计划只把它列作“联想搜索”并放入主链，仓库未找到对应的 B6g/搜索规格文件；实施前需要在现有规格中补齐范围、接口与验收，避免直接从批次名推断行为。证据：`IMPLEMENTATION_PLAN.md:483`；仓库 `docs/` 中无对应规格文件。
+7. **审计台账中的计划项多数仍成立，但 AF-034 没有明确归属批次。** AF-014 正由 B4f 处理；AF-031/032 对应的 Web 结束扫码入口与清点 API 仍未完成；AF-034 的告警列仍在 012 迁移和主数据字段映射中，计划只说“下次主数据迁移”而未指定批次。AF-041 不能仅因页面文件存在就结项，需按各页面规格验收。证据：`AUDIT_FINDINGS.md:17,32,41`、`apps/api/migrations/012_master_data_snapshots.up.sql:14`、`apps/api/src/features/master-data/fields.ts:12`。
+8. **明确的近端前置条件已有规格承接。** B4g 排在 B4e 后，且清点规格定义了同商品多行匹配、订单内条码唯一、批量逐条结果与幂等；实施时应把这些列为接口与 E2E 门槛。除上述 B6g 规格缺口和 AF-034 未归属外，本次未发现会阻断 B4f 的隐藏迁移前置条件。证据：`IMPLEMENTATION_PLAN.md:465`、`OUTBOUND_FACT_SPEC.md:153,190`。
