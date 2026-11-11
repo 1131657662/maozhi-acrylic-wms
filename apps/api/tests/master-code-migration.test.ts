@@ -9,13 +9,13 @@ test('014 空库up→down→up；未应用014拒绝写服务启动', async () =>
   const c = await createTestDatabase('013_list_preferences');
   try {
     await assert.rejects(assertMasterReady(c.db), /014/);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '014_master_code_counters');
     await assertMasterReady(c.db);
     assert.ok(await c.db.get("SHOW TABLES LIKE 'master_code_counters'"));
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'master_code_counters'"), undefined);
     assert.equal(await c.db.get("SHOW COLUMNS FROM master_customers LIKE 'legacy_code'"), undefined);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '014_master_code_counters');
     assert.equal((await c.db.get("SHOW COLUMNS FROM document_number_rules LIKE 'sequence_width'"))?.Default, '3');
     console.log('B6A_NUM_MIGRATION empty=up/down/up success readiness014=required');
   } finally {
@@ -24,7 +24,7 @@ test('014 空库up→down→up；未应用014拒绝写服务启动', async () =>
 });
 
 test('014 每个受影响表独立非空都拒绝回退，已删资料只留计数器也不得回收', async () => {
-  const c = await createTestDatabase();
+  const c = await createTestDatabase('014_master_code_counters');
   try {
     for (const table of [
       'master_code_counters',
@@ -68,7 +68,7 @@ test('014 原编码回填不重编，规范编码取最大值；非空down在DDL
     }
     await c.db.run("INSERT INTO document_number_rules(kind,sequence_width) VALUES('inbound',4)");
     await c.db.run("INSERT INTO document_number_counters(kind,date_key,last_sequence) VALUES('inbound','20260101',88)");
-    await migrateUp(c.db);
+    await migrateUp(c.db, '014_master_code_counters');
     for (const table of ['master_customers', 'master_suppliers', 'master_warehouses']) {
       const rows = await c.db.all(`SELECT code,legacy_code FROM ${table}`);
       assert.ok(rows.every((row) => row.code === row.legacy_code));

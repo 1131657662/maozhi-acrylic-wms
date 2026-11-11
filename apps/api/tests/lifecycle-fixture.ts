@@ -9,6 +9,7 @@ import { confirmInbound } from '../src/features/inbound/confirm.ts';
 import { confirmOutbound } from '../src/features/outbound/confirm.ts';
 import { lifecyclePreview } from '../src/features/document-lifecycle/preview.ts';
 import { hash } from '../src/shared/hash.ts';
+import { tableFingerprints } from '../../../scripts/b4a-fingerprint.ts';
 
 export async function prepared(db: Database, kind: LifecycleKind) {
   if (kind === 'inbound') {
@@ -37,6 +38,8 @@ export async function commandFor(
 export async function businessFingerprint(db: Database) {
   const tables = (await db.all('SHOW FULL TABLES WHERE Table_type="BASE TABLE"'))
     .map((r) => String(Object.values(r)[0]))
+    // Failed attempts intentionally survive business rollback; audit-attempts.test verifies those separately.
+    .filter((name) => name !== 'operation_attempts')
     .sort();
   const fingerprints: Record<string, string> = {};
   for (const table of tables) {
@@ -46,6 +49,11 @@ export async function businessFingerprint(db: Database) {
     );
   }
   return fingerprints;
+}
+export async function businessTableFingerprints(db: Database) {
+  const all = await tableFingerprints(db);
+  // Keep successful operation_log, stock, journal, counters and every other table in atomicity assertions.
+  return Object.fromEntries(Object.entries(all).filter(([table]) => table !== 'operation_attempts'));
 }
 export async function injectLifecycleFailure(db: Database, table: string, event: 'INSERT' | 'UPDATE') {
   const name = String((await db.get('SELECT DATABASE() AS name'))?.name);

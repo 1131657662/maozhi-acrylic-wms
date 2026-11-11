@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { numberingFixture, origin } from './numbering-fixture.ts';
-import { tableFingerprints } from '../../../scripts/b4a-fingerprint.ts';
+import { businessTableFingerprints } from './lifecycle-fixture.ts';
 import { createMasterItem } from '../src/features/master-data/service.ts';
 import { actor } from './fixture.ts';
 
@@ -40,7 +40,7 @@ test('自动客户编码顺序、删除不回收、并发唯一、幂等重放�
       .set('Origin', origin)
       .send({ name: '改名成功' })
       .expect(200);
-    const before = await tableFingerprints(c.db);
+    const before = await businessTableFingerprints(c.db);
     await c.web
       .patch(`/api/v1/master/customers/${first.code}`)
       .set('Origin', origin)
@@ -51,7 +51,7 @@ test('自动客户编码顺序、删除不回收、并发唯一、幂等重放�
       .set('Origin', origin)
       .send({ name: '非法指定编码', code: 'C99999' })
       .expect(422);
-    assert.deepEqual(await tableFingerprints(c.db), before);
+    assert.deepEqual(await businessTableFingerprints(c.db), before);
     assert.equal(changed.body.data.code, first.code);
     assert.equal(changed.body.data.name, '改名成功');
     console.log(
@@ -93,14 +93,14 @@ test('供应商/仓库编码与碰撞重试，商品仍手工，所有容量耗�
       ['warehouses', 'W', 99],
     ] as const) {
       await c.db.run('UPDATE master_code_counters SET `last_value`=? WHERE prefix=?', [last, prefix]);
-      const before = await tableFingerprints(c.db);
+      const before = await businessTableFingerprints(c.db);
       const failed = await c.web
         .post(`/api/v1/master/${catalog}`)
         .set('Origin', origin)
         .send({ name: '容量越界' })
         .expect(422);
       assert.equal(failed.body.message, '编号容量已用尽，需计划重编');
-      assert.deepEqual(await tableFingerprints(c.db), before);
+      assert.deepEqual(await businessTableFingerprints(c.db), before);
       console.log(
         'B6A_NUM_CAPACITY',
         JSON.stringify({ catalog, last, status: failed.status, message: failed.body.message, databaseUnchanged: true }),
@@ -124,7 +124,7 @@ test('发号后审计失败整个事务回滚，重试不跳号', async () => {
   const c = await numberingFixture();
   try {
     const transaction = c.db.transaction.bind(c.db);
-    const before = await tableFingerprints(c.db);
+    const before = await businessTableFingerprints(c.db);
     c.db.transaction = (work) =>
       transaction(async (tx) => {
         const run = tx.run.bind(tx);
@@ -136,7 +136,7 @@ test('发号后审计失败整个事务回滚，重试不跳号', async () => {
       });
     await assert.rejects(createMasterItem(c.db, 'customers', { name: '原子创建' }, actor), /injected-audit-failure/);
     c.db.transaction = transaction;
-    assert.deepEqual(await tableFingerprints(c.db), before);
+    assert.deepEqual(await businessTableFingerprints(c.db), before);
     assert.equal((await createMasterItem(c.db, 'customers', { name: '原子创建' }, actor)).code, 'C00001');
   } finally {
     await c.dispose();

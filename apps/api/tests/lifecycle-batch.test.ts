@@ -45,9 +45,18 @@ test('B6b Step 3 批量撤销逐单部分成功且重放不重复补偿', async 
         key: command.key,
       })),
     };
-    const first = batchReverseResponseSchema.parse(
-      (await web.post('/api/v1/web/lifecycle/batch-reverse').set('Origin', origin).send(body).expect(200)).body.data,
-    );
+    const firstResponse = await web.post('/api/v1/web/lifecycle/batch-reverse').set('Origin', origin).send(body).expect(200);
+    const first = batchReverseResponseSchema.parse(firstResponse.body.data);
+    const traceId = String(firstResponse.body.traceId);
+    const evidence = [
+      ...await db.all('SELECT attempt_id,trace_id,result FROM operation_log WHERE trace_id=?', [traceId]),
+      ...await db.all('SELECT attempt_id,trace_id,result FROM operation_attempts WHERE trace_id=?', [traceId]),
+    ];
+    assert.equal(evidence.length, 3);
+    assert.equal(new Set(evidence.map((row) => row.attempt_id)).size, 3);
+    assert.equal(new Set(evidence.map((row) => row.trace_id)).size, 1);
+    assert.deepEqual(evidence.map((row) => row.result).sort(), ['failed', 'success', 'success']);
+    console.log('B6C1_BATCH', JSON.stringify({ evidence }));
     assert.deepEqual([first.succeeded, first.failed], [2, 1]);
     assert.deepEqual(
       first.results.map((item) => item.success),

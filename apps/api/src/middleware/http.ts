@@ -8,6 +8,8 @@ import { authenticate } from '../features/auth/service.ts';
 import type { Actor } from '../shared/audit.ts';
 import { logger } from '../shared/logger.ts';
 import { validationMessage } from './validation-message.ts';
+import { identifyAuditActor } from '../features/audit/context.ts';
+import { TransactionOutcomeUnknown } from '../db/transaction-outcome.ts';
 
 export const trace: RequestHandler = (req, res, next) => {
   res.locals.traceId = randomUUID();
@@ -37,6 +39,7 @@ export function tokenFrom(req: Request): string {
 export function requireAuth(db: Database): RequestHandler {
   return async (req, res, next) => {
     res.locals.session = await authenticate(db, tokenFrom(req));
+    identifyAuditActor({ ...sessionSchema.parse(res.locals.session), traceId: String(res.locals.traceId) });
     next();
   };
 }
@@ -56,7 +59,7 @@ export function requireChannel(channel: 'web' | 'pda', origins: string[]): Reque
 }
 
 export function actorFrom(res: Response): Actor {
-  return { username: sessionSchema.parse(res.locals.session).username, traceId: String(res.locals.traceId) };
+  return { ...sessionSchema.parse(res.locals.session), traceId: String(res.locals.traceId) };
 }
 
 export function ok(res: Response, data: unknown): void {
@@ -69,9 +72,10 @@ export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) =>
   const tooLarge = typeof error === 'object' && error !== null && 'type' in error && error.type === 'entity.too.large';
   const catalogUpload = _req.path.endsWith('/catalog/uploads');
   const status = known ? error.status : tooLarge ? 413 : invalid ? 422 : 500;
-  if (status === 500) logger.error({ err: error, traceId: res.locals.traceId }, 'unhandled');
+  if (status === 500) logger.error({ event: 'request_failed', traceId: res.locals.traceId,
+    code: error instanceof TransactionOutcomeUnknown ? error.code : 'INTERNAL_ERROR' }, '请求未完成');
   res.status(status).json({
-    code: known
+    code: error instanceof TransactionOutcomeUnknown ? error.code : known
       ? error.code
       : tooLarge
         ? catalogUpload
@@ -80,7 +84,7 @@ export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) =>
         : invalid
           ? 'VALIDATION_ERROR'
           : 'INTERNAL_ERROR',
-    message: known
+    message: error instanceof TransactionOutcomeUnknown ? error.message : known
       ? error.message
       : tooLarge
         ? catalogUpload

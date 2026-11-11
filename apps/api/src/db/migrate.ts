@@ -114,6 +114,7 @@ const migrations = [
       'document_number_rules',
     ],
   },
+  { id: '015_audit_attempts', guardedTables: ['operation_attempts', 'operation_log'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

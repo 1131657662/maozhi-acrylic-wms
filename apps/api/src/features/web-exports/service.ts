@@ -12,6 +12,7 @@ import { CsvWriter } from './csv-writer.ts';
 import { XlsxWriter, type ExportWriter } from './writer.ts';
 import { newExportJob } from './job.ts';
 import { assertExportLimit } from './preflight.ts';
+import { recordExportFailure } from './audit-failure.ts';
 
 export class WebExports {
   private jobs = new Map<string, ExportJob>();
@@ -178,15 +179,15 @@ export class WebExports {
       bytes: 0,
       elapsedMs: Date.now() - Date.parse(job.createdAt),
     });
-    logger.error({ err: error, exportId: job.id }, 'export failed');
+    logger.error({ code: job.errorCode, exportId: job.id }, 'export failed');
     try {
       await writer?.abort();
       await this.files.discard(job.id);
       await this.files.save(job);
-      await this.record(actor, job, 'export.' + job.state);
     } catch (cleanupError) {
-      logger.error({ err: cleanupError, exportId: job.id }, 'export cleanup failed');
+      logger.error({ exportId: job.id, cleanupFailed: true }, 'export cleanup failed');
     }
+    await recordExportFailure(this.db, actor, job, error);
   }
   private async record(actor: Actor, job: ExportJob, action: string): Promise<void> {
     await audit(this.db, actor, {

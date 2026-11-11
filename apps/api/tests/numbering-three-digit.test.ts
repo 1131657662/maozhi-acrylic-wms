@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { numberingFixture, newReceipt, newPlan, origin } from './numbering-fixture.ts';
-import { tableFingerprints } from '../../../scripts/b4a-fingerprint.ts';
+import { businessTableFingerprints } from './lifecycle-fixture.ts';
 import { createInbound } from '../src/features/inbound/create.ts';
 import { actor } from './fixture.ts';
 
@@ -52,7 +52,7 @@ test('单日第1000单拒绝，计数器/单据/库存/审计/幂等全库不变
         kind,
         '20260102',
       ]);
-      const before = await tableFingerprints(c.db);
+      const before = await businessTableFingerprints(c.db);
       const result = await c.web
         .post(`/api/v1/${kind}`)
         .set('Origin', origin)
@@ -60,7 +60,7 @@ test('单日第1000单拒绝，计数器/单据/库存/审计/幂等全库不变
         .send({ ...input, businessDate: '2026-01-02', backdateConfirmed: true })
         .expect(422);
       assert.equal(result.body.code, 'NUMBER_SEQUENCE_EXHAUSTED');
-      assert.deepEqual(await tableFingerprints(c.db), before);
+      assert.deepEqual(await businessTableFingerprints(c.db), before);
       console.log(
         'B6A_NUM_1000',
         JSON.stringify({

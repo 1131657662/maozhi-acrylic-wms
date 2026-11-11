@@ -5,6 +5,7 @@ import { sessionSchema,type Session } from '@wms/contracts';
 import { AppError } from '../../shared/errors.ts';
 import { hash } from '../../shared/hash.ts';
 import { audit,type Actor } from '../../shared/audit.ts';
+import { identifyAuditActor } from '../audit/context.ts';
 
 interface LoginInput extends Session { password:string }
 const dummyHash=bcrypt.hashSync(randomBytes(32).toString('hex'),12);
@@ -17,6 +18,9 @@ export async function login(db:Database,input:LoginInput,actor:Actor):Promise<Se
     await tx.run('DELETE FROM sessions WHERE expires_at<?',[Date.now()]);
     await tx.run('INSERT INTO sessions(token_hash,username,channel,expires_at) VALUES(?,?,?,?)',
       [hash(token),input.username,input.channel,Date.now()+8*3600000]);
+    // Channel is read back from the server-issued session, never from a client header.
+    const issued = await authenticate(tx, token);
+    identifyAuditActor({ ...issued, traceId: actor.traceId });
     await audit(tx,{...actor,username:input.username},
       {action:'auth.login',targetId:input.username,before:null,after:{channel:input.channel}});
   });
