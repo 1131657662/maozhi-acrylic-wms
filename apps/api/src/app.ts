@@ -7,6 +7,7 @@ import { authRouter } from './features/auth/router.ts';
 import { businessRouter } from './routes.ts';
 import { trace, errors, ok } from './middleware/http.ts';
 import { AppError } from './shared/errors.ts';
+import { beginAuditRequest, retainRequestFailure } from './features/audit/http.ts';
 
 export const localOrigins = [
   'http://localhost:5173',
@@ -24,6 +25,7 @@ export function createApp(db: Database, origins: string[] = localOrigins, catalo
   app.disable('x-powered-by');
   app.use(
     trace,
+    beginAuditRequest,
     helmet(),
     cors({ origin: origins, credentials: true }),
     (req, res, next) =>
@@ -43,6 +45,6 @@ export function createApp(db: Database, origins: string[] = localOrigins, catalo
   app.use(() => {
     throw new AppError('NOT_FOUND', '接口不存在', 404);
   });
-  app.use(errors);
+  app.use(retainRequestFailure(db), errors);
   return app;
 }

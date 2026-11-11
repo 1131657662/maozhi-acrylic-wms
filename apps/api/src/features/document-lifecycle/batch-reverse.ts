@@ -3,6 +3,8 @@ import type { Database } from '../../db/mysql.ts';
 import type { Actor } from '../../shared/audit.ts';
 import { AppError } from '../../shared/errors.ts';
 import { executeLifecycle } from './execute.ts';
+import { withCommandAttempt } from '../audit/command.ts';
+import { TransactionOutcomeUnknown } from '../../db/transaction-outcome.ts';
 
 const numberColumns = {
   inbound: { table: 'inbound_receipts', column: 'receipt_no' },
@@ -23,6 +25,7 @@ async function trustedNumber(db: Database, kind: BatchReverseCommand['kind'], id
 }
 
 function failure(error: unknown): { code: string; message: string } {
+  if (error instanceof TransactionOutcomeUnknown) return { code: error.code, message: error.message };
   if (error instanceof AppError) {
     const safeMessages: Record<string, string> = {
       DOWNSTREAM_DEPENDENCY: '存在后续库存动作，禁止自动撤销。',
@@ -41,14 +44,17 @@ export async function executeBatchReverse(
   const results: BatchReverseResponse['results'] = [];
   for (const item of command.items) {
     try {
-      const preview = await executeLifecycle(db, {
+      const preview = await withCommandAttempt(db, {
+        action: `${command.kind}.reverse`, targetKind: command.kind, targetId: item.id,
+        actor, channel: actor.channel ?? null, input: {},
+      }, () => executeLifecycle(db, {
         kind: command.kind,
         action: 'reverse',
         id: item.id,
         key: item.key,
         input: { reason: command.reason, expectedToken: item.expectedToken },
         actor,
-      });
+      }));
       results.push({ id: item.id, number: preview.number, success: true, code: null, message: null });
     } catch (error) {
       const result = failure(error);

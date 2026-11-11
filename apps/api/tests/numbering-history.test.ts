@@ -1,4 +1,4 @@
-import { tableFingerprints } from '../../../scripts/b4a-fingerprint.ts';
+import { businessTableFingerprints } from './lifecycle-fixture.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -33,7 +33,7 @@ test('编号规则只读，修改返回 422 且全库不变', async () => {
   const { db, web, dispose } = await numberingFixture();
   try {
     await createOutboundPlan(db, newPlan(), randomUUID(), actor);
-    const before = await tableFingerprints(db);
+    const before = await businessTableFingerprints(db);
     for (const width of [2, 3, 4, 8]) {
       const result = await web
         .put('/api/v1/document-numbering/outbound')
@@ -43,7 +43,7 @@ test('编号规则只读，修改返回 422 且全库不变', async () => {
         .expect(422);
       assert.equal(result.body.code, 'NUMBERING_READ_ONLY');
     }
-    assert.deepEqual(await tableFingerprints(db), before);
+    assert.deepEqual(await businessTableFingerprints(db), before);
     assert.equal((await listNumbering(db))[1]!.width, 3);
   } finally {
     await dispose();

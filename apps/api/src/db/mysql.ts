@@ -1,4 +1,5 @@
 import { createPool, type Pool, type PoolConnection, type ResultSetHeader, type RowDataPacket } from 'mysql2/promise';
+import { executeTransaction, TransactionOutcomeUnknown } from './transaction-outcome.ts';
 
 export interface DatabaseConfig { host: string; port: number; user: string; password: string; database?: string }
 export type Row = Record<string, unknown>;
@@ -20,17 +21,17 @@ export class Database {
   async withConnection<T>(work: (db: Database) => Promise<T>): Promise<T> {
     if (!this.pool) return work(this);
     const connection = await this.pool.getConnection();
+    let reusable = true;
     try { return await work(new Database(connection)); }
-    finally { connection.release(); }
+    catch (error) {
+      if (error instanceof TransactionOutcomeUnknown) { reusable = false; connection.destroy(); }
+      throw error;
+    }
+    finally { if (reusable) connection.release(); }
   }
   async transaction<T>(work: (db: Database) => Promise<T>): Promise<T> {
     if (!this.pool) return work(this);
-    return this.withConnection(async (db) => {
-      await db.run('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-      await db.run('START TRANSACTION');
-      try { const result = await work(db); await db.run('COMMIT'); return result; }
-      catch (error) { await db.run('ROLLBACK'); throw error; }
-    });
+    return this.withConnection((db) => executeTransaction(db, work));
   }
   async readSnapshot<T>(work: (db: Database) => Promise<T>): Promise<T> {
     return this.withConnection(async (db) => {

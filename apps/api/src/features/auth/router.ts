@@ -4,6 +4,7 @@ import type { Database } from '../../db/mysql.ts';
 import { loginSchema } from '@wms/contracts';
 import { login, logout } from './service.ts';
 import { actorFrom, ok, requireAuth, tokenFrom } from '../../middleware/http.ts';
+import { AppError } from '../../shared/errors.ts';
 
 export function authRouter(db: Database): Router {
   const router = Router();
@@ -14,10 +15,7 @@ export function authRouter(db: Database): Router {
       limit: 20,
       standardHeaders: 'draft-8',
       legacyHeaders: false,
-      handler: (_req, res) =>
-        res
-          .status(429)
-          .json({ code: 'RATE_LIMITED', message: '登录尝试过多，请稍后重试', data: null, traceId: res.locals.traceId }),
+      handler: (_req, _res, next) => next(new AppError('RATE_LIMITED', '登录尝试过多，请稍后重试', 429)),
     }),
     async (req, res) => {
       const input = loginSchema.parse(req.body);

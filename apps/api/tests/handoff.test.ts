@@ -102,20 +102,14 @@ test('007 非空交接表拒绝down：历史迁移保护独立于当前读模型
   const { db, dispose } = await fixture('007_pda_handoff');
   try {
     const version = await db.get('SELECT content_sha256 FROM catalog_versions WHERE version_id=1');
-    await startHandoff(
-      db,
-      {
-        id: randomUUID(),
-        deviceId: 'migration-device',
-        appVersion: 'test',
-        expectedCount: 0,
-        manifestSha: '0'.repeat(64),
-        catalogVersion: 1,
-        catalogSha: String(version?.content_sha256),
-        previousSessionHashes: [],
-      },
-      actor,
-    );
+    // Populate the historical 007 schema independently of the current write service (requires 015).
+    const id = randomUUID();
+    await db.run(`INSERT INTO pda_handoffs
+      (id,device_id,app_version,expected_count,manifest_sha,catalog_version,catalog_sha,created_at)
+      VALUES(?,'migration-device','test',0,?,1,?,UTC_TIMESTAMP(3))`, [id, '0'.repeat(64), String(version?.content_sha256)]);
+    await db.run(`INSERT INTO catalog_client_activity(client_key,last_seen_at)
+      VALUES('device:migration-device',UTC_TIMESTAMP(3))`);
+    await db.run(`INSERT INTO pda_handoff_clients VALUES(?,'device:migration-device',0,UTC_TIMESTAMP(3))`, [id]);
     await assert.rejects(migrateDown(db), (error: Error) => {
       console.log('B1C2_DOWN_ACTUAL', error.message);
       return /pda_handoff_clients 含有数据/.test(error.message);

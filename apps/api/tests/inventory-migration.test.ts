@@ -7,7 +7,6 @@ import { fixture, actor } from './fixture.ts';
 import { inventorySnapshot } from './inventory-fixture.ts';
 import { createOperation } from '../src/features/inventory/operation.ts';
 import type { Database } from '../src/db/mysql.ts';
-import { audit } from '../src/shared/audit.ts';
 
 async function seedPosted005Adjustment(db: Database) {
   // A populated historical schema fixture; current write services require 009 and are tested separately.
@@ -22,12 +21,10 @@ async function seedPosted005Adjustment(db: Database) {
       VALUES(?,'DEMO-WH','ACR-032',-1,'-0.2103',6,5,'1.8000','1.5897',UTC_TIMESTAMP(3))`,
       [operation.id],
     );
-    await audit(tx, actor, {
-      action: 'stock.adjust',
-      targetId: operation.targetId,
-      before: { packages: 6, weightGrams: 1800000 },
-      after: { packages: 5, weightGrams: 1589700 },
-    });
+    // Historical 005 evidence must use its original schema, not the current 015 writer.
+    await tx.run(`INSERT INTO operation_log(action,target_id,actor,trace_id,before_json,after_json,created_at)
+      VALUES('stock.adjust',?,'owner','migration-005',?,?,UTC_TIMESTAMP(3))`, [operation.targetId,
+      JSON.stringify({ packages: 6, weightGrams: 1800000 }), JSON.stringify({ packages: 5, weightGrams: 1589700 })]);
     await tx.run('INSERT INTO idempotent_commands(command_key,payload_hash,result_json) VALUES(?,?,?)', [
       'stock.adjust:migration-fixture',
       '0'.repeat(64),
