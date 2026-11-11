@@ -164,4 +164,8 @@
 | 2026-11-11 | B4d 新增发货 #1，实发由其汇总；新单序固定、旧单兼容只读取值，补传不改实发/快照/库存 | 生效 | OUTBOUND_FACT_SPEC §11 |
 | 2026-11-11 | 发货接口/表用整数克，库存沿用精确四位吨数；多批发货和更正发货行关联留 B5c | 生效 | OUTBOUND_FACT_SPEC §7、§11，B5C_SPEC §3.1 |
 | 2026-11-11 | 经用户确认：B4d 016 同步调整更正明细主键为“更正单 + 原单行”，兼容同商品多行；关联发货行留 B5c，非空更正明细拒绝回退 | 生效 | OUTBOUND_FACT_SPEC §11，016 |
-| 2026-11-11 | 经用户再次确认：本轮 B4d 保持原开工范围，保留 frozen 兼容；scan_closed_at 与扫码/单据状态拆分留后续，替代本轮期间扩大 B4d 范围的排期口径 | 生效 | OUTBOUND_FACT_SPEC §11，IMPLEMENTATION_PLAN B4d |
+| 2026-11-11 | 经用户再次确认：本轮 B4d 保持原开工范围，保留 frozen 兼容；scan_closed_at 与扫码/单据状态拆分留后续，替代本轮期间扩大 B4d 范围的排期口径 | 已废弃 | 被本日 B4d 收尾补修裁定取代：OUTBOUND_FACT_SPEC §12 |
+| 2026-11-11 | B4d 收尾补修：结束扫码不比较计划、不改单据状态；016 增加 scan_closed_at 并转换历史 frozen；仅 open 且无发货记录可重新扫码；确认自动结束扫码 | 生效 | OUTBOUND_FACT_SPEC §12、B5C_SPEC §3.1 |
+| 2026-11-11 | outbound_orders 无 updated_at；历史结束时间依次取 scan_submissions.created_at、scan.freeze 审计时间、created_at 兜底，应用记录须披露来源 | 生效 | OUTBOUND_FACT_SPEC §12 |
+| 2026-11-11 | 页面、错误诊断和 XLSX 日期统一上海时区 YYYY-MM-DD HH:mm:ss，公共 formatter 使用 sv-SE | 生效 | UX_STANDARDS、OUTBOUND_FACT_SPEC §12 |
+| 2026-11-11 | 迁移校验和兼容同内容 LF/CRLF 行尾；新记录统一 LF 哈希，原记录不改，内容变化或非 applied 状态仍拒绝。应用 016 时发现 013/015 原存 LF 与 Windows 检出 CRLF 不一致 | 生效 | OUTBOUND_FACT_SPEC §12、db/migrate.ts |

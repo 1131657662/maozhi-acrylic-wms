@@ -2,9 +2,9 @@
 
 ## B4d：人工实发与发货 #1（2026-11-11）
 
-人工实发、扫码预填/确认快照、发货 #1、扫码清单 XLSX 与 016 已实现并验证：test 252/252、build exit 0、E2E 117/117（主 108 + catalog 9），命令 exit 均为 0。验收见 [B4D_ACCEPTANCE.md](B4D_ACCEPTANCE.md)。开发样本库未应用 016，未做实体设备或生产验收。
+人工实发、扫码预填/确认快照、发货 #1、扫码清单 XLSX、016 与扫码结束标记已实现并验证：test 263/263、build exit 0、E2E 117/117（主 108 + catalog 9）、Android `assembleDebug testDebugUnitTest lintDebug` exit 0。016 已备份后应用到 3307 开发样本库并完成结束扫码/新建发货冒烟；未连接生产、未做实体 PDA/小程序设备验收。验收见 [B4D_ACCEPTANCE.md](B4D_ACCEPTANCE.md)。
 
-用户确认：同商品多行更正主键调整纳入 016；保留 frozen 兼容，open/frozen 均可人工确认；scan_closed_at 与扫码/单据状态拆分留后续。B5c 多批/短关、B4g 清点工作台均未实现。
+裁定：同商品多行更正主键调整纳入 016；`frozen` 仅兼容历史记录且代码不再写入，确认仍兼容 `open/frozen`；结束扫码改写 `scan_closed_at` 且不改单据状态，重新扫码仅限 `open` 且无发货记录。历史时间回填来源及样本无历史 `frozen` 单据详见 B4D_ACCEPTANCE。B5c 多批/短关、B4g 清点工作台均未实现。
 
 ## B6c：三小步已完成（2026-11-11，用户验收通过）
 
@@ -460,7 +460,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |
 | B5c | DOMAIN §5–6，短溢发/分批/短关/取样 | M-SHIPMENTS、M-SAMPLE-MARKS；发货头/行/事实唯一归属、包吨独立剩余量；样品出库类型走普通扣库，取样不扣库；B6a之后、B6f之前 |
 | B5d | DOMAIN §2/7 + REPORT_SPEC §10，分列/重述/日期更正/详情单张导出 | M-DATE-CORRECTIONS，原日期不覆盖；更正单无业务日期；打印仅占位；B5c后、B7a前 |
-| **B4d 出库手工实发** | OUTBOUND_FACT_SPEC §11、B5C_SPEC §3.1 | 016 发货头/行、scan_* 快照、行序与更正行主键兼容；人工实发、发货 #1、预填/XLSX；按用户确认保留 frozen，扫码状态拆分留后续；验证见本文顶部 |
+| **B4d 出库手工实发** | OUTBOUND_FACT_SPEC §11–12、B5C_SPEC §3.1 | 已完成；016 发货头/行、scan_closed_at、scan_* 快照、行序与更正行主键兼容；人工实发、发货 #1、预填/XLSX、扫码结束/重开；已应用 3307 开发样本库；验证见本文顶部与 B4D_ACCEPTANCE |
 | **B4f PDA 文案改口** | PDA_SCAN_SPEC §8.1 | 无迁移；只改文案，B4d 合并后立即做 |
 | **B4e 单据字段扩展** | MASTER_DATA_SPEC §9 | 柜号、合同号、行备注、收货地址快照、送货联系人、单据类型；B4d 后 |
 | **B4g Web 清点工作台** | OUTBOUND_FACT_SPEC §5.1 | scan-records / scan-candidates / batch；无新表，复用发货与扫码记录；B4e 后 |

@@ -282,4 +282,16 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 
 - 经确认：016 将更正明细主键由“更正单 + 商品”改为“更正单 + 原单行”，既有行原值回填；同商品多行的更正、撤销按商品合计核验库存证据。关联发货记录行仍属 B5c。非空更正明细同样阻止 016 down。
 
-- 经用户再次确认，本次不新增 scan_closed_at、不拆分 frozen；与后续排期文档新增范围不一致时，以本次开工范围为准。重量舍入差归最后一个分得包数的行，后续未分得包数的行保持 0/0。
+- 本轮初始边界曾不新增 scan_closed_at、不拆分 frozen；该决定已被下方 §12 的收尾补修裁定取代。重量舍入差归最后一个分得包数的行，后续未分得包数的行保持 0/0。
+
+## 12. B4d 收尾补修（2026-11-11）
+
+- 原 submit/freeze 接口仅允许 open，去掉扫码与计划相等门槛，只写 scan_closed_at，返回「已结束扫码」，不改 status、不扣库存。
+- 新增 POST /outbound/:id/scan-reopen，Web 登录校验、修订号与摘要、逐单锁、幂等键；仅 open 且无发货记录可清空标记，记录审计。旧 scan_submissions 作为历史证据保留，结束/重开不覆盖旧记录。
+- 结束扫码后拒绝新扫码；已收到的 UUID/正文仍可原样重试。B4d 已确认单的离线补传继续兼容，不改变实发、扫码快照或库存。
+- 016 新增 outbound_orders.scan_closed_at DATETIME(3) NULL；历史 frozen 转 open。当前表无 updated_at，回填依次取 scan_submissions.created_at、最新 scan.freeze 审计时间、建单时间；兜底不冒充精确结束时间，迁移记录披露来源。
+- confirm 仍兼容 open/frozen，确认时 scan_closed_at 为空才自动填入，使用与既有 DATETIME 相同的 UTC 存储、上海时区展示。
+- 016 down 在任意 DDL 前检查发货两表、扫码快照、非默认行序、更正证据与 scan_closed_at；任一有证据则拒绝，不删列。
+- 日期显示统一公共 sv-SE / Asia/Shanghai formatter，页面、错误时间和 XLSX 均显示 YYYY-MM-DD HH:mm:ss。
+- PDA 仅做本次协议兼容：依据 scanClosedAt 禁止新扫码和重复结束、展示结束状态；不改队列、事实正文和原有补传协议。实体设备验收另记，不以 API/E2E 代替。
+- 应用 016 时发现既有 013/015 迁移的 LF 哈希与 Windows CRLF 检出不一致；迁移器只对 LF/CRLF 行尾差异兼容，新哈希统一 LF，历史校验和记录不重写；内容差异和中断状态仍拒绝。备份副本预演通过后才应用样本库。
