@@ -8,11 +8,11 @@
 | ID | 发现日 | 问题 | 位置 | 证据 | 处理 | 状态 |
 |---|---|---|---|---|---|---|
 | AF-001 | 11-10 | 复选框按撤销资格禁用，历史单无法勾选导出 | `BusinessList/table.tsx` | 全表 checkbox disabled | 改为永远可选，撤销时过滤 | 已修 B6b |
-| AF-015 | 11-11 | `frozen` 仍作为单据状态、阻断确认 | `B5C_SPEC` vs `confirm.ts` | 文档无 frozen，代码要求 frozen | 降级为「结束扫码」标记 | 待修 B4d |
-| AF-016 | 11-11 | 冻结要求扫码数严格等于计划，短装/溢发永远过不去 | `scan/freeze.ts:21` | `ensure(scanPackages===plannedPackages)` | 去掉相等校验，只写 `scan_closed_at` | 待修 B4d |
-| AF-017 | 11-11 | 016 down 只守两张新表，`outbound_lines.scan_*` 快照不在守卫内 | `db/migrate.ts` 016 条目 | 有扫码无发货时回退会静默丢列 | 守卫增加 scan_* 非空检查 | 待修 B4d |
-| AF-018 | 11-11 | 016 缺 `scan_closed_at`，未迁移历史 frozen | `016_outbound_shipments.up.sql` | 文件无该列 | 补列 + 迁移 frozen→open | 待修 B4d |
-| AF-019 | 11-11 | 016 未应用开发库、未提交 | 工作区 | 文件为 `??` | B4d 验收前应用并冒烟 | 待修 B4d |
+| AF-015 | 11-11 | `frozen` 仍作为单据状态、阻断确认 | `B5C_SPEC` vs `confirm.ts` | 文档无 frozen，代码要求 frozen | 结束扫码改写 `scan_closed_at`；仅兼容历史状态 | 已修 B4d (`b03e9e2`) |
+| AF-016 | 11-11 | 冻结要求扫码数严格等于计划，短装/溢发永远过不去 | `scan/freeze.ts` | 原逻辑比较扫码与计划数量 | 去掉相等校验；80 扫/100 计划可结束且不改状态 | 已修 B4d (`b03e9e2`) |
+| AF-017 | 11-11 | 016 down 只守两张新表，`outbound_lines.scan_*` 快照不在守卫内 | `db/migrate.ts` 016 条目 | 有扫码无发货时回退会静默丢列 | down 前检查两项扫码快照、结束时间与发货/更正证据 | 已修 B4d (`b03e9e2`) |
+| AF-018 | 11-11 | 016 缺 `scan_closed_at`，未迁移历史 frozen | `016_outbound_shipments.up.sql` | 文件无该列 | 增加关闭时间并迁移历史 `frozen` 到 `open` | 已修 B4d (`b03e9e2`)；迁移夹具通过 |
+| AF-019 | 11-11 | 016 未应用开发库、未提交 | 工作区 | 文件为 `??` | 备份后应用 `maozhi_dev_sample` 并完成扫码结束/发货冒烟 | 已修 B4d (`1464054`)；016 applied，冒烟通过 |
 | AF-020 | 11-11 | `actual_*` 在 §4 写成列，§11 说是读模型 | `OUTBOUND_FACT_SPEC` §4/§11 | 两处矛盾 | 已标注“由发货记录汇总” | 已修 |
 | AF-031 | 11-11 | Web 没有「结束扫码」入口，只有 PDA 调 freeze | `apps/web` | 全库无 freeze 调用 | B5c 页面补 | 计划内 B5c |
 
