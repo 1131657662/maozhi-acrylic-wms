@@ -19,7 +19,9 @@
 
 ## 2. 商品
 
-字段：code（手工、唯一、1–64、字母数字-_）、name、model、category_code、package_type、package_color、strap_color、min_alert_tonnes、max_alert_tonnes、status、memo。
+字段：code（手工、唯一、1–64、字母数字-_）、name、model、category_code、package_type、package_color、strap_color、status、memo。
+
+说明：本期**不做库存预警**，不保留 `min_alert_tonnes` / `max_alert_tonnes` 字段；以后要做再加，避免留一个没人用的字段。
 
 规则：
 1. 编码手工填写，不自动生成；
@@ -92,7 +94,7 @@ code、name、address、status、memo。编码由系统生成（`W` + 2 位流�
 入库单主表：bill_type（默认采购入库）、delivery_name、delivery_phone；business_date 复用011。
 入库明细：product_model、memo。
 
-本阶段单据类型：入库 采购入库/其他；出库 销售出库/样品出库/其他。样品出库是整包/整批实际离仓，按出库确认扣库存并计出库量；取样是独立sample_marks标记、不扣库，不能通过bill_type混入。退货/RMA后置，不能用「其他」绕过；移库用纠错转移单；编号统一 RK/CK。
+本阶段单据类型：入库 采购入库/退货入库/其他；出库 销售出库/样品出库/退货出库/其他。退货类**只作分类**，退货/RMA 换货流程后置，不能用「其他」绕过；样品出库是整包/整批实际离仓，按出库确认扣库存并计出库量；取样是独立 sample_marks 标记、不扣库存，不能通过 bill_type 混入；移库用纠错转移单；编号统一 RK/CK。
 
 011 已有业务日期列，禁止重复 ADD COLUMN。默认上海当天、不得未来、超过3个日历月需确认并留审计；未入账修改复用专用 PATCH，限本地待确认入库/open出库，frozen已锁定，历史NULL保留。入账后日期更正另属B5d的追加式日期历史；数量更正不带日期、不改原日期。
 
@@ -104,7 +106,7 @@ PATCH/DELETE /api/v1/master/contacts/:id（删除仅未引用且非默认）
 PUT /api/v1/master/contacts/:id/default
 写接口使用严格字段白名单；分页与筛选参数遵循 WEB_UX_SPEC。
 
-B6a已实现本轮批准范围的主数据、联系人/默认、车辆和保存快照接口；验收见 B6A_ACCEPTANCE。§9的单据类型、柜号、合同行备注及详情“存为档案”等扩展不计入本轮交付，仍按后续批次实施。`M-MASTER` 增加资格/分类/联系人/默认/车辆/使用关联，`M-DOCUMENT-SNAPSHOTS` 增加头行快照与联系字段；对应B6a，合并为012_master_data_snapshots，依赖已应用011。up保留原列与来源指纹，down在新增字段或表已有业务值时拒绝；不覆盖001–011。
+B6a已实现本轮批准范围的主数据、联系人/默认、车辆和保存快照接口；验收见 B6A_ACCEPTANCE。§9 的单据类型、柜号、合同行备注及详情“存为档案”等扩展不计入 B6a，统一由 **B4e 单据字段扩展** 实施（前置：B4d 手工实发）。`M-MASTER` 增加资格/分类/联系人/默认/车辆/使用关联，`M-DOCUMENT-SNAPSHOTS` 增加头行快照与联系字段；对应B6a，合并为012_master_data_snapshots，依赖已应用011。up保留原列与来源指纹，down在新增字段或表已有业务值时拒绝；不覆盖001–011。
 
 ## 11. 边界
 
