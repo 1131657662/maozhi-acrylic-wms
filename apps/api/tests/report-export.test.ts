@@ -46,11 +46,12 @@ test('B3b: both XLSX reports match every field in all/page/selected scopes and n
               value = cell.value;
             const actual =
               value instanceof Date
-                ? value.toISOString().slice(0, 19).replaceAll('-', '/').replace('T', ' ')
+                ? value.toISOString().slice(0, 19).replace('T', ' ')
                 : field.type === 'tonnes' && typeof value === 'number'
                   ? value.toFixed(4)
                   : cell.text;
             assert.equal(actual, listCellText(kind, field, expected[r]!), `${kind}/${scope}/${r}/${field.key}`);
+            if (value instanceof Date) assert.equal(cell.numFmt, 'yyyy-mm-dd hh:mm:ss');
             if (field.total === false) assert.equal(ready.totals[field.key], undefined);
           }
         const balance = book.getWorksheet('收发存对账')!;

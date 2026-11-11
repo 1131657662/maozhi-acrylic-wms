@@ -32,7 +32,7 @@ export const postingText = {
   reversed: '已撤销',
   voided: '已作废（未入账）',
 };
-const formatter = new Intl.DateTimeFormat('zh-CN', {
+const formatter = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Asia/Shanghai',
   year: 'numeric',
   month: '2-digit',

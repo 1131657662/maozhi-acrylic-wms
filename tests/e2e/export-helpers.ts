@@ -17,7 +17,7 @@ export async function screenRows(page: Page, kind: string) {
     );
 }
 function excelText(cell: ExcelJS.Cell): string {
-  if (cell.value instanceof Date) return cell.value.toISOString().slice(0, 19).replaceAll('-', '/').replace('T', ' ');
+  if (cell.value instanceof Date) return cell.value.toISOString().slice(0, 19).replace('T', ' ');
   if (cell.numFmt === '0.0000' && typeof cell.value === 'number') return cell.value.toFixed(4);
   return cell.text;
 }

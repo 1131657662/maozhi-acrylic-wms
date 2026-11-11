@@ -33,7 +33,7 @@ export async function compareReportDownload(
       const cell = sheet.getCell(i + 2, j + 1),
         value = cell.value;
       return value instanceof Date
-        ? value.toISOString().slice(0, 19).replaceAll('-', '/').replace('T', ' ')
+        ? value.toISOString().slice(0, 19).replace('T', ' ')
         : cell.numFmt === '0.0000' && typeof value === 'number'
           ? value.toFixed(4)
           : cell.text;

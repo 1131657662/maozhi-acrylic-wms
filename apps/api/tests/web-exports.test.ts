@@ -47,7 +47,7 @@ for (const kind of ['inbound', 'outbound', 'stock', 'audit'] as WebListKind[]) {
         if (kind === 'inbound' || kind === 'outbound') {
           const i = input.columns.indexOf('createdAt') + 1;
           assert.ok(sheet.getCell(2, i).value instanceof Date);
-          assert.equal(sheet.getColumn(i).numFmt, 'yyyy/mm/dd hh:mm:ss');
+          assert.equal(sheet.getColumn(i).numFmt, 'yyyy-mm-dd hh:mm:ss');
         }
         if (kind !== 'audit') {
           const key = kind === 'outbound' ? 'plannedWeightGrams' : 'weightGrams';

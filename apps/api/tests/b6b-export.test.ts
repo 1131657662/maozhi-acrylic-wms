@@ -7,9 +7,11 @@ import { exportFixture, waitExport, workbook } from './export-fixture.ts';
 import { matchedRequest } from './b6b-export-test-helpers.ts';
 import { actor } from './fixture.ts';
 
-function xlsxCellText(cell: { value: unknown; text: string }, field: { type: string }): string {
-  if (field.type === 'date' && cell.value instanceof Date)
-    return cell.value.toISOString().slice(0, 19).replaceAll('-', '/').replace('T', ' ');
+function xlsxCellText(cell: { value: unknown; text: string; numFmt: string }, field: { type: string }): string {
+  if (field.type === 'date' && cell.value instanceof Date) {
+    assert.equal(cell.numFmt, 'yyyy-mm-dd hh:mm:ss');
+    return cell.value.toISOString().slice(0, 19).replace('T', ' ');
+  }
   if (field.type === 'tonnes' && typeof cell.value === 'number') return cell.value.toFixed(4);
   return cell.text;
 }
