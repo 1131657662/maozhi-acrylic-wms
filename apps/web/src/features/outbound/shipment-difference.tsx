@@ -18,22 +18,32 @@ export function ShipmentDifference({
     value?.actualWeightTonnes == null
       ? null
       : Math.round(value.actualWeightTonnes * ui.gramsPerTonne) - line.remainingWeightGrams;
-  return (
-    <div>
-      <DifferenceValue value={packages} weight={false} />
-      <DifferenceValue value={grams} weight />
-    </div>
-  );
+  return <ShipmentDifferenceValue packages={packages} grams={grams} />;
 }
-function DifferenceValue({ value, weight }: { value: number | null; weight: boolean }) {
-  if (value === null) return <div>{text.empty}</div>;
-  const label = `${value > 0 ? '+' : ''}${weight ? tonnes(value) : value} ${weight ? text.tonneUnit : text.packageUnit}`;
+function signedQuantity(value: number | null, weight = false) {
+  if (value === null) return text.empty;
+  const sign = value > 0 ? '+' : value < 0 ? '−' : '';
+  return `${sign}${weight ? tonnes(Math.abs(value)) : Math.abs(value)} ${weight ? text.tonneUnit : text.packageUnit}`;
+}
+export function ShipmentDifferenceValue({ packages, grams }: { packages: number | null; grams: number | null }) {
+  if (packages === null && grams === null) return <>{text.empty}</>;
+  const overage = (packages ?? 0) > 0 || (grams ?? 0) > 0;
+  const shortage = (packages ?? 0) < 0 || (grams ?? 0) < 0;
+  const status =
+    overage && shortage
+      ? text.mixedDifference(
+          packages! > 0 ? text.overageWord : text.shortageWord,
+          grams! > 0 ? text.overageWord : text.shortageWord,
+        )
+      : overage
+        ? text.overage
+        : shortage
+          ? text.shortage
+          : '';
   return (
-    <div>
-      <Typography.Text type={value > 0 ? 'warning' : value < 0 ? 'danger' : undefined}>
-        {label}
-        {value > 0 ? text.overage : value < 0 ? text.shortage : ''}
-      </Typography.Text>
-    </div>
+    <Typography.Text style={{ whiteSpace: 'nowrap' }} type={overage ? 'warning' : shortage ? 'danger' : undefined}>
+      {signedQuantity(packages)} / {signedQuantity(grams, true)}
+      {status}
+    </Typography.Text>
   );
 }

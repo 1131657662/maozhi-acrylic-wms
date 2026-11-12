@@ -2,6 +2,7 @@ import { Alert, Form, Input, Typography, Flex } from 'antd';
 import type { ActualQuantity, ShipmentList } from '@wms/contracts';
 import { VehicleField } from '../master-data/vehicle-field';
 import { shipmentCopy as text, SHIPMENT_UI as ui } from './shipment-copy';
+import { ShipmentDifferenceValue } from './shipment-difference';
 
 export function ActualConfirmContent({ data, lines }: { data: ShipmentList; lines: ActualQuantity[] }) {
   const form = Form.useFormInstance();
@@ -15,19 +16,20 @@ export function ActualConfirmContent({ data, lines }: { data: ShipmentList; line
       {lines.map((line, index) =>
         line.actualPackages || line.actualWeightGrams ? (
           <div key={line.lineId}>
-            <Typography.Text>
-              {data.lines[index]!.productName}：{text.quantity(line.actualPackages, line.actualWeightGrams)}
-            </Typography.Text>
+            <div>
+              <Typography.Text>{data.lines[index]!.productName}</Typography.Text>
+            </div>
+            <Typography.Text>{text.quantity(line.actualPackages, line.actualWeightGrams)}</Typography.Text>
             <div>
               <Typography.Text type="secondary">
                 {text.difference}：
-                {text.quantity(
-                  line.actualPackages - data.lines[index]!.remainingPackages,
-                  line.actualWeightGrams - data.lines[index]!.remainingWeightGrams,
-                )}
+                <ShipmentDifferenceValue
+                  packages={line.actualPackages - data.lines[index]!.remainingPackages}
+                  grams={line.actualWeightGrams - data.lines[index]!.remainingWeightGrams}
+                />
               </Typography.Text>
             </div>
-            <Form.Item name={['lines', index, 'overageReason']} label={text.reasonFor(data.lines[index]!.productName)}>
+            <Form.Item name={['lines', index, 'overageReason']} label={text.reason}>
               <Input.TextArea
                 autoSize
                 maxLength={ui.reasonMax}
