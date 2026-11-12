@@ -21,6 +21,9 @@ test('CSS output exposes target lengths and live colors without changing the act
   assert.equal(variables['--wms-space-8'], '8px');
   assert.equal(variables['--wms-font-size-page-title'], '20px');
   assert.equal(variables['--wms-font-size-kpi'], '28px');
+  assert.equal(variables['--wms-line-height-kpi'], '36px');
+  assert.equal(variables['--wms-font-weight-semibold'], '600');
+  assert.equal(variables['--wms-size-compact-empty'], '120px');
   assert.equal(variables['--wms-color-primary'], token.colorPrimary);
   assert.equal(token.borderRadius, 8);
   assert.match(createDesignCssText(token), /:root \{\n/);

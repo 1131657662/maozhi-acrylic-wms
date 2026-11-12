@@ -488,7 +488,7 @@ B4d 出库手工实发
  → B5c 分批发货（1、2、3 已完成并合并，3 视觉补修合并 e6f277e）
  → B5b 入库异常（后置：入库无计划字段，短装/溢装口径待定）
  → B5d（1 追加式业务日期更正已完成，333/134/0；2 报表重述读模型已完成、用户验收通过，349/134/0）
- → B6j 设计系统（B6j-1 已完成、用户验收通过，401/134/0；B6j-2 未开始）
+ → B6j 设计系统（B6j-1 已完成、用户验收通过，401/134/0；B6j-2 已完成、用户验收通过，KPI 布局补修后重跑 401/136/0）
  → B6g 联想搜索
  → B6d 目录页
  → B6f 库存页
@@ -627,3 +627,14 @@ B4d 出库手工实发
 - 新增开发命令：`npm run check:design-tokens`，仅检查 Web 源码裸颜色、圆角和 padding；现有 allowlist 项报告但不失败，新增项 exit 非零。`npm run test:design-tokens` 可单独运行检查器用例，已纳入 `npm run test`。
 - 用户验收通过，完成状态 **401/134/0**：单测 401/401、构建 exit 0；**E2E 134/134 沿用前置 B5d-2 已验收基线，本批未重跑**，不将沿用结果写成本批执行。裸值检查现有 34、新增 0、待清理 0，exit 0。
 - 授权更新收尾文档后，以 `merge: b6j-1 design tokens` 非快进合并 `codex/b6j-1-design-tokens` 到 master 并推送 `origin master`；merge hash、远端 HEAD 与各命令 exit code 在最终回复核对。本次仅文档收尾，沿用已通过的单测与构建，无迁移。完成后停止，不开始 B6j-2；详见 VISUAL_SPEC §13.6。
+
+## B6j-2：共享 UI 与审计 pilot（2026-11-13，已完成，用户验收通过，401/136/0）
+
+- 起点 `d0a799e678fecd7373855c4afae9a7096b9a2e0e`，分支 `codex/b6j-2-ui-audit-pilot`；B6j-1 已合并，最大迁移编号 021，本批无迁移。
+- 仅七个共享展示壳和操作记录列表/时间线/详情外壳迁移；不扩展到其他页面，不改全局主题、表格内部密度、查询与导出业务。设计决策见 DECISION_LOG B6j-2、VISUAL_SPEC §14、AUDIT_PAGE_SPEC §16。
+- 同一隔离数据、同一记录、筛选、视图及滚动坐标完成 1440/1280 改前改后 10 对截图；表格行高 57px、正文 14px/400 保持一致。筛选、时间线切换、详情 raw 懒加载和 XLSX 导出回归通过，详见 AUDIT_PAGE_SPEC §16.1。
+- 本批实际执行 `npm run test` 401/401、`npm run build` exit 0、`npm run test:e2e` 136/136（主套件 127 + 目录专项 9，新增 2），全部 exit 0，无跳过或重试通过。验证结果 **401/136/0**，不沿用旧 E2E 计数。
+- `npm run check:design-tokens` 扫描 Web 文件 275；现有 34、新增 0、待清理 0，exit 0。审计专属 allowlist 原本为 0、本批仍为 0；现有 34 项涉及全局主题、共享样式及其他页面，未改动或新增。其原有计划批次标记留待后续对应迁移，不在本批消除。
+- 原实现提交 `aa2de0a`（`feat(web): shared ui components and audit pilot`），按当时授权停在分支，后续由下列验收收尾授权取代停止要求。无迁移、无开发样本库/生产写入，不涉及模拟器或实体设备验收。日志和截图仅留 `.local/evidence/b6j-2-*`，不进入 Git。
+- 用户验收通过，授权合并前只修审计 KPI：`statistics.tsx` 的 Space 改为 auto-fit grid（180px 最小列宽、最多四项）；StatCard 标签与数字对齐，卡片等高。其他组件、页面与业务逻辑不改。1440/1280 补图已完成，尺寸及换行测量见 VISUAL_SPEC §14.2；完成 test/build/完整 E2E/check:design-tokens 后，以 `merge: b6j-2 ui components and audit pilot` 非快进合并并推送 origin master，核对 hash 后停止。
+- KPI 补修后实际重跑：test 401/401（失败 0、跳过 0）、build exit 0、E2E 136/136（主套件 127 + 目录 9，无跳过或重试通过）、check:design-tokens 275 文件/现有 34/新增 0/待清理 0；各命令 exit 0。AntD、Prettier、差异与提交前审查通过。日志和补图仅 `.local/evidence/b6j-2-kpi-*`；合并 hash、远端 HEAD 和命令 exit code 在收尾回复核对。没有开始其他批次。

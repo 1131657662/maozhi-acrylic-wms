@@ -15,6 +15,8 @@ import { useListSelection } from './use-list-selection';
 import { useListViews } from './use-list-views';
 import './style.css';
 import { listFeedback } from './list-feedback';
+import { Card, PageShell } from '../ui';
+import { spacing } from '../../theme/design-tokens';
 
 interface Config<Row> {
   name: ExportKind;
@@ -27,6 +29,7 @@ interface Config<Row> {
   exportInHeader?: boolean;
   onExportOpen?: () => void;
   skeleton?: boolean;
+  designShell?: boolean;
 }
 interface Props<Row> {
   config: Config<Row>;
@@ -64,61 +67,58 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
     columns: columns.value,
     applyColumns: columns.apply,
   });
-  return (
-    <PageContainer
-      title={
-        <h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>
-          {config.icon && (
-            <span style={{ fontSize: token.fontSizeLG, marginInlineEnd: token.marginXS }}>{config.icon}</span>
-          )}
-          {config.title}
-        </h1>
-      }
-      content={config.description}
-      extra={
-        config.exportInHeader ? (
-          <ListExportPanel
-            name={config.name}
-            state={state}
-            data={query.data ?? { items: [], total: 0, page: 1, pageSize: WEB_LIST_DEFAULT_PAGE_SIZE }}
-            refreshing={query.isFetching || Boolean(query.error)}
-            placeholder={query.isPlaceholderData ?? false}
-            reload={query.refetch}
-            selection={selection}
-            columnPrefs={columns}
-            onOpen={config.onExportOpen}
+  const exportAction = config.exportInHeader ? (
+    <ListExportPanel
+      name={config.name}
+      state={state}
+      data={query.data ?? { items: [], total: 0, page: 1, pageSize: WEB_LIST_DEFAULT_PAGE_SIZE }}
+      refreshing={query.isFetching || Boolean(query.error)}
+      placeholder={query.isPlaceholderData ?? false}
+      reload={query.refetch}
+      selection={selection}
+      columnPrefs={columns}
+      onOpen={config.onExportOpen}
+    />
+  ) : (
+    config.extra
+  );
+  const filterContent = (
+    <>
+      {session?.username && (
+        <div className="business-list-view-toolbar" style={{ marginBottom: token.marginSM }}>
+          <ListViewToolbar
+            key={scopeKey}
+            views={views.views}
+            apply={views.apply}
+            save={views.save}
+            remove={views.remove}
           />
-        ) : (
-          config.extra
-        )
-      }
-      className="business-list"
-      token={{ paddingInlinePageContainerContent: token.paddingLG }}
-      style={{ minWidth: 0, maxWidth: '100%' }}
+        </div>
+      )}
+      {props.filters}
+    </>
+  );
+  const filter = config.designShell ? (
+    <Card padding="large" testId="list-filters">
+      {filterContent}
+    </Card>
+  ) : (
+    <div
+      className="business-list-filter"
+      style={{
+        background: token.colorBgContainer,
+        borderRadius: token.borderRadiusLG,
+        padding: token.padding,
+        marginBottom: token.margin,
+      }}
+      data-testid="list-filters"
     >
-      <div
-        className="business-list-filter"
-        style={{
-          background: token.colorBgContainer,
-          borderRadius: token.borderRadiusLG,
-          padding: token.padding,
-          marginBottom: token.margin,
-        }}
-        data-testid="list-filters"
-      >
-        {session?.username && (
-          <div className="business-list-view-toolbar" style={{ marginBottom: token.marginSM }}>
-            <ListViewToolbar
-              key={scopeKey}
-              views={views.views}
-              apply={views.apply}
-              save={views.save}
-              remove={views.remove}
-            />
-          </div>
-        )}
-        {props.filters}
-      </div>
+      {filterContent}
+    </div>
+  );
+  const content = (
+    <>
+      {filter}
       {props.beforeResults}
       {query.error ? (
         <ListError error={query.error} reload={query.refetch} />
@@ -145,6 +145,34 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
           {props.children}
         </div>
       )}
+    </>
+  );
+  if (config.designShell) {
+    return (
+      <PageShell title={config.title} icon={config.icon} description={config.description} actions={exportAction}>
+        <div className="business-list" style={{ display: 'grid', gap: spacing[16] }}>
+          {content}
+        </div>
+      </PageShell>
+    );
+  }
+  return (
+    <PageContainer
+      title={
+        <h1 style={{ fontSize: token.fontSizeHeading4, margin: 0 }}>
+          {config.icon && (
+            <span style={{ fontSize: token.fontSizeLG, marginInlineEnd: token.marginXS }}>{config.icon}</span>
+          )}
+          {config.title}
+        </h1>
+      }
+      content={config.description}
+      extra={exportAction}
+      className="business-list"
+      token={{ paddingInlinePageContainerContent: token.paddingLG }}
+      style={{ minWidth: 0, maxWidth: '100%' }}
+    >
+      {content}
     </PageContainer>
   );
 }
