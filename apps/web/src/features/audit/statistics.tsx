@@ -1,6 +1,8 @@
-import { Button, Space, Statistic, theme } from 'antd';
+import { Space } from 'antd';
 import type { AuditStatistics as Statistics } from '@wms/contracts';
 import { auditCopy as t } from './text';
+import { SectionTitle, StatCard } from '../../components/ui';
+import { spacing } from '../../theme/design-tokens';
 
 export function AuditStatistics({
   data,
@@ -9,36 +11,28 @@ export function AuditStatistics({
   data?: Statistics;
   filter: (patch: Record<string, string>) => void;
 }) {
-  const { token } = theme.useToken();
   const metrics = [
-    { label: t.records, value: data?.records },
-    { label: t.failures, value: data?.failures, color: token.colorError, action: () => filter({ result: 'failed' }) },
-    { label: t.objects, value: data?.objects },
+    { label: t.records, value: data?.records, type: 'default' as const },
+    { label: t.failures, value: data?.failures, type: 'error' as const, action: () => filter({ result: 'failed' }) },
+    { label: t.objects, value: data?.objects, type: 'default' as const },
     {
       label: t.dangerousCount,
       value: data?.dangerous,
-      color: token.colorWarning,
+      type: 'warning' as const,
       action: () => filter({ dangerous: 'true' }),
     },
   ];
   return (
-    <div data-testid="audit-statistics" style={{ marginBottom: token.margin }}>
-      <strong>{data?.today ? t.today : t.current}</strong>
-      <Space wrap size="large" style={{ display: 'flex', marginTop: token.marginXS }}>
+    <div data-testid="audit-statistics" style={{ display: 'grid', gap: spacing[8] }}>
+      <SectionTitle title={data?.today ? t.today : t.current} />
+      <Space wrap size={spacing[16]} style={{ display: 'flex' }}>
         {metrics.map((metric) => (
-          <Statistic
+          <StatCard
             key={metric.label}
-            title={
-              metric.action ? (
-                <Button size="small" type="link" onClick={metric.action}>
-                  {metric.label}
-                </Button>
-              ) : (
-                metric.label
-              )
-            }
+            label={metric.label}
             value={metric.value ?? '—'}
-            styles={{ content: { color: metric.color, fontSize: token.fontSizeHeading3 } }}
+            type={metric.type}
+            onClick={metric.action}
           />
         ))}
       </Space>

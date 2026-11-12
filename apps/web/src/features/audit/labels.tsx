@@ -1,8 +1,9 @@
 import { AuditOutlined, InboxOutlined, ExportOutlined, DatabaseOutlined, WarningOutlined } from '@ant-design/icons';
-import { Tag } from 'antd';
 import type { AuditRow } from '@wms/contracts';
+import { Tag } from 'antd';
+import { StatusTag, type StatusTagType } from '../../components/ui';
 
-export function AuditActionLabel({ row }: { row: AuditRow }) {
+export function AuditActionLabel({ row, design = true }: { row: AuditRow; design?: boolean }) {
   const Icon = row.dangerous
     ? WarningOutlined
     : row.objectType === '入库单'
@@ -12,18 +13,34 @@ export function AuditActionLabel({ row }: { row: AuditRow }) {
         : row.objectType === '条码目录'
           ? DatabaseOutlined
           : AuditOutlined;
-  return row.dangerous ? (
-    <Tag color="warning" icon={<Icon />}>
-      {row.action}
-    </Tag>
-  ) : (
+  if (row.dangerous)
+    return design ? (
+      <StatusTag status={row.action} type="warning" />
+    ) : (
+      <Tag color="warning" icon={<Icon />}>
+        {row.action}
+      </Tag>
+    );
+  return (
     <span>
       <Icon /> {row.action}
     </span>
   );
 }
-export function AuditResultLabel({ result }: { result: string }) {
-  const color =
-    result === '失败' ? 'error' : result === '结果待核实' ? 'warning' : result === '完成' ? 'success' : 'default';
-  return <Tag color={color}>{result}</Tag>;
+export function AuditResultLabel({ result, design = true }: { result: string; design?: boolean }) {
+  return design ? (
+    <StatusTag status={result} type={auditResultType(result)} />
+  ) : (
+    <Tag color={auditResultType(result)}>{result}</Tag>
+  );
+}
+
+const resultTypes: Record<string, StatusTagType> = {
+  完成: 'success',
+  失败: 'error',
+  结果待核实: 'warning',
+};
+
+function auditResultType(result: string): StatusTagType {
+  return resultTypes[result] ?? 'default';
 }

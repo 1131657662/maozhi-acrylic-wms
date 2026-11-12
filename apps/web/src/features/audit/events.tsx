@@ -7,8 +7,9 @@ import { RequestError } from '../../components/RequestError';
 import { auditKeys } from './keys';
 import { auditCopy as t } from './text';
 import { AuditActionLabel, AuditResultLabel } from './labels';
-export function AuditEvents({ items }: { items: AuditRow[] }) {
-  if (!items.length) return <Empty description={t.empty} />;
+import { EmptyState } from '../../components/ui';
+export function AuditEvents({ items, design = false }: { items: AuditRow[]; design?: boolean }) {
+  if (!items.length) return design ? <EmptyState description={t.empty} /> : <Empty description={t.empty} />;
   return (
     <Timeline
       titleSpan={6}
@@ -17,7 +18,7 @@ export function AuditEvents({ items }: { items: AuditRow[] }) {
         title: listTime(row.createdAt),
         content: (
           <>
-            <AuditActionLabel row={row} /> <AuditResultLabel result={row.result} />
+            <AuditActionLabel row={row} design={design} /> <AuditResultLabel result={row.result} design={design} />
             <div>
               {row.actor} · {row.channel} · {row.effect}
             </div>
@@ -33,10 +34,12 @@ export function AuditEventContinuation({
   id,
   cursor: start,
   related = false,
+  design = false,
 }: {
   id: string;
   cursor: string;
   related?: boolean;
+  design?: boolean;
 }) {
   const [cursor, setCursor] = useState(start),
     [opened, setOpened] = useState(false);
@@ -51,7 +54,7 @@ export function AuditEventContinuation({
           <Spin />
         ) : (
           <>
-            <AuditEvents items={query.data.items} />
+            <AuditEvents items={query.data.items} design={design} />
             {query.data.nextCursor && <Button onClick={() => setCursor(query.data!.nextCursor!)}>{t.next}</Button>}
           </>
         ))}

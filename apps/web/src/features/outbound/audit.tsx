@@ -13,6 +13,7 @@ import { AuditFilters } from '../audit/filters';
 import { AuditEmpty } from '../audit/empty';
 import { auditDateDefaults } from '../audit/dates';
 import { auditCopy as t } from '../audit/text';
+import { Toolbar } from '../../components/ui';
 
 function filterScope(params: Record<string, string>) {
   return JSON.stringify(
@@ -44,6 +45,7 @@ export function Audit() {
         query={query}
         config={{
           name: 'audit',
+          designShell: true,
           title: t.title,
           icon: <AuditOutlined />,
           description: t.description,
@@ -60,18 +62,20 @@ export function Audit() {
               data={query.error ? undefined : query.data?.statistics}
               filter={(patch) => state.change({ ...patch, page: '1' })}
             />
-            <Segmented
-              aria-label={t.timeline}
-              value={view}
-              onChange={(value) => {
-                setView(value);
-                state.change({ page: '1' });
-              }}
-              options={[
-                { label: t.list, value: 'list' },
-                { label: t.timeline, value: 'timeline' },
-              ]}
-            />
+            <Toolbar>
+              <Segmented
+                aria-label={t.timeline}
+                value={view}
+                onChange={(value) => {
+                  setView(value);
+                  state.change({ page: '1' });
+                }}
+                options={[
+                  { label: t.list, value: 'list' },
+                  { label: t.timeline, value: 'timeline' },
+                ]}
+              />
+            </Toolbar>
           </>
         }
         resultView={

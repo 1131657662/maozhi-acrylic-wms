@@ -223,3 +223,20 @@ CSS 变量由同一模块输出变量对象及 `:root` CSS 文本，长度带 px
 用户验收通过，完成状态 **401/134/0**：本批单测 401/401、构建 exit 0；E2E 134/134 沿用前置 B5d-2 已验收基线，本批未重跑。`npm run check:design-tokens` 为本批新增开发命令，检查现有 34、新增 0、待清理 0，exit 0。
 
 授权更新收尾文档后执行 `git checkout master`、`git merge --no-ff codex/b6j-1-design-tokens -m "merge: b6j-1 design tokens"`、`git push origin master`；最终回复核对 merge hash、远端 HEAD 与各命令 exit code。本次没有代码变化，沿用 §13.5 的测试与构建结果，不新增或应用迁移。收尾即停止，不开始 B6j-2。
+
+## 14. B6j-2：共享 UI 与审计 pilot
+
+- 只实现 PageShell、Card、SectionTitle、Toolbar、StatusTag、EmptyState、StatCard 七个展示壳；单个组件不超过 200 行，不导入 feature 目录、不持有业务判断。
+- 组件只用 design tokens。扩展 token 模块提供 semibold 字重、既有文字档位行高与 120px 紧凑空态上限；CSS 变量由 PageShell 根节点以当前 AntD token 提供。StatusTag 只接展示状态和封闭语义类型；映射由页面现有映射模块负责。组件 API 不暴露任意颜色或圆角值。
+- PageShell 使用页面标题 20/28、字重 600，右侧操作区，内容留白 24；Card 使用圆角 12、语义边框、16/24 两档内边距；SectionTitle 使用 16/24、字重 600；Toolbar 单行、间距 8；StatCard 数字 28/36、字重 600，标签 12/20；EmptyState 为图标、一句话、可选动作，最大高度 120。
+- 只为操作记录列表提供显式 design shell，保留现有 BusinessList 表格引擎和所有查询、列、排序、分页、导出、选择及缓存行为。时间线分组和详情内容使用上述壳；共享给其他详情页的对象时间线仍保留旧外壳。全局 AntD 主题仍为 `borderRadius=8`；不调整表格行高、表格字重或内部样式。
+- 同一隔离 E2E 数据库及同一记录、筛选、滚动位置形成改前/改后证据；列表、失败筛选、时间线、详情、raw 两个宽度均需对应。不要改测试框架、冒烟数据源或写入开发样本库。
+- 验收：状态筛选、统计筛选、列表/时间线切换、详情及 raw 懒加载、导出保持原行为；`check:design-tokens` 无新项，移除本批真实迁移的审计 allowlist；test/build/完整 E2E 通过。与代码、构建、浏览器验证分别记录，不代表设备或生产验收。
+- 一个提交：`feat(web): shared ui components and audit pilot`。完成后停下，不合并、不 push，不开始其他迁移。
+
+### 14.1 B6j-2 实现审查（2026-11-13）
+
+- 七个组件分别为 31/36/52/29/56/30/10 行（Card/EmptyState/PageShell/SectionTitle/StatCard/StatusTag/Toolbar），均小于 200 行；无 feature 导入、业务分支或任意 style/rawColor/rawRadius 覆盖参数。业务状态映射留在 `features/audit/labels.tsx`，全局主题 `borderRadius=8` 无变更。
+- `BusinessList` 只增加可选外壳；表格、结果组件、表格 CSS、列定义、查询键、筛选、raw 面板、排序/分页/导出/偏好缓存实现和依赖清单均无修改。非审计页沿用原壳；对象时间线的其他调用方沿用原标签和空态。
+- 按 WMS 提交前审查要求复核全部改动，未发现阻断问题；AntD 检查 0 问题。同数据截图与功能回归证据见 AUDIT_PAGE_SPEC §16.1。代码完成和本地浏览器验证不代表用户验收、实体设备或生产验收。
+- 最终本地验证：单测 401/401、严格类型检查及 Web 构建通过、完整 E2E 136/136（127 + 9），各命令 exit 0。裸值检查 Web 文件 275、现有 34、新增 0、待清理 0，exit 0；审计专属 allowlist 为 0→0，共享/全局及其他页面的既有 34 项不在本批迁移。代码格式检查和 `git diff --check` 通过。

@@ -1,4 +1,5 @@
-import { Button, Empty } from 'antd';
+import { Button } from 'antd';
+import { EmptyState } from '../../components/ui';
 import { auditCopy as t } from './text';
 export function adjustAuditFilters() {
   const filters = document.getElementById('audit-filters');
@@ -6,9 +7,5 @@ export function adjustAuditFilters() {
   filters?.querySelector<HTMLInputElement>('input')?.focus();
 }
 export function AuditEmpty() {
-  return (
-    <Empty description={t.empty}>
-      <Button onClick={adjustAuditFilters}>{t.adjust}</Button>
-    </Empty>
-  );
+  return <EmptyState description={t.empty} action={<Button onClick={adjustAuditFilters}>{t.adjust}</Button>} />;
 }

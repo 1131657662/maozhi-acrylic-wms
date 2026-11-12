@@ -251,3 +251,13 @@
 | 2026-11-12 | allowlist 按 file/kind/value/reason/计划批次逐项登记且限制出现次数；旧项报告、新项失败，不允许整目录豁免；不扫不改小程序/PDA | 生效 | VISUAL_SPEC §13.3 |
 | 2026-11-12 | 批准三提交：规格与台账、token 与脚本、验证记录；检查用例、单测与构建完成后停止，不合并、不 push。页面视觉不变，不为截图改基础设施或写样本库 | 已废弃（停止及禁止合并部分） | 被本日 B6j-1 用户验收后的收尾授权取代；三实现提交、页面视觉与样本库边界保留 |
 | 2026-11-12 | B6j-1 用户验收通过，401/134/0（E2E 134 沿用 B5d-2 基线，本批未重跑）；授权更新完成状态与 check:design-tokens 命令记录，以 merge: b6j-1 design tokens 非快进合并并推送 master。本批无迁移，收尾后停止，不开始 B6j-2 | 生效 | VISUAL_SPEC §13.6、IMPLEMENTATION_PLAN B6j-1 |
+
+## B6j-2 共享 UI 与审计 pilot（2026-11-12）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-12 | 只新增 PageShell、Card、SectionTitle、Toolbar、StatusTag、EmptyState、StatCard 七个纯展示壳；不导入 feature、不含业务判断。StatusTag 接收展示状态与受限语义类型，审计结果/危险操作的业务映射留在现有审计标签模块。 | 生效 | VISUAL_SPEC §14 |
+| 2026-11-12 | 只迁移操作记录列表、时间线和详情壳。BusinessList 仅允许通过明确的 design shell 接入替换外壳；表格列/内部、排序、分页、导出、查询和缓存保持原样。全局 AntD borderRadius 仍为 8；不调整表格行高或字重。 | 生效 | AUDIT_PAGE_SPEC §16、VISUAL_SPEC §14 |
+| 2026-11-12 | 新壳及 KPI 使用 VISUAL_SPEC 既有排版档位；行高/字重 token 只可用于这些壳，不传播到 BusinessList 表格。紧凑空态最大高度 120px，颜色、间距、字号、圆角均走语义设计 token/CSS 变量，不提供裸色或裸圆角覆盖参数。 | 生效 | VISUAL_SPEC §3、§14 |
+| 2026-11-12 | 改前改后截图必须来自同一隔离合成数据集、同一记录/筛选/视图和相同滚动位置；仅对比同状态证据。不修改截图基础设施、冒烟数据源或开发样本库。 | 生效 | AUDIT_PAGE_SPEC §16 |
+| 2026-11-12 | 一个提交 `feat(web): shared ui components and audit pilot`；完整本地验证后停止，不合并、不 push，不开始其他迁移。 | 生效 | IMPLEMENTATION_PLAN B6j-2、VISUAL_SPEC §14 |
