@@ -8,6 +8,7 @@ import { getOrder } from '../outbound/repository.ts';
 import { captureVehicle } from '../outbound/snapshots.ts';
 import { assertShipmentOrder } from './policy.ts';
 import { updatePlanLines } from './plan-lines.ts';
+import { AppError } from '../../shared/errors.ts';
 import type { ShipmentCommand } from './create.ts';
 
 export async function editShipmentPlan(db: Database, command: ShipmentCommand) {
@@ -26,6 +27,8 @@ export async function editShipmentPlan(db: Database, command: ShipmentCommand) {
     );
     if (previous) return previous;
     const before = await getOrder(tx, command.id);
+    if (!['open', 'partially_shipped'].includes(before.status))
+      throw new AppError('PLAN_CLOSED', '单据已结单，不能修改计划', 422);
     await assertShipmentOrder(tx, before);
     checkRevision(before, input);
     const { plan } = input;

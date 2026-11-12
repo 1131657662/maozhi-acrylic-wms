@@ -45,10 +45,11 @@ test('B5c-1 stale plan, foreign lines, duplicate lines and unknown properties ca
       .send(`${c.path}/plan`, { ...version(live), plan: { warehouseCode: 'OTHER' } }, randomUUID(), 'patch')
       .expect(422);
     assert.deepEqual(await inventorySnapshot(c.db), before);
-    await c.send(`${c.path}/plan`, { ...version(live), plan: { lines: [line] } }, randomUUID(), 'patch').expect(200);
-    assert.equal((await c.records()).remainingPackages, 0);
+    await c.send(`${c.path}/plan`, { ...version(live), plan: { lines: [line] } }, randomUUID(), 'patch').expect(422);
+    assert.deepEqual(await inventorySnapshot(c.db), before);
+    assert.equal((await c.records()).remainingPackages, 60);
     assert.equal((await c.current()).actualPackages, 40);
-    assert.equal((await c.current()).plannedPackages, 20);
+    assert.equal((await c.current()).plannedPackages, 100);
   } finally {
     await c.dispose();
   }

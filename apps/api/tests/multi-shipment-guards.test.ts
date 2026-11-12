@@ -45,7 +45,7 @@ test('B5c-1 zero, missing reason and all terminal states reject without business
       await c.send(`${c.path}/short-close`, { ...version(order), reason: '不能重开' }).expect(409);
       await c
         .send(`${c.path}/plan`, { ...version(order), plan: { containerNo: '不可改' } }, randomUUID(), 'patch')
-        .expect(409);
+        .expect(422);
       assert.deepEqual(await inventorySnapshot(c.db), before);
     }
   } finally {

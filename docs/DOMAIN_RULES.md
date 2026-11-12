@@ -116,7 +116,7 @@
 ### 5.1 B5c 发货余额与状态模型（待实现）
 
 - **实发来源**：出库扣减数量一律取人工在明细行录入的实发包数/实发吨数；扫码只做预填（包数、重量 kg×0.001）与打印凭证，不参与库存计算。扫码汇总在确认时快照存入 `scan_packages/scan_weight_grams`，供追溯与导出。
-- **计划可改**：`open`、`partially_shipped` 状态可改计划（含明细行增删），只影响待发量，不影响已生成发货记录；`confirmed/short_closed/voided` 不可改。
+- **计划可改**：`open`、`partially_shipped` 状态可改计划（含明细行增删），只影响待发量，不影响已生成发货记录；`confirmed/short_closed/voided` 不可改。2026-11-12 收尾裁定：编辑后的每行计划包数、克数分别不得小于已发量，低于或终态编辑均返回 422；商品、客户、仓库不可借计划编辑修改。编辑使待发归零不自动结单，保留显式完成。
 - **发货记录**：复用 016 的 `outbound_shipments`（order_id、seq、vehicle_no、shipped_at、business_date、operator、operation_id）与 `outbound_shipment_lines`（shipment_id、order_line_id、packages、weight_grams、overage_reason）。一次确认生成一条记录；记录不可修改；`seq` 按单递增。
 - **余额**：已发 = 各发货记录实发之和（含溢发）；待发 = max(计划 − 已发, 0)；溢发 = max(已发 − 计划, 0)。包数与吨数分别计算，不相互推导。
 - **状态（2026-11-12 用户裁定）**：每次人工确认发货后，所有行包数、克数待发均为 0 则自动 `confirmed`，否则 `partially_shipped`；首次发满亦自动结单。人工「完成发货」保留，仍必须检查每行待发为 0；人工「短关」转 `short_closed`。`/confirm` 与 `/shipments` 使用相同规则，禁止新产生「已出库但仍有待发」的数据。
