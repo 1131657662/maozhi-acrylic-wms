@@ -203,11 +203,11 @@ CSS 变量由同一模块输出变量对象及 `:root` CSS 文本，长度带 px
 
 - 检查脚本的检出、豁免、重复违规、精确 allowlist、Web 边界与错误退出需通过隔离临时文件测试；运行既有单测及严格类型检查/Web 构建。
 - 通过 Git 差异确认当前主题与页面文件未改变；本步不改变版式、颜色或布局，不要求截图，不改变 E2E/设备冒烟的数据来源。
-- 三提交：规格与台账、token 与脚本、验证记录。完成后停止，不合并、不 push；不将本地自动化通过写成设备或生产验收。
+- 实现阶段三提交：规格与台账、token 与脚本、验证记录。原“完成后停止，不合并、不 push”由用户验收后的 §13.6 收尾授权取代；不将本地自动化通过写成设备或生产验收。
 
 ### 13.5 B6j-1 实现与本地验证（2026-11-12）
 
-状态：**代码与本地自动化完成，待用户验收**。规格提交 `c88d2ff`，实现提交 `ef9d815`；分支 `codex/b6j-1-design-tokens`，未合并、未 push。
+状态：**B6j-1 已完成，用户验收通过**。规格提交 `c88d2ff`，实现提交 `ef9d815`，验证记录提交 `512c61e`；实现分支 `codex/b6j-1-design-tokens`，验收后的合并推送授权见 §13.6。
 
 - token 模块已导出 `radius`、`spacing`、`fontSize`、`color(token)`、`createDesignCssVariables(token)` 与 `createDesignCssText(token)`；KPI 为 28px。颜色使用传入的 AntD token，CSS 输出包含 `--wms-radius-card`、`--wms-space-8`、`--wms-font-size-kpi` 等，模块没有 DOM 或主题写入副作用。
 - 检查采用 TypeScript AST 与 PostCSS，覆盖样式对象、JSX、条件表达式、模板片段、直接样式赋值与 setProperty。PostCSS 8.5.32、postcss-value-parser 4.2.0 从已有锁定版本声明为直接开发依赖；无新增 UI 库或字体。
@@ -217,3 +217,9 @@ CSS 变量由同一模块输出变量对象及 `:root` CSS 文本，长度带 px
 - 代码审查、Ant Design lint（0 issues）、Prettier 与 `git diff --check` 通过。与起点比较，当前 app.tsx、布局配置、现有页面/样式、PDA、小程序文件差异为空；新模块尚未接入页面，生效全局圆角仍为 8。
 - 原始日志仅保存在 `.local/evidence/b6j-1-check.log`、`b6j-1-test.log`、`b6j-1-build.log`。本步无页面视觉变化，未运行浏览器截图、E2E、模拟器、实体设备或生产验收；未执行迁移或开发样本库写入。
 - 静态检查不进行跨文件运行时数据流求值；声明文件与 Umi 生成目录不属于页面源码检查范围。新增未登记静态裸值仍须失败，不自动更新 allowlist。
+
+### 13.6 B6j-1 验收收尾（2026-11-12）
+
+用户验收通过，完成状态 **401/134/0**：本批单测 401/401、构建 exit 0；E2E 134/134 沿用前置 B5d-2 已验收基线，本批未重跑。`npm run check:design-tokens` 为本批新增开发命令，检查现有 34、新增 0、待清理 0，exit 0。
+
+授权更新收尾文档后执行 `git checkout master`、`git merge --no-ff codex/b6j-1-design-tokens -m "merge: b6j-1 design tokens"`、`git push origin master`；最终回复核对 merge hash、远端 HEAD 与各命令 exit code。本次没有代码变化，沿用 §13.5 的测试与构建结果，不新增或应用迁移。收尾即停止，不开始 B6j-2。
