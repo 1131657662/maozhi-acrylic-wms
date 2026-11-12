@@ -6,6 +6,7 @@ import { inboundKeys } from './keys';
 import { stockKeys } from '../stock/keys';
 import { webListKeys } from '../web-lists/keys';
 import { lifecycleKeys } from '../document-lifecycle/keys';
+import { dateCorrectionKeys } from '../date-corrections/keys';
 
 export function useConfirmReceipt(id: string) {
   const client = useQueryClient();
@@ -20,6 +21,7 @@ export function useConfirmReceipt(id: string) {
     onSuccess: async () => {
       intent.clear();
       await Promise.all([
+        client.invalidateQueries({ queryKey: dateCorrectionKeys._def }),
         client.invalidateQueries({ queryKey: lifecycleKeys._def }),
         client.invalidateQueries({ queryKey: inboundKeys._def }),
         client.invalidateQueries({ queryKey: stockKeys._def }),

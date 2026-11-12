@@ -7,6 +7,7 @@ import { inboundKeys } from '../inbound/keys';
 import { outboundKeys } from '../outbound/keys';
 import { stockKeys } from '../stock/keys';
 import { webListKeys } from '../web-lists/keys';
+import { dateCorrectionKeys } from '../date-corrections/keys';
 
 export function useCloseDocument() {
   const client = useQueryClient();
@@ -24,7 +25,7 @@ export function useCloseDocument() {
     onSuccess: async () => {
       intent.clear();
       await Promise.all(
-        [lifecycleKeys, inboundKeys, outboundKeys, stockKeys, webListKeys].map((keys) =>
+        [lifecycleKeys, inboundKeys, outboundKeys, stockKeys, webListKeys, dateCorrectionKeys].map((keys) =>
           client.invalidateQueries({ queryKey: keys._def }),
         ),
       );

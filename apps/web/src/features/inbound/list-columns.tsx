@@ -1,3 +1,4 @@
+import { dateCorrectionCopy as dateText, DATE_CORRECTION_UI } from '../date-corrections/copy';
 import { documentExtraCopy } from '@wms/contracts';
 import type { ProColumns } from '@ant-design/pro-components';
 import { billTypeText, tonnes, postingText, type WebInboundRow } from '@wms/contracts';
@@ -17,6 +18,12 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
     sorter: true,
     hideInSetting: true,
     render: (_, row) => <ListDetailLink to={'/inbound/' + row.id}>{row.receiptNo}</ListDetailLink>,
+  },
+  {
+    title: dateText.title,
+    dataIndex: 'effectiveBusinessDate',
+    width: DATE_CORRECTION_UI.dateWidth,
+    render: (_, row) => row.effectiveBusinessDate ?? dateText.unknown,
   },
   {
     title: documentExtraCopy.billType,

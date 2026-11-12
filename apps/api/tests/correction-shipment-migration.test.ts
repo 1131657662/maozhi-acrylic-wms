@@ -9,14 +9,14 @@ test('020 empty up/down/up preserves structure and installs a nullable indexed F
   const c = await createTestDatabase('019_shipment_close');
   try {
     const before = await c.db.get('SHOW CREATE TABLE document_correction_lines');
-    await migrateUp(c.db);
+    await migrateUp(c.db, '020_correction_shipment_line');
     const after = await c.db.get('SHOW CREATE TABLE document_correction_lines');
     const column = await c.db.get("SHOW COLUMNS FROM document_correction_lines LIKE 'shipment_line_id'");
     assert.equal(column?.Null, 'YES');
     assert.equal(column?.Type, 'bigint unsigned');
     await migrateDown(c.db);
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE document_correction_lines'), before);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '020_correction_shipment_line');
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE document_correction_lines'), after);
     console.log('B5C2_MIGRATION empty=up/down/up structure_equal=true nullable_fk=true');
   } finally {
@@ -32,6 +32,7 @@ test('020 multiple shipments or unmatched original lines stay NULL, legacy order
     await c.db.run(`UPDATE document_correction_lines SET shipment_line_id=NULL,packages_before=100,
       packages_after=90,tonnes_before='30.0000',tonnes_after='27.0000'`);
     const before = (await c.current()).corrections!.effective;
+    await migrateDown(c.db); // 021 is empty; remove it before exercising 020.
     await migrateDown(c.db);
     await migrateUp(c.db);
     assert.equal((await c.db.get('SELECT shipment_line_id FROM document_correction_lines'))?.shipment_line_id, null);
@@ -42,6 +43,7 @@ test('020 multiple shipments or unmatched original lines stay NULL, legacy order
     assert.equal((await c.db.get("SELECT packages FROM stock WHERE product_code='ACR-032'"))?.packages, 200);
     // A header pointing at an order without a matching shipment must not be guessed from another order's line.
     await c.db.run("UPDATE document_corrections SET outbound_order_id='DEMO-001'");
+    await migrateDown(c.db); // 021 is empty; remove it before exercising 020.
     await migrateDown(c.db);
     await migrateUp(c.db);
     assert.equal((await c.db.get('SELECT shipment_line_id FROM document_correction_lines'))?.shipment_line_id, null);
@@ -57,10 +59,12 @@ test('020 backfills one shipment without changing effective amounts; non-null re
     await c.post(await c.input()).expect(200);
     const before = (await c.detail()).body.data.corrections.effective;
     await c.db.run('UPDATE document_correction_lines SET shipment_line_id=NULL');
+    await migrateDown(c.db); // 021 is empty; remove it before exercising 020.
     await migrateDown(c.db);
     await migrateUp(c.db);
     assert.deepEqual((await c.detail()).body.data.corrections.effective, before);
     assert.ok((await c.db.get('SELECT shipment_line_id FROM document_correction_lines'))?.shipment_line_id);
+    await migrateDown(c.db); // Remove empty 021 before observing the 020 guard.
     const schema = await c.db.get('SHOW CREATE TABLE document_correction_lines');
     const statements: string[] = [],
       withConnection = c.db.withConnection.bind(c.db);

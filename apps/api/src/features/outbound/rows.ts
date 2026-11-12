@@ -3,6 +3,7 @@ import { orderSchema, lineSchema, factSchema } from '@wms/contracts';
 import { decimalToGrams } from '../../db/weight.ts';
 import { isoDate } from '../../db/dates.ts';
 import { originalActualSql } from './original-actual.ts';
+import { effectiveBusinessDateSql } from '../date-corrections/projection.ts';
 
 export const headerSchema = orderSchema
   .omit({
@@ -38,7 +39,8 @@ export const rawFactSchema = factSchema.extend({
 export const headerSql = `SELECT id,order_no AS orderNo,customer_name AS customerName,customer_code AS customerCode,warehouse_code AS warehouseCode,
   warehouse_name_snapshot AS warehouseName,contact_id AS contactId,vehicle_id AS vehicleId,
   ship_to_name AS shipToName,ship_to_phone AS shipToPhone,ship_to_address AS shipToAddress,bill_type AS billType,container_no AS containerNo,
-  vehicle_no AS vehicleNo,memo,status,scan_closed_at AS scanClosedAt,revision,1 AS planVersion,created_at AS createdAt,business_date AS businessDate FROM outbound_orders`;
+  vehicle_no AS vehicleNo,memo,status,scan_closed_at AS scanClosedAt,revision,1 AS planVersion,created_at AS createdAt,
+  business_date AS businessDate,${effectiveBusinessDateSql('outbound', 'outbound_orders')} AS effectiveBusinessDate FROM outbound_orders`;
 const original = originalActualSql({
   orderId: 'outbound_lines.order_id',
   lineId: 'outbound_lines.id',

@@ -124,6 +124,7 @@ const migrations = [
   { id: '018_scan_workbench', guardedTables: [] },
   { id: '019_shipment_close', guardedTables: [] },
   { id: '020_correction_shipment_line', guardedTables: [] },
+  { id: '021_document_date_corrections', guardedTables: ['document_date_corrections'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

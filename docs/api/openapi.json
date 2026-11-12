@@ -80,6 +80,31 @@
         ],
         "type": "object"
       },
+      "S_059d9b0c84d37163": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_186090d5fc318a3a"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_0635e2210c56e4db": {
         "default": 0,
         "maximum": 9007199254740991,
@@ -107,6 +132,31 @@
           "outboundLineId",
           "sourceSpec",
           "resolvedAt"
+        ],
+        "type": "object"
+      },
+      "S_0669cba1ec24c3ea": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_923abab7d0507c1b"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
         ],
         "type": "object"
       },
@@ -275,6 +325,30 @@
         ],
         "type": "object"
       },
+      "S_1094ae897a1eea96": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "afterDate": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "backdateConfirmed": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "expectedRevision": {
+            "$ref": "#/components/schemas/S_bf74a49f4d971832"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_2ac3e7fadf2b1465"
+          }
+        },
+        "required": [
+          "afterDate",
+          "reason",
+          "expectedRevision"
+        ],
+        "type": "object"
+      },
       "S_10e1b65002eefbc3": {
         "anyOf": [
           {
@@ -421,6 +495,30 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_186090d5fc318a3a": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "$ref": "#/components/schemas/S_c47beab73840a0f5"
+          },
+          "page": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "type": "object"
       },
       "S_18df4b27b27c5a6a": {
         "additionalProperties": {
@@ -644,6 +742,31 @@
         ],
         "type": "object"
       },
+      "S_33190874a55871d0": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_64bbc1208d406374"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_333271c3a01aef9d": {
         "const": "unclassified",
         "type": "string"
@@ -814,31 +937,6 @@
           "report-aging"
         ],
         "type": "string"
-      },
-      "S_3dd1eb0e431db377": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_9ce18707092f79cd"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       },
       "S_3e121eecf4430035": {
         "anyOf": [
@@ -1389,6 +1487,136 @@
         "const": "sku-spec",
         "type": "string"
       },
+      "S_607fe21f39b9c23b": {
+        "additionalProperties": false,
+        "properties": {
+          "actualPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "actualWeightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "billType": {
+            "$ref": "#/components/schemas/S_84416bdec6dc8082"
+          },
+          "businessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "contactId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "containerNo": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "corrections": {
+            "$ref": "#/components/schemas/S_760e547f0d2a912c"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "customerCode": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "customerName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "digest": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "effectiveBusinessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/S_c52c8fe06d2e8c09"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_c32234c7916979d0"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_2ec451924b02dcb8"
+          },
+          "orderNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "planVersion": {
+            "$ref": "#/components/schemas/S_614bcf3353ba29cc"
+          },
+          "plannedPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "plannedWeightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "scanClosedAt": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "scanPackages": {
+            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          },
+          "scanWeightGrams": {
+            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          },
+          "shipToAddress": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "shipToName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "shipToPhone": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "status": {
+            "$ref": "#/components/schemas/S_6c1ea734b7eea9f4"
+          },
+          "vehicleId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "vehicleNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseCode": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          }
+        },
+        "required": [
+          "id",
+          "orderNo",
+          "customerName",
+          "customerCode",
+          "warehouseCode",
+          "billType",
+          "containerNo",
+          "vehicleNo",
+          "memo",
+          "status",
+          "scanClosedAt",
+          "revision",
+          "planVersion",
+          "createdAt",
+          "businessDate",
+          "effectiveBusinessDate",
+          "plannedPackages",
+          "plannedWeightGrams",
+          "scanPackages",
+          "scanWeightGrams",
+          "actualPackages",
+          "actualWeightGrams",
+          "corrections",
+          "lines",
+          "facts",
+          "digest"
+        ],
+        "type": "object"
+      },
       "S_614bcf3353ba29cc": {
         "const": 1,
         "type": "number"
@@ -1492,6 +1720,106 @@
           "countToDay",
           "adjustmentCount",
           "stocktakeCount"
+        ],
+        "type": "object"
+      },
+      "S_64bbc1208d406374": {
+        "additionalProperties": false,
+        "properties": {
+          "billType": {
+            "$ref": "#/components/schemas/S_c2181492282bb5ac"
+          },
+          "businessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "confirmationOperationId": {
+            "$ref": "#/components/schemas/S_f9c271fd8743901f"
+          },
+          "contactId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "containerNo": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "corrections": {
+            "$ref": "#/components/schemas/S_760e547f0d2a912c"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "deliveryAddress": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "deliveryName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "deliveryPhone": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "effectiveBusinessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_01d2f1d55ffcb1b1"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "packages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "postingState": {
+            "$ref": "#/components/schemas/S_b182f318d4b79a52"
+          },
+          "receiptNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "status": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "supplierCode": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "supplierName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseCode": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "warehouseName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "weightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "id",
+          "receiptNo",
+          "status",
+          "postingState",
+          "confirmationOperationId",
+          "supplierCode",
+          "supplierName",
+          "warehouseCode",
+          "warehouseName",
+          "billType",
+          "containerNo",
+          "memo",
+          "createdBy",
+          "createdAt",
+          "businessDate",
+          "effectiveBusinessDate",
+          "corrections",
+          "packages",
+          "weightGrams",
+          "lines"
         ],
         "type": "object"
       },
@@ -1776,116 +2104,6 @@
         },
         "required": [
           "lineId",
-          "actualPackages",
-          "actualWeightGrams"
-        ],
-        "type": "object"
-      },
-      "S_73d87709de36c2d3": {
-        "additionalProperties": false,
-        "properties": {
-          "actualPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "actualWeightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "billType": {
-            "$ref": "#/components/schemas/S_84416bdec6dc8082"
-          },
-          "businessDate": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "contactId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "containerNo": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "customerCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "customerName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_2ec451924b02dcb8"
-          },
-          "orderNo": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "planVersion": {
-            "$ref": "#/components/schemas/S_614bcf3353ba29cc"
-          },
-          "plannedPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "plannedWeightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "revision": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "scanClosedAt": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "scanPackages": {
-            "$ref": "#/components/schemas/S_28b5e739e258abe6"
-          },
-          "scanWeightGrams": {
-            "$ref": "#/components/schemas/S_28b5e739e258abe6"
-          },
-          "shipToAddress": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "shipToName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "shipToPhone": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "status": {
-            "$ref": "#/components/schemas/S_6c1ea734b7eea9f4"
-          },
-          "vehicleId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "vehicleNo": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "warehouseCode": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "warehouseName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          }
-        },
-        "required": [
-          "id",
-          "orderNo",
-          "customerName",
-          "customerCode",
-          "warehouseCode",
-          "billType",
-          "containerNo",
-          "vehicleNo",
-          "memo",
-          "status",
-          "scanClosedAt",
-          "revision",
-          "planVersion",
-          "createdAt",
-          "businessDate",
-          "plannedPackages",
-          "plannedWeightGrams",
-          "scanPackages",
-          "scanWeightGrams",
           "actualPackages",
           "actualWeightGrams"
         ],
@@ -2608,28 +2826,35 @@
         ],
         "type": "string"
       },
-      "S_92d5fd270faa13bc": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "S_923abab7d0507c1b": {
         "additionalProperties": false,
         "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          "allowed": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
           },
-          "data": {
-            "$ref": "#/components/schemas/S_9a434babeca91cdc"
+          "blockedReason": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
           },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+          "businessDate": {
+            "$ref": "#/components/schemas/S_a630ba4610555c3a"
           },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+          "effectiveBusinessDate": {
+            "$ref": "#/components/schemas/S_a630ba4610555c3a"
+          },
+          "records": {
+            "$ref": "#/components/schemas/S_b72b09d82f96822a"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
           }
         },
         "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
+          "businessDate",
+          "effectiveBusinessDate",
+          "revision",
+          "allowed",
+          "blockedReason",
+          "records"
         ],
         "type": "object"
       },
@@ -2665,7 +2890,7 @@
         ],
         "type": "object"
       },
-      "S_96264323230db45d": {
+      "S_97074ba8c8e6d248": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
@@ -2673,7 +2898,7 @@
             "$ref": "#/components/schemas/S_b4685c29266fd612"
           },
           "data": {
-            "$ref": "#/components/schemas/S_d3fcb8c16ea749dd"
+            "$ref": "#/components/schemas/S_f152047539781de8"
           },
           "message": {
             "$ref": "#/components/schemas/S_00404e686415370f"
@@ -2810,30 +3035,6 @@
         ],
         "type": "object"
       },
-      "S_9a434babeca91cdc": {
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "$ref": "#/components/schemas/S_aacb16a4cf8314d7"
-          },
-          "page": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "pageSize": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          }
-        },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "pageSize"
-        ],
-        "type": "object"
-      },
       "S_9ae5ec65647cb279": {
         "maxLength": 500,
         "type": "string"
@@ -2854,102 +3055,6 @@
           "desc"
         ],
         "type": "string"
-      },
-      "S_9ce18707092f79cd": {
-        "additionalProperties": false,
-        "properties": {
-          "billType": {
-            "$ref": "#/components/schemas/S_c2181492282bb5ac"
-          },
-          "businessDate": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "confirmationOperationId": {
-            "$ref": "#/components/schemas/S_f9c271fd8743901f"
-          },
-          "contactId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "containerNo": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "corrections": {
-            "$ref": "#/components/schemas/S_760e547f0d2a912c"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "createdBy": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "deliveryAddress": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "deliveryName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "deliveryPhone": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "lines": {
-            "$ref": "#/components/schemas/S_01d2f1d55ffcb1b1"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "packages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "postingState": {
-            "$ref": "#/components/schemas/S_b182f318d4b79a52"
-          },
-          "receiptNo": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "status": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "supplierCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "supplierName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "warehouseCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "warehouseName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "weightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          }
-        },
-        "required": [
-          "id",
-          "receiptNo",
-          "status",
-          "postingState",
-          "confirmationOperationId",
-          "supplierCode",
-          "supplierName",
-          "warehouseCode",
-          "warehouseName",
-          "billType",
-          "containerNo",
-          "memo",
-          "createdBy",
-          "createdAt",
-          "businessDate",
-          "corrections",
-          "packages",
-          "weightGrams",
-          "lines"
-        ],
-        "type": "object"
       },
       "S_9e23fafdf9b8cf8e": {
         "additionalProperties": false,
@@ -3106,6 +3211,16 @@
         },
         "type": "object"
       },
+      "S_a630ba4610555c3a": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
+      },
       "S_a70b257e32e5c1e4": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -3147,12 +3262,6 @@
       "S_aac005ebd51395b6": {
         "items": {
           "$ref": "#/components/schemas/S_301e1fa385dc5492"
-        },
-        "type": "array"
-      },
-      "S_aacb16a4cf8314d7": {
-        "items": {
-          "$ref": "#/components/schemas/S_73d87709de36c2d3"
         },
         "type": "array"
       },
@@ -3272,6 +3381,120 @@
         ],
         "type": "object"
       },
+      "S_b05fc5f300b2c70a": {
+        "additionalProperties": false,
+        "properties": {
+          "actualPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "actualWeightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "billType": {
+            "$ref": "#/components/schemas/S_84416bdec6dc8082"
+          },
+          "businessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "contactId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "containerNo": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "customerCode": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "customerName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "effectiveBusinessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_2ec451924b02dcb8"
+          },
+          "orderNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "planVersion": {
+            "$ref": "#/components/schemas/S_614bcf3353ba29cc"
+          },
+          "plannedPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "plannedWeightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "scanClosedAt": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "scanPackages": {
+            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          },
+          "scanWeightGrams": {
+            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          },
+          "shipToAddress": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "shipToName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "shipToPhone": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "status": {
+            "$ref": "#/components/schemas/S_6c1ea734b7eea9f4"
+          },
+          "vehicleId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "vehicleNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseCode": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          }
+        },
+        "required": [
+          "id",
+          "orderNo",
+          "customerName",
+          "customerCode",
+          "warehouseCode",
+          "billType",
+          "containerNo",
+          "vehicleNo",
+          "memo",
+          "status",
+          "scanClosedAt",
+          "revision",
+          "planVersion",
+          "createdAt",
+          "businessDate",
+          "effectiveBusinessDate",
+          "plannedPackages",
+          "plannedWeightGrams",
+          "scanPackages",
+          "scanWeightGrams",
+          "actualPackages",
+          "actualWeightGrams"
+        ],
+        "type": "object"
+      },
       "S_b0abd84f5b3e9f3c": {
         "additionalProperties": false,
         "properties": {
@@ -3327,6 +3550,31 @@
         ],
         "type": "string"
       },
+      "S_b2a00ce9187a59fc": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_607fe21f39b9c23b"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_b4685c29266fd612": {
         "const": "OK",
         "type": "string"
@@ -3372,6 +3620,12 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_b72b09d82f96822a": {
+        "items": {
+          "$ref": "#/components/schemas/S_f152047539781de8"
+        },
+        "type": "array"
       },
       "S_b7818949210d0753": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -3475,6 +3729,12 @@
           }
         ]
       },
+      "S_bc88abc31aa7c26a": {
+        "maxLength": 80,
+        "minLength": 1,
+        "pattern": "^[a-zA-Z0-9_-]+$",
+        "type": "string"
+      },
       "S_bcde375ebd4cbacf": {
         "type": "null"
       },
@@ -3507,6 +3767,11 @@
           "weightGrams"
         ],
         "type": "object"
+      },
+      "S_bf74a49f4d971832": {
+        "maximum": 4294967294,
+        "minimum": 0,
+        "type": "integer"
       },
       "S_c2181492282bb5ac": {
         "anyOf": [
@@ -3576,6 +3841,12 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_c47beab73840a0f5": {
+        "items": {
+          "$ref": "#/components/schemas/S_b05fc5f300b2c70a"
+        },
+        "type": "array"
       },
       "S_c52c8fe06d2e8c09": {
         "items": {
@@ -3984,132 +4255,6 @@
         ],
         "type": "object"
       },
-      "S_d3fcb8c16ea749dd": {
-        "additionalProperties": false,
-        "properties": {
-          "actualPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "actualWeightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "billType": {
-            "$ref": "#/components/schemas/S_84416bdec6dc8082"
-          },
-          "businessDate": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "contactId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "containerNo": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "corrections": {
-            "$ref": "#/components/schemas/S_760e547f0d2a912c"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "customerCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "customerName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "digest": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "facts": {
-            "$ref": "#/components/schemas/S_c52c8fe06d2e8c09"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "lines": {
-            "$ref": "#/components/schemas/S_c32234c7916979d0"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_2ec451924b02dcb8"
-          },
-          "orderNo": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "planVersion": {
-            "$ref": "#/components/schemas/S_614bcf3353ba29cc"
-          },
-          "plannedPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "plannedWeightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "revision": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "scanClosedAt": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "scanPackages": {
-            "$ref": "#/components/schemas/S_28b5e739e258abe6"
-          },
-          "scanWeightGrams": {
-            "$ref": "#/components/schemas/S_28b5e739e258abe6"
-          },
-          "shipToAddress": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "shipToName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "shipToPhone": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "status": {
-            "$ref": "#/components/schemas/S_6c1ea734b7eea9f4"
-          },
-          "vehicleId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "vehicleNo": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "warehouseCode": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "warehouseName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          }
-        },
-        "required": [
-          "id",
-          "orderNo",
-          "customerName",
-          "customerCode",
-          "warehouseCode",
-          "billType",
-          "containerNo",
-          "vehicleNo",
-          "memo",
-          "status",
-          "scanClosedAt",
-          "revision",
-          "planVersion",
-          "createdAt",
-          "businessDate",
-          "plannedPackages",
-          "plannedWeightGrams",
-          "scanPackages",
-          "scanWeightGrams",
-          "actualPackages",
-          "actualWeightGrams",
-          "corrections",
-          "lines",
-          "facts",
-          "digest"
-        ],
-        "type": "object"
-      },
       "S_d531589f9288952e": {
         "enum": [
           "catalog",
@@ -4441,6 +4586,58 @@
           "other"
         ],
         "type": "string"
+      },
+      "S_f152047539781de8": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "afterDate": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "beforeDate": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "documentId": {
+            "$ref": "#/components/schemas/S_bc88abc31aa7c26a"
+          },
+          "documentKind": {
+            "$ref": "#/components/schemas/S_ec263776b1517059"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "operationId": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "previousCorrectionId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          }
+        },
+        "required": [
+          "id",
+          "documentKind",
+          "documentId",
+          "previousCorrectionId",
+          "beforeDate",
+          "afterDate",
+          "reason",
+          "actor",
+          "operationId",
+          "createdAt",
+          "revision"
+        ],
+        "type": "object"
       },
       "S_f36b924a373c642e": {
         "items": {
@@ -8777,7 +8974,7 @@
                       "properties": {
                         "items": {
                           "items": {
-                            "$ref": "#/components/schemas/S_9ce18707092f79cd"
+                            "$ref": "#/components/schemas/S_64bbc1208d406374"
                           },
                           "type": "array"
                         },
@@ -9016,7 +9213,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_3dd1eb0e431db377"
+                  "$ref": "#/components/schemas/S_33190874a55871d0"
                 }
               }
             },
@@ -9142,7 +9339,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_3dd1eb0e431db377"
+                  "$ref": "#/components/schemas/S_33190874a55871d0"
                 }
               }
             },
@@ -9430,7 +9627,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_3dd1eb0e431db377"
+                  "$ref": "#/components/schemas/S_33190874a55871d0"
                 }
               }
             },
@@ -9804,6 +10001,274 @@
           }
         ],
         "summary": "只更正包数/吨数；原单版本互斥，历史/成环/盘点/负库存拒绝；原子写流水审计幂等",
+        "x-client-channel": "web"
+      }
+    },
+    "/inbound/{id}/date-corrections": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_0669cba1ec24c3ea"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "查询全部日期更正记录、独立版本与当前有效业务日期",
+        "x-client-channel": "web"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_1094ae897a1eea96"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_97074ba8c8e6d248"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "追加已入账业务日期更正；独立版本互斥与幂等，不改原日期或库存",
         "x-client-channel": "web"
       }
     },
@@ -15088,7 +15553,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_92d5fd270faa13bc"
+                  "$ref": "#/components/schemas/S_059d9b0c84d37163"
                 }
               }
             },
@@ -15277,7 +15742,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -15403,7 +15868,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -15622,7 +16087,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -15910,7 +16375,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -16054,7 +16519,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -16431,6 +16896,274 @@
         "x-client-channel": "web"
       }
     },
+    "/outbound/{id}/date-corrections": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_0669cba1ec24c3ea"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "查询全部日期更正记录、独立版本与当前有效业务日期",
+        "x-client-channel": "web"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_1094ae897a1eea96"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_97074ba8c8e6d248"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "追加已入账业务日期更正；独立版本互斥与幂等，不改原日期或库存",
+        "x-client-channel": "web"
+      }
+    },
     "/outbound/{id}/lifecycle": {
       "get": {
         "parameters": [
@@ -16655,7 +17388,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -18049,7 +18782,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -18793,7 +19526,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -18955,7 +19688,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -20336,7 +21069,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_92d5fd270faa13bc"
+                  "$ref": "#/components/schemas/S_059d9b0c84d37163"
                 }
               }
             },
@@ -20462,7 +21195,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -20903,7 +21636,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -21047,7 +21780,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_96264323230db45d"
+                  "$ref": "#/components/schemas/S_b2a00ce9187a59fc"
                 }
               }
             },
@@ -26585,6 +27318,9 @@
                               "billType": {
                                 "$ref": "#/components/schemas/S_c2181492282bb5ac"
                               },
+                              "businessDate": {
+                                "$ref": "#/components/schemas/S_159887cb35a9898b"
+                              },
                               "confirmationOperationId": {
                                 "$ref": "#/components/schemas/S_f9c271fd8743901f"
                               },
@@ -26608,6 +27344,9 @@
                               },
                               "deliveryPhone": {
                                 "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "effectiveBusinessDate": {
+                                "$ref": "#/components/schemas/S_159887cb35a9898b"
                               },
                               "id": {
                                 "$ref": "#/components/schemas/S_8be39a00885cebc9"
@@ -26670,6 +27409,8 @@
                               "memo",
                               "createdBy",
                               "createdAt",
+                              "businessDate",
+                              "effectiveBusinessDate",
                               "packages",
                               "weightGrams",
                               "products",
@@ -27000,6 +27741,9 @@
                                   }
                                 ]
                               },
+                              "businessDate": {
+                                "$ref": "#/components/schemas/S_159887cb35a9898b"
+                              },
                               "containerNo": {
                                 "$ref": "#/components/schemas/S_174e29b899b9ef91"
                               },
@@ -27008,6 +27752,9 @@
                               },
                               "customerName": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "effectiveBusinessDate": {
+                                "$ref": "#/components/schemas/S_159887cb35a9898b"
                               },
                               "id": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
@@ -27056,6 +27803,8 @@
                               }
                             },
                             "required": [
+                              "businessDate",
+                              "effectiveBusinessDate",
                               "id",
                               "orderNo",
                               "billType",

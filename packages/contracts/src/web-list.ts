@@ -20,7 +20,7 @@ export const webMatchedTotalsSchema = z.strictObject({
 });
 export type WebMatchedTotals = z.infer<typeof webMatchedTotalsSchema>;
 export const webInboundRowSchema = inboundReceiptSchema
-  .omit({ lines: true, businessDate: true, corrections: true })
+  .omit({ lines: true, corrections: true })
   .extend({
     products: z.array(z.string()),
     productModels: z.array(z.string()),
@@ -29,6 +29,8 @@ export const webInboundRowSchema = inboundReceiptSchema
   })
   .strict();
 export const webOutboundRowSchema = z.strictObject({
+  businessDate: z.string().nullable().default(null),
+  effectiveBusinessDate: z.string().nullable().default(null),
   id: z.string(),
   orderNo: z.string(),
   billType: z.enum(['sales', 'sample', 'return', 'other']).nullable(),

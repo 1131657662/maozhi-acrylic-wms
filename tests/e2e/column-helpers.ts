@@ -42,6 +42,13 @@ export async function resizeColumn(page: Page, key: string, pixels: number) {
 
 export async function toggleColumn(page: Page, kind: string, label: string) {
   await page.getByTestId(`${kind}-list`).getByRole('img', { name: 'setting', exact: true }).click();
+  // Additional business columns may put the optional fields beyond the virtual tree's rendered window.
+  if ((await page.getByRole('treeitem').filter({ hasText: label }).count()) === 0)
+    await page.locator('.ant-tree-list-holder').evaluateAll((nodes) =>
+      nodes.forEach((node) => {
+        node.scrollTop = node.scrollHeight;
+      }),
+    );
   await page.getByRole('treeitem').filter({ hasText: label }).locator('.ant-tree-checkbox').click();
   await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
 }

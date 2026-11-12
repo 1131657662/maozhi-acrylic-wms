@@ -1,3 +1,4 @@
+import { DateCorrectionPanel } from '../date-corrections/panel';
 import { documentExtraCopy } from '@wms/contracts';
 import { RequestError } from '../../components/RequestError';
 import { Button, Result, Skeleton, Space, theme } from 'antd';
@@ -71,7 +72,7 @@ export function InboundDetail() {
               { title: '总重量（吨）', render: () => tonnes(data.weightGrams) },
               { title: '登记人', dataIndex: 'createdBy' },
               { title: '登记时间', render: () => formatTime(data.createdAt) },
-              { title: '业务日期', render: () => data.businessDate ?? '未记录' },
+              { title: '业务日期', render: () => data.effectiveBusinessDate ?? '未记录' },
               { title: '备注', dataIndex: 'memo', span: 3 },
             ]}
           />
@@ -87,6 +88,7 @@ export function InboundDetail() {
           {data.corrections && (
             <CorrectionSummaryPanel summary={data.corrections} number={data.receiptNo} createdAt={data.createdAt} />
           )}
+          <DateCorrectionPanel target={{ kind: 'inbound', id: data.id }} />
           <LifecyclePanel kind="inbound" id={data.id} />
           <ObjectAuditTimeline kind="inbound" id={data.id} />
           <CorrectionDetailActions

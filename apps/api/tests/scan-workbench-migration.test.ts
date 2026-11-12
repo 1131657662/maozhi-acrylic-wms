@@ -25,9 +25,12 @@ test('018 empty up/down/up restores schema; captures empty-fixture query plans',
 });
 
 test('018 down refuses new evidence before DDL without changing schema', async () => {
-  const c = await countingFixture('018_scan_workbench');
+  const c = await countingFixture();
   try {
     await c.post({ barcode: 'DEMO-032-11', productCode: 'ACR-032', source: 'manual' }).expect(200);
+    await migrateDown(c.db); // Empty 021 date corrections, then 020 and 019 before the intended 018 guard.
+    await migrateDown(c.db);
+    await migrateDown(c.db);
     const plan = await c.db.all("EXPLAIN SELECT id FROM scan_facts WHERE plan_id='DEMO-001' AND barcode='DEMO-032-11'");
     assert.equal(plan[0]?.key, 'fact_order_barcode');
     console.log('B4G_018 populated_lookup=' + JSON.stringify(plan));

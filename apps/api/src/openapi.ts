@@ -5,6 +5,7 @@ import { webListOperations } from './features/web-lists/openapi.ts';
 import { webExportOperations } from './features/web-exports/openapi.ts';
 import { lifecycleOperations } from './features/document-lifecycle/openapi.ts';
 import { correctionOperations } from './features/corrections/openapi.ts';
+import { dateCorrectionOperations } from './features/date-corrections/openapi.ts';
 import { stocktakeOperations } from './features/stocktake/openapi.ts';
 import { reportOperations } from './features/reports/openapi.ts';
 import { catalogOperations } from './features/catalog/openapi.ts';
@@ -94,6 +95,7 @@ export const operations: Operation[] = [
   ...listPreferencesOperations,
   ...masterOperations,
   ...correctionOperations,
+  ...dateCorrectionOperations,
   ...reportOperations,
   ...stocktakeOperations,
   ...lifecycleOperations,
