@@ -199,7 +199,7 @@ B5c-2 接口与迁移边界（2026-11-12）：
 - 发货记录的原量不改写。详情保留原量和更正链，发货列表返回原量、有效量及更正差额；待发、计划修改下限和 Web 列表/差异展示取有效量。撤销保留原发货与更正证据，抵消后的更正不再计入有效量。
 - 016 前本地确认若没有发货行，读取已入账原流水保留原量，NULL 更正不改绑到后来的补发；不重建历史发货记录。补发后原流水与新发货原量分别累计；若成功审计已记录过发货引用却缺发货记录，继续按证据损坏拒绝，不能冒充旧单兼容。
 - 整单撤销按库存流水顺序核对本单的全部发货与更正，允许本单两类事件交错；仍拒绝夹有其他库存动作或存在后续依赖的自动撤销。
-- 本轮 020 只在随机隔离测试库验证，不应用开发样本库；非空回退被拒时保留数据与结构，采用前向修复。
+- 020 实现验收阶段只在随机隔离测试库验证；用户验收后已授权并完成开发样本库应用，收尾证据见 §16.3。非空回退被拒时保留数据与结构，采用前向修复。
 
 本轮补充裁定统一定义：
 1. **状态与待发**：部分发货、已出库及已短关单均可更正；已撤销/已作废与历史导入单仍拒绝。已出库更正后任一行包或克有待发，转部分发货并同事务审计前后状态、原因“更正”；补满后按 §2 自动结单。部分发货更正后按待发重算状态，全部归零则结单。已短关更正后保持短关，只重算四列中的剩余包/克并写审计；原短关原因、短关时间、原完成时间保留，不重新开放发货。增发更正仍受非负库存约束。020 不增加状态相关列。
@@ -408,3 +408,31 @@ B5C2_PRE016 shipment_reference=NULL pending_after_correction=1 replenished=true 
 停止相关写入后，只有 `shipment_line_id` 全 NULL 才能执行 020 down；任何非空归属都保留证据并采用前向修复。应用版本也不能直接退回不支持发货行更正及有效量的旧版。没有执行样本库迁移、合并或推送。
 
 继续观察 §9.1 的同一订单行拆更正单频率；B5c-3 页面、B5d 重述、性能专项、实体设备与生产验收均未包含在本批结果中。外部 AGENTS.md 和 IMPLEMENTATION_PLAN.md 改动原样保留，不混入本批提交。
+
+### 16.3 开发样本库应用与收尾（2026-11-12）
+
+本节追加用户验收后的收尾结果，取代 §16.1–16.2 当时“未应用样本库、未合并”的执行状态；保留原验收历史。仅访问本机 `127.0.0.1:3307/maozhi_dev_sample`，未连接生产。应用前核对本地库身份、无既有样本库连接、001–019 全部 applied；先完整备份，再采集结构与业务数据指纹，应用 020 后再次比对。
+
+| 项目 | 原始结果 |
+|---|---|
+| 备份 | `.local/evidence/b5c-2-closeout/before-020-1794464750200.sql`，6,627,204 字节，mysqldump exit 0 |
+| 备份 SHA-256 | `ce0056b867c183862325e4b7ad65f509b750a0c182344112b0cd3f3745e45b56` |
+| 应用前结构 SHA-256 | `61f1ff2e96347ef9f633b657f9e30ec799c12c5efaedd9753ed55f59e56e4a0d` |
+| 应用后结构 SHA-256 | `43ae00a514216c3468eceb2aba798fb6bfdf4e4031a8f1b6d04ebd25470c6e41` |
+| 结构差异 | 仅 `document_correction_lines`：可空 `shipment_line_id`、索引及外键；表集合、触发器不变 |
+| 原有业务列指纹 | 全部一致；迁移状态表单独核对，不将新增列纳入旧列比较 |
+| 迁移 | `020_correction_shipment_line=applied`，exit 0；原有更正行 0，回填 0 |
+
+冒烟通过真实 Web 登录及 API 调用，独立启动当前版本本地 API，未直接修改库存。所有新建单据与业务证据留存，未改历史单据；本次是 API 冒烟，不声称新增浏览器、设备或生产验收。
+
+```text
+B5C2_SAMPLE_TARGET order=CK-20261112-005 shipments=40/60 missing_target=422 choices=2 selected_target=200 effective=40/40 originals_unchanged=true
+B5C2_SAMPLE_STATE order=CK-20261112-005 correction=-20 confirmed->partially_shipped remaining=20/6000000g original_completed_at_preserved=true
+B5C2_SAMPLE_SHORT order=CK-20261112-006 correction=-10 status=short_closed closed_remaining=10->20 closed_grams=6000000 pending=0 close_time_preserved=true
+B5C2_SAMPLE_REPORT day=2026-11-12 product=012 warehouse=WH002 report=165/49500000g ledger=165/49500000g equal=true
+B5C2_SAMPLE_STOCK new_orders=2 net_delta=-160/-48000000g retained=true exit=0
+```
+
+报表对账包含该日该商品/仓库全部出库流水（原有 5 包/1.5 吨 + 本次净实发 160 包/48 吨），不只比较本次新增单据。证据目录 `.local/evidence/b5c-2-closeout/` 包含 `backup.json`、`schema-before.json`、`schema-after.json`、`data-before.json`、`data-after-projection.json`、`migration-result.json`、`smoke.json` 和逐项冒烟输出。备份与原始数据不入 Git。
+
+外部文档分别原样提交 `3a58644`（AGENTS）与 `55ddd02`（计划）。`--no-ff` 合并为 `1841d2d18baeaa49009d45920762c93dbeafd6e0`，推送 exit 0，该次远端 HEAD 与 merge 一致。完整验证沿用本批已验收的 322/122/0，本次未重复运行。收尾记录另提交同步后停止，B5c-3 留新会话；未执行开发样本库 down，现有非空更正归属须保留并前向修复。
