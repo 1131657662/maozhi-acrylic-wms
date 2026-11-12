@@ -24,6 +24,7 @@ async function rowRect(list: Locator) {
 }
 
 async function selectText(page: Page, cell: Locator) {
+  await cell.evaluate((element) => element.scrollIntoView({ block: 'nearest', inline: 'center' }));
   const bounds = await cell.evaluate((element) => {
     const text = [...element.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)!;
     const range = document.createRange();

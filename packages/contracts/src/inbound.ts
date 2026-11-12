@@ -58,6 +58,7 @@ export const inboundReceiptSchema = z.object({
   createdBy: z.string(),
   createdAt: z.string(),
   businessDate: z.string().nullable().default(null),
+  effectiveBusinessDate: z.string().nullable().default(null),
   corrections: correctionSummarySchema.nullable().default(null),
   packages: z.number().int(),
   weightGrams: z.number().int(),

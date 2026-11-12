@@ -62,6 +62,8 @@ export const auditActions: Record<string, AuditActionDefinition> = {
   'stock.correct': entry('更正数量', 'correction', true),
   'business-date.inbound': entry('更正入库日期', 'inbound', true, ['businessDate']),
   'business-date.outbound': entry('更正出库日期', 'outbound', true, ['businessDate']),
+  'date-correction.inbound': entry('更正已入账入库日期', 'inbound', true, ['businessDate', 'reason']),
+  'date-correction.outbound': entry('更正已入账出库日期', 'outbound', true, ['businessDate', 'reason']),
   'master.create': entry('新增基础资料', 'master', false, ['name', 'active']),
   'master.update': entry('修改基础资料', 'master', false, ['name', 'active']),
   'contact.create': entry('新增联系人', 'contact', false, ['name']),

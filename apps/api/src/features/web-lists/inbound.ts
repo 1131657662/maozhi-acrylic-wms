@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { webInboundListSchema, SNAPSHOT_MISSING_TEXT, type WebInboundQuery } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
+import { effectiveBusinessDateSql } from '../date-corrections/projection.ts';
 import {
   aggregateGrams,
   dateFilter,
@@ -13,6 +14,7 @@ import {
 } from './query.ts';
 
 const fields = `r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
+  r.business_date AS businessDate,${effectiveBusinessDateSql('inbound', 'r')} AS effectiveBusinessDate,
   r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS supplierName,
   r.warehouse_code AS warehouseCode,COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,
   r.contact_id AS contactId,r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress,

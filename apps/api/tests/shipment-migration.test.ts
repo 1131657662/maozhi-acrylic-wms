@@ -76,7 +76,7 @@ test('016 upgrades existing correction rows without changing evidence and refuse
   }
 });
 test('016 nonempty down refuses before DDL and keeps structure and evidence', async () => {
-  const c = await fixture('018_scan_workbench');
+  const c = await fixture();
   try {
     const before = await getOrder(c.db, 'DEMO-001');
     await confirmOutbound(c.db, {
@@ -86,6 +86,9 @@ test('016 nonempty down refuses before DDL and keeps structure and evidence', as
       actor,
       lines: [{ lineId: before.lines[0]!.id, actualPackages: 1, actualWeightGrams: 200000 }],
     });
+    await migrateDown(c.db); // 021: no date corrections.
+    await migrateDown(c.db); // 020: no quantity corrections.
+    await migrateDown(c.db); // 019: no short-close evidence.
     await migrateDown(c.db); // 018: no counting provenance in this shipment-only fixture.
     await migrateDown(c.db);
     const fingerprints = await tableFingerprints(c.db);

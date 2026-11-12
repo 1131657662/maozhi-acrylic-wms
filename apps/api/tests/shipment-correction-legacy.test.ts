@@ -52,6 +52,7 @@ for (const replenish of [false, true])
         current = (await c.detail()).body.data;
         assert.equal(current.status, 'confirmed');
         assert.equal(current.corrections.effective.packages, original.actualPackages);
+        await migrateDown(c.db); // Empty 021, then the intended 020 migration.
         await migrateDown(c.db);
         await migrateUp(c.db);
         assert.equal(

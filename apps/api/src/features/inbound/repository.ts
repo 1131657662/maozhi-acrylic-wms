@@ -5,6 +5,7 @@ import { decimalToGrams } from '../../db/weight.ts';
 import { isoDate } from '../../db/dates.ts';
 import { AppError } from '../../shared/errors.ts';
 import { correctionSummary } from '../corrections/summary.ts';
+import { effectiveBusinessDateSql } from '../date-corrections/projection.ts';
 
 const headerSchema = inboundReceiptSchema.omit({ packages: true, weightGrams: true, lines: true });
 const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
@@ -14,7 +15,8 @@ const lineSchema = inboundReceiptSchema.shape.lines.element.extend({
 const headerSql = `SELECT r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
   r.confirmation_operation_id AS confirmationOperationId,r.supplier_code AS supplierCode,COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS supplierName,
   r.warehouse_code AS warehouseCode,COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,r.memo,r.created_by AS createdBy,r.created_at AS createdAt,
-  r.business_date AS businessDate,r.bill_type AS billType,r.container_no AS containerNo,r.source_id AS sourceId,r.contact_id AS contactId,
+  r.business_date AS businessDate,${effectiveBusinessDateSql('inbound', 'r')} AS effectiveBusinessDate,
+  r.bill_type AS billType,r.container_no AS containerNo,r.source_id AS sourceId,r.contact_id AS contactId,
   r.delivery_name AS deliveryName,r.delivery_phone AS deliveryPhone,r.delivery_address AS deliveryAddress
   FROM inbound_receipts r`;
 export async function getInbound(db: Database, id: string): Promise<InboundReceipt> {

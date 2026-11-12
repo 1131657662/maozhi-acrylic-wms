@@ -357,3 +357,33 @@ Q2 的 COALESCE 仅用于这条“把缺行视作零再比较”的诊断假设�
 修订记录：C04 更新B5a日期现状，补独立追加式日期更正模型。
 修订记录：C07 更正及抵消单列且不双计，明确重述归期/桥接/未知值及汇总算法。
 修订记录：C17 普通报表未知类型仅中文提示，原值遵守审计折叠区例外。
+
+## 11. B5d-1 已入账业务日期更正（2026-11-12）
+
+本批实现 §10 第 4 条：仅入/出库原单的追加式日期更正，复用 011 未入账 PATCH，不覆盖头表或发货记录日期，不改变报表入账归期、数量更正与库存。分支 `codex/b5d-1-date-corrections`，起点 `e6f277e`；实现提交 `feat(documents): append-only business date corrections`。初始停止边界已完成；用户验收后授权开发样本库应用及合并推送，见 §11.2。
+
+- 021 新建 `document_date_corrections`：UUID id、document_kind（inbound/outbound）、document_id VARCHAR(80)、可空 previous_correction_id、before_date/after_date DATE NOT NULL、reason VARCHAR(500)、actor VARCHAR(80)、唯一 operation_id UUID、created_at DATETIME(3)、revision INT UNSIGNED。按种类/原单/时间索引，原单/版本唯一，前序外键防悬空。原单归属在事务中按 kind/id 锁定校验；operation_id 为日期更正操作标识，不引用库存操作。下迁移在任何 DDL 与迁移状态变化前拒绝非空表。
+- POST `/{inbound|outbound}/:id/date-corrections`：afterDate、reason、expectedRevision、backdateConfirmed；使用既有 Idempotency-Key。锁原单后读取当前日期链，初始版本 0，每次追加递增，before_date 自动取最新 after_date（首次取头表 business_date）。版本不符 409，同键同正文返回原结果，不重复审计；更正、审计及幂等结果同事务提交，不写库存表/流水/操作，不改头表。
+- 入库须已确认入账；出库须有真实入账证据（部分发货/已出库/已短关均可）。历史来源、作废/撤销拒绝 422；未入账 422 提示使用未入账业务日期修改。原日期 NULL 优先返回 422「该单无原始业务日期（历史单据），不支持日期更正」，保留已有 NULL 与头表结构，不补录、不猜日期。日期不晚于上海今天；早于今天减三个日历月（月底截断）需显式确认。
+- GET 同路径返回全部日期更正记录、当前有效日期、原日期、独立日期更正 revision 与可操作状态。详情保留 businessDate 原值，增加 effectiveBusinessDate；列表与详情展示有效日期，详情可展开原始日期与历史（前值→后值、原因、操作人、时间）。详情「更多」提供符合资格的「更正业务日期」，抽屉显示当前日期、新日期、原因与提交，超期二次确认；失败保留输入，重试沿用同键同正文。
+- 验证覆盖两方向成功且头表/库存不变、未入账/未来/超期未确认/作废/撤销/历史/NULL audited 拒绝、超期确认成功、版本冲突、幂等重放、两次链式更正；补并发、审计失败回滚及 021 空库往返/非空拒绝测试。复用隔离 E2E 数据，1440/1280 界面证据仅存 `.local/evidence/`，不代表实体设备或生产验收。
+
+### 11.1 实现与验证记录
+
+- 代码：021 表及 UPDATE/DELETE 不可变触发器、空表回退/非空拒绝守卫；两类单据 POST/GET、日期链、有效日期读模型、中文审计与 OpenAPI 已实现。确认入账/首次发货/撤销后刷新日期权限，避免详情页继续显示旧入口。
+- 本批 API 定向 9/9，通过跨月更正前后出入库明细与月度汇总完全一致的断言；头表、库存、库存流水、库存操作均不变。NULL audited 拒绝场景在独立测试库复现，未读取或改写开发样本库。
+- 021 及既有迁移回归：021 空表 up/down/up 结构一致；不可变触发器拒绝 UPDATE/DELETE；非空 down 在任何 DDL 前拒绝，业务指纹不变；最新日期查询使用 date_correction_version 索引。旧 016/018/020 测试明确目标编号，使用当前 API 的用例先建最新结构再回退验证，不引入运行时兼容降级。
+- `npm run test`：333/333，fail 0，exit 0，日志 `.local/evidence/b5d-1-test-final.log`。`npm run build`：类型检查与 Web 构建 exit 0，日志 `.local/evidence/b5d-1-build-final.log`。
+- 日期界面定向 6/6：入/出库更正、超期确认、原日期与历史/列表有效日期、响应丢失原键重试、过期版本保留输入、同页入账后入口显示/撤销后隐藏；日志 `.local/evidence/b5d-1-ui-state-final.log`。截图 `.local/evidence/b5d-1-{inbound,outbound}-{drawer,history}-{1440,1280}.png`，两宽度页面无横向溢出；补等待确认框关闭后抽屉恢复可编辑，避免截到过渡状态。
+- `npm run test:e2e`：134/134（主套件 125 + 目录套件 9），两套件均零失败、命令 exit 0，日志 `.local/evidence/b5d-1-e2e-passed.log`。新增业务日期列使旧列设置测试中的「商品型号」移出虚拟树初始可视区，并使旧文本拖选目标移出表格可视区；仅补测试辅助函数的滚动交互，保留列宽/显隐/重排/文本选择断言与原测试数据来源。文本选择定向 4/4，且在最终完整套件中再次通过。
+- 提交前审查覆盖路由鉴权/同源、参数化 SQL、事务与版本锁、幂等与审计、历史边界、缓存刷新及契约接线；Ant Design lint 0 issues，改动源码 Prettier 与 git diff --check 通过。未引入依赖、未改变报表 SQL/库存写入链；仅本地自动化/浏览器验证，不代表现场或生产验收。
+
+### 11.2 验收收尾（2026-11-12）
+
+用户已验收通过，授权仅对 `127.0.0.1:3307/maozhi_dev_sample` 备份、记录全表指纹、应用 021 并执行日期更正冒烟。使用既有本地合成已入账单；原单、历史 NULL 单与库存流水不得改写。完成后更新 333/134/0、以 `merge: b5d-1 date corrections` no-ff 合并推送 master，然后停止，B5d-2 必须换新会话。
+
+- 备份：`.local/backups/maozhi-1794484828219.sql`，6,680,123 字节；SHA-256 `1f56f24a502a6fde45a5c9e50dbfcdef7e1c1b39368fe7dad3f4ae5a7d942e49`。迁移前 49 张表指纹见 `.local/evidence/b5d-1-closeout-before.json`。
+- 021 应用：首次用 wms_dev 因 binlog 下创建触发器缺 SUPER 权限而 exit 1，停在 applying；确认新表为空、无触发器、checksum 正确及既有表指纹不变后，使用同一 3307 实例的本地 root 连接完成两条缺失触发器并将状态置 applied，再由 migrateUp 完整校验，最终 exit 0。未改全局参数、未授予应用账号额外权限、未删除业务数据；48 张既有业务表指纹不变，证据 `.local/evidence/b5d-1-closeout-migration.json`。
+- 开发库 API + 浏览器冒烟 exit 0：`RK-20261111-001` 原日期 2026-11-11，有效日期更正为 2026-11-10；`CK-20261112-004` 原日期 2026-11-12，有效日期更正为 2026-11-11。头表全字段不变，详情及浏览器列表均显示更正后的有效日期，追加两条更正和对应审计。
+- 两方向未入账单均 422 提示走未入账日期修改，audited/NULL 旧单均 422 返回指定提示，单据与更正表不变。库存流水 839→839，库存/库存操作/扫码及原单表指纹均不变。证据 `.local/evidence/b5d-1-closeout-smoke.json`、同名 `.log`。仅开发样本库验收，不代表生产验收；临时开发服务已停止。
+- 自动化结果保持 333/134/0（test 333、完整 E2E 134、失败 0；build exit 0），本轮无业务代码变化。收尾文档提交后按授权 no-ff 合并推送，合并 hash 与远端 HEAD 在最终回复报告。B5d-1 完成；B5d-2 换新会话。

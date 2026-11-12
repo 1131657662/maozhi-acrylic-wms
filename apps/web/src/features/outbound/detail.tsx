@@ -1,3 +1,4 @@
+import { DateCorrectionPanel } from '../date-corrections/panel';
 import { ExportOutlined } from '@ant-design/icons';
 import { documentExtraCopy } from '@wms/contracts';
 import { Link, useParams } from '@umijs/max';
@@ -73,7 +74,7 @@ export function OrderDetail() {
             { title: '地址', render: () => snapshotText(order.shipToAddress) },
 
             { title: '建单时间', dataIndex: 'createdAt', render: () => formatTime(order.createdAt) },
-            { title: '业务日期', render: () => order.businessDate ?? '未记录' },
+            { title: '业务日期', render: () => order.effectiveBusinessDate ?? '未记录' },
           ]}
         />
       </Card>
@@ -82,6 +83,7 @@ export function OrderDetail() {
       {order.corrections && (
         <CorrectionSummaryPanel summary={order.corrections} number={order.orderNo} createdAt={order.createdAt} />
       )}
+      <DateCorrectionPanel target={{ kind: 'outbound', id: order.id }} />
       <LifecyclePanel kind="outbound" id={order.id} />
       <ObjectAuditTimeline kind="outbound" id={order.id} />
       <CorrectionDetailActions

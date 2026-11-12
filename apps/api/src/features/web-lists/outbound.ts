@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { webOutboundListSchema, SNAPSHOT_MISSING_TEXT, type WebOutboundQuery } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
+import { effectiveBusinessDateSql } from '../date-corrections/projection.ts';
 import {
   aggregateGrams,
   dateFilter,
@@ -14,6 +15,7 @@ import {
 } from './query.ts';
 
 const fields = `o.id,o.order_no AS orderNo,o.customer_name AS customerName,o.warehouse_code AS warehouseCode,
+  o.business_date AS businessDate,${effectiveBusinessDateSql('outbound', 'o')} AS effectiveBusinessDate,
   COALESCE(NULLIF(o.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}') AS warehouseName,o.ship_to_name AS shipToName,o.ship_to_phone AS shipToPhone,o.ship_to_address AS shipToAddress,
   o.bill_type AS billType,o.container_no AS containerNo,o.vehicle_no AS vehicleNo,o.status,o.created_at AS createdAt`;
 const sortColumns = {

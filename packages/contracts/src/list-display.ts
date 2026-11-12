@@ -66,6 +66,7 @@ export const listFields: Record<ExportKind, ListField[]> = {
   ...reportFields,
   inbound: [
     f('receiptNo', '入库单号'),
+    f('effectiveBusinessDate', '业务日期'),
     f('billType', documentExtraCopy.billType),
     f('packages', '包数', 'integer', 12),
     f('weightGrams', '总重量（吨）', 'tonnes', 18),
@@ -83,6 +84,7 @@ export const listFields: Record<ExportKind, ListField[]> = {
   ],
   outbound: [
     f('orderNo', '出库单号'),
+    f('effectiveBusinessDate', '业务日期'),
     f('billType', documentExtraCopy.billType),
     ...[f('products', '商品明细'), f('productModels', '商品型号')].map((field) => ({ ...field, defaultHidden: true })),
     f('plannedPackages', '计划包数', 'integer', 14),

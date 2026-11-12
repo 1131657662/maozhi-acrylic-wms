@@ -6,6 +6,7 @@ import { scanSourceSchema, scanAttributionSchema } from './scan-workbench.ts';
 export * from './scan-workbench.ts';
 export * from './outbound-shipments.ts';
 export * from './business-date.ts';
+export * from './date-corrections.ts';
 export * from './document-types.ts';
 export * from './corrections.ts';
 export * from './catalog.ts';
@@ -102,6 +103,7 @@ export const orderSchema = z.object({
   planVersion: z.literal(1),
   createdAt: z.string(),
   businessDate: z.string().nullable().default(null),
+  effectiveBusinessDate: z.string().nullable().default(null),
   plannedPackages: z.number().int(),
   plannedWeightGrams: z.number().int(),
   scanPackages: z.number().int().nullable().default(null),
