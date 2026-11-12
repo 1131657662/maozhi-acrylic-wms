@@ -66,11 +66,11 @@ test('B4g 清点三通道、人工归属、撤销与导出一致，带入可改�
     expect(book.worksheets[0]!.getColumn(1).values).not.toContain(barcodes[2]);
     await drawer.getByRole('button', { name: '带入实发', exact: true }).click();
     await expect(drawer).toHaveCount(0);
-    await expect(page.getByRole('spinbutton', { name: '实发包数 1' })).toHaveValue('2');
-    await page.getByRole('spinbutton', { name: '实发包数 1' }).fill('1');
-    await page.getByRole('spinbutton', { name: '实发吨数 1' }).fill('0.3');
-    await page.getByRole('button', { name: '核对并确认出库', exact: true }).click();
-    await page.getByRole('dialog').getByRole('button', { name: '确认出库', exact: true }).click();
+    await expect(page.getByRole('spinbutton', { name: '本次实发包数 1' })).toHaveValue('2');
+    await page.getByRole('spinbutton', { name: '本次实发包数 1' }).fill('1');
+    await page.getByRole('spinbutton', { name: '本次实发吨数 1' }).fill('0.3');
+    await page.getByRole('button', { name: '确认本次发货', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: '确认发货', exact: true }).click();
     await expect(page.getByText('部分发货', { exact: true }).first()).toBeVisible();
     await page.getByRole('button', { name: '清点工作台', exact: true }).click();
     await expect(drawer.getByLabel('条码或片段', { exact: true })).toHaveCount(0);

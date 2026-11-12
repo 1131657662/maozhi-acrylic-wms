@@ -1,8 +1,9 @@
+import { ExportOutlined } from '@ant-design/icons';
 import { documentExtraCopy } from '@wms/contracts';
 import { Link, useParams } from '@umijs/max';
-import { Alert, Button, Card, Skeleton, Space } from 'antd';
-import { ProDescriptions, ProTable, type ProColumns } from '@ant-design/pro-components';
-import { billTypeText, tonnes, snapshotText, type Detail } from '@wms/contracts';
+import { Alert, Button, Card, Skeleton, Space, Tag, theme } from 'antd';
+import { ProDescriptions } from '@ant-design/pro-components';
+import { billTypeText, snapshotText } from '@wms/contracts';
 import { useOrder } from './use-order';
 import { StatusNotice, StatusTag } from '../../components/StatusTag';
 import { Facts } from './facts';
@@ -13,8 +14,10 @@ import { LifecyclePanel } from '../document-lifecycle/panel';
 import { CorrectionSummaryPanel } from '../corrections/summary';
 import { CorrectionDetailActions } from '../corrections/detail-actions';
 import { ObjectAuditTimeline } from '../audit/events';
+import { shipmentCopy } from './shipment-copy';
 
 export function OrderDetail() {
+  const { token } = theme.useToken();
   const { id = '' } = useParams();
   const { data: order, isLoading: isLoadingOrder, error: orderError, refetch: reloadOrder } = useOrder(id);
   if (isLoadingOrder) return <Skeleton active />;
@@ -26,20 +29,16 @@ export function OrderDetail() {
         action={<Button onClick={() => void reloadOrder()}>重试</Button>}
       />
     );
-  const lineColumns: ProColumns<Detail['lines'][number]>[] = [
-    { title: '商品', render: (_, line) => `${line.productName}（${line.productCode}）` },
-    { title: '计划包数', dataIndex: 'plannedPackages' },
-    { title: '计划重量（吨）', render: (_, line) => tonnes(line.plannedWeightGrams) },
-    { title: documentExtraCopy.contractNo, render: (_, line) => snapshotText(line.contractNo) },
-    { title: documentExtraCopy.lineMemo, render: (_, line) => snapshotText(line.memo) },
-  ];
   return (
-    <section>
+    <section style={{ display: 'flex', flexDirection: 'column', gap: token.marginMD }}>
       <ListBackLink fallback="/">← 返回出库工作台</ListBackLink>
       <div className="page-title">
         <div>
           <span className="eyebrow">出库详情</span>
-          <h1>{order.orderNo}</h1>
+          <h1>
+            <ExportOutlined aria-hidden style={{ fontSize: token.fontSizeLG, marginInlineEnd: token.marginXS }} />
+            {order.orderNo}
+          </h1>
         </div>
         <Space>
           {order.status === 'open' && (
@@ -47,33 +46,16 @@ export function OrderDetail() {
               <Button>编辑计划</Button>
             </Link>
           )}
-          <StatusTag status={order.status} />
+          {order.status === 'open' ? (
+            <Tag color="processing" data-testid="status-tag">
+              {shipmentCopy.plannedStatus}
+            </Tag>
+          ) : (
+            <StatusTag status={order.status} />
+          )}
         </Space>
       </div>
       <StatusNotice status={order.status} kind="outbound" />
-      <div className="metrics">
-        <Card>
-          <small>计划包数 / 实发包数</small>
-          <h2>
-            {order.plannedPackages} / {order.corrections?.effective.packages ?? order.actualPackages}
-            <small> 包</small>
-          </h2>
-        </Card>
-        <Card>
-          <small>计划重量</small>
-          <h2>
-            {tonnes(order.plannedWeightGrams)}
-            <small> 吨</small>
-          </h2>
-        </Card>
-        <Card>
-          <small>实发重量</small>
-          <h2>
-            {tonnes(order.corrections?.effective.weightGrams ?? order.actualWeightGrams)}
-            <small> 吨</small>
-          </h2>
-        </Card>
-      </div>
       <Card>
         <ProDescriptions
           title="出库信息"
@@ -95,16 +77,7 @@ export function OrderDetail() {
           ]}
         />
       </Card>
-      <ProTable<Detail['lines'][number]>
-        rowKey="id"
-        headerTitle="商品明细"
-        columns={lineColumns}
-        dataSource={order.lines}
-        search={false}
-        options={false}
-        pagination={false}
-      />
-      <Confirm key={`${order.id}:${order.status}`} order={order} />
+      <Confirm key={order.id} order={order} />
       <Facts order={order} />
       {order.corrections && (
         <CorrectionSummaryPanel summary={order.corrections} number={order.orderNo} createdAt={order.createdAt} />
@@ -112,6 +85,7 @@ export function OrderDetail() {
       <LifecyclePanel kind="outbound" id={order.id} />
       <ObjectAuditTimeline kind="outbound" id={order.id} />
       <CorrectionDetailActions
+        primary={order.status !== 'partially_shipped'}
         kind="outbound"
         id={order.id}
         number={order.orderNo}

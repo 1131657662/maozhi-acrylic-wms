@@ -5,6 +5,7 @@ import { getOrder } from '../outbound/repository.ts';
 import { remainingTotal } from './policy.ts';
 import { shipmentBasis } from '../corrections/shipment-basis.ts';
 import { effectiveShipment } from '../corrections/effective.ts';
+import { shipmentDisplay } from './display.ts';
 
 export async function shipmentList(db: Database, id: string) {
   return db.readSnapshot(async (tx) => {
@@ -34,6 +35,8 @@ export async function shipmentList(db: Database, id: string) {
       ? { packages: 0, weightGrams: 0 }
       : remainingTotal(order);
     return shipmentListSchema.parse({
+      ...shipmentDisplay(order),
+      nextSeq: Number(headers.at(-1)?.seq ?? 0) + 1,
       items: headers.map((row) => ({
         id: row.id,
         seq: Number(row.seq),
@@ -41,6 +44,18 @@ export async function shipmentList(db: Database, id: string) {
         shippedAt: isoDate(row.shipped_at),
         businessDate: row.business_date,
         operator: row.operator,
+        packages: lines
+          .filter((line) => line.shipment_id === row.id)
+          .reduce((sum, line) => sum + Number(line.packages), 0),
+        weightGrams: lines
+          .filter((line) => line.shipment_id === row.id)
+          .reduce((sum, line) => sum + Number(line.weight_grams), 0),
+        effectivePackages: lines
+          .filter((line) => line.shipment_id === row.id)
+          .reduce((sum, line) => sum + quantities.get(String(line.id))!.effective.packages, 0),
+        effectiveWeightGrams: lines
+          .filter((line) => line.shipment_id === row.id)
+          .reduce((sum, line) => sum + quantities.get(String(line.id))!.effective.weightGrams, 0),
         lines: lines
           .filter((line) => line.shipment_id === row.id)
           .map((line) => ({

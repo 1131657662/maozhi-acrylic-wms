@@ -47,6 +47,6 @@ export function validateOverages(order: Detail, lines: ActualQuantity[]): void {
   if (missing.length)
     throw new AppError('OVERAGE_REASON_REQUIRED', '超过待发数量，请填写对应行的溢发原因', 422, {
       lines: missing,
-      fields: missing.map((line) => ({ path: `lines.${line.index}.overageReason`, message: '溢发原因必填' })),
+      fields: missing.map((line) => ({ path: ['lines', line.index, 'overageReason'], message: '溢发原因必填' })),
     });
 }

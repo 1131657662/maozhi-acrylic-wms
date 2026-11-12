@@ -1,121 +1,57 @@
 import { useState } from 'react';
-import { App, Alert, Button, Card, Form, Space } from 'antd';
+import { Alert, Button, Card, Flex, Skeleton } from 'antd';
+import type { Detail, ShipmentList } from '@wms/contracts';
 import { Workbench } from '../scan-workbench/workbench';
-import { type Detail, type ActualQuantity, outboundPrefillSchema } from '@wms/contracts';
 import { RequestError } from '../../components/RequestError';
-import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
-import { useFormDraft } from '../../components/form-protection/use-form-draft';
-import { formCopy } from '../../components/form-protection/copy';
-import { useFormErrors } from '../../components/use-form-errors';
-import { request } from '../../api/client';
-import { tonnesDeltaToGrams } from '../../lib/weight-input';
-import { useConfirm } from './use-confirm';
-import { ActualLines, type ActualForm } from './actual-lines';
-import { ActualConfirmContent } from './actual-confirm-content';
-import { actualText as text } from './actual-text';
+import { ActualLines } from './actual-lines';
+import { useShipments } from './use-shipments';
+import { ShipmentEntry } from './shipment-entry';
+import { ShipmentMetrics } from './shipment-metrics';
+import { ShipmentCloseActions } from './shipment-close-actions';
+import { ShipmentRecords } from './shipment-records';
+import { shipmentCopy as text } from './shipment-copy';
 
 export function Confirm({ order }: { order: Detail }) {
-  const modal = useLockedConfirm();
-  const { message } = App.useApp();
-  const [form] = Form.useForm<ActualForm>();
-  const draft = useFormDraft(form, 'outbound-actual', order.id);
-  const [prefilling, setPrefilling] = useState(false);
-  const [prefillError, setPrefillError] = useState<unknown>();
-  const { mutateAsync: confirm, isPending: isConfirming, error: confirmError } = useConfirm(draft.saved);
-  useFormErrors(confirmError, form);
-  const editable = ['open', 'frozen'].includes(order.status);
+  const { data: shipments, error: shipmentError, refetch: reload } = useShipments(order.id);
+  const [entry, setEntry] = useState<ShipmentList | null>(null);
+  if (!shipments)
+    return shipmentError ? <RequestError error={shipmentError} retry={() => void reload()} /> : <Skeleton active />;
+  const editable =
+    ['open', 'partially_shipped'].includes(shipments.status) && ['open', 'partially_shipped'].includes(order.status);
+  const stale = entry && (entry.revision !== shipments.revision || entry.digest !== shipments.digest);
   async function prefill() {
-    setPrefilling(true);
-    setPrefillError(undefined);
-    try {
-      const result = await request(`/outbound/${order.id}/prefill`, outboundPrefillSchema);
-      form.setFieldsValue({
-        lines: order.lines.map((line) => {
-          const scan = result.lines.find((item) => item.lineId === line.id)!;
-          return { actualPackages: scan.scanPackages, actualWeightTonnes: scan.scanWeightGrams / 1_000_000 };
-        }),
-      });
-      draft.change();
-      return true;
-    } catch (error) {
-      setPrefillError(error);
-      return false;
-    } finally {
-      setPrefilling(false);
-    }
-  }
-  async function ask() {
-    let values: ActualForm;
-    try {
-      values = await form.validateFields();
-    } catch {
-      return;
-    }
-    const lines: ActualQuantity[] = values.lines.map((line, index) => ({
-      lineId: order.lines[index]!.id,
-      actualPackages: line.actualPackages!,
-      actualWeightGrams: tonnesDeltaToGrams(line.actualWeightTonnes!),
-    }));
-    if (lines.every((line) => !line.actualPackages && !line.actualWeightGrams)) {
-      void message.warning(text.allZero);
-      return;
-    }
-    modal.confirm({
-      title: text.titleConfirm,
-      content: <ActualConfirmContent order={order} lines={lines} />,
-      okText: text.confirm,
-      cancelText: text.cancel,
-      onOk: async () => {
-        await confirm({ order, lines });
-      },
-    });
+    const result = await reload();
+    if (!result.data || result.error || !['open', 'partially_shipped'].includes(result.data.status)) return false;
+    setEntry(result.data);
+    return true;
   }
   return (
-    <Card
-      title={text.title}
-      extra={
-        <Space>
-          <Workbench order={order} prefill={prefill} />
-          {editable && (
-            <Button onClick={() => void prefill()} loading={prefilling} disabled={modal.busy}>
-              {text.prefill}
-            </Button>
-          )}
-        </Space>
-      }
-    >
-      <Form
-        form={form}
-        initialValues={{
-          lines: order.lines.map((line) => ({
-            actualPackages: line.scanPackages ?? undefined,
-            actualWeightTonnes: line.scanWeightGrams == null ? undefined : line.scanWeightGrams / 1_000_000,
-          })),
-        }}
-        onValuesChange={draft.change}
+    <Flex vertical gap="middle">
+      <ShipmentMetrics data={shipments} />
+      {shipmentError && <RequestError error={shipmentError} retry={() => void reload()} />}
+      <Card
+        title={text.title}
+        extra={
+          <Flex gap="small" wrap>
+            {!entry && <Workbench order={order} prefill={prefill} />}
+            {editable && !entry && <Button onClick={() => void prefill()}>{text.prefill}</Button>}
+            {editable && !entry && (
+              <Button type="primary" onClick={() => setEntry(shipments)}>
+                {text.start}
+              </Button>
+            )}
+          </Flex>
+        }
       >
-        {editable && <Alert type="info" title={text.review} />}
-        <ActualLines order={order} form={form} editable={editable} />
-        {Boolean(confirmError || prefillError) && <RequestError error={confirmError || prefillError} />}
-        {editable ? (
-          <div className="confirm-bar">
-            <span>{text.notice}</span>
-            <Button
-              type="primary"
-              disabled={modal.busy || isConfirming}
-              loading={modal.busy || isConfirming}
-              onClick={() => void ask()}
-              onKeyDown={(event) => {
-                if (event.repeat) event.preventDefault();
-              }}
-            >
-              {modal.busy || isConfirming ? formCopy.submitting : text.ask}
-            </Button>
-          </div>
+        {stale && <Alert type="warning" title={text.stale} />}
+        {entry ? (
+          <ShipmentEntry id={order.id} snapshot={entry} close={() => setEntry(null)} />
         ) : (
-          order.status === 'confirmed' && <Button disabled>{text.done}</Button>
+          <ActualLines lines={shipments.lines} />
         )}
-      </Form>
-    </Card>
+      </Card>
+      {editable && !entry && <ShipmentCloseActions id={order.id} number={order.orderNo} data={shipments} />}
+      <ShipmentRecords data={shipments} />
+    </Flex>
   );
 }

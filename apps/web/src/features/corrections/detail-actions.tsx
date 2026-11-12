@@ -9,11 +9,13 @@ export function CorrectionDetailActions({
   id,
   number,
   allowed,
+  primary = true,
 }: {
   kind: CorrectionKind;
   id: string;
   number: string;
   allowed: boolean;
+  primary?: boolean;
 }) {
   const target = { kind, id },
     correction = useOpenCorrection(target);
@@ -21,7 +23,7 @@ export function CorrectionDetailActions({
     <Card title="单据操作" data-testid="document-bottom-actions">
       <Space>
         <Button
-          type={allowed ? 'primary' : 'default'}
+          type={allowed && primary ? 'primary' : 'default'}
           disabled={!allowed}
           loading={correction.loading}
           onClick={() => void correction.open()}

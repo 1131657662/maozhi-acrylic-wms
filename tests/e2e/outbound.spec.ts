@@ -63,9 +63,11 @@ test('Web 登录、详情核对与一次出库确认', async ({ page, request })
   await expect(page.getByText('0.3025', { exact: true })).toBeVisible();
   await expect(page.getByText('0.2975', { exact: true })).toBeVisible();
   await page.screenshot({ path: '.local/evidence/web-detail-1440.png', fullPage: true });
-  await page.getByRole('button', { name: '核对并确认出库' }).click();
-  await page.getByRole('button', { name: '确认出库', exact: true }).click();
-  await expect(page.getByRole('button', { name: '已确认出库' })).toBeDisabled();
+  await page.getByRole('button', { name: '本次发货', exact: true }).click();
+  await page.getByRole('button', { name: '确认本次发货' }).click();
+  await page.getByRole('button', { name: '确认发货', exact: true }).click();
+  await expect(page.getByText('已出库', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: '本次发货', exact: true })).toHaveCount(0);
   await page.getByText('库存概览', { exact: true }).click();
   await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
   await page.goto('/stock?product=ACR-032');
