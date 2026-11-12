@@ -226,4 +226,5 @@
 |---|---|---|---|
 | 2026-11-12 | 021 仅新增日期更正表，已入账原单追加版本链并审计/幂等，不改原日期/发货日期/库存/报表归期；独立 POST/GET，详情和列表显示有效日期 | 生效 | REPORT_SPEC §11、DOMAIN_RULES §2 |
 | 2026-11-12 | 原日期 NULL 的旧单拒绝日期更正，422 使用指定提示；不补录、不改变旧列可空性、不猜日期；补 audited 旧单拒绝且数据不变测试 | 生效 | REPORT_SPEC §11、DOMAIN_RULES §2 |
-| 2026-11-12 | B5d-1 一个指定 feat 提交，运行 test/build/完整 E2E 后停下，不合并、不 push；仅隔离验证，不应用开发样本库 | 生效 | IMPLEMENTATION_PLAN B5d-1、REPORT_SPEC §11 |
+| 2026-11-12 | B5d-1 一个指定 feat 提交，运行 test/build/完整 E2E 后停下，不合并、不 push；仅隔离验证，不应用开发样本库 | 已废弃：被同日 B5d-1 验收收尾授权取代 | IMPLEMENTATION_PLAN B5d-1、REPORT_SPEC §11 |
+| 2026-11-12 | B5d-1 验收通过；授权开发样本库 3307 备份→指纹→应用021→冒烟，更新完成状态333/134/0后no-ff合并推送master；停止，B5d-2换新会话 | 生效 | REPORT_SPEC §11.2、IMPLEMENTATION_PLAN B5d-1 |
