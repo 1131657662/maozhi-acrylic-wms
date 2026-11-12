@@ -3,7 +3,7 @@ import { ageBuckets, applyFifo, emptyFifo, markFifoUnknown } from './fifo.ts';
 import { completePeriod, periodCounts, shiftDay, stateReasons, dailyBalances } from './derived-common.ts';
 import type { Cell, Projection } from './types.ts';
 
-const turnoverFormula = 'R = O / M；T = D × M / O；M = ΣQ(d) / D；O 为完整日内出库确认减出库撤销（吨）';
+const turnoverFormula = 'R = O / M；T = D × M / O；M = ΣQ(d) / D；O 为完整日内有效出库（含更正与撤销，吨）';
 const agingBasis =
   '按 stock_journal 入账 ID 顺序重放；可信业务日优先、否则上海入账日；吨数 FIFO；已耗用入库撤销后剩余余额无法归龄';
 

@@ -26,61 +26,11 @@
         },
         "type": "array"
       },
-      "S_0462c4fd062b66f4": {
-        "additionalProperties": false,
-        "properties": {
-          "actor": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_ec263776b1517059"
-          },
-          "lines": {
-            "$ref": "#/components/schemas/S_1f15cb06eb568f5d"
-          },
-          "number": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "offsetOperationId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "operationId": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "originalId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "previousCorrectionId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "reason": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "revision": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          }
+      "S_027f331f993d4c62": {
+        "items": {
+          "$ref": "#/components/schemas/S_52eb39862fa61058"
         },
-        "required": [
-          "id",
-          "number",
-          "kind",
-          "originalId",
-          "previousCorrectionId",
-          "revision",
-          "reason",
-          "actor",
-          "createdAt",
-          "operationId",
-          "offsetOperationId",
-          "lines"
-        ],
-        "type": "object"
+        "type": "array"
       },
       "S_051114523dc3c550": {
         "enum": [
@@ -225,6 +175,16 @@
         "maximum": 1000000,
         "type": "integer"
       },
+      "S_0df20c03227730a6": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_4046fbdc87dc9f41"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
+      },
       "S_0e3827adbd798f25": {
         "maximum": 1024,
         "minimum": 0,
@@ -315,6 +275,16 @@
         ],
         "type": "object"
       },
+      "S_10e1b65002eefbc3": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_5c6327cdbb55e19f"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
+      },
       "S_1115afb339002e3a": {
         "additionalProperties": false,
         "properties": {
@@ -365,6 +335,12 @@
         ],
         "type": "object"
       },
+      "S_136b75cc475f12aa": {
+        "items": {
+          "$ref": "#/components/schemas/S_9034f9cd033c1e12"
+        },
+        "type": "array"
+      },
       "S_136e3e7f45a0a1c4": {
         "additionalProperties": false,
         "properties": {
@@ -395,6 +371,40 @@
           "string",
           "null"
         ]
+      },
+      "S_162824374f23f071": {
+        "additionalProperties": false,
+        "properties": {
+          "after": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "before": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "delta": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "originalLineId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "productCode": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "shipment": {
+            "$ref": "#/components/schemas/S_0df20c03227730a6"
+          },
+          "shipmentLineId": {
+            "$ref": "#/components/schemas/S_10e1b65002eefbc3"
+          }
+        },
+        "required": [
+          "originalLineId",
+          "productCode",
+          "before",
+          "after",
+          "delta"
+        ],
+        "type": "object"
       },
       "S_174e29b899b9ef91": {
         "type": [
@@ -440,30 +450,11 @@
           }
         ]
       },
-      "S_1d3ea6556e217e33": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_f67f171b7fab7322"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
+      "S_1b7321146e69f71e": {
+        "items": {
+          "$ref": "#/components/schemas/S_415d89ea809b88f9"
         },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
+        "type": "array"
       },
       "S_1ddbc62aaa480a2b": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -482,12 +473,6 @@
       "S_1eafc60d1302e0c8": {
         "items": {
           "$ref": "#/components/schemas/S_3a1f80216867d662"
-        },
-        "type": "array"
-      },
-      "S_1f15cb06eb568f5d": {
-        "items": {
-          "$ref": "#/components/schemas/S_42099a08a11371c5"
         },
         "type": "array"
       },
@@ -539,31 +524,6 @@
       "S_203c3cf04ed0a409": {
         "maxLength": 255,
         "type": "string"
-      },
-      "S_20b3823876fcf577": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_0462c4fd062b66f4"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       },
       "S_232fc79dd192d3a6": {
         "enum": [
@@ -627,31 +587,6 @@
           }
         ],
         "default": null
-      },
-      "S_2f9eb8e11eba9393": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_5977f9ab9b226c09"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       },
       "S_2fcf67426205d607": {
         "default": 1,
@@ -817,6 +752,31 @@
         ],
         "type": "object"
       },
+      "S_3bdc839484f8c4b7": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_52eb39862fa61058"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_3c73a196f990b3dc": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -855,151 +815,28 @@
         ],
         "type": "string"
       },
-      "S_3cc1cdf27c7223d1": {
+      "S_3dd1eb0e431db377": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
-          "adjustmentCount": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
           },
-          "completeDays": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          "data": {
+            "$ref": "#/components/schemas/S_9ce18707092f79cd"
           },
-          "countFromDay": {
-            "$ref": "#/components/schemas/S_d66426f1d7997a59"
-          },
-          "countToDay": {
-            "$ref": "#/components/schemas/S_d66426f1d7997a59"
-          },
-          "days": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "excludedDeleted": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "formula": {
+          "message": {
             "$ref": "#/components/schemas/S_00404e686415370f"
           },
-          "fromDay": {
-            "$ref": "#/components/schemas/S_d66426f1d7997a59"
-          },
-          "missingTime": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "reconciliation": {
-            "$ref": "#/components/schemas/S_3ed34299db40239d"
-          },
-          "scopeStatus": {
-            "$ref": "#/components/schemas/S_85d86a89c7f95b0c"
-          },
-          "source": {
-            "$ref": "#/components/schemas/S_b9f64f3b4634bd09"
-          },
-          "stocktakeCount": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "timeStatus": {
+          "traceId": {
             "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "toDay": {
-            "$ref": "#/components/schemas/S_d66426f1d7997a59"
-          },
-          "totalCells": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "unassignedRows": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "unverifiedCells": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "watermark": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           }
         },
         "required": [
-          "source",
-          "fromDay",
-          "toDay",
-          "watermark",
-          "timeStatus",
-          "excludedDeleted",
-          "missingTime",
-          "unassignedRows",
-          "unverifiedCells",
-          "totalCells",
-          "reconciliation",
-          "days",
-          "completeDays",
-          "scopeStatus",
-          "formula",
-          "countFromDay",
-          "countToDay",
-          "adjustmentCount",
-          "stocktakeCount"
-        ],
-        "type": "object"
-      },
-      "S_3ed34299db40239d": {
-        "additionalProperties": false,
-        "properties": {
-          "adjustmentGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "adjustmentPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "checkState": {
-            "$ref": "#/components/schemas/S_d1888830ffc6c831"
-          },
-          "closingGrams": {
-            "$ref": "#/components/schemas/S_e48bc3464562b65b"
-          },
-          "closingPackages": {
-            "$ref": "#/components/schemas/S_e48bc3464562b65b"
-          },
-          "differenceGrams": {
-            "$ref": "#/components/schemas/S_e48bc3464562b65b"
-          },
-          "differencePackages": {
-            "$ref": "#/components/schemas/S_e48bc3464562b65b"
-          },
-          "inboundGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "inboundPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "openingGrams": {
-            "$ref": "#/components/schemas/S_e48bc3464562b65b"
-          },
-          "openingPackages": {
-            "$ref": "#/components/schemas/S_e48bc3464562b65b"
-          },
-          "outboundGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "outboundPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "reasons": {
-            "$ref": "#/components/schemas/S_6f1049c85b09115d"
-          }
-        },
-        "required": [
-          "openingPackages",
-          "openingGrams",
-          "inboundPackages",
-          "inboundGrams",
-          "outboundPackages",
-          "outboundGrams",
-          "adjustmentPackages",
-          "adjustmentGrams",
-          "closingPackages",
-          "closingGrams",
-          "differencePackages",
-          "differenceGrams",
-          "checkState",
-          "reasons"
+          "code",
+          "message",
+          "data",
+          "traceId"
         ],
         "type": "object"
       },
@@ -1023,16 +860,36 @@
         ],
         "type": "object"
       },
-      "S_42099a08a11371c5": {
+      "S_4046fbdc87dc9f41": {
         "additionalProperties": false,
         "properties": {
-          "after": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          "seq": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
           },
-          "before": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          "shippedAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
           },
+          "vehicleNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "seq",
+          "vehicleNo",
+          "shippedAt"
+        ],
+        "type": "object"
+      },
+      "S_415d89ea809b88f9": {
+        "additionalProperties": false,
+        "properties": {
           "delta": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "effective": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "original": {
             "$ref": "#/components/schemas/S_beea1a5ad5273a50"
           },
           "originalLineId": {
@@ -1040,13 +897,20 @@
           },
           "productCode": {
             "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "productName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "shipments": {
+            "$ref": "#/components/schemas/S_136b75cc475f12aa"
           }
         },
         "required": [
           "originalLineId",
           "productCode",
-          "before",
-          "after",
+          "productName",
+          "original",
+          "effective",
           "delta"
         ],
         "type": "object"
@@ -1240,6 +1104,29 @@
         ],
         "type": "object"
       },
+      "S_4c30efd05c8dec7e": {
+        "additionalProperties": false,
+        "properties": {
+          "originalLineId": {
+            "$ref": "#/components/schemas/S_9eb0eb957a2a89f3"
+          },
+          "packages": {
+            "$ref": "#/components/schemas/S_98ba7346ef4cb59d"
+          },
+          "shipmentLineId": {
+            "$ref": "#/components/schemas/S_5c6327cdbb55e19f"
+          },
+          "weightGrams": {
+            "$ref": "#/components/schemas/S_d755ad685e85e3ff"
+          }
+        },
+        "required": [
+          "originalLineId",
+          "packages",
+          "weightGrams"
+        ],
+        "type": "object"
+      },
       "S_4cd0b4f653d64777": {
         "format": "uuid",
         "type": "string"
@@ -1269,17 +1156,6 @@
         ],
         "type": "object"
       },
-      "S_4e2ce7a5c36d9338": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/S_c73a10fb213adbcd"
-          },
-          {
-            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
-          }
-        ],
-        "default": null
-      },
       "S_507580129371a76b": {
         "maxLength": 100,
         "type": "string"
@@ -1289,6 +1165,62 @@
           "$ref": "#/components/schemas/S_7daff982052e5fd4"
         },
         "type": "array"
+      },
+      "S_52eb39862fa61058": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_ec263776b1517059"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_d0663adb8c2e52cb"
+          },
+          "number": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "offsetOperationId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "operationId": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "originalId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "previousCorrectionId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "kind",
+          "originalId",
+          "previousCorrectionId",
+          "revision",
+          "reason",
+          "actor",
+          "createdAt",
+          "operationId",
+          "offsetOperationId",
+          "lines"
+        ],
+        "type": "object"
       },
       "S_53863871b7b5ae06": {
         "additionalProperties": false,
@@ -1407,12 +1339,6 @@
         ],
         "type": "string"
       },
-      "S_5977f9ab9b226c09": {
-        "items": {
-          "$ref": "#/components/schemas/S_0462c4fd062b66f4"
-        },
-        "type": "array"
-      },
       "S_59e7e64e78b4e548": {
         "anyOf": [
           {
@@ -1431,6 +1357,10 @@
           "active",
           "inactive"
         ],
+        "type": "string"
+      },
+      "S_5c6327cdbb55e19f": {
+        "pattern": "^[1-9][0-9]{0,19}$",
         "type": "string"
       },
       "S_5e1d9d054a482370": {
@@ -1470,6 +1400,90 @@
           "miniapp"
         ],
         "type": "string"
+      },
+      "S_642fce9f503ed7df": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustmentCount": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "completeDays": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "countFromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "countToDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "days": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "excludedDeleted": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "formula": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "fromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "missingTime": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "reconciliation": {
+            "$ref": "#/components/schemas/S_9e23fafdf9b8cf8e"
+          },
+          "scopeStatus": {
+            "$ref": "#/components/schemas/S_85d86a89c7f95b0c"
+          },
+          "source": {
+            "$ref": "#/components/schemas/S_b9f64f3b4634bd09"
+          },
+          "stocktakeCount": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "timeStatus": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "toDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "totalCells": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "unassignedRows": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "unverifiedCells": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "watermark": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "source",
+          "fromDay",
+          "toDay",
+          "watermark",
+          "timeStatus",
+          "excludedDeleted",
+          "missingTime",
+          "unassignedRows",
+          "unverifiedCells",
+          "totalCells",
+          "reconciliation",
+          "days",
+          "completeDays",
+          "scopeStatus",
+          "formula",
+          "countFromDay",
+          "countToDay",
+          "adjustmentCount",
+          "stocktakeCount"
+        ],
+        "type": "object"
       },
       "S_655ad4972cd750b4": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -1940,6 +1954,17 @@
         ],
         "type": "string"
       },
+      "S_760e547f0d2a912c": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_9732186626bc75ca"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ],
+        "default": null
+      },
       "S_781eeb9d32bfad13": {
         "default": "",
         "maxLength": 50,
@@ -1986,6 +2011,31 @@
         "propertyNames": {
           "$ref": "#/components/schemas/S_00404e686415370f"
         },
+        "type": "object"
+      },
+      "S_7a524e245d782dc9": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_027f331f993d4c62"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
         "type": "object"
       },
       "S_7b00f2f695331f2e": {
@@ -2171,31 +2221,6 @@
         ],
         "type": "object"
       },
-      "S_82ffd4dfeebc12f5": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "expectedCorrectionRevision": {
-            "$ref": "#/components/schemas/S_83f6485d0d169a84"
-          },
-          "lines": {
-            "$ref": "#/components/schemas/S_cb868750157677c2"
-          },
-          "previousCorrectionId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "reason": {
-            "$ref": "#/components/schemas/S_2ac3e7fadf2b1465"
-          }
-        },
-        "required": [
-          "expectedCorrectionRevision",
-          "previousCorrectionId",
-          "reason",
-          "lines"
-        ],
-        "type": "object"
-      },
       "S_836195ac4b977fb0": {
         "default": 50,
         "maximum": 9007199254740991,
@@ -2318,58 +2343,6 @@
         ],
         "type": "string"
       },
-      "S_88ab5a32cfbaf563": {
-        "additionalProperties": false,
-        "properties": {
-          "excludedDeleted": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "fromDay": {
-            "$ref": "#/components/schemas/S_d66426f1d7997a59"
-          },
-          "missingTime": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "reconciliation": {
-            "$ref": "#/components/schemas/S_3ed34299db40239d"
-          },
-          "source": {
-            "$ref": "#/components/schemas/S_b9f64f3b4634bd09"
-          },
-          "timeStatus": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "toDay": {
-            "$ref": "#/components/schemas/S_d66426f1d7997a59"
-          },
-          "totalCells": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "unassignedRows": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "unverifiedCells": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "watermark": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          }
-        },
-        "required": [
-          "source",
-          "fromDay",
-          "toDay",
-          "watermark",
-          "timeStatus",
-          "excludedDeleted",
-          "missingTime",
-          "unassignedRows",
-          "unverifiedCells",
-          "totalCells",
-          "reconciliation"
-        ],
-        "type": "object"
-      },
       "S_88ab719013c213a7": {
         "anyOf": [
           {
@@ -2379,26 +2352,6 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
-      },
-      "S_893ceaa0a2b3253f": {
-        "additionalProperties": false,
-        "properties": {
-          "originalLineId": {
-            "$ref": "#/components/schemas/S_9eb0eb957a2a89f3"
-          },
-          "packages": {
-            "$ref": "#/components/schemas/S_98ba7346ef4cb59d"
-          },
-          "weightGrams": {
-            "$ref": "#/components/schemas/S_d755ad685e85e3ff"
-          }
-        },
-        "required": [
-          "originalLineId",
-          "packages",
-          "weightGrams"
-        ],
-        "type": "object"
       },
       "S_8a11571d1ecfcf8f": {
         "const": "erp-product",
@@ -2603,6 +2556,38 @@
         "minimum": 1,
         "type": "integer"
       },
+      "S_9034f9cd033c1e12": {
+        "additionalProperties": false,
+        "properties": {
+          "effective": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "original": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "seq": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "shipmentLineId": {
+            "$ref": "#/components/schemas/S_5c6327cdbb55e19f"
+          },
+          "shippedAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "vehicleNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "shipmentLineId",
+          "seq",
+          "vehicleNo",
+          "shippedAt",
+          "original",
+          "effective"
+        ],
+        "type": "object"
+      },
       "S_90b22b38cd403a06": {
         "default": "postedAt",
         "enum": [
@@ -2667,6 +2652,75 @@
           "productCode",
           "plannedPackages",
           "plannedWeightGrams"
+        ],
+        "type": "object"
+      },
+      "S_96264323230db45d": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_d3fcb8c16ea749dd"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
+      "S_9732186626bc75ca": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "delta": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "effective": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "latest": {
+            "$ref": "#/components/schemas/S_ee56701c7583d98e"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_1b7321146e69f71e"
+          },
+          "offset": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "original": {
+            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+          },
+          "records": {
+            "$ref": "#/components/schemas/S_027f331f993d4c62"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "revision",
+          "allowed",
+          "offset",
+          "original",
+          "effective",
+          "delta",
+          "latest",
+          "lines",
+          "records"
         ],
         "type": "object"
       },
@@ -2791,25 +2845,17 @@
         ],
         "type": "string"
       },
-      "S_9eb0eb957a2a89f3": {
-        "maxLength": 80,
-        "minLength": 1,
-        "type": "string"
-      },
-      "S_a04af5fe8d5608e2": {
+      "S_9ce18707092f79cd": {
         "additionalProperties": false,
         "properties": {
-          "actualPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "actualWeightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
           "billType": {
-            "$ref": "#/components/schemas/S_84416bdec6dc8082"
+            "$ref": "#/components/schemas/S_c2181492282bb5ac"
           },
           "businessDate": {
             "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "confirmationOperationId": {
+            "$ref": "#/components/schemas/S_f9c271fd8743901f"
           },
           "contactId": {
             "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
@@ -2818,109 +2864,159 @@
             "$ref": "#/components/schemas/S_159887cb35a9898b"
           },
           "corrections": {
-            "$ref": "#/components/schemas/S_4e2ce7a5c36d9338"
+            "$ref": "#/components/schemas/S_760e547f0d2a912c"
           },
           "createdAt": {
             "$ref": "#/components/schemas/S_00404e686415370f"
           },
-          "customerCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "customerName": {
+          "createdBy": {
             "$ref": "#/components/schemas/S_00404e686415370f"
           },
-          "digest": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+          "deliveryAddress": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
           },
-          "facts": {
-            "$ref": "#/components/schemas/S_c52c8fe06d2e8c09"
+          "deliveryName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "deliveryPhone": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
           },
           "id": {
             "$ref": "#/components/schemas/S_8be39a00885cebc9"
           },
           "lines": {
-            "$ref": "#/components/schemas/S_c32234c7916979d0"
+            "$ref": "#/components/schemas/S_01d2f1d55ffcb1b1"
           },
           "memo": {
-            "$ref": "#/components/schemas/S_2ec451924b02dcb8"
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
           },
-          "orderNo": {
+          "packages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "postingState": {
+            "$ref": "#/components/schemas/S_b182f318d4b79a52"
+          },
+          "receiptNo": {
             "$ref": "#/components/schemas/S_00404e686415370f"
           },
-          "planVersion": {
-            "$ref": "#/components/schemas/S_614bcf3353ba29cc"
-          },
-          "plannedPackages": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "plannedWeightGrams": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "revision": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "scanClosedAt": {
+          "status": {
             "$ref": "#/components/schemas/S_159887cb35a9898b"
           },
-          "scanPackages": {
-            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          "supplierCode": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
           },
-          "scanWeightGrams": {
-            "$ref": "#/components/schemas/S_28b5e739e258abe6"
-          },
-          "shipToAddress": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "shipToName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "shipToPhone": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "status": {
-            "$ref": "#/components/schemas/S_6c1ea734b7eea9f4"
-          },
-          "vehicleId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "vehicleNo": {
+          "supplierName": {
             "$ref": "#/components/schemas/S_00404e686415370f"
           },
           "warehouseCode": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
           },
           "warehouseName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "weightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           }
         },
         "required": [
           "id",
-          "orderNo",
-          "customerName",
-          "customerCode",
+          "receiptNo",
+          "status",
+          "postingState",
+          "confirmationOperationId",
+          "supplierCode",
+          "supplierName",
           "warehouseCode",
+          "warehouseName",
           "billType",
           "containerNo",
-          "vehicleNo",
           "memo",
-          "status",
-          "scanClosedAt",
-          "revision",
-          "planVersion",
+          "createdBy",
           "createdAt",
           "businessDate",
-          "plannedPackages",
-          "plannedWeightGrams",
-          "scanPackages",
-          "scanWeightGrams",
-          "actualPackages",
-          "actualWeightGrams",
           "corrections",
-          "lines",
-          "facts",
-          "digest"
+          "packages",
+          "weightGrams",
+          "lines"
         ],
         "type": "object"
+      },
+      "S_9e23fafdf9b8cf8e": {
+        "additionalProperties": false,
+        "properties": {
+          "adjustmentGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "adjustmentPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "checkState": {
+            "$ref": "#/components/schemas/S_d1888830ffc6c831"
+          },
+          "closingGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "closingPackages": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "differenceGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "differencePackages": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "inboundGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "inboundPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "openingGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "openingPackages": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "otherMovementGrams": {
+            "$ref": "#/components/schemas/S_0635e2210c56e4db"
+          },
+          "otherMovementPackages": {
+            "$ref": "#/components/schemas/S_0635e2210c56e4db"
+          },
+          "outboundGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "outboundPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "reasons": {
+            "$ref": "#/components/schemas/S_6f1049c85b09115d"
+          }
+        },
+        "required": [
+          "openingPackages",
+          "openingGrams",
+          "inboundPackages",
+          "inboundGrams",
+          "outboundPackages",
+          "outboundGrams",
+          "adjustmentPackages",
+          "adjustmentGrams",
+          "otherMovementPackages",
+          "otherMovementGrams",
+          "closingPackages",
+          "closingGrams",
+          "differencePackages",
+          "differenceGrams",
+          "checkState",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "S_9eb0eb957a2a89f3": {
+        "maxLength": 80,
+        "minLength": 1,
+        "type": "string"
       },
       "S_a0ea9dbc6ec32cfa": {
         "default": 10,
@@ -2998,6 +3094,31 @@
             "$ref": "#/components/schemas/S_0b41d5f81a700c67"
           }
         },
+        "type": "object"
+      },
+      "S_a70b257e32e5c1e4": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "expectedCorrectionRevision": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_df72346cdc1b2f2e"
+          },
+          "previousCorrectionId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_2ac3e7fadf2b1465"
+          }
+        },
+        "required": [
+          "expectedCorrectionRevision",
+          "previousCorrectionId",
+          "reason",
+          "lines"
+        ],
         "type": "object"
       },
       "S_a8af1266afcc87e7": {
@@ -3457,50 +3578,6 @@
         "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
         "type": "string"
       },
-      "S_c73a10fb213adbcd": {
-        "additionalProperties": false,
-        "properties": {
-          "allowed": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "delta": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
-          },
-          "effective": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
-          },
-          "latest": {
-            "$ref": "#/components/schemas/S_ee56701c7583d98e"
-          },
-          "lines": {
-            "$ref": "#/components/schemas/S_f75e919806e89aba"
-          },
-          "offset": {
-            "$ref": "#/components/schemas/S_7cb541e84f226754"
-          },
-          "original": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
-          },
-          "records": {
-            "$ref": "#/components/schemas/S_5977f9ab9b226c09"
-          },
-          "revision": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          }
-        },
-        "required": [
-          "revision",
-          "allowed",
-          "offset",
-          "original",
-          "effective",
-          "delta",
-          "latest",
-          "lines",
-          "records"
-        ],
-        "type": "object"
-      },
       "S_c801bdba7e834ea4": {
         "additionalProperties": false,
         "properties": {
@@ -3546,14 +3623,6 @@
         ],
         "type": "object"
       },
-      "S_cb868750157677c2": {
-        "items": {
-          "$ref": "#/components/schemas/S_893ceaa0a2b3253f"
-        },
-        "maxItems": 50,
-        "minItems": 1,
-        "type": "array"
-      },
       "S_cd7b6eb577995794": {
         "exclusiveMinimum": 0,
         "maximum": 1000000000,
@@ -3591,6 +3660,12 @@
           "traceId"
         ],
         "type": "object"
+      },
+      "S_d0663adb8c2e52cb": {
+        "items": {
+          "$ref": "#/components/schemas/S_162824374f23f071"
+        },
+        "type": "array"
       },
       "S_d1888830ffc6c831": {
         "enum": [
@@ -3899,6 +3974,132 @@
         ],
         "type": "object"
       },
+      "S_d3fcb8c16ea749dd": {
+        "additionalProperties": false,
+        "properties": {
+          "actualPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "actualWeightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "billType": {
+            "$ref": "#/components/schemas/S_84416bdec6dc8082"
+          },
+          "businessDate": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "contactId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "containerNo": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "corrections": {
+            "$ref": "#/components/schemas/S_760e547f0d2a912c"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "customerCode": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "customerName": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "digest": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/S_c52c8fe06d2e8c09"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_c32234c7916979d0"
+          },
+          "memo": {
+            "$ref": "#/components/schemas/S_2ec451924b02dcb8"
+          },
+          "orderNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "planVersion": {
+            "$ref": "#/components/schemas/S_614bcf3353ba29cc"
+          },
+          "plannedPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "plannedWeightGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "scanClosedAt": {
+            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          },
+          "scanPackages": {
+            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          },
+          "scanWeightGrams": {
+            "$ref": "#/components/schemas/S_28b5e739e258abe6"
+          },
+          "shipToAddress": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "shipToName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "shipToPhone": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "status": {
+            "$ref": "#/components/schemas/S_6c1ea734b7eea9f4"
+          },
+          "vehicleId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "vehicleNo": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseCode": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "warehouseName": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          }
+        },
+        "required": [
+          "id",
+          "orderNo",
+          "customerName",
+          "customerCode",
+          "warehouseCode",
+          "billType",
+          "containerNo",
+          "vehicleNo",
+          "memo",
+          "status",
+          "scanClosedAt",
+          "revision",
+          "planVersion",
+          "createdAt",
+          "businessDate",
+          "plannedPackages",
+          "plannedWeightGrams",
+          "scanPackages",
+          "scanWeightGrams",
+          "actualPackages",
+          "actualWeightGrams",
+          "corrections",
+          "lines",
+          "facts",
+          "digest"
+        ],
+        "type": "object"
+      },
       "S_d531589f9288952e": {
         "enum": [
           "catalog",
@@ -3919,31 +4120,6 @@
         "format": "date",
         "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
         "type": "string"
-      },
-      "S_d6cbd59818c0f8cb": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_a04af5fe8d5608e2"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       },
       "S_d755ad685e85e3ff": {
         "maximum": 99999999999900,
@@ -4086,6 +4262,14 @@
           "productName"
         ],
         "type": "object"
+      },
+      "S_df72346cdc1b2f2e": {
+        "items": {
+          "$ref": "#/components/schemas/S_4c30efd05c8dec7e"
+        },
+        "maxItems": 50,
+        "minItems": 1,
+        "type": "array"
       },
       "S_e48bc3464562b65b": {
         "anyOf": [
@@ -4254,107 +4438,57 @@
         },
         "type": "array"
       },
-      "S_f67f171b7fab7322": {
+      "S_f3aeb41bc9265041": {
         "additionalProperties": false,
         "properties": {
-          "billType": {
-            "$ref": "#/components/schemas/S_c2181492282bb5ac"
-          },
-          "businessDate": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "confirmationOperationId": {
-            "$ref": "#/components/schemas/S_f9c271fd8743901f"
-          },
-          "contactId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "containerNo": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
-          },
-          "corrections": {
-            "$ref": "#/components/schemas/S_4e2ce7a5c36d9338"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "createdBy": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "deliveryAddress": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "deliveryName": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "deliveryPhone": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
-          },
-          "lines": {
-            "$ref": "#/components/schemas/S_01d2f1d55ffcb1b1"
-          },
-          "memo": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "packages": {
+          "excludedDeleted": {
             "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           },
-          "postingState": {
-            "$ref": "#/components/schemas/S_b182f318d4b79a52"
+          "fromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
           },
-          "receiptNo": {
+          "missingTime": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "reconciliation": {
+            "$ref": "#/components/schemas/S_9e23fafdf9b8cf8e"
+          },
+          "source": {
+            "$ref": "#/components/schemas/S_b9f64f3b4634bd09"
+          },
+          "timeStatus": {
             "$ref": "#/components/schemas/S_00404e686415370f"
           },
-          "status": {
-            "$ref": "#/components/schemas/S_159887cb35a9898b"
+          "toDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
           },
-          "supplierCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          "totalCells": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           },
-          "supplierName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+          "unassignedRows": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           },
-          "warehouseCode": {
-            "$ref": "#/components/schemas/S_8be39a00885cebc9"
+          "unverifiedCells": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           },
-          "warehouseName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "weightGrams": {
+          "watermark": {
             "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
           }
         },
         "required": [
-          "id",
-          "receiptNo",
-          "status",
-          "postingState",
-          "confirmationOperationId",
-          "supplierCode",
-          "supplierName",
-          "warehouseCode",
-          "warehouseName",
-          "billType",
-          "containerNo",
-          "memo",
-          "createdBy",
-          "createdAt",
-          "businessDate",
-          "corrections",
-          "packages",
-          "weightGrams",
-          "lines"
+          "source",
+          "fromDay",
+          "toDay",
+          "watermark",
+          "timeStatus",
+          "excludedDeleted",
+          "missingTime",
+          "unassignedRows",
+          "unverifiedCells",
+          "totalCells",
+          "reconciliation"
         ],
         "type": "object"
-      },
-      "S_f75e919806e89aba": {
-        "items": {
-          "$ref": "#/components/schemas/S_fb2f1ad6a1e904c9"
-        },
-        "type": "array"
       },
       "S_f8337975fdbd218f": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -4448,38 +4582,6 @@
           }
         ],
         "default": null
-      },
-      "S_fb2f1ad6a1e904c9": {
-        "additionalProperties": false,
-        "properties": {
-          "delta": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
-          },
-          "effective": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
-          },
-          "original": {
-            "$ref": "#/components/schemas/S_beea1a5ad5273a50"
-          },
-          "originalLineId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "productCode": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "productName": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "originalLineId",
-          "productCode",
-          "productName",
-          "original",
-          "effective",
-          "delta"
-        ],
-        "type": "object"
       },
       "S_fc7cd0801a95bc4f": {
         "enum": [
@@ -8043,7 +8145,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_20b3823876fcf577"
+                  "$ref": "#/components/schemas/S_3bdc839484f8c4b7"
                 }
               }
             },
@@ -8665,7 +8767,7 @@
                       "properties": {
                         "items": {
                           "items": {
-                            "$ref": "#/components/schemas/S_f67f171b7fab7322"
+                            "$ref": "#/components/schemas/S_9ce18707092f79cd"
                           },
                           "type": "array"
                         },
@@ -8904,7 +9006,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_1d3ea6556e217e33"
+                  "$ref": "#/components/schemas/S_3dd1eb0e431db377"
                 }
               }
             },
@@ -9030,7 +9132,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_1d3ea6556e217e33"
+                  "$ref": "#/components/schemas/S_3dd1eb0e431db377"
                 }
               }
             },
@@ -9318,7 +9420,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_1d3ea6556e217e33"
+                  "$ref": "#/components/schemas/S_3dd1eb0e431db377"
                 }
               }
             },
@@ -9444,7 +9546,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_2f9eb8e11eba9393"
+                  "$ref": "#/components/schemas/S_7a524e245d782dc9"
                 }
               }
             },
@@ -9575,7 +9677,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/S_82ffd4dfeebc12f5"
+                "$ref": "#/components/schemas/S_a70b257e32e5c1e4"
               }
             }
           },
@@ -9586,7 +9688,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_20b3823876fcf577"
+                  "$ref": "#/components/schemas/S_3bdc839484f8c4b7"
                 }
               }
             },
@@ -15165,7 +15267,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -15291,7 +15393,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -15510,7 +15612,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -15798,7 +15900,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -15942,7 +16044,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -16068,7 +16170,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_2f9eb8e11eba9393"
+                  "$ref": "#/components/schemas/S_7a524e245d782dc9"
                 }
               }
             },
@@ -16199,7 +16301,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/S_82ffd4dfeebc12f5"
+                "$ref": "#/components/schemas/S_a70b257e32e5c1e4"
               }
             }
           },
@@ -16210,7 +16312,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_20b3823876fcf577"
+                  "$ref": "#/components/schemas/S_3bdc839484f8c4b7"
                 }
               }
             },
@@ -16543,7 +16645,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -17937,7 +18039,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -18286,6 +18388,18 @@
                                 "items": {
                                   "additionalProperties": false,
                                   "properties": {
+                                    "correctionPackages": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
+                                    "correctionWeightGrams": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
+                                    "effectivePackages": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
+                                    "effectiveWeightGrams": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
                                     "lineId": {
                                       "$ref": "#/components/schemas/S_00404e686415370f"
                                     },
@@ -18301,16 +18415,24 @@
                                     "productName": {
                                       "$ref": "#/components/schemas/S_00404e686415370f"
                                     },
+                                    "shipmentLineId": {
+                                      "$ref": "#/components/schemas/S_5c6327cdbb55e19f"
+                                    },
                                     "weightGrams": {
                                       "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                                     }
                                   },
                                   "required": [
                                     "lineId",
+                                    "shipmentLineId",
                                     "productCode",
                                     "productName",
                                     "packages",
                                     "weightGrams",
+                                    "effectivePackages",
+                                    "effectiveWeightGrams",
+                                    "correctionPackages",
+                                    "correctionWeightGrams",
                                     "overageReason"
                                   ],
                                   "type": "object"
@@ -18545,7 +18667,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -18707,7 +18829,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -20214,7 +20336,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -20655,7 +20777,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -20799,7 +20921,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                  "$ref": "#/components/schemas/S_96264323230db45d"
                 }
               }
             },
@@ -27650,7 +27772,7 @@
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
                         "report": {
-                          "$ref": "#/components/schemas/S_3cc1cdf27c7223d1"
+                          "$ref": "#/components/schemas/S_642fce9f503ed7df"
                         },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
@@ -28112,7 +28234,7 @@
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
                         "report": {
-                          "$ref": "#/components/schemas/S_88ab5a32cfbaf563"
+                          "$ref": "#/components/schemas/S_f3aeb41bc9265041"
                         },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
@@ -28451,6 +28573,12 @@
                               "openingPackages": {
                                 "$ref": "#/components/schemas/S_e48bc3464562b65b"
                               },
+                              "otherMovementGrams": {
+                                "$ref": "#/components/schemas/S_0635e2210c56e4db"
+                              },
+                              "otherMovementPackages": {
+                                "$ref": "#/components/schemas/S_0635e2210c56e4db"
+                              },
                               "outboundConfirmedGrams": {
                                 "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                               },
@@ -28512,6 +28640,8 @@
                               "outboundGrams",
                               "adjustmentPackages",
                               "adjustmentGrams",
+                              "otherMovementPackages",
+                              "otherMovementGrams",
                               "closingPackages",
                               "closingGrams",
                               "differencePackages",
@@ -28561,7 +28691,7 @@
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
                         "report": {
-                          "$ref": "#/components/schemas/S_88ab5a32cfbaf563"
+                          "$ref": "#/components/schemas/S_f3aeb41bc9265041"
                         },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
@@ -28914,7 +29044,7 @@
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
                         "report": {
-                          "$ref": "#/components/schemas/S_3cc1cdf27c7223d1"
+                          "$ref": "#/components/schemas/S_642fce9f503ed7df"
                         },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"

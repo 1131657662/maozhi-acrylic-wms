@@ -24,7 +24,7 @@ test('019 empty up/down/up adds only four nullable columns and preserves schema'
 });
 
 test('019 each non-null short-close field, including zero, blocks down before any DDL', async () => {
-  const c = await fixture();
+  const c = await fixture('019_shipment_close');
   try {
     const before = await c.db.get('SHOW CREATE TABLE outbound_orders');
     const cases = [

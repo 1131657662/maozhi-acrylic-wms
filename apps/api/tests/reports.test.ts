@@ -24,7 +24,11 @@ test('B3b: three months per warehouse/product reconcile and detail cells match m
       assert.equal(row.checkState, '可验证');
       assert.equal(
         row.closingPackages,
-        row.openingPackages! + row.inboundPackages - row.outboundPackages + row.adjustmentPackages,
+        row.openingPackages! +
+          row.inboundPackages -
+          row.outboundPackages +
+          row.adjustmentPackages +
+          row.otherMovementPackages,
       );
       const events = details.items.filter(
         (d) =>

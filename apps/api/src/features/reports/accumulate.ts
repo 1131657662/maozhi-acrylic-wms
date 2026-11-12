@@ -5,12 +5,13 @@ import { addExact } from './arithmetic.ts';
 import { reportCopy } from './copy.ts';
 
 export function addMovement(row: ReportMonthlyRow, event: LedgerEvent): void {
-  // A corrected original reverses its effective quantity. Attribute the correction
-  // offset separately while preserving the journal's actual before/after balance.
+  // Correction breakdown is informational: its signed delta is already in effective inbound/outbound.
   row.correctionPackages = addExact(row.correctionPackages, event.correctionOffsetPackages);
   row.correctionGrams = addExact(row.correctionGrams, event.correctionOffsetGrams);
-  row.adjustmentPackages = addExact(row.adjustmentPackages, event.correctionOffsetPackages);
-  row.adjustmentGrams = addExact(row.adjustmentGrams, event.correctionOffsetGrams);
+  if (event.operationType === 'stock.correct') {
+    row.correctionPackages = addExact(row.correctionPackages, event.deltaPackages);
+    row.correctionGrams = addExact(row.correctionGrams, event.deltaGrams);
+  }
   const q = event.packages,
     g = event.weightGrams;
   if (event.family === 'inbound') {
@@ -34,11 +35,14 @@ export function addMovement(row: ReportMonthlyRow, event: LedgerEvent): void {
       row.outboundConfirmedGrams = addExact(row.outboundConfirmedGrams, g);
     }
   } else {
-    row.adjustmentPackages = addExact(row.adjustmentPackages, event.deltaPackages);
-    row.adjustmentGrams = addExact(row.adjustmentGrams, event.deltaGrams);
-    row[`${event.family}Packages`] = addExact(row[`${event.family}Packages`], event.deltaPackages);
-    row[`${event.family}Grams`] = addExact(row[`${event.family}Grams`], event.deltaGrams);
-    if (event.family === 'unknown') mark(row, reportCopy.unknown);
+    const group = ['count', 'import'].includes(event.family) ? 'adjustment' : 'otherMovement';
+    row[`${group}Packages`] = addExact(row[`${group}Packages`], event.deltaPackages);
+    row[`${group}Grams`] = addExact(row[`${group}Grams`], event.deltaGrams);
+    if (event.family !== 'correction') {
+      row[`${event.family}Packages`] = addExact(row[`${event.family}Packages`], event.deltaPackages);
+      row[`${event.family}Grams`] = addExact(row[`${event.family}Grams`], event.deltaGrams);
+    }
+    if (event.family === 'unknown' || event.family === 'correction') mark(row, reportCopy.unknown);
   }
 }
 export function invalidEvent(event: LedgerEvent): string | null {
@@ -58,6 +62,7 @@ export function invalidEvent(event: LedgerEvent): string | null {
     return reportCopy.negativeBalance;
   if (
     ['inbound', 'outbound'].includes(event.family) &&
+    event.operationType !== 'stock.correct' &&
     (event.reverse ? event.packages > 0 || event.weightGrams > 0 : event.packages < 0 || event.weightGrams < 0)
   )
     return reportCopy.inconsistentDirection;
@@ -143,8 +148,15 @@ export function finishRow(row: ReportMonthlyRow): ReportMonthlyRow {
       -row.openingPackages,
       -row.netPackages,
       -row.adjustmentPackages,
+      -row.otherMovementPackages,
     );
-    row.differenceGrams = addExact(row.closingGrams, -row.openingGrams, -row.netGrams, -row.adjustmentGrams);
+    row.differenceGrams = addExact(
+      row.closingGrams,
+      -row.openingGrams,
+      -row.netGrams,
+      -row.adjustmentGrams,
+      -row.otherMovementGrams,
+    );
     if (row.differencePackages !== 0 || row.differenceGrams !== 0) mark(row, '对账存在差额；保留原值，未填入调整列');
   }
   return row;

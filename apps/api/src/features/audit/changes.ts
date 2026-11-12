@@ -15,6 +15,7 @@ const fields: Record<string, { label: string; unit: string }> = {
   attribution: { label: '归属方式', unit: '' },
   scanClosedAt: { label: '扫码进度', unit: '' },
   status: { label: '状态', unit: '' },
+  reason: { label: '原因', unit: '' },
   postingState: { label: '入账状态', unit: '' },
   packages: { label: '包数', unit: '包' },
   weightGrams: { label: '重量', unit: '吨' },

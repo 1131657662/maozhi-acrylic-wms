@@ -52,7 +52,7 @@ export async function compareReportDownload(
     );
   const reconciliation = book.getWorksheet('收发存对账')!;
   const exportedBalance = [2, 3].map((column) =>
-    Array.from({ length: 6 }, (_, i) => {
+    Array.from({ length: screenBalance[0]!.length }, (_, i) => {
       const v = reconciliation.getCell(i + 3, column).value;
       return typeof v === 'number' ? (column === 3 ? v.toFixed(4) : String(v)) : '—';
     }),

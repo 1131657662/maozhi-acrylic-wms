@@ -3,6 +3,7 @@ import { confirmOutboundSchema, OUTBOUND_MAX_LINES, OUTBOUND_ACTUAL_PRECISION_GR
 import { businessDateFields } from './business-date.ts';
 import { plateSchema } from './vehicles.ts';
 import { outboundBillTypeSchema } from './document-types.ts';
+import { shipmentLineIdSchema } from './corrections.ts';
 
 export const shipmentInputSchema = confirmOutboundSchema.extend({
   vehicleNo: plateSchema.optional(),
@@ -38,10 +39,15 @@ export const shipmentSchema = z.object({
   lines: z.array(
     z.object({
       lineId: z.string(),
+      shipmentLineId: shipmentLineIdSchema,
       productCode: z.string(),
       productName: z.string(),
       packages: z.number().int(),
       weightGrams: z.number().int(),
+      effectivePackages: z.number().int(),
+      effectiveWeightGrams: z.number().int(),
+      correctionPackages: z.number().int(),
+      correctionWeightGrams: z.number().int(),
       overageReason: z.string().nullable(),
     }),
   ),

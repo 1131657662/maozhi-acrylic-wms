@@ -1,7 +1,8 @@
 // Business language shared by the repaired screens.
 export const businessCopy = {
   catalogCandidate1: '本次为空条码目录，请确认没有遗漏文件内容。',
-  catalogOverview1: '每次上传全部有效条码。新文件中消失的条码不再供新版扫码使用；已有扫码记录、原重量和原版本都会保留。',
+  catalogOverview1:
+    '每次上传全部有效条码。新文件中消失的条码不再供新版扫码使用；已有扫码记录、原重量和原版本都会保留。',
   catalogPage1: '更换或上传全部条码',
   catalogUpload1: '文件未丢失。核对编码或更换文件后可再次检查。',
   catalogUpload2: '检查中，当前版本仍可用',
@@ -15,6 +16,9 @@ export const businessCopy = {
   masterDataCatalogTable3: '暂无基础资料',
   outboundEditor1: '计划不会占用库存；核对实物并确认出库后才扣减库存。',
   outboundStock1: '统计范围：库存商品',
+  reportsDetailsBasis: '按入账日追溯有效收发、更正与撤销。方向只筛选明细，下方对账保留全部库存变动。',
+  reportsMonthlyBasis:
+    '按仓库、商品与入账月份核对有效收发量。更正发生在哪个月就计入哪个月；调整只含盘点与期初，可展开查看更正明细。',
   reportsPages1: '查看对应月度汇总',
   reportsPages2: '查看对应出入库明细',
   reportsReconciliation1: '仅统计库存商品',

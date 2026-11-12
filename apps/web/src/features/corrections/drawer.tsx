@@ -6,7 +6,7 @@ import { RequestError } from '../../components/RequestError';
 import { Alert, Button, Drawer, Form, Input, Space } from 'antd';
 import { tonnes, type CorrectionSummary, type CorrectionTarget } from '@wms/contracts';
 import { gramsToTonnes, tonnesDeltaToGrams } from '../../lib/weight-input';
-import { CorrectionLineFields, type CorrectionFormValues } from './fields';
+import { CorrectionLineFields, selectedCorrectionLine, type CorrectionFormValues } from './fields';
 import { useCorrect } from './use-correct';
 
 interface Props {
@@ -25,15 +25,20 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
   async function submit(values: CorrectionFormValues) {
     const lines = values.lines.map((line, index) => ({
       originalLineId: initial.lines[index]!.originalLineId,
+      ...(line.shipmentLineId ? { shipmentLineId: line.shipmentLineId } : {}),
       packages: line.packages,
       weightGrams: tonnesDeltaToGrams(line.weightTonnes),
     }));
     const packages = lines.reduce(
-      (sum, line, index) => sum + line.packages - initial.lines[index]!.effective.packages,
+      (sum, line, index) =>
+        sum + line.packages - selectedCorrectionLine(initial.lines[index]!, line.shipmentLineId).effective.packages,
       0,
     );
     const grams = lines.reduce(
-      (sum, line, index) => sum + line.weightGrams - initial.lines[index]!.effective.weightGrams,
+      (sum, line, index) =>
+        sum +
+        line.weightGrams -
+        selectedCorrectionLine(initial.lines[index]!, line.shipmentLineId).effective.weightGrams,
       0,
     );
     const confirmed = await modal.confirm({
@@ -71,8 +76,9 @@ export function CorrectionDrawer({ target, number, initial, onClose }: Props) {
         disabled={lock.busy || mutation.isPending}
         initialValues={{
           lines: initial.lines.map((line) => ({
-            packages: line.effective.packages,
-            weightTonnes: gramsToTonnes(line.effective.weightGrams),
+            shipmentLineId: line.shipments?.[0]?.shipmentLineId,
+            packages: (line.shipments?.[0]?.effective ?? line.effective).packages,
+            weightTonnes: gramsToTonnes((line.shipments?.[0]?.effective ?? line.effective).weightGrams),
           })),
         }}
       >

@@ -191,6 +191,22 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 - 有效已发量 = 各发货记录原量 + 未抵消更正净额；
 - 防环、版本链、历史单拒绝规则不变。
 
+B5c-2 接口与迁移边界（2026-11-12）：
+- `shipmentLineId` 使用十进制字符串传输，避免 BIGINT 在浏览器中丢失精度；只接受原始发货行，必须同时属于原单和指定订单行。
+- 单次发货可省略该值，服务端自动归属；两次及以上发货必须指定，422 返回该订单行的可选发货行及发货序号。没有发货行可对应的 B5a 旧单保留订单行更正兼容。
+- 请求中的包数、克数是所选发货行的更正后有效数量，前值取该发货行原量加前序未抵消更正。旧 NULL 引用继续按订单行计算，不猜分配到某批发货。
+- 020 增加可空 `shipment_line_id`、索引和 RESTRICT 外键；只有一条发货记录且订单行唯一匹配时回填，其他情况保留 NULL。任何非空引用都在 down 的首条 DDL 与迁移状态变更前阻止回退。
+- 发货记录的原量不改写。详情保留原量和更正链，发货列表返回原量、有效量及更正差额；待发、计划修改下限和 Web 列表/差异展示取有效量。撤销保留原发货与更正证据，抵消后的更正不再计入有效量。
+- 016 前本地确认若没有发货行，读取已入账原流水保留原量，NULL 更正不改绑到后来的补发；不重建历史发货记录。补发后原流水与新发货原量分别累计；若成功审计已记录过发货引用却缺发货记录，继续按证据损坏拒绝，不能冒充旧单兼容。
+- 整单撤销按库存流水顺序核对本单的全部发货与更正，允许本单两类事件交错；仍拒绝夹有其他库存动作或存在后续依赖的自动撤销。
+- 本轮 020 只在随机隔离测试库验证，不应用开发样本库；非空回退被拒时保留数据与结构，采用前向修复。
+
+本轮补充裁定统一定义：
+1. **状态与待发**：部分发货、已出库及已短关单均可更正；已撤销/已作废与历史导入单仍拒绝。已出库更正后任一行包或克有待发，转部分发货并同事务审计前后状态、原因“更正”；补满后按 §2 自动结单。部分发货更正后按待发重算状态，全部归零则结单。已短关更正后保持短关，只重算四列中的剩余包/克并写审计；原短关原因、短关时间、原完成时间保留，不重新开放发货。增发更正仍受非负库存约束。020 不增加状态相关列。
+2. **更正粒度**：一张更正单的每条订单行只允许引用一个发货行，保留现有主键。同一请求重复订单行返回 `CORRECTION_ORDER_LINE_DUPLICATE`（422）与“该订单行在本单已更正，请为另一批发货另开更正单”；分两张更正单按版本链提交可分别成功。现有更正抽屉仅增加发货批次选择，切换时显示该批原量与有效量；更正详情显示对应发货序号、车号、日期。分批发货输入界面仍留 B5c-3。待观察：半年内若拆成两张更正单的操作频繁，再评估主键扩展。
+3. **报表**：入库与出库更正均计入各自有效收发量，不再计入调整；归期、抵消与对账唯一算法见 REPORT_SPEC §10。
+
+
 ## 9.2 盘点锁仓
 
 盘点进行中，禁止「确认发货」，与入库确认、库存调整、整单撤销同属被锁操作。
@@ -199,11 +215,11 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 
 - 待发 = max(计划 − 累计实发, 0)；
 - 短关后待发为 0，短关数量单独记录，不计出库量；
-- 报表出库量 = 各发货记录实发之和，按发货记录的**入账日**归月；business_date 只作说明。
+- 报表出库量与更正归期遵循 REPORT_SPEC §10；business_date 只作说明。
 
 ## 10. 报表口径
 
-- 出库量按**发货记录**统计（实发），不按计划；
+- 出库量按有效发货量统计，算法统一引用 REPORT_SPEC §10；
 - 待发 = 计划 − 已发，已结单则为 0；
 - 溢发计入实发；
 - 短关的单据在报表中标注「已短关」，短关部分不计出库。
@@ -250,7 +266,7 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 6. 并发两次确认同一单：只生成一条发货记录；
 7. 整单撤销：所有发货记录反向，库存恢复，流水成对；
 8. 短关后尝试确认 → 拒绝；
-9. 报表出库量 = 发货记录合计，短关部分不计；
+9. 报表出库量按 REPORT_SPEC §10 的有效量统计，短关部分不计；
 10. 1440/1280 截图：详情分批输入、确认弹窗、短关弹窗。
 
 ## 15. 实施拆分与工作量
@@ -275,7 +291,7 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 - `GET /outbound/:id/shipments` 返回按 seq 排序的全部发货记录、剩余包/克、完成时间及短关证据；显式完成时间取 `outbound.complete` 成功审计时间，自动完成取最后一次发货时间，不额外扩列。短关只从部分发货进入，未发货单沿用作废流程。
 - 按用户最后裁定，旧 `/confirm` 保留为 `/shipments` 的严格别名，共用请求校验、状态规则与幂等空间，同键跨入口重放不重复扣库。两者都使用请求中的人工本次实发：100 发满结单，40 只发 40 并保留 60；不能无条件 confirmed，也不把输入强行改成计划。网页调用地址与交互本步保持，分批输入界面留 B5c-3。
 - 整单撤销先逐次核对 shipment → operation → 库存流水，再按商品汇总全部实际数量一次反向补偿；保留每条原发货记录。沿用原有“流水之间及之后存在其他库存动作则拒绝自动撤销”的保护。闭单表原操作引用锚定 seq=1，补偿范围为整单全部记录；存储状态沿用 `cancelled`，界面为「已撤销」。
-- B5c-2 前多次发货单不开放旧订单行更正；原有单次确认的更正与撤销链继续兼容。没有增加分批页面、送货单打印、报表归期修改或生产连接。
+- B5c-1 阶段曾限制多次发货单更正；该限制由 B5c-2 的 §9.1 发货行更正规则取代。没有增加分批页面、送货单打印、报表归期修改或生产连接。
 - B4d 允许已发货单补传扫码的保护随新状态延伸至部分发货与短关；补传只追加原始扫码记录，不改变实发、首次扫码快照或库存。Web 清点修改仍按原有只读边界处理。
 
 验证与回退：019 仅在随机隔离测试库进行 up/down/up 与非空拒绝测试；本步不应用开发样本库 3307。停止写入后，四列全 NULL 才可运行 019 down；已有短关证据时拒绝删列，保留结构与数据并前向修复。已有分批记录的环境不能直接退回不支持分批的应用版本。
@@ -342,3 +358,53 @@ B5C1_PLAN_MIN confirmed_edit=422 unchanged=true
 | CK-20261112-004 | 已发 1 包，计划 3→4→2→1 | 待发 2→3→1→0；始终部分发货，显式完成后已出库；发货记录、已发量、库存不变 |
 
 冒烟通过真实 Web 登录会话访问本地 API；三张新单及审计保留，实际发货合计 5 包/1500000 克，库存相应减少，未直接重写库存或删除历史单据。本轮未做浏览器版式、实体设备或生产验收。备份、指纹、单号及原始响应摘要在 `.local/evidence/b5c-1-closeout/`；短关证据已非空，019 down 现应拒绝，后续采用保留证据的前向修复。
+
+## 16. B5c-2 本地实施与验收（2026-11-12）
+
+本批实现 §9.1 发货行更正及用户合并裁定；统一算法在 REPORT_SPEC §10，状态与粒度只在 §9.1 定义。020 不改更正明细主键、不新增状态列。网页仅补更正批次选择与有效数量展示，未实施 B5c-3 的分批发货输入界面。
+
+### 16.1 验证结果
+
+| 验证 | 结果 | 证据 |
+|---|---|---|
+| API / 小程序完整测试 | exit 0；322 通过、0 失败、0 跳过 | `.local/evidence/b5c-2-test.log` |
+| 严格类型检查与 Web 构建 | exit 0 | `.local/evidence/b5c-2-build.log` |
+| 完整 Chromium E2E | exit 0；122 通过、0 失败（主 113 + catalog 9） | `.local/evidence/b5c-2-e2e.log` |
+| OpenAPI 生成 | exit 0 | `.local/evidence/b5c-2-openapi.log` |
+
+已完成的定向证据：020 迁移与旧单兼容 6/6，相关报表导出/016 回归 5/5，均 exit 0；构建 exit 0。所有写入位于随机隔离测试库或独立 E2E 合成库，020 **尚未应用到 3307 开发样本库**，未做设备或生产验收。
+
+关键原始输出（包数与克数独立验证）：
+
+```text
+B5C2_TARGET missing_id=422 original=40/60 effective=40/50 remaining=10/3000000g snapshots_unchanged=true
+B5C2_TARGET foreign_order=422 same_order_wrong_line=422 invalid_order_line=422 stock_unchanged=true
+B5C2_REVERSE shipments=2 correction=-10 compensation=90 stock=200/60000000g replay=once
+B5C2_STATE confirmed=100 correction=-20 partial_pending=20 replenished=20 confirmed=true interleaved_reverse_stock=200
+B5C2_SHORT_CLOSE correction=-10 status=short_closed remaining=10->20 time_unchanged=true cannot_ship=409
+B5C2_SHORTAGE correction=+10 stock=5 status=409 business_unchanged=true
+B5C2_GRANULARITY same_request=422 separate_requests=200/200 effective=30/50 remaining=20
+B5C2_CONCURRENCY requests=10 corrections=1 success_events=1 stale_shipment=409 stock=110
+B5C2_REPORT outbound=-10 effective=90/27000000g detail=90/27000000g ledger=90/27000000g adjustment=0 documents=1
+B5C2_REPORT outbound_cross_month original_month=100 correction_month=-10 adjustment=0
+B5C2_REPORT inbound_correction=-5 original_month=11 correction_month=-5 adjustment=0
+B5C2_MIGRATION empty=up/down/up structure_equal=true nullable_fk=true
+B5C2_MIGRATION multiple=NULL unmatched=NULL legacy_effective=90 reverse_stock=200
+B5C2_MIGRATION single_backfill=true effective_before_after={"packages":3,"weightGrams":600000} nonnull_down=refused ddl=0 structure_equal=true
+B5C2_PRE016 shipment_reference=NULL pending_after_correction=1 replenished=false readable=true reverse_restored=true
+B5C2_PRE016 shipment_reference=NULL pending_after_correction=1 replenished=true readable=true reverse_restored=true
+```
+
+并发输出中的 `success_events=1` 指 `stock.correct` 更正成功事件；更正引起状态变化时另存一条 `outbound.correction` 状态审计，同键重放不重复写任何一条。跨月测试使用 2026 年 9/10 月的隔离流水，未改开发样本数据。
+
+020 索引实测：`EXPLAIN SELECT correction_id FROM document_correction_lines WHERE shipment_line_id=?` 使用 `idx_correction_shipment_line`，`type=ref`、`rows=1`、`Using where; Using index`。单批唯一匹配回填前后有效量相等；多批、无法匹配及旧确认另有后续补发时保留 NULL。非空回退拒绝前后 `SHOW CREATE TABLE` 相等、DDL 执行数为 0、020 状态仍为 `applied`。
+
+报表 XLSX 三范围逐字段比对：明细 31 列，全部/本页/选中分别比较 1488/620/31 格；月报 46 列，分别比较 828/828/46 格，差异均 0。新增“其他库存变动”使对账表期末行下移，旧导出测试改按业务标签定位；016 往返测试固定目标 016，避免误把 020 结构与旧版比较，未删用例或降低数量/库存断言。完整 E2E 首轮也发现旧下载辅助函数固定只读 6 项对账，漏掉新增第 7 项；改按屏幕实际项数读取导出并逐项比较，仍验证全部数据。
+
+1440 截图（本地 Chromium）：`.local/evidence/b5c-2-correction-drawer-1440.png`、`.local/evidence/b5c-2-correction-detail-1440.png`。更正抽屉显示第 2 次发货、原量 60 包/18 吨、改为 50 包/15 吨及差额 −10 包/−3 吨；详情显示有效 90 包/27 吨与部分发货。
+
+### 16.2 回退与后续
+
+停止相关写入后，只有 `shipment_line_id` 全 NULL 才能执行 020 down；任何非空归属都保留证据并采用前向修复。应用版本也不能直接退回不支持发货行更正及有效量的旧版。没有执行样本库迁移、合并或推送。
+
+继续观察 §9.1 的同一订单行拆更正单频率；B5c-3 页面、B5d 重述、性能专项、实体设备与生产验收均未包含在本批结果中。外部 AGENTS.md 和 IMPLEMENTATION_PLAN.md 改动原样保留，不混入本批提交。

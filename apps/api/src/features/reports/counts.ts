@@ -9,11 +9,12 @@ export async function documentCounts(db: Database, cells: Map<string, Cell>, que
   const filter = dimensionFilter(query);
   const rows = await db.all(
     `SELECT LEFT(${postedLocal},7) AS period,s.warehouse_code,s.product_code,
-    COALESCE(o.operation_type,s.source_business_type) AS kind,
+    CASE WHEN sc.inbound_receipt_id IS NOT NULL THEN 'inbound.confirm' WHEN sc.outbound_order_id IS NOT NULL THEN 'outbound.confirm'
+      ELSE COALESCE(o.operation_type,s.source_business_type) END AS kind,
     COUNT(DISTINCT CASE WHEN o.operation_type LIKE '%.reverse' THEN s.operation_id
-      ELSE COALESCE(s.inbound_receipt_id,s.order_id,NULLIF(s.source_order_no,'')) END) AS documents,
+      ELSE COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) END) AS documents,
     SUM(CASE WHEN o.operation_type LIKE '%.reverse' THEN s.operation_id IS NULL
-      ELSE COALESCE(s.inbound_receipt_id,s.order_id,NULLIF(s.source_order_no,'')) IS NULL END) AS missing
+      ELSE COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) IS NULL END) AS missing
     ${balanceFrom} WHERE s.source_del_flag=0 AND ${movementPredicate} AND ${validPosted}
     AND ${postedLocal}>=? AND ${postedLocal}<? ${filter.sql}
     GROUP BY period,s.warehouse_code,s.product_code,kind`,

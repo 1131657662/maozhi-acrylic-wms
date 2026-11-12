@@ -42,6 +42,8 @@ export function emptyMonth(
     outboundGrams: 0,
     adjustmentPackages: 0,
     adjustmentGrams: 0,
+    otherMovementPackages: 0,
+    otherMovementGrams: 0,
     inboundConfirmedPackages: 0,
     inboundConfirmedGrams: 0,
     inboundReversedPackages: 0,

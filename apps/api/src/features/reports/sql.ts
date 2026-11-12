@@ -12,6 +12,7 @@ export const balanceFields = `s.id,s.warehouse_code AS warehouseCode,w.name AS w
   s.source_id,s.source_del_flag,s.source_business_type,s.source_row_json,
   s.packages_delta,s.tonnes_delta,s.packages_before,s.packages_after,s.tonnes_before,s.tonnes_after,
   s.operation_id,o.operation_type,o.reason,o.actor,c.original_operation_id AS originalOperationId,
+  sc.inbound_receipt_id AS correctionInboundId,sc.outbound_order_id AS correctionOutboundId,
   COALESCE(co.packages,0) AS correctionOffsetPackages,COALESCE(co.tonnes,0) AS correctionOffsetTonnes,
   ${postedLocal} AS reportLocalTime`;
 export const ledgerFields = `${balanceFields},
@@ -27,6 +28,7 @@ export const balanceFrom = `FROM stock_journal s
   JOIN master_products p ON p.code=s.product_code AND p.inventory_eligible=1
   LEFT JOIN master_warehouses w ON w.code=s.warehouse_code
   LEFT JOIN inventory_operations o ON o.id=s.operation_id
+  LEFT JOIN document_corrections sc ON sc.id=s.correction_id
   LEFT JOIN document_closures c ON c.compensation_operation_id=o.id
   LEFT JOIN (SELECT h.offset_operation_id,l.product_code,
     SUM(CASE WHEN h.inbound_receipt_id IS NOT NULL THEN -l.packages_delta ELSE l.packages_delta END) AS packages,
@@ -35,9 +37,9 @@ export const balanceFrom = `FROM stock_journal s
     WHERE h.offset_operation_id IS NOT NULL GROUP BY h.offset_operation_id,l.product_code
   ) co ON co.offset_operation_id=o.id AND co.product_code=s.product_code`;
 export const ledgerFrom = `${balanceFrom}
-  LEFT JOIN inbound_receipts i ON i.id=s.inbound_receipt_id
+  LEFT JOIN inbound_receipts i ON i.id=COALESCE(s.inbound_receipt_id,sc.inbound_receipt_id)
   LEFT JOIN inbound_receipts hi ON hi.receipt_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='inbound'
-  LEFT JOIN outbound_orders b ON b.id=s.order_id
+  LEFT JOIN outbound_orders b ON b.id=COALESCE(s.order_id,sc.outbound_order_id)
   LEFT JOIN outbound_orders hb ON hb.order_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='outbound'
   LEFT JOIN master_suppliers su ON su.code=COALESCE(i.supplier_code,hi.supplier_code)`;
 export function dimensionFilter(query: Pick<ReportQuery, 'warehouse' | 'product'> & { source?: string }) {
@@ -55,4 +57,5 @@ export function dimensionFilter(query: Pick<ReportQuery, 'warehouse' | 'product'
   return { sql: clauses.length ? ' AND ' + clauses.join(' AND ') : '', values };
 }
 export const movementPredicate = `(o.operation_type IN ('inbound.confirm','inbound.reverse','outbound.confirm','outbound.reverse')
+  OR (o.operation_type='stock.correct' AND (sc.inbound_receipt_id IS NOT NULL OR sc.outbound_order_id IS NOT NULL))
   OR (s.operation_id IS NULL AND s.source_business_type IN ('inbound','outbound')))`;

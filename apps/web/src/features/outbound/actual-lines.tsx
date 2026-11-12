@@ -13,10 +13,14 @@ interface Props {
 export function ActualLines({ order, form, editable }: Props) {
   const { token } = theme.useToken();
   const values = Form.useWatch('lines', form) as ActualForm['lines'] | undefined;
+  const effectiveLines = order.lines.map((line) => {
+    const quantity = order.corrections?.lines.find((item) => item.originalLineId === line.id)?.effective;
+    return quantity ? { ...line, actualPackages: quantity.packages, actualWeightGrams: quantity.weightGrams } : line;
+  });
   return (
     <Table
       rowKey="id"
-      dataSource={order.lines}
+      dataSource={effectiveLines}
       pagination={false}
       tableLayout="fixed"
       scroll={{ x: ACTUAL_TABLE_WIDTH }}
