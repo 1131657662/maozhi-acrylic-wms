@@ -22,7 +22,15 @@ export interface FifoState {
   layerTotalGrams: number;
 }
 export function emptyFifo(): FifoState {
-  return { layers: [], activeIds: new Set(), byId: new Map(), outbound: new Map(), tainted: false, balanceGrams: null, layerTotalGrams: 0 };
+  return {
+    layers: [],
+    activeIds: new Set(),
+    byId: new Map(),
+    outbound: new Map(),
+    tainted: false,
+    balanceGrams: null,
+    layerTotalGrams: 0,
+  };
 }
 export function markFifoUnknown(state: FifoState): void {
   state.tainted = true;
@@ -134,13 +142,14 @@ export function applyFifo(state: FifoState, event: LedgerEvent, afterGrams: numb
   const grams = Math.abs(event.deltaGrams),
     operationId = event.operationId ?? event.id;
   let valid = true;
-  if (event.family === 'inbound' && !event.reverse && grams > 0) {
+  const family = event.operationType === 'stock.correct' ? 'correction' : event.family;
+  if (family === 'inbound' && !event.reverse && grams > 0) {
     const ageDay = validAgeDay(event.businessDate, event.localTime);
     if (!ageDay) valid = false;
     else addLayer(state, { id: operationId, ageDay, grams, consumed: 0, reversed: false });
-  } else if (event.family === 'outbound' && !event.reverse && grams > 0) valid = takeOldest(state, operationId, grams);
-  else if (event.family === 'outbound' && event.reverse && grams > 0) valid = restoreOutbound(state, event, grams);
-  else if (event.family === 'inbound' && event.reverse && grams > 0) valid = reverseInbound(state, event, grams);
+  } else if (family === 'outbound' && !event.reverse && grams > 0) valid = takeOldest(state, operationId, grams);
+  else if (family === 'outbound' && event.reverse && grams > 0) valid = restoreOutbound(state, event, grams);
+  else if (family === 'inbound' && event.reverse && grams > 0) valid = reverseInbound(state, event, grams);
   else if (grams !== 0) valid = false;
   if (!valid) markUnknown(state);
   if (afterGrams === 0) {
@@ -166,11 +175,7 @@ function validAgeDay(businessDate: string | null, localTime: string | null): str
     ? candidate
     : null;
 }
-export function ageBuckets(
-  state: FifoState,
-  cutoffDay: string,
-  closingGrams: number | null,
-): (number | null)[] {
+export function ageBuckets(state: FifoState, cutoffDay: string, closingGrams: number | null): (number | null)[] {
   if (closingGrams === null) return [null, null, null, null, null, null];
   if (closingGrams === 0) return [0, 0, 0, 0, 0, 0];
   const unknown = () => [null, null, null, null, null, closingGrams];

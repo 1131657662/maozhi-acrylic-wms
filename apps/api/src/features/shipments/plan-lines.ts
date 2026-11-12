@@ -7,12 +7,18 @@ type PlanLines = NonNullable<ShipmentPlan['plan']['lines']>;
 function validateShippedMinimum(order: Detail, lines: PlanLines) {
   const issues = lines.flatMap((line, index) => {
     const shipped = order.lines.find((item) => item.id === line.id)!;
+    const effective = order.corrections?.lines.find((item) => item.originalLineId === line.id)?.effective;
     return [
-      { key: 'plannedPackages', planned: line.plannedPackages, actual: shipped.actualPackages, label: '计划包数' },
+      {
+        key: 'plannedPackages',
+        planned: line.plannedPackages,
+        actual: effective?.packages ?? shipped.actualPackages,
+        label: '计划包数',
+      },
       {
         key: 'plannedWeightGrams',
         planned: line.plannedWeightGrams,
-        actual: shipped.actualWeightGrams,
+        actual: effective?.weightGrams ?? shipped.actualWeightGrams,
         label: '计划重量',
       },
     ]

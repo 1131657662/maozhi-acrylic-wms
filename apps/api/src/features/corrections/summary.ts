@@ -1,7 +1,9 @@
-import { correctionSummarySchema, type Correction, type CorrectionTarget } from '@wms/contracts';
+import { correctionSummarySchema, type CorrectionTarget } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { ensure } from '../../shared/errors.ts';
 import { readCorrections } from './read.ts';
+import { shipmentBasis } from './shipment-basis.ts';
+import { effectiveLine, effectiveShipment } from './effective.ts';
 
 export interface OriginalLine {
   id: string;
@@ -14,39 +16,6 @@ interface SummaryInput extends CorrectionTarget {
   lines: OriginalLine[];
   eligible: boolean;
 }
-function effective(line: OriginalLine, records: Correction[]) {
-  const original = { packages: line.packages, weightGrams: line.weightGrams },
-    current = { ...original };
-  for (const record of records)
-    for (const item of record.lines.filter((r) => r.originalLineId === line.id)) {
-      ensure(
-        item.productCode === line.productCode &&
-          item.before.packages === current.packages &&
-          item.before.weightGrams === current.weightGrams,
-        'CORRECTION_EVIDENCE_INVALID',
-        '更正前值与原单/前序更正不一致',
-      );
-      ensure(
-        item.after.packages - item.before.packages === item.delta.packages &&
-          item.after.weightGrams - item.before.weightGrams === item.delta.weightGrams,
-        'CORRECTION_EVIDENCE_INVALID',
-        '更正差额证据不一致',
-      );
-      current.packages += item.delta.packages;
-      current.weightGrams += item.delta.weightGrams;
-    }
-  return {
-    originalLineId: line.id,
-    productCode: line.productCode,
-    productName: line.productName,
-    original,
-    effective: current,
-    delta: {
-      packages: current.packages - original.packages,
-      weightGrams: current.weightGrams - original.weightGrams,
-    },
-  };
-}
 export async function correctionSummary(db: Database, input: SummaryInput) {
   const records = await readCorrections(db, input);
   ensure(
@@ -54,7 +23,35 @@ export async function correctionSummary(db: Database, input: SummaryInput) {
     'CORRECTION_EVIDENCE_INVALID',
     '更正引用的原行不存在',
   );
-  const lines = input.lines.map((l) => effective(l, records));
+  const shipments = input.kind === 'outbound' ? await shipmentBasis(db, input.id) : [];
+  const journals = records.length
+    ? await db.all(
+        `SELECT correction_id,MIN(id) AS id FROM stock_journal
+    WHERE correction_id IN (${records.map(() => '?').join(',')}) GROUP BY correction_id`,
+        records.map((r) => r.id),
+      )
+    : [];
+  const context = {
+    shipments,
+    correctionJournals: new Map(journals.map((r) => [String(r.correction_id), BigInt(String(r.id))])),
+  };
+  const lines = input.lines.map((l) => ({
+    ...effectiveLine(l, records, context),
+    ...(shipments.length
+      ? {
+          shipments: shipments
+            .filter((sh) => sh.lineId === l.id)
+            .map((sh) => ({
+              shipmentLineId: sh.shipmentLineId,
+              seq: sh.seq,
+              vehicleNo: sh.vehicleNo,
+              shippedAt: sh.shippedAt,
+              original: sh.original,
+              effective: effectiveShipment(sh, records).effective,
+            })),
+        }
+      : {}),
+  }));
   const latest = records.at(-1);
   const total = (key: 'original' | 'effective' | 'delta') =>
     lines.reduce(

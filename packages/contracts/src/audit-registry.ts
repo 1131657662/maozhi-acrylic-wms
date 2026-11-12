@@ -34,6 +34,12 @@ export const auditActions: Record<string, AuditActionDefinition> = {
   ]),
   'outbound.confirm': entry('确认出库', 'outbound'),
   'outbound.complete': entry('完成发货', 'outbound'),
+  'outbound.correction': entry('更正后更新发货状态', 'outbound', true, [
+    'status',
+    'shortClosedPackages',
+    'shortClosedWeightGrams',
+    'reason',
+  ]),
   'outbound.short-close': entry('短关出库单', 'outbound', true, [
     'status',
     'shortCloseReason',

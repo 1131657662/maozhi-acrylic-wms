@@ -9,6 +9,8 @@ import { createOperation, lockInventoryWriter } from '../inventory/operation.ts'
 import { postPreparedInventory } from '../inventory/posting.ts';
 import { prepareCorrection } from './prepare.ts';
 import { readCorrection } from './read.ts';
+import { settleCorrectedOutbound } from './settle-outbound.ts';
+import { AppError } from '../../shared/errors.ts';
 
 interface Command extends CorrectionTarget {
   input: CorrectionInput;
@@ -46,8 +48,8 @@ async function saveLines(
   for (const line of lines)
     await db.run(
       `INSERT INTO document_correction_lines
-    (correction_id,product_code,${ref},original_line_id,packages_before,packages_after,tonnes_before,tonnes_after,packages_delta,tonnes_delta)
-    VALUES(?,?,?,?,?,?,?,?,?,?)`,
+    (correction_id,product_code,${ref},original_line_id,packages_before,packages_after,tonnes_before,tonnes_after,packages_delta,tonnes_delta,shipment_line_id)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
       [
         target.correctionId,
         line.productCode,
@@ -59,6 +61,7 @@ async function saveLines(
         gramsToDecimal(line.after.weightGrams),
         line.delta.packages,
         gramsToDecimal(line.delta.weightGrams),
+        line.shipmentLineId,
       ],
     );
 }
@@ -68,13 +71,18 @@ async function execute(db: Database, command: Command) {
   await saveLines(db, { kind: command.kind, correctionId: id }, prepared.lines);
   await postPreparedInventory(db, { operation, warehouse: prepared.warehouse, changes: prepared.posted });
   const table = command.kind === 'inbound' ? 'inbound_receipts' : 'outbound_orders';
-  await db.run(`UPDATE ${table} SET correction_revision=correction_revision+1 WHERE id=?`, [command.id]);
+  const version = command.kind === 'outbound' ? ',revision=revision+1' : '';
+  await db.run(`UPDATE ${table} SET correction_revision=correction_revision+1${version} WHERE id=?`, [command.id]);
+  if (command.kind === 'outbound')
+    await settleCorrectedOutbound(db, command.id, { before: prepared.state, actor: command.actor });
   const after = await readCorrection(db, id);
   await audit(db, command.actor, { action: 'stock.correct', targetId: id, before: prepared.summary, after });
   return after;
 }
 export async function createCorrection(db: Database, command: Command) {
   const input = correctionInputSchema.parse(command.input);
+  if (new Set(input.lines.map((l) => l.originalLineId)).size !== input.lines.length)
+    throw new AppError('CORRECTION_ORDER_LINE_DUPLICATE', '该订单行在本单已更正，请为另一批发货另开更正单', 422);
   return db.transaction(async (tx) => {
     await lockInventoryWriter(tx);
     const scope = 'correction.create',

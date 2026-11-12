@@ -1,5 +1,5 @@
 import { Alert, Card, Descriptions, Space, Timeline } from 'antd';
-import { tonnes, type CorrectionSummary } from '@wms/contracts';
+import { tonnes, correctionCopy, type CorrectionSummary } from '@wms/contracts';
 import { formatTime } from '../../lib/format-time';
 
 export function CorrectionSummaryPanel({
@@ -61,6 +61,17 @@ export function CorrectionSummaryPanel({
                       吨数差额：{grams >= 0 ? '+' : ''}
                       {tonnes(grams)} 吨；操作人：{record.actor}；原因：{record.reason}
                     </div>
+                    {record.lines
+                      .filter((line) => line.shipment)
+                      .map((line) => (
+                        <div key={line.originalLineId}>
+                          {correctionCopy.shipment(
+                            line.shipment!.seq,
+                            line.shipment!.vehicleNo,
+                            formatTime(line.shipment!.shippedAt),
+                          )}
+                        </div>
+                      ))}
                   </div>
                 ),
               };

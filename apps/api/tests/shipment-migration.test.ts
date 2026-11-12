@@ -17,7 +17,7 @@ test('016 empty up/down/up restores identical shipment schema', async () => {
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'outbound_shipments'"), undefined);
     assert.equal(await c.db.get("SHOW COLUMNS FROM outbound_lines LIKE 'scan_packages'"), undefined);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '016_outbound_shipments');
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE outbound_shipment_lines'), before);
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE document_correction_lines'), correctionSchema);
     console.log('B4D_MIGRATION empty=up/down/up structure_identical=true');

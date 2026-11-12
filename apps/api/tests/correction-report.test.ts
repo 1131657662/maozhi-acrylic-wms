@@ -6,7 +6,7 @@ import { correctionFixture } from './correction-fixture.ts';
 import { origin } from './numbering-fixture.ts';
 
 for (const kind of ['inbound', 'outbound'] as const)
-  test(`B5a ${kind} 吨数独立更正/混合更正/撤销，收发量不污染`, async () => {
+  test(`B5a ${kind} 吨数独立更正/混合更正/撤销，有效收发量一致`, async () => {
     const c = await correctionFixture(kind);
     try {
       const original = (await c.detail()).body.data;
@@ -22,8 +22,8 @@ for (const kind of ['inbound', 'outbound'] as const)
         sign = kind === 'inbound' ? 1 : -1;
       assert.equal(before.correctionPackages, sign);
       assert.equal(before.correctionGrams, sign * 50000);
-      assert.equal(before[`${kind}Packages`], summary.original.packages);
-      assert.equal(before[`${kind}Grams`], summary.original.weightGrams);
+      assert.equal(before[`${kind}Packages`], summary.effective.packages);
+      assert.equal(before[`${kind}Grams`], summary.effective.weightGrams);
       const preview = (await c.web.get(`${c.path}/lifecycle`).expect(200)).body.data;
       assert.equal(preview.allowed, true);
       await c.web
@@ -42,7 +42,7 @@ for (const kind of ['inbound', 'outbound'] as const)
       const details = reportDetailsSchema.parse(
         (await c.web.get('/api/v1/web/reports/details').query(query).expect(200)).body.data,
       );
-      assert.equal(details.total, 2);
+      assert.equal(details.total, 4);
       const reversed = details.items.find((r) => r.operationType === `${kind}.reverse`)!;
       assert.equal(reversed.correctionOffsetPackages, -sign);
       assert.equal(reversed.correctionOffsetGrams, -sign * 50000);

@@ -88,9 +88,21 @@ export async function reversalProof(db: Database, doc: LifecycleDocument) {
     const shipment = await shipmentReversalRows(db, doc, operations);
     if (shipment === null) return { originalOperationId: null, lines: [], blockers: [incomplete] };
     if (shipment) {
-      if (!matches(doc, shipment.rows))
+      const effectiveDoc = {
+        ...doc,
+        lines: doc.lines.map((line) => {
+          const corrections =
+            doc.fingerprint.corrections?.lines.filter((l) => l.productCode === line.productCode) ?? [];
+          return {
+            ...line,
+            packages: line.packages - corrections.reduce((n, l) => n + l.delta.packages, 0),
+            grams: line.grams - corrections.reduce((n, l) => n + l.delta.weightGrams, 0),
+          };
+        }),
+      };
+      if (!matches(effectiveDoc, shipment.rows))
         return { originalOperationId: shipment.originalOperationId, lines: [], blockers: [incomplete] };
-      return inspectRows(db, doc, shipment);
+      return inspectRows(db, doc, { ...shipment, includesCorrections: true });
     }
   }
   const originalOperationId = operations.length === 1 ? String(operations[0]!.id) : null;
@@ -112,11 +124,13 @@ export async function reversalProof(db: Database, doc: LifecycleDocument) {
 async function inspectRows(
   db: Database,
   doc: LifecycleDocument,
-  evidence: { originalOperationId: string; rows: Row[] },
+  evidence: { originalOperationId: string; rows: Row[]; includesCorrections?: boolean },
 ) {
   const lines: LifecyclePreview['lines'] = [],
     blockers: LifecycleBlocker[] = [];
-  const expanded = await correctedReversalRows(db, doc, evidence.rows);
+  const expanded = evidence.includesCorrections
+    ? { rows: evidence.rows, blockers: [] }
+    : await correctedReversalRows(db, doc, evidence.rows);
   blockers.push(...expanded.blockers);
   for (const row of expanded.rows) {
     const result = await inspectLine(db, row);

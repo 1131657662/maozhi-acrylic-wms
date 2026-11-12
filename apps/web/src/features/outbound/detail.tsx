@@ -55,7 +55,7 @@ export function OrderDetail() {
         <Card>
           <small>计划包数 / 实发包数</small>
           <h2>
-            {order.plannedPackages} / {order.actualPackages}
+            {order.plannedPackages} / {order.corrections?.effective.packages ?? order.actualPackages}
             <small> 包</small>
           </h2>
         </Card>
@@ -69,7 +69,7 @@ export function OrderDetail() {
         <Card>
           <small>实发重量</small>
           <h2>
-            {tonnes(order.actualWeightGrams)}
+            {tonnes(order.corrections?.effective.weightGrams ?? order.actualWeightGrams)}
             <small> 吨</small>
           </h2>
         </Card>

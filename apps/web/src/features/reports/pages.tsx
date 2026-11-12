@@ -22,7 +22,7 @@ export function ReportDetails() {
         name: 'report-details',
         title: '出入库明细',
         columns: detailColumns,
-        description: '按入账日追溯收发与撤销补偿。方向仅筛选明细，下方对账始终包含同仓品日期范围的全部收发与调整。',
+        description: businessCopy.reportsDetailsBasis,
         extra: (
           <Link
             to={
@@ -56,8 +56,7 @@ export function ReportMonthly() {
         name: 'report-monthly',
         title: '月度汇总',
         columns: monthlyColumns,
-        description:
-          '按仓库 × 库存商品 × 入账月份核对。部分月份按所选日期截取；入出库净额含撤销，期初/期末不跨月相加。列设置可展开各类调整及补偿。',
+        description: businessCopy.reportsMonthlyBasis,
         extra: (
           <Link to={'/reports/details?' + new URLSearchParams({ ...state.params, page: '1', sortBy: 'postedAt' })}>
             {businessCopy.reportsPages2}

@@ -41,8 +41,8 @@ async function pageIds(db: Database, { projection, query, cursor }: PageContext)
     query.movement === 'all'
       ? ''
       : query.movement === 'inbound'
-        ? " AND COALESCE(o.operation_type,s.source_business_type) IN ('inbound','inbound.confirm','inbound.reverse')"
-        : " AND COALESCE(o.operation_type,s.source_business_type) IN ('outbound','outbound.confirm','outbound.reverse')";
+        ? " AND (COALESCE(o.operation_type,s.source_business_type) IN ('inbound','inbound.confirm','inbound.reverse') OR sc.inbound_receipt_id IS NOT NULL)"
+        : " AND (COALESCE(o.operation_type,s.source_business_type) IN ('outbound','outbound.confirm','outbound.reverse') OR sc.outbound_order_id IS NOT NULL)";
   return db.all(
     `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN s.id ${balanceFrom}
     WHERE s.source_del_flag=0 AND ${movementPredicate} AND ${postedLocal}>=? AND ${postedLocal}<?

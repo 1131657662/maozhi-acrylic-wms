@@ -34,15 +34,13 @@ export async function getOrder(db: Database, id: string): Promise<Detail> {
     const detail = (await assemble(tx, [headerSchema.parse(row)]))[0];
     if (!detail) throw new AppError('NOT_FOUND', '出库计划不存在', 404);
     const source = await tx.get('SELECT source_id FROM outbound_orders WHERE id=?', [id]);
-    const shipmentCount = Number(
-      (await tx.get('SELECT COUNT(*) AS n FROM outbound_shipments WHERE order_id=?', [id]))?.n,
-    );
     return {
       ...detail,
       corrections: await correctionSummary(tx, {
         kind: 'outbound',
         id,
-        eligible: source?.source_id === null && detail.status === 'confirmed' && shipmentCount <= 1,
+        eligible:
+          source?.source_id === null && ['confirmed', 'partially_shipped', 'short_closed'].includes(detail.status),
         lines: detail.lines.map((l) => ({
           id: l.id,
           productCode: l.productCode,

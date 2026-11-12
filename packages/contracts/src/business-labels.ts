@@ -5,7 +5,7 @@ export const businessLabels = {
   catalogSource: '条码目录',
   relatedRecord: '相关业务记录',
   reportDates: '按入账日期统计',
-  reportExplanation: '按确认入账时间归属所选期间；撤销计入撤销发生日，历史业务日期不改变入账月份。',
+  reportExplanation: '按入账日统计有效收发量，已包含数量更正与撤销；跨月更正计入更正发生月，调整只含盘点与期初调整。',
 };
 export function auditActionText(value: unknown) {
   return typeof value === 'string' ? auditAction(value).label : businessLabels.empty;

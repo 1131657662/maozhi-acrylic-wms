@@ -1,13 +1,20 @@
-import { Card, Form, InputNumber, Space, Typography } from 'antd';
-import { tonnes, type CorrectionSummary } from '@wms/contracts';
+import { Card, Form, InputNumber, Select, Space, Typography } from 'antd';
+import { tonnes, correctionCopy, type CorrectionSummary } from '@wms/contracts';
 import { gramsToTonnes, tonnesDeltaToGrams } from '../../lib/weight-input';
+import { formatTime } from '../../lib/format-time';
 
 export interface CorrectionFormValues {
   reason: string;
-  lines: { packages: number; weightTonnes: number }[];
+  lines: { shipmentLineId?: string; packages: number; weightTonnes: number }[];
+}
+export function selectedCorrectionLine(line: CorrectionSummary['lines'][number], shipmentLineId?: string) {
+  const shipment = line.shipments?.find((sh) => sh.shipmentLineId === shipmentLineId);
+  return shipment ? { ...line, original: shipment.original, effective: shipment.effective } : line;
 }
 export function CorrectionLineFields({ line, index }: { line: CorrectionSummary['lines'][number]; index: number }) {
   const form = Form.useFormInstance<CorrectionFormValues>();
+  const selected = Form.useWatch(['lines', index, 'shipmentLineId'], form) ?? line.shipments?.[0]?.shipmentLineId;
+  line = selectedCorrectionLine(line, selected);
   const packages = Form.useWatch(['lines', index, 'packages'], form) ?? line.effective.packages;
   const weight = Form.useWatch(['lines', index, 'weightTonnes'], form) ?? gramsToTonnes(line.effective.weightGrams);
   const packagesDelta = packages - line.effective.packages;
@@ -15,6 +22,26 @@ export function CorrectionLineFields({ line, index }: { line: CorrectionSummary[
   return (
     <Card size="small" title={`${line.productCode} · ${line.productName}`}>
       <Space orientation="vertical" style={{ width: '100%' }}>
+        {Boolean(line.shipments?.length) && (
+          <Form.Item
+            name={['lines', index, 'shipmentLineId']}
+            label={correctionCopy.chooseShipment}
+            rules={[{ required: true, message: correctionCopy.chooseShipment }]}
+          >
+            <Select
+              aria-label={correctionCopy.chooseShipment}
+              options={line.shipments!.map((sh) => ({
+                value: sh.shipmentLineId,
+                label: correctionCopy.shipment(sh.seq, sh.vehicleNo, formatTime(sh.shippedAt)),
+              }))}
+              onChange={(id) => {
+                const next = selectedCorrectionLine(line, id);
+                form.setFieldValue(['lines', index, 'packages'], next.effective.packages);
+                form.setFieldValue(['lines', index, 'weightTonnes'], gramsToTonnes(next.effective.weightGrams));
+              }}
+            />
+          </Form.Item>
+        )}
         <Typography.Text>
           原单值：{line.original.packages} 包 / {tonnes(line.original.weightGrams)} 吨
         </Typography.Text>

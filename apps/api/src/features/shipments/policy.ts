@@ -16,8 +16,17 @@ export function remainingLines(order: Detail) {
     lineId: line.id,
     productCode: line.productCode,
     productName: line.productName,
-    packages: Math.max(0, line.plannedPackages - line.actualPackages),
-    weightGrams: Math.max(0, line.plannedWeightGrams - line.actualWeightGrams),
+    packages: Math.max(
+      0,
+      line.plannedPackages -
+        (order.corrections?.lines.find((l) => l.originalLineId === line.id)?.effective.packages ?? line.actualPackages),
+    ),
+    weightGrams: Math.max(
+      0,
+      line.plannedWeightGrams -
+        (order.corrections?.lines.find((l) => l.originalLineId === line.id)?.effective.weightGrams ??
+          line.actualWeightGrams),
+    ),
   }));
 }
 export function remainingTotal(order: Detail) {

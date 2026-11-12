@@ -56,7 +56,11 @@ test('B3b: both XLSX reports match every field in all/page/selected scopes and n
           }
         const balance = book.getWorksheet('收发存对账')!;
         assert.equal(balance.getCell(3, 2).value, all.report.reconciliation.openingPackages);
-        assert.equal(balance.getCell(7, 3).value, all.report.reconciliation.closingGrams / 1_000_000);
+        let closing: unknown;
+        balance.eachRow((row) => {
+          if (row.getCell(1).value === '= 期末') closing = row.getCell(3).value;
+        });
+        assert.equal(closing, all.report.reconciliation.closingGrams / 1_000_000);
         console.log(
           'B3B_XLSX',
           JSON.stringify({

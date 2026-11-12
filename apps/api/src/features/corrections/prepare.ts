@@ -1,9 +1,11 @@
-import type { CorrectionInput, CorrectionSummary, CorrectionTarget } from '@wms/contracts';
+import type { CorrectionInput, CorrectionTarget } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { AppError, ensure } from '../../shared/errors.ts';
 import { getInbound } from '../inbound/repository.ts';
 import { getOrder } from '../outbound/repository.ts';
 import { prepareInventory } from '../inventory/posting.ts';
+import { correctionLines } from './attribution.ts';
+import { originalShipmentEvidence } from './shipment-evidence.ts';
 import { assertOriginalEvidence, assertPriorCorrectionEvidence } from './evidence.ts';
 
 async function document(db: Database, target: CorrectionTarget) {
@@ -12,7 +14,10 @@ async function document(db: Database, target: CorrectionTarget) {
   ensure(raw, 'NOT_FOUND', '原单不存在');
   ensure(raw.source_id === null, 'LEGACY_CORRECTION_FORBIDDEN', '历史导入单禁止更正，只能库存调整');
   ensure(
-    raw.source_del_flag === 0 && raw.status === 'confirmed',
+    raw.source_del_flag === 0 &&
+      (target.kind === 'inbound'
+        ? raw.status === 'confirmed'
+        : ['confirmed', 'partially_shipped', 'short_closed'].includes(String(raw.status))),
     'CORRECTION_DOCUMENT_CLOSED',
     '仅未撤销的已入账原单可以更正',
   );
@@ -27,35 +32,32 @@ async function document(db: Database, target: CorrectionTarget) {
     `${target.kind}.confirm`,
     target.id,
   ]);
-  ensure(operations.length === 1, 'ORIGINAL_EVIDENCE_MISSING', '原确认操作缺失或重复，不能更正');
+  const shipment =
+    target.kind === 'outbound'
+      ? await originalShipmentEvidence(db, { id: target.id, warehouse: data.warehouseCode }, operations)
+      : undefined;
+  ensure(
+    shipment !== null && (shipment || operations.length === 1),
+    'ORIGINAL_EVIDENCE_MISSING',
+    '原确认操作缺失或重复，不能更正',
+  );
   const evidence = { operationId: String(operations[0]!.id), warehouse: data.warehouseCode, summary: data.corrections };
   ensure(
     target.kind !== 'inbound' || raw.confirmation_operation_id === evidence.operationId,
     'ORIGINAL_EVIDENCE_MISSING',
     '原单入账操作引用不一致，不能更正',
   );
-  await assertOriginalEvidence(db, target, evidence);
+  if (!shipment) await assertOriginalEvidence(db, target, evidence);
   await assertPriorCorrectionEvidence(db, target, evidence);
-  return { warehouse: data.warehouseCode, summary: data.corrections };
-}
-function calculate(summary: CorrectionSummary, input: CorrectionInput) {
-  return input.lines
-    .map((requested) => {
-      const original = summary.lines.find((line) => line.originalLineId === requested.originalLineId);
-      if (!original) throw new AppError('CORRECTION_LINE_INVALID', '只能更正原单已有明细', 422);
-      const after = { packages: requested.packages, weightGrams: requested.weightGrams };
-      return {
-        originalLineId: original.originalLineId,
-        productCode: original.productCode,
-        before: original.effective,
-        after,
-        delta: {
-          packages: after.packages - original.effective.packages,
-          weightGrams: after.weightGrams - original.effective.weightGrams,
-        },
-      };
-    })
-    .filter((line) => line.delta.packages !== 0 || line.delta.weightGrams !== 0);
+  return {
+    warehouse: data.warehouseCode,
+    summary: data.corrections,
+    state: {
+      status: String(raw.status),
+      shortClosedPackages: raw.short_closed_packages == null ? null : Number(raw.short_closed_packages),
+      shortClosedWeightGrams: raw.short_closed_grams == null ? null : Number(raw.short_closed_grams),
+    },
+  };
 }
 export async function prepareCorrection(db: Database, target: CorrectionTarget, input: CorrectionInput) {
   const original = await document(db, target);
@@ -65,7 +67,7 @@ export async function prepareCorrection(db: Database, target: CorrectionTarget, 
     'STALE_CORRECTION',
     '原单已被更正，请刷新有效数量后重新核对',
   );
-  const lines = calculate(original.summary, input);
+  const lines = await correctionLines(db, target, { summary: original.summary, input });
   if (!lines.length) throw new AppError('CORRECTION_NO_CHANGE', '包数和吨数均未变化', 422);
   const sign = target.kind === 'inbound' ? 1 : -1;
   const posted = await prepareInventory(

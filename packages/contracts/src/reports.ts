@@ -70,6 +70,8 @@ export const reportBalanceSchema = z.strictObject({
   outboundGrams: integer,
   adjustmentPackages: integer,
   adjustmentGrams: integer,
+  otherMovementPackages: integer.default(0),
+  otherMovementGrams: integer.default(0),
   closingPackages: integer.nullable(),
   closingGrams: integer.nullable(),
   differencePackages: integer.nullable(),

@@ -12,6 +12,8 @@ export function totalBalance(cells: Cell[]) {
     'outboundGrams',
     'adjustmentPackages',
     'adjustmentGrams',
+    'otherMovementPackages',
+    'otherMovementGrams',
     'closingPackages',
     'closingGrams',
     'differencePackages',

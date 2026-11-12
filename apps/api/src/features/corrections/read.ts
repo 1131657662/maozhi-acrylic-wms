@@ -4,9 +4,13 @@ import { decimalToGrams } from '../../db/weight.ts';
 import { isoDate } from '../../db/dates.ts';
 import { AppError, ensure } from '../../shared/errors.ts';
 
-function line(row: Row) {
+function line(row: Row, shipment?: Row) {
   return {
     originalLineId: String(row.inbound_line_id ?? row.outbound_line_id),
+    shipmentLineId: row.shipment_line_id == null ? null : String(row.shipment_line_id),
+    shipment: shipment
+      ? { seq: Number(shipment.seq), vehicleNo: String(shipment.vehicle_no), shippedAt: isoDate(shipment.shipped_at) }
+      : null,
     productCode: row.product_code,
     before: { packages: Number(row.packages_before), weightGrams: decimalToGrams(row.tonnes_before) },
     after: { packages: Number(row.packages_after), weightGrams: decimalToGrams(row.tonnes_after) },
@@ -20,6 +24,16 @@ async function records(db: Database, headers: Row[]): Promise<Correction[]> {
     WHERE correction_id IN (${headers.map(() => '?').join(',')}) ORDER BY product_code,inbound_line_id,outbound_line_id`,
     headers.map((h) => String(h.id)),
   );
+  const ids = [...new Set(rows.flatMap((r) => (r.shipment_line_id == null ? [] : [String(r.shipment_line_id)])))];
+  const shipments = ids.length
+    ? await db.all(
+        `SELECT sl.id,sh.seq,sh.vehicle_no,sh.shipped_at
+    FROM outbound_shipment_lines sl JOIN outbound_shipments sh ON sh.id=sl.shipment_id
+    WHERE sl.id IN (${ids.map(() => '?').join(',')})`,
+        ids,
+      )
+    : [];
+  const byShipment = new Map(shipments.map((row) => [String(row.id), row]));
   return headers.map((h) =>
     correctionSchema.parse({
       id: h.id,
@@ -33,7 +47,9 @@ async function records(db: Database, headers: Row[]): Promise<Correction[]> {
       createdAt: isoDate(h.created_at),
       operationId: h.operation_id,
       offsetOperationId: h.offset_operation_id,
-      lines: rows.filter((r) => r.correction_id === h.id).map(line),
+      lines: rows
+        .filter((r) => r.correction_id === h.id)
+        .map((row) => line(row, byShipment.get(String(row.shipment_line_id)))),
     }),
   );
 }

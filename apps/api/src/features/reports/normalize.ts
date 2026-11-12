@@ -5,7 +5,19 @@ import type { LedgerEvent } from './types.ts';
 import { objectJson, localIso, nullableInt, optionalGrams } from './source-values.ts';
 export { objectJson, localIso } from './source-values.ts';
 
-function classification(type: string): Pick<LedgerEvent, 'family' | 'reverse' | 'operationLabel' | 'directionLabel'> {
+function classification(
+  type: string,
+  row: Row,
+): Pick<LedgerEvent, 'family' | 'reverse' | 'operationLabel' | 'directionLabel'> {
+  if (type === 'stock.correct' && (row.correctionInboundId || row.correctionOutboundId)) {
+    const inbound = row.correctionInboundId != null;
+    return {
+      family: inbound ? 'inbound' : 'outbound',
+      reverse: false,
+      operationLabel: inbound ? '入库更正' : '出库更正',
+      directionLabel: inbound ? '入库' : '出库',
+    };
+  }
   const labels = new Map<string, [LedgerEvent['family'], string]>([
     ['inbound', ['inbound', '历史入库']],
     ['outbound', ['outbound', '历史出库']],
@@ -34,8 +46,8 @@ function quantities(row: Row, source: Record<string, unknown>, cls: ReturnType<t
     correctionOffsetPackages = Number(row.correctionOffsetPackages ?? 0),
     correctionOffsetGrams = decimalToGrams(row.correctionOffsetTonnes ?? '0');
   return {
-    packages: (cls.family === 'outbound' ? -1 : 1) * (deltaPackages - correctionOffsetPackages),
-    weightGrams: (cls.family === 'outbound' ? -1 : 1) * (deltaGrams - correctionOffsetGrams),
+    packages: (cls.family === 'outbound' ? -1 : 1) * deltaPackages,
+    weightGrams: (cls.family === 'outbound' ? -1 : 1) * deltaGrams,
     correctionOffsetPackages,
     correctionOffsetGrams,
     deltaPackages,
@@ -87,7 +99,7 @@ function identityFields(row: Row, source: Record<string, unknown>) {
 export function normalizeEvent(row: Row): LedgerEvent {
   const source = objectJson(row.source_row_json),
     type = String(row.operation_type ?? row.source_business_type ?? ''),
-    cls = classification(type);
+    cls = classification(type, row);
   const localTime = localIso(row.reportLocalTime)
     ? String(row.reportLocalTime).slice(0, 19) +
       '.' +
