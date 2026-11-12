@@ -41,7 +41,10 @@ export function ShipmentDifferenceValue({ packages, grams }: { packages: number 
           ? text.shortage
           : '';
   return (
-    <Typography.Text style={{ whiteSpace: 'nowrap' }} type={overage ? 'warning' : shortage ? 'danger' : undefined}>
+    <Typography.Text
+      style={{ whiteSpace: 'nowrap', fontSize: 'inherit' }}
+      type={overage ? 'warning' : shortage ? 'danger' : undefined}
+    >
       {signedQuantity(packages)} / {signedQuantity(grams, true)}
       {status}
     </Typography.Text>
