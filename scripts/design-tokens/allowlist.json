@@ -1,0 +1,240 @@
+[
+  {
+    "file": "apps/web/src/app.tsx",
+    "kind": "color",
+    "value": "#105957",
+    "reason": "保留当前全局主色，主题接入时迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/app.tsx",
+    "kind": "radius",
+    "value": "8",
+    "reason": "本批明确保留全局圆角，避免改变现有控件",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/app.tsx",
+    "kind": "color",
+    "value": "#f3f6f5",
+    "reason": "保留当前布局背景，主题接入时迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/components/BusinessList/style.css",
+    "kind": "padding",
+    "value": "0 8px",
+    "reason": "保留批量操作槽现有间距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/components/BusinessList/style.css",
+    "kind": "color",
+    "value": "transparent",
+    "reason": "保留批量操作槽透明边框与尺寸",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/components/BusinessList/style.css",
+    "kind": "radius",
+    "value": "4px",
+    "reason": "列表壳迁移前保留现有圆角",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/features/catalog/overview.tsx",
+    "kind": "color",
+    "value": "blue",
+    "reason": "目录页重写时替换当前版本标签色",
+    "batch": "B6d"
+  },
+  {
+    "file": "apps/web/src/features/catalog/version-history.tsx",
+    "kind": "color",
+    "value": "blue",
+    "reason": "目录页重写时替换活动版本标签色",
+    "batch": "B6d"
+  },
+  {
+    "file": "apps/web/src/features/catalog/version-history.tsx",
+    "kind": "color",
+    "value": "green",
+    "reason": "目录页重写时替换发布结果标签色",
+    "batch": "B6d"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#193333",
+    "reason": "保留根节点现有正文色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#f3f6f5",
+    "reason": "保留根节点现有背景色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#173c3b",
+    "reason": "旧 ink 变量留待语义变量迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#708582",
+    "reason": "旧 muted 变量留待语义变量迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#105957",
+    "reason": "旧 brand 变量留待语义变量迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#dce7e3",
+    "reason": "旧 line 变量留待语义变量迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "color",
+    "value": "#fff",
+    "reason": "旧 paper 变量留待语义变量迁移",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "padding",
+    "value": "8px 12px",
+    "reason": "保留环境标识现有内边距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/base.css",
+    "kind": "radius",
+    "value": "6px",
+    "reason": "保留环境标识现有圆角",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "padding",
+    "value": "18px 22px",
+    "reason": "页面迁移前保留说明区域布局",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "color",
+    "value": "#e6f0ed",
+    "reason": "保留说明区域现有底色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "padding",
+    "value": "14px",
+    "reason": "保留汇总区域现有上间距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "padding",
+    "value": "24px",
+    "reason": "保留确认操作条现有内边距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "color",
+    "value": "white",
+    "reason": "保留确认操作条现有背景色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "color",
+    "value": "#fff",
+    "reason": "保留品牌标记现有文字色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/business.css",
+    "kind": "radius",
+    "value": "7px",
+    "reason": "保留品牌标记现有圆角",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "padding",
+    "value": "18vh 9vw",
+    "reason": "保留登录介绍区视口间距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "color",
+    "value": "#103f3f",
+    "reason": "保留登录介绍区背景色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "color",
+    "value": "white",
+    "reason": "保留登录介绍区正文色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "color",
+    "value": "#abd0c8",
+    "reason": "保留登录说明文字色（第一处）",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "color",
+    "value": "#abd0c8",
+    "reason": "保留登录环境标识文字色（第二处）",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "color",
+    "value": "#376361",
+    "reason": "保留登录环境标识边框色",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/login.css",
+    "kind": "padding",
+    "value": "40px",
+    "reason": "保留登录卡片现有内边距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/responsive.css",
+    "kind": "padding",
+    "value": "16vh 5vw",
+    "reason": "保留登录介绍区中屏间距",
+    "batch": "B6j-2"
+  },
+  {
+    "file": "apps/web/src/styles/responsive.css",
+    "kind": "padding",
+    "value": "40px",
+    "reason": "保留登录介绍区窄屏间距",
+    "batch": "B6j-2"
+  }
+]
