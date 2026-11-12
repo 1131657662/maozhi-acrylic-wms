@@ -1,10 +1,18 @@
 # 四端重建 / 第一里程碑
 
+## B4e / B4g：已完成（2026-11-12，用户验收通过）
+
+- **B4e 单据字段扩展：269/119/0**。test 269/269、完整 E2E 119/0、build exit 0，三项 exit 均为 0；单据类型默认值/筛选/导出、柜号、出库行合同号及行备注已完成。017 已备份后应用 3307 开发样本库，历史 NULL 展示、新建默认值与「全部」包含历史单的冒烟通过；已合并推送，merge `19022412fe9bd84844f9f559b51b6c8c2f8d7ade`。
+- **B4g Web 清点工作台：276/120/0**。test 276/276、完整 E2E 120/0（主 111 + catalog 9）、build exit 0，三项 exit 均为 0；单条/候选/混合商品粘贴、商品归属、进度、撤销、带入实发与扫码清单导出已完成。验证与边界见 [OUTBOUND_FACT_SPEC.md §13](OUTBOUND_FACT_SPEC.md#13-b4g-实现与本地验证2026-11-12)。
+- 018 已于本轮备份后应用 `127.0.0.1:3307/maozhi_dev_sample`，状态 `applied`；仅 `scan_facts` 结构变化，所有原有业务列数据指纹一致。备份、完整结构指纹及冒烟原始结果见 `.local/evidence/b4g-closeout/`。
+- 018 应用后 API/数据库冒烟：`CK-20261112-001` 录入条码 `003A0050164`，商品 `002`，`source=manual`、`attribution=manual`；同单重复返回 422「已录入」。撤销后进度 1→0 包、300000→0 克，导出 1→0 行，原记录与审计保留、库存不变；冒烟计划保留，未确认出库。
+- B4g 非快进合并 `9eeeb6705cf7b780b4938c60c90da8b6c6fa1c72`，合并与推送 exit 均为 0。上述全量验证为本批已验收结果，本次收尾仅执行迁移及冒烟；自动化与截图仅覆盖本地合成库、Chromium，不代表实体设备或生产验收。
+
 ## B4d：人工实发与发货 #1（2026-11-11）
 
 人工实发、扫码预填/确认快照、发货 #1、扫码清单 XLSX、016 与扫码结束标记已实现并验证：test 263/263、build exit 0、E2E 117/117（主 108 + catalog 9）、Android `assembleDebug testDebugUnitTest lintDebug` exit 0。016 已备份后应用到 3307 开发样本库并完成结束扫码/新建发货冒烟；未连接生产、未做实体 PDA/小程序设备验收。验收见 [B4D_ACCEPTANCE.md](B4D_ACCEPTANCE.md)。
 
-裁定：同商品多行更正主键调整纳入 016；`frozen` 仅兼容历史记录且代码不再写入，确认仍兼容 `open/frozen`；结束扫码改写 `scan_closed_at` 且不改单据状态，重新扫码仅限 `open` 且无发货记录。历史时间回填来源及样本无历史 `frozen` 单据详见 B4D_ACCEPTANCE。B5c 多批/短关、B4g 清点工作台均未实现。
+裁定：同商品多行更正主键调整纳入 016；`frozen` 仅兼容历史记录且代码不再写入，确认仍兼容 `open/frozen`；结束扫码改写 `scan_closed_at` 且不改单据状态，重新扫码仅限 `open` 且无发货记录。历史时间回填来源及样本无历史 `frozen` 单据详见 B4D_ACCEPTANCE。B5c 多批/短关未实现；B4g 清点工作台已在后续批次完成，见本文顶部。
 
 ## B6c：三小步已完成（2026-11-11，用户验收通过）
 
@@ -462,8 +470,8 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B5d | DOMAIN §2/7 + REPORT_SPEC §10，分列/重述/日期更正/详情单张导出 | M-DATE-CORRECTIONS，原日期不覆盖；更正单无业务日期；打印仅占位；B5c后、B7a前 |
 | **B4d 出库手工实发** | OUTBOUND_FACT_SPEC §11–12、B5C_SPEC §3.1 | 已完成；016 发货头/行、scan_closed_at、scan_* 快照、行序与更正行主键兼容；人工实发、发货 #1、预填/XLSX、扫码结束/重开；已应用 3307 开发样本库；验证见本文顶部与 B4D_ACCEPTANCE |
 | **B4f PDA 文案改口** | PDA_SCAN_SPEC §8.1 | 无迁移；只改文案，B4d 合并后立即做 |
-| **B4e 单据字段扩展** | MASTER_DATA_SPEC §9 | 柜号、合同号、行备注、收货地址快照、送货联系人、单据类型；B4d 后 |
-| **B4g Web 清点工作台** | OUTBOUND_FACT_SPEC §5.1 | scan-records / scan-candidates / batch；无新表，复用发货与扫码记录；B4e 后 |
+| **B4e 单据字段扩展** | MASTER_DATA_SPEC §9 | 已完成并通过用户验收；269/119/0（test/E2E/build）；017 已应用 3307，历史/新建/类型筛选冒烟通过；范围及合并记录见本文顶部 |
+| **B4g Web 清点工作台** | OUTBOUND_FACT_SPEC §5.1 | 已完成并通过用户验收；276/120/0（test/E2E/build）；018 扩展原扫码表的来源/归属/撤销元信息与订单内条码唯一约束，已应用 3307；录入/去重/撤销与导出冒烟通过，已合并推送 |
 | **B6i 性能专项** | LIST_UX_AUDIT、B6B_ACCEPTANCE | 排序绘制 579ms、反查翻页 850ms、10 万导出 45.6s；B7b 前 |
 | **B8d 小程序补页** | README 术语表 | 补入库、库存、流水只读页；B8c 后 |
 | **B11 PDA 连续扫码** | PDA_SCAN_SPEC | 广播优先 + 键盘楔兜底、手工输完整条码、撤销、声音；B9 前 |
@@ -475,8 +483,8 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 ```
 B4d 出库手工实发
  → B4f PDA 文案
- → B4e 单据字段
- → B4g Web 清点工作台
+ → B4e 单据字段（已完成）
+ → B4g Web 清点工作台（已完成）
  → B5b 入库异常
  → B5c 分批发货（1/2/3 三步）
  → B5d 报表分列
