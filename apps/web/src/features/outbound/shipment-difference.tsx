@@ -1,4 +1,5 @@
 import { Form, Typography, type FormInstance } from 'antd';
+import type { ReactNode } from 'react';
 import { tonnes, type ShipmentQuantity } from '@wms/contracts';
 import type { ActualForm } from './actual-lines';
 import { shipmentCopy as text, SHIPMENT_UI as ui } from './shipment-copy';
@@ -18,14 +19,26 @@ export function ShipmentDifference({
     value?.actualWeightTonnes == null
       ? null
       : Math.round(value.actualWeightTonnes * ui.gramsPerTonne) - line.remainingWeightGrams;
-  return <ShipmentDifferenceValue packages={packages} grams={grams} />;
+  return (
+    <div style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
+      <ShipmentDifferenceValue packages={packages} grams={grams} separator={<br />} />
+    </div>
+  );
 }
 function signedQuantity(value: number | null, weight = false) {
   if (value === null) return text.empty;
   const sign = value > 0 ? '+' : value < 0 ? '−' : '';
   return `${sign}${weight ? tonnes(Math.abs(value)) : Math.abs(value)} ${weight ? text.tonneUnit : text.packageUnit}`;
 }
-export function ShipmentDifferenceValue({ packages, grams }: { packages: number | null; grams: number | null }) {
+export function ShipmentDifferenceValue({
+  packages,
+  grams,
+  separator = ' / ',
+}: {
+  packages: number | null;
+  grams: number | null;
+  separator?: ReactNode;
+}) {
   if (packages === null && grams === null) return <>{text.empty}</>;
   const overage = (packages ?? 0) > 0 || (grams ?? 0) > 0;
   const shortage = (packages ?? 0) < 0 || (grams ?? 0) < 0;
@@ -45,8 +58,12 @@ export function ShipmentDifferenceValue({ packages, grams }: { packages: number 
       style={{ whiteSpace: 'nowrap', fontSize: 'inherit' }}
       type={overage ? 'warning' : shortage ? 'danger' : undefined}
     >
-      {signedQuantity(packages)} / {signedQuantity(grams, true)}
-      {status}
+      <span>{signedQuantity(packages)}</span>
+      {separator}
+      <span>
+        {signedQuantity(grams, true)}
+        {status}
+      </span>
     </Typography.Text>
   );
 }
