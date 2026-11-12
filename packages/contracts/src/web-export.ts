@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { exportKindSchema } from './export-kind.ts';
+import { reportViewSchema } from './report-view.ts';
 
 export const exportScopeSchema = z.enum(['all', 'page', 'selected']);
 export const exportSchemaSchema = z.enum(['document_summary', 'matched_lines']);
@@ -20,6 +21,7 @@ export const exportRequestSchema = z.strictObject({
     .max(WEB_EXPORT_SELECTED_MAX),
 });
 export const exportJobSchema = z.strictObject({
+  ...reportViewSchema.partial().shape,
   id: z.uuid(),
   kind: exportKindSchema,
   scope: exportScopeSchema,

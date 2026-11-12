@@ -14,7 +14,7 @@ export async function assertExportLimit(db: Database, request: ExportRequest): P
 }
 
 async function countExportRows(db: Database, request: ExportRequest): Promise<number> {
-  const read = exportReader(request.kind, request.query);
+  const read = exportReader(request.kind, request.query, request.viewToken);
   const current = await read(db);
   assertCurrentView(current, request);
   if (request.schema === 'matched_lines' && request.scope === 'selected')

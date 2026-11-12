@@ -1,9 +1,17 @@
 import ExcelJS from 'exceljs';
 import { createWriteStream } from 'node:fs';
 import { setImmediate as yieldLoop } from 'node:timers/promises';
-import { listCellText, type ListField, type ExportKind, type ReportMeta, type DerivedReportMeta } from '@wms/contracts';
+import {
+  listCellText,
+  type ListField,
+  type ExportKind,
+  type ReportMeta,
+  type DerivedReportMeta,
+  type ReportView,
+} from '@wms/contracts';
 import { AppError } from '../../shared/errors.ts';
 import { writeReconciliation } from './report-sheet.ts';
+import { writeReportView } from './report-view-sheet.ts';
 
 const formats = { text: '@', integer: '0', tonnes: '0.0000', date: 'yyyy-mm-dd hh:mm:ss' };
 const maxExcelInteger = 999_999_999_999_999;
@@ -11,7 +19,7 @@ export interface ExportWriter {
   append(row: Record<string, unknown>): string[];
   totals(): Record<string, string>;
   drain(): Promise<void>;
-  finish(count: number, report?: ReportMeta | DerivedReportMeta): Promise<void>;
+  finish(count: number, report?: ReportMeta | DerivedReportMeta, view?: ReportView): Promise<void>;
   abort(): Promise<void>;
 }
 export class XlsxWriter implements ExportWriter {
@@ -110,7 +118,7 @@ export class XlsxWriter implements ExportWriter {
         this.output.once('error', bad);
       });
   }
-  async finish(count: number, report?: ReportMeta | DerivedReportMeta): Promise<void> {
+  async finish(count: number, report?: ReportMeta | DerivedReportMeta, view?: ReportView): Promise<void> {
     const totals = this.totals();
     const row = this.sheet.addRow(
       this.config.fields.map((f, i) =>
@@ -125,6 +133,7 @@ export class XlsxWriter implements ExportWriter {
     row.commit();
     this.sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: count + 1, column: this.config.fields.length } };
     if (report) writeReconciliation(this.book, report);
+    if (view) writeReportView(this.book, view);
     await this.book.commit();
     if (this.failure) throw this.failure;
   }

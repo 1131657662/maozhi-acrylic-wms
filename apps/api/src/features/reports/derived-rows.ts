@@ -1,14 +1,17 @@
 import type { ReportAgingQuery, ReportAgingRow, ReportTurnoverQuery, ReportTurnoverRow } from '@wms/contracts';
 import { ageBuckets, applyFifo, emptyFifo, markFifoUnknown } from './fifo.ts';
-import { completePeriod, periodCounts, shiftDay, stateReasons, dailyBalances } from './derived-common.ts';
+import { snapshotPeriod, periodCounts, shiftDay, stateReasons, dailyBalances } from './derived-common.ts';
 import type { Cell, Projection } from './types.ts';
+import type { DatedEvent } from './restated-events.ts';
+import { turnoverMovements } from './turnover-movements.ts';
+import { reportCopy } from './copy.ts';
 
 const turnoverFormula = 'R = O / M；T = D × M / O；M = ΣQ(d) / D；O 为完整日内有效出库（含更正与撤销，吨）';
 const agingBasis =
   '按 stock_journal 入账 ID 顺序重放；可信业务日优先、否则上海入账日；吨数 FIFO；已耗用入库撤销后剩余余额无法归龄';
 
 function commonFields(kind: string, query: { fromDay: string; toDay: string }, cell: Cell, projection: Projection) {
-  const period = completePeriod(query.fromDay, query.toDay),
+  const period = snapshotPeriod(query, projection),
     countToDay = period.throughDay,
     state = cell.periods.get('range')!;
   return {
@@ -28,30 +31,31 @@ function commonFields(kind: string, query: { fromDay: string; toDay: string }, c
   };
 }
 
-export function turnoverRow(query: ReportTurnoverQuery, cell: Cell, projection: Projection): ReportTurnoverRow {
-  const period = completePeriod(query.fromDay, query.toDay),
+export function turnoverRow(
+  query: ReportTurnoverQuery,
+  cell: Cell,
+  projection: Projection,
+  restated?: DatedEvent[],
+): ReportTurnoverRow {
+  const period = snapshotPeriod(query, projection),
     common = commonFields('report-turnover', query, cell, projection),
     balances = projection.chronological ? dailyBalances(cell, period.days) : { completeDays: 0, sumGrams: null },
-    netOutboundGrams = (cell.events ?? [])
-      .filter(
-        (event) =>
-          event.localTime &&
-          event.localTime >= query.fromDay + ' 00:00:00' &&
-          event.localTime < shiftDay(period.throughDay, 1) + ' 00:00:00' &&
-          event.family === 'outbound',
-      )
-      .reduce((sum, event) => sum + event.weightGrams, 0),
+    netOutboundGrams = turnoverMovements(cell, { fromDay: query.fromDay, throughDay: period.throughDay }, restated),
     reasons = [...common.reasons];
   if (!projection.chronological) reasons.push('入账顺序与本地时间不单调，逐日余额不可验证');
   if (balances.completeDays !== period.days.length)
     reasons.push(`逐日日终余额仅 ${balances.completeDays}/${period.days.length} 日可验证`);
   if (common.checkState === '不可验证') balances.sumGrams = null;
-  if (netOutboundGrams < 0) reasons.push('本期出库撤销冲回大于出库确认，不适合计算周转');
+  if (netOutboundGrams === null) reasons.push(reportCopy.unknownRestatedOutbound);
+  else if (netOutboundGrams < 0) reasons.push('本期出库撤销冲回大于出库确认，不适合计算周转');
   const averageGrams =
       balances.sumGrams === null || !period.days.length ? null : balances.sumGrams / period.days.length,
-    turns = averageGrams !== null && averageGrams > 0 && netOutboundGrams >= 0 ? netOutboundGrams / averageGrams : null,
+    turns =
+      averageGrams !== null && averageGrams > 0 && netOutboundGrams !== null && netOutboundGrams >= 0
+        ? netOutboundGrams / averageGrams
+        : null,
     turnoverDays =
-      averageGrams !== null && averageGrams > 0 && netOutboundGrams > 0
+      averageGrams !== null && averageGrams > 0 && netOutboundGrams !== null && netOutboundGrams > 0
         ? (period.days.length * averageGrams) / netOutboundGrams
         : null;
   return {
@@ -68,7 +72,7 @@ export function turnoverRow(query: ReportTurnoverQuery, cell: Cell, projection: 
           : null
         : turns.toFixed(4),
     turnoverDays: turnoverDays === null ? null : turnoverDays.toFixed(1),
-    formula: `${turnoverFormula}；D=${period.days}；M=${averageGrams === null ? '不可验证' : (averageGrams / 1_000_000).toFixed(4) + ' 吨'}`,
+    formula: `${turnoverFormula}${restated ? reportCopy.restatedTurnoverBasis : ''}；D=${period.days}；M=${averageGrams === null ? '不可验证' : (averageGrams / 1_000_000).toFixed(4) + ' 吨'}`,
     checkState: reasons.length ? '不可验证' : common.checkState,
     reasons: reasons.slice(0, 12),
   };
@@ -130,8 +134,9 @@ export function derivedRows(
   query: ReportTurnoverQuery | ReportAgingQuery,
   cells: Cell[],
   projection: Projection,
+  restated?: DatedEvent[],
 ) {
   return kind === 'report-turnover'
-    ? cells.map((cell) => turnoverRow(query as ReportTurnoverQuery, cell, projection))
+    ? cells.map((cell) => turnoverRow(query as ReportTurnoverQuery, cell, projection, restated))
     : cells.map((cell) => agingRow(query as ReportAgingQuery, cell, projection));
 }

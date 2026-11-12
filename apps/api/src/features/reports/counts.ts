@@ -1,11 +1,16 @@
 import type { ReportQuery } from '@wms/contracts';
-import type { Database } from '../../db/mysql.ts';
+import type { Database, Row } from '../../db/mysql.ts';
 import type { Cell } from './types.ts';
 import { balanceFrom, dimensionFilter, movementPredicate, postedLocal, validPosted } from './sql.ts';
 import { nextDay } from './periods.ts';
+import { snapshotLocalTime, type ReportSnapshot } from './snapshot.ts';
 
 // Group before counting: a multi-product document counts once per cell, never as an additive grand total.
-export async function documentCounts(db: Database, cells: Map<string, Cell>, query: ReportQuery): Promise<void> {
+export async function documentCounts(
+  db: Database,
+  cells: Map<string, Cell>,
+  { query, snapshot }: { query: ReportQuery; snapshot: ReportSnapshot },
+): Promise<void> {
   const filter = dimensionFilter(query);
   const rows = await db.all(
     `SELECT LEFT(${postedLocal},7) AS period,s.warehouse_code,s.product_code,
@@ -16,10 +21,19 @@ export async function documentCounts(db: Database, cells: Map<string, Cell>, que
     SUM(CASE WHEN o.operation_type LIKE '%.reverse' THEN s.operation_id IS NULL
       ELSE COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) IS NULL END) AS missing
     ${balanceFrom} WHERE s.source_del_flag=0 AND ${movementPredicate} AND ${validPosted}
-    AND ${postedLocal}>=? AND ${postedLocal}<? ${filter.sql}
+    AND ${postedLocal}>=? AND ${postedLocal}<? AND ${postedLocal}<=? AND s.id<=? ${filter.sql}
     GROUP BY period,s.warehouse_code,s.product_code,kind`,
-    [query.fromDay + ' 00:00:00', nextDay(query.toDay) + ' 00:00:00', ...filter.values],
+    [
+      query.fromDay + ' 00:00:00',
+      nextDay(query.toDay) + ' 00:00:00',
+      snapshotLocalTime(snapshot),
+      snapshot.watermarks.journalMaxId,
+      ...filter.values,
+    ],
   );
+  applyDocumentCounts(cells, rows);
+}
+function applyDocumentCounts(cells: Map<string, Cell>, rows: Row[]): void {
   for (const row of rows) {
     const month = cells.get(JSON.stringify([row.warehouse_code, row.product_code]))?.periods.get(String(row.period));
     if (!month) continue;

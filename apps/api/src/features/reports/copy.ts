@@ -1,4 +1,12 @@
 export const reportCopy = {
+  postedException: '无原单业务日期的库存变动，按自身入账日归期',
+  missingBusinessDate: '原单业务日期缺失或无效，未归期；未以制单日或导入日补齐',
+  missingRestatedAnchor: '尚无已登记的切账锚点及覆盖事件证据，重述余额不可验证；实际入账余额单独保留',
+  postedBasis: '入账视图·按入账日期',
+  restatedBasis: '重述视图·按有效业务日期',
+  inventoryBasis: '实际余额、周转库存序列与库龄按入账口径',
+  unknownRestatedOutbound: '出库事件日期未知，重述净出库与周转不可验证',
+  restatedTurnoverBasis: '；O 按有效业务日期重述，M 保持入账库存序列',
   unknown: '未分类库存变动，请核对原记录',
   missingBalance: '库存变动前后的数量记录不完整',
   inconsistentChange: '库存变动前后的数量与本次增减不一致',

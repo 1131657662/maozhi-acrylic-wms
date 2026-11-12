@@ -1,86 +1,15 @@
 import { z } from 'zod';
-import { inventoryScopeFields, validInventoryScope, inventoryScopeResult } from './inventory-scope.ts';
+import { reportBalanceSchema, reportMetaSchema } from './report-metadata.ts';
+export * from './report-metadata.ts';
+export * from './report-derived.ts';
+import { reportViewFields, restatedBalanceSchema } from './report-view.ts';
 
-export const reportKindSchema = z.enum(['report-details', 'report-monthly', 'report-turnover', 'report-aging']);
-export type ReportKind = z.infer<typeof reportKindSchema>;
-export type BaseReportKind = Extract<ReportKind, 'report-details' | 'report-monthly'>;
-const day = z.iso.date();
-export const reportQuerySchema = z
-  .strictObject({
-    ...inventoryScopeFields,
-    fromDay: day,
-    toDay: day,
-    warehouse: z.string().trim().max(200).default(''),
-    product: z.string().trim().max(200).default(''),
-    movement: z.enum(['all', 'inbound', 'outbound']).default('all'),
-    page: z.coerce.number().int().min(1).max(100000).default(1),
-    pageSize: z.coerce
-      .number()
-      .pipe(z.union([z.literal(20), z.literal(50), z.literal(100), z.literal(200)]))
-      .default(20),
-    sortBy: z.enum(['postedAt', 'period', 'productCode', 'warehouseCode']).default('postedAt'),
-    direction: z.enum(['asc', 'desc']).default('desc'),
-  })
-  .refine(
-    (q) =>
-      validInventoryScope(q) && q.fromDay <= q.toDay && Date.parse(q.toDay) - Date.parse(q.fromDay) <= 366 * 86400000,
-    '请选择不超过 367 天的有效日期范围',
-  );
-export type ReportQuery = z.infer<typeof reportQuerySchema>;
-const derivedEnvelope = {
-  ...inventoryScopeFields,
-  warehouse: z.string().trim().max(200).default(''),
-  product: z.string().trim().max(200).default(''),
-  page: z.coerce.number().int().min(1).max(100000).default(1),
-  pageSize: z.coerce
-    .number()
-    .pipe(z.union([z.literal(20), z.literal(50), z.literal(100), z.literal(200)]))
-    .default(20),
-  sortBy: z.enum(['warehouseCode', 'productCode']).default('warehouseCode'),
-  direction: z.enum(['asc', 'desc']).default('asc'),
-};
-const validReportRange = (q: { fromDay: string; toDay: string }) =>
-  q.fromDay <= q.toDay && Date.parse(q.toDay) - Date.parse(q.fromDay) <= 366 * 86400000;
-export const reportTurnoverQuerySchema = z
-  .strictObject({
-    ...derivedEnvelope,
-    fromDay: day,
-    toDay: day,
-  })
-  .refine(validInventoryScope, 'source与scope必须且只能提供一个')
-  .refine(validReportRange, '请选择不超过 367 天的有效日期范围');
-export type ReportTurnoverQuery = z.infer<typeof reportTurnoverQuerySchema>;
-export const reportAgingQuerySchema = z
-  .strictObject({
-    ...derivedEnvelope,
-    fromDay: day,
-    toDay: day,
-    cutoffDay: day,
-  })
-  .refine(validInventoryScope, 'source与scope必须且只能提供一个')
-  .refine(validReportRange, '请选择不超过 367 天的有效日期范围');
-export type ReportAgingQuery = z.infer<typeof reportAgingQuerySchema>;
+export * from './report-query.ts';
+export * from './report-view.ts';
 const integer = z.number().int().safe();
-export const reportBalanceSchema = z.strictObject({
-  openingPackages: integer.nullable(),
-  openingGrams: integer.nullable(),
-  inboundPackages: integer,
-  inboundGrams: integer,
-  outboundPackages: integer,
-  outboundGrams: integer,
-  adjustmentPackages: integer,
-  adjustmentGrams: integer,
-  otherMovementPackages: integer.default(0),
-  otherMovementGrams: integer.default(0),
-  closingPackages: integer.nullable(),
-  closingGrams: integer.nullable(),
-  differencePackages: integer.nullable(),
-  differenceGrams: integer.nullable(),
-  checkState: z.enum(['可验证', '不可验证']),
-  reasons: z.array(z.string()),
-});
-export type ReportBalance = z.infer<typeof reportBalanceSchema>;
 export const reportMonthlyRowSchema = reportBalanceSchema.extend({
+  postedBalance: reportBalanceSchema.optional(),
+  restatedBalance: restatedBalanceSchema.optional(),
   id: z.string(),
   period: z.string(),
   warehouseCode: z.string(),
@@ -118,6 +47,9 @@ export const reportDetailRowSchema = z.strictObject({
   id: z.string(),
   postedAt: z.string().nullable(),
   businessDate: z.string().nullable(),
+  effectiveBusinessDate: z.string().nullable().optional(),
+  reportingDate: z.string().nullable().optional(),
+  dateReason: z.string().optional(),
   createdAt: z.string().nullable(),
   confirmedAt: z.string().nullable(),
   warehouseCode: z.string(),
@@ -155,32 +87,8 @@ export const reportDetailRowSchema = z.strictObject({
   checkState: z.string(),
 });
 export type ReportDetailRow = z.infer<typeof reportDetailRowSchema>;
-export const reportMetaSchema = z.strictObject({
-  source: inventoryScopeResult,
-  fromDay: day,
-  toDay: day,
-  watermark: integer,
-  timeStatus: z.string(),
-  excludedDeleted: integer,
-  missingTime: integer,
-  unassignedRows: integer,
-  unverifiedCells: integer,
-  totalCells: integer,
-  reconciliation: reportBalanceSchema,
-});
-export type ReportMeta = z.infer<typeof reportMetaSchema>;
-export const derivedReportMetaSchema = reportMetaSchema.extend({
-  days: integer,
-  completeDays: integer,
-  scopeStatus: z.enum(['complete', 'incomplete', 'empty']),
-  formula: z.string(),
-  countFromDay: day,
-  countToDay: day,
-  adjustmentCount: integer,
-  stocktakeCount: integer,
-});
-export type DerivedReportMeta = z.infer<typeof derivedReportMetaSchema>;
 const envelope = {
+  ...reportViewFields,
   total: integer,
   page: integer,
   pageSize: integer,
@@ -190,83 +98,3 @@ const envelope = {
 };
 export const reportDetailsSchema = z.strictObject({ ...envelope, items: z.array(reportDetailRowSchema) });
 export const reportMonthlySchema = z.strictObject({ ...envelope, items: z.array(reportMonthlyRowSchema) });
-const derivedEnvelopeSchema = {
-  total: integer,
-  page: integer,
-  pageSize: integer,
-  viewToken: z.string(),
-  rowTokens: z.record(z.string(), z.string()),
-  report: derivedReportMetaSchema,
-};
-const dimensionFields = {
-  id: z.string(),
-  warehouseCode: z.string(),
-  warehouseName: z.string(),
-  productCode: z.string(),
-  productName: z.string(),
-  source: inventoryScopeResult,
-  timeStatus: z.string(),
-  watermark: integer,
-  checkState: z.enum(['可验证', '不可验证']),
-  reasons: z.array(z.string()),
-  adjustmentCount: integer,
-  stocktakeCount: integer,
-  adjustmentSummary: z.string(),
-};
-export const reportTurnoverRowSchema = z.strictObject({
-  ...dimensionFields,
-  fromDay: day,
-  toDay: day,
-  days: integer,
-  completeDays: integer,
-  netOutboundGrams: integer.nullable(),
-  dailyClosingGramsSum: integer.nullable(),
-  averageInventory: z.string().nullable(),
-  turns: z.string().nullable(),
-  turnoverDays: z.string().nullable(),
-  formula: z.string(),
-});
-export type ReportTurnoverRow = z.infer<typeof reportTurnoverRowSchema>;
-export const reportAgingRowSchema = z.strictObject({
-  ...dimensionFields,
-  fromDay: day,
-  toDay: day,
-  cutoffDay: day,
-  closingPackages: integer.nullable(),
-  closingGrams: integer.nullable(),
-  age0To30Grams: integer.nullable(),
-  age31To90Grams: integer.nullable(),
-  age91To180Grams: integer.nullable(),
-  age181To365Grams: integer.nullable(),
-  ageOver365Grams: integer.nullable(),
-  unagedGrams: integer.nullable(),
-  coverage: z.string().nullable(),
-  fifoBasis: z.string(),
-});
-export type ReportAgingRow = z.infer<typeof reportAgingRowSchema>;
-const turnoverTotalsSchema = z.strictObject({
-  netOutboundGrams: integer.nullable(),
-  dailyClosingGramsSum: integer.nullable(),
-});
-const agingTotalsSchema = z.strictObject({
-  closingPackages: integer.nullable(),
-  age0To30Grams: integer.nullable(),
-  age31To90Grams: integer.nullable(),
-  age91To180Grams: integer.nullable(),
-  age181To365Grams: integer.nullable(),
-  ageOver365Grams: integer.nullable(),
-  unagedGrams: integer.nullable(),
-  closingGrams: integer.nullable(),
-});
-export type ReportTurnoverTotals = z.infer<typeof turnoverTotalsSchema>;
-export type ReportAgingTotals = z.infer<typeof agingTotalsSchema>;
-export const reportTurnoverSchema = z.strictObject({
-  ...derivedEnvelopeSchema,
-  items: z.array(reportTurnoverRowSchema),
-  totals: turnoverTotalsSchema,
-});
-export const reportAgingSchema = z.strictObject({
-  ...derivedEnvelopeSchema,
-  items: z.array(reportAgingRowSchema),
-  totals: agingTotalsSchema,
-});

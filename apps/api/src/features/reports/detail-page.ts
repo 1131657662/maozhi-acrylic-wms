@@ -12,6 +12,7 @@ import {
   validPosted,
 } from './sql.ts';
 import { normalizeEvent } from './normalize.ts';
+import { snapshotLocalTime } from './snapshot.ts';
 
 interface PageContext {
   projection: Projection;
@@ -20,6 +21,12 @@ interface PageContext {
 }
 export function naturalOrder(projection: Projection, query: ReportReadQuery): boolean {
   return projection.chronological && ['postedAt', 'period'].includes(query.sortBy);
+}
+function directionPredicate(movement: ReportReadQuery['movement']): string {
+  if (movement === 'all') return '';
+  return movement === 'inbound'
+    ? " AND (COALESCE(o.operation_type,s.source_business_type) IN ('inbound','inbound.confirm','inbound.reverse') OR sc.inbound_receipt_id IS NOT NULL)"
+    : " AND (COALESCE(o.operation_type,s.source_business_type) IN ('outbound','outbound.confirm','outbound.reverse') OR sc.outbound_order_id IS NOT NULL)";
 }
 async function pageIds(db: Database, { projection, query, cursor }: PageContext) {
   const filter = dimensionFilter(query),
@@ -34,19 +41,20 @@ async function pageIds(db: Database, { projection, query, cursor }: PageContext)
     warehouseCode: 's.warehouse_code',
   };
   const order = natural ? `s.id ${direction}` : `${sorts[query.sortBy]} ${direction},s.id ${direction}`;
-  const values: (string | number)[] = [range.start, range.end, ...filter.values];
+  const values: (string | number)[] = [
+    range.start,
+    range.end,
+    snapshotLocalTime(projection.snapshot),
+    projection.snapshot.watermarks.journalMaxId,
+    ...filter.values,
+  ];
   if (useCursor) values.push(cursor);
   const after = useCursor ? ` AND s.id${query.direction === 'asc' ? '>' : '<'}?` : '';
-  const movement =
-    query.movement === 'all'
-      ? ''
-      : query.movement === 'inbound'
-        ? " AND (COALESCE(o.operation_type,s.source_business_type) IN ('inbound','inbound.confirm','inbound.reverse') OR sc.inbound_receipt_id IS NOT NULL)"
-        : " AND (COALESCE(o.operation_type,s.source_business_type) IN ('outbound','outbound.confirm','outbound.reverse') OR sc.outbound_order_id IS NOT NULL)";
+  const movement = directionPredicate(query.movement);
   return db.all(
     `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN s.id ${balanceFrom}
     WHERE s.source_del_flag=0 AND ${movementPredicate} AND ${postedLocal}>=? AND ${postedLocal}<?
-    AND ${validPosted} ${filter.sql} ${after} ${movement} ORDER BY ${order} LIMIT ? OFFSET ?`,
+    AND ${postedLocal}<=? AND s.id<=? AND ${validPosted} ${filter.sql} ${after} ${movement} ORDER BY ${order} LIMIT ? OFFSET ?`,
     [...values, query.pageSize, useCursor ? 0 : (query.page - 1) * query.pageSize],
   );
 }

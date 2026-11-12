@@ -9,6 +9,7 @@ import {
   reportAgingQuerySchema,
   type ReportMeta,
   type DerivedReportMeta,
+  type ReportView,
 } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { listWebInbound } from '../web-lists/inbound.ts';
@@ -19,7 +20,7 @@ import type { ExportSnapshot } from '../web-lists/query.ts';
 import { reportReader } from '../reports/read.ts';
 import { derivedReportReader } from '../reports/derived-read.ts';
 
-export interface ExportPage {
+export interface ExportPage extends Partial<ReportView> {
   items: Record<string, unknown>[];
   total: number;
   viewToken: string;
@@ -36,15 +37,22 @@ export interface ExportBatch {
 export function exportReader(
   kind: ExportKind,
   input: Record<string, string>,
+  viewToken?: string,
 ): (db: Database, batch?: ExportBatch) => Promise<ExportPage> {
   switch (kind) {
     case 'report-monthly':
     case 'report-details':
-      return reportReader(kind, reportQuerySchema.parse(input));
+      return reportReader(kind, reportQuerySchema.parse(input), viewToken);
     case 'report-turnover':
-      return derivedReportReader(kind, reportTurnoverQuerySchema.parse(input));
+      return derivedReportReader(kind, reportTurnoverQuerySchema.parse(input), viewToken);
     case 'report-aging':
-      return derivedReportReader(kind, reportAgingQuerySchema.parse(input));
+      return derivedReportReader(kind, reportAgingQuerySchema.parse(input), viewToken);
+    default:
+      return listExportReader(kind, input);
+  }
+}
+function listExportReader(kind: Exclude<ExportKind, `report-${string}`>, input: Record<string, string>) {
+  switch (kind) {
     case 'inbound': {
       const q = webInboundQuerySchema.parse(input);
       return (db: Database, batch?: ExportBatch) =>
