@@ -204,3 +204,16 @@ CSS 变量由同一模块输出变量对象及 `:root` CSS 文本，长度带 px
 - 检查脚本的检出、豁免、重复违规、精确 allowlist、Web 边界与错误退出需通过隔离临时文件测试；运行既有单测及严格类型检查/Web 构建。
 - 通过 Git 差异确认当前主题与页面文件未改变；本步不改变版式、颜色或布局，不要求截图，不改变 E2E/设备冒烟的数据来源。
 - 三提交：规格与台账、token 与脚本、验证记录。完成后停止，不合并、不 push；不将本地自动化通过写成设备或生产验收。
+
+### 13.5 B6j-1 实现与本地验证（2026-11-12）
+
+状态：**代码与本地自动化完成，待用户验收**。规格提交 `c88d2ff`，实现提交 `ef9d815`；分支 `codex/b6j-1-design-tokens`，未合并、未 push。
+
+- token 模块已导出 `radius`、`spacing`、`fontSize`、`color(token)`、`createDesignCssVariables(token)` 与 `createDesignCssText(token)`；KPI 为 28px。颜色使用传入的 AntD token，CSS 输出包含 `--wms-radius-card`、`--wms-space-8`、`--wms-font-size-kpi` 等，模块没有 DOM 或主题写入副作用。
+- 检查采用 TypeScript AST 与 PostCSS，覆盖样式对象、JSX、条件表达式、模板片段、直接样式赋值与 setProperty。PostCSS 8.5.32、postcss-value-parser 4.2.0 从已有锁定版本声明为直接开发依赖；无新增 UI 库或字体。
+- `npm run check:design-tokens`：扫描 **267** 个 Web 源文件，**现有 34、新增 0、待清理 0，exit 0**。现有项为颜色 21、圆角 4、padding 9；颜色含 1 项 transparent。allowlist 中 31 项计划 B6j-2、3 项目录标签颜色计划 B6d；当前主题也逐项登记。
+- `npm run test`：**401/401、失败 0、跳过 0，exit 0**，含本批新增 52 个用例。隔离临时目录验证了 Web 范围、新文件检出、逐项匹配、重复同值违规、非法 allowlist/语法失败；子进程实测旧项 exit 0，追加相同裸值后 exit 1。未修改原有测试框架或冒烟数据来源。
+- `npm run build`：**exit 0**，包含 API、Web 与新增检查脚本的严格类型检查及 Web 构建。`npm run test:design-tokens` 提供单独执行入口，完整 `npm run test` 已包含这些用例。
+- 代码审查、Ant Design lint（0 issues）、Prettier 与 `git diff --check` 通过。与起点比较，当前 app.tsx、布局配置、现有页面/样式、PDA、小程序文件差异为空；新模块尚未接入页面，生效全局圆角仍为 8。
+- 原始日志仅保存在 `.local/evidence/b6j-1-check.log`、`b6j-1-test.log`、`b6j-1-build.log`。本步无页面视觉变化，未运行浏览器截图、E2E、模拟器、实体设备或生产验收；未执行迁移或开发样本库写入。
+- 静态检查不进行跨文件运行时数据流求值；声明文件与 Umi 生成目录不属于页面源码检查范围。新增未登记静态裸值仍须失败，不自动更新 allowlist。
