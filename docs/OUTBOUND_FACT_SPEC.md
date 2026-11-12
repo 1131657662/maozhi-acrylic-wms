@@ -152,8 +152,10 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 
 1. 条码 → 商品 → 本单对应行；
 2. 同商品只有一行 → 自动归到该行；
-3. 同商品多行 → 归到「还有待发余额」的那一行；多行都有余额时，顶部提示选择，选完继续；
-4. 不属于本单商品的条码 → 明确提示「属于商品 007，不在本单」，不写入。
+3. 同商品多行 → 记录绑定原单该商品首行；预填仍按 §4.1 按商品汇总后依行序分配；
+4. 请求必须带 `productCode`，不在本单时返回 422 与可选商品；可靠目录映射与所选商品不一致时返回 422 并提示条码所属商品；
+5. 可靠映射指目录 `legacy_product_code` 精确关联有库存资格的商品，不猜测 SPEC 与 ERP 的关系。映射一致记录 `attribution=catalog`，无可靠映射允许操作者确认归属并记录 `attribution=manual`；
+6. 「当前商品」单商品自动选中，多商品默认第一个有待发数量的商品（都无待发则第一个）；粘贴按当前商品归属，记录表对 manual 标「归属人工确认」。
 
 #### 进度与带入实发
 
@@ -165,7 +167,8 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 
 - 记录表显示：时间、条码、商品、重量、来源、操作人；
 - 支持按来源筛选（只看手工 / 只看扫码）；
-- 「撤销上一条」删除最近一条未确认记录；
+- 「撤销上一条」撤销最近一条未确认记录，保留原 UUID、正文与撤销人/时间，不物理删除；进度、预填、导出只读未撤销记录；
+- 本单已撤销条码再次录入仍返回「已录入（已撤销）」，不复用 UUID、不覆盖旧归属；
 - 已确认出库后不可删，只能走更正；
 - 记录不可编辑。
 
@@ -182,8 +185,8 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 | 接口 | 说明 |
 |---|---|
 | `GET /outbound/:id/scan-candidates?query=&productCode=&page=` | 本单范围内候选，条码片段/完整条码 |
-| `POST /outbound/:id/scan-records` | 单条计入 `{ barcode, source }`，幂等 |
-| `POST /outbound/:id/scan-records/batch` | 批量计入 `{ barcodes[], source:'paste' }`，逐条返回结果 |
+| `POST /outbound/:id/scan-records` | 单条计入 `{ barcode, productCode, source }`，幂等 |
+| `POST /outbound/:id/scan-records/batch` | 批量计入 `{ records:[{ barcode, productCode }], source:'paste' }`，同批允许多商品，逐条返回结果 |
 | `DELETE /outbound/:id/scan-records/:recordId` | 仅未确认时 |
 | `GET /outbound/:id/scan-summary` | 计划/已录/差额与按商品汇总 |
 
@@ -197,6 +200,10 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 - 仅登录 Web 可操作；
 - 每次计入写审计：条码、来源、操作人、时间、结果；
 - 撤销写审计，保留原记录 ID。
+- 计入审计同时记录 productCode、source、attribution；批量逐条事务、逐条留证，重放沿用各条命令键。
+- 018 在原表新增可空 source、attribution、revoked_at、revoked_by；历史值保持 NULL，展示「历史未记录」。唯一约束改为订单 + 条码，down 在 DDL 前检查新列证据及跨单重复，任一存在拒绝回退。
+- 候选每页 20 条、批量最多 200 条、片段至少 4 字，均用共享常量；输入不足 4 字但精确命中完整条码仍可返回。候选只含当前本单商品的可靠映射及需人工确认归属的无映射条码。
+- 已结束扫码须先重新开启再计入；确认/终结单据只读。Web 不改变 PDA 已确认补传的兼容协议。
 
 #### 边界
 
@@ -295,3 +302,16 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 - 日期显示统一公共 sv-SE / Asia/Shanghai formatter，页面、错误时间和 XLSX 均显示 YYYY-MM-DD HH:mm:ss。
 - PDA 仅做本次协议兼容：依据 scanClosedAt 禁止新扫码和重复结束、展示结束状态；不改队列、事实正文和原有补传协议。实体设备验收另记，不以 API/E2E 代替。
 - 应用 016 时发现既有 013/015 迁移的 LF 哈希与 Windows CRLF 检出不一致；迁移器只对 LF/CRLF 行尾差异兼容，新哈希统一 LF，历史校验和记录不重写；内容差异和中断状态仍拒绝。备份副本预演通过后才应用样本库。
+
+## 13. B4g 实现与本地验证（2026-11-12）
+
+- 复用 scan_facts 与 scan_fact_context，新增 018_scan_workbench；来源/归属/撤销元信息不进入原扫码正文哈希或摘要。PDA 响应保留原正文形状；未撤销记录共用于工作台、预填、扫码 XLSX 和盘点待处理清单。
+- Web 的单条、候选、混合商品批量、撤销与汇总接口均要求登录 Web；写操作还要求同源 Cookie。批量按条目独立事务、锁单据及保存幂等结果，失败单条独立留证；成功记录重试不增加记录或成功事件。
+- 抽屉 720，可全屏；当前商品选择、手输/扫码枪、片段候选、分商品粘贴检查、来源筛选、归属提示与固定底部操作均已实现。带入仅修改现有实发表单，确认仍需人工核对。
+- 验证只用随机隔离合成 MySQL 库与 Chromium。018 尚未应用开发样本库；3307 仍停留 017。未连接生产、未做实体设备验收。
+- 原始结果、日志、截图和 XLSX 位于 `.local/evidence/b4g-*`，不提交 Git。回退前先停写；无新证据可 down，有来源/归属/撤销数据或跨单重复条码时拒绝回退，保持结构与证据不变。
+- 单测最终 276/276、失败 0，exit 0；构建 exit 0。首轮单测 268/275 的 7 项失败来自新增投影元信息、旧跨单唯一断言与旧迁移目标，已逐项修正并全量复跑；原日志保留为 `b4g-test-first.log`。
+- API 原始输出：`B4G_ATTRIBUTION manual=manual mapped=catalog mismatch=422 outside=422 missing=422 stock_unchanged=true`；`B4G_BATCH submitted=20 success=17 duplicate=2 invalid=1 replay_rows=17 products=9/8 packages=17 grams=5100000`；`B4G_REVOKE concurrent=10 stored=1 success_events=1 delta=-1 prefill=0 export_rows=0 immutable=true confirmed=409`。
+- 018 空库 up/down/up、历史新列 NULL、来源/归属证据及跨单重复回退拒绝均通过。合成非空查询 EXPLAIN：`type=const key=fact_order_barcode rows=1 Extra=Using index`；该索引用于业务唯一约束，不声称已完成大数据性能验收。
+- 完整 E2E 最终 120/120、失败 0（主套件 111 + 目录套件 9），exit 0；日志 `b4g-e2e.log`。先前为修复兼容性中断的运行保留为 `b4g-e2e-interrupted.log`，不计作通过证据。
+- 浏览器原始输出：`B4G_E2E manual/search/paste=1/1/1 revoke=-1 export=2 prefill=2 actual=1 stock=5/1.5000 confirmed_readonly=true`。1440/1280 截图为 `b4g-counting-1440.png`、`b4g-counting-1280.png`，已检查当前商品、归属提示与固定底部操作；导出样本为 `b4g-counting-export.xlsx`，均在 `.local/evidence/`。

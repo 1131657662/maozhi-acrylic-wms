@@ -9,7 +9,10 @@ export async function exportScanRecords(db: Database, id: string) {
   return db.readSnapshot(async (tx) => {
     const order = await tx.get('SELECT order_no FROM outbound_orders WHERE id=? AND source_del_flag=0', [id]);
     if (!order) throw new AppError('NOT_FOUND', '出库单不存在', 404);
-    const count = Number((await tx.get('SELECT COUNT(*) AS total FROM scan_facts WHERE plan_id=?', [id]))?.total ?? 0);
+    const count = Number(
+      (await tx.get('SELECT COUNT(*) AS total FROM scan_facts WHERE plan_id=? AND revoked_at IS NULL', [id]))?.total ??
+        0,
+    );
     if (count > WEB_EXPORT_MAX_ROWS)
       throw new AppError(
         'EXPORT_TOO_LARGE',
@@ -23,7 +26,7 @@ export async function exportScanRecords(db: Database, id: string) {
       LEFT JOIN scan_fact_context c ON c.fact_id=f.id
       LEFT JOIN outbound_lines l ON l.id=c.outbound_line_id
       LEFT JOIN catalog_entries e ON e.version_id=f.catalog_version AND e.barcode=f.barcode
-      WHERE f.plan_id=? ORDER BY f.scanned_at,f.id`,
+      WHERE f.plan_id=? AND f.revoked_at IS NULL ORDER BY f.scanned_at,f.id`,
       [id],
     );
     return { filename: `${String(order.order_no)}-扫码清单.xlsx`, buffer: await workbook(rows) };

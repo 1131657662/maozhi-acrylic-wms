@@ -15,7 +15,9 @@ async function assemble(db: Database, headers: z.infer<typeof headerSchema>[]): 
     .parse(
       await db.all(`${lineSql} WHERE order_id IN (${slots}) AND source_del_flag=0 ORDER BY line_position,id`, ids),
     );
-  const facts = z.array(rawFactSchema).parse(await db.all(`${factSql} WHERE plan_id IN (${slots}) ORDER BY id`, ids));
+  const facts = z
+    .array(rawFactSchema)
+    .parse(await db.all(`${factSql} WHERE plan_id IN (${slots}) AND revoked_at IS NULL ORDER BY id`, ids));
   const contexts = z.array(z.object({ factId: z.string(), lineId: z.string() })).parse(
     await db.all(
       `SELECT c.fact_id AS factId,c.outbound_line_id AS lineId FROM scan_fact_context c

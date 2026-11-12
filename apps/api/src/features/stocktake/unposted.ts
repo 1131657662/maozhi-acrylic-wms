@@ -20,7 +20,7 @@ export async function unpostedDocuments(db: Database, take: Stocktake) {
     LEFT JOIN (SELECT order_id,SUM(planned_packages) AS packages,SUM(planned_weight_tonnes) AS tonnes
       FROM outbound_lines WHERE source_del_flag=0 GROUP BY order_id) p ON p.order_id=h.id
     LEFT JOIN (SELECT plan_id,COUNT(*) AS packages,SUM(weight_tonnes) AS tonnes,MAX(received_at) AS last_received
-      FROM scan_facts GROUP BY plan_id) f ON f.plan_id=h.id
+      FROM scan_facts WHERE revoked_at IS NULL GROUP BY plan_id) f ON f.plan_id=h.id
     WHERE h.warehouse_code=? AND h.source_id IS NULL AND h.source_del_flag=0 AND h.status IN ('open','frozen')
     AND (h.created_at>=? OR f.last_received>=? OR EXISTS(SELECT 1 FROM operation_log a
       WHERE a.target_id=h.id AND a.action IN ('outbound.plan.update','scan.freeze') AND a.created_at>=?)) ORDER BY h.id`,

@@ -5,6 +5,7 @@ import { preflightCatalog, migrateCatalogData } from './catalog-migration.ts';
 import { prepareStocktakeDown } from './stocktake-migration.ts';
 import { guardCorrectionDown } from './correction-migration.ts';
 import { migrateProductEligibility } from './product-eligibility.ts';
+import { guardScanWorkbenchDown } from './scan-workbench-migration.ts';
 
 const migrations = [
   {
@@ -120,6 +121,7 @@ const migrations = [
     guardedTables: ['outbound_shipment_lines', 'outbound_shipments', 'document_correction_lines'],
   },
   { id: '017_document_extra_fields', guardedTables: [] },
+  { id: '018_scan_workbench', guardedTables: [] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -202,6 +204,7 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (migration.id === '018_scan_workbench') await guardScanWorkbenchDown(connection);
         if (
           migration.id === '016_outbound_shipments' &&
           (await connection.get('SELECT id FROM outbound_orders WHERE scan_closed_at IS NOT NULL LIMIT 1'))

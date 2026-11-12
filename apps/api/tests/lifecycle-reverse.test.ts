@@ -63,7 +63,8 @@ for (const kind of ['inbound', 'outbound'] as const) {
         await assert.rejects(recordFact(db, { planId: target.id, fact: fact({ barcode: 'DEMO-032-13' }), actor }), {
           code: 'PLAN_CLOSED',
         });
-        const { planId, recordedBy, receivedAt, productCode, productName, ...oldFact } = closed.facts[0]!;
+        const { planId, recordedBy, receivedAt, productCode, productName, source, attribution, ...oldFact } =
+          closed.facts[0]!;
         assert.equal((await recordFact(db, { planId, fact: oldFact, actor })).status, 'cancelled');
       }
       assert.deepEqual(await businessFingerprint(db), unchanged);

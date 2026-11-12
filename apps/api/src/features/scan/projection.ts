@@ -10,7 +10,9 @@ export function pdaScanProjection(order: Detail): Detail {
     ...order,
     actualPackages: order.facts.length,
     actualWeightGrams: order.facts.reduce((sum, fact) => sum + fact.weightGrams, 0),
-    facts: order.facts.map(({ productCode: _code, productName: _name, ...fact }) => fact),
+    facts: order.facts.map(
+      ({ productCode: _code, productName: _name, source: _source, attribution: _attribution, ...fact }) => fact,
+    ),
     lines: order.lines.map((line) => ({
       ...line,
       actualPackages: scans.get(line.id)?.scanPackages ?? 0,

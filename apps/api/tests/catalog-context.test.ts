@@ -43,9 +43,9 @@ test('冻结与确认查询不读取任何目录表；跨版去重与上下文�
     await publish(db, version.versionId);
     await assert.rejects(
       recordFact(db, {
-        planId: 'DEMO-002',
+        planId: 'DEMO-001',
         fact: fact({ catalogVersion: 2 }),
-        context: { ...context, outboundLineId: 'DEMO-002-L1' },
+        context,
         actor,
       }),
       { code: 'DUPLICATE_BARCODE' },

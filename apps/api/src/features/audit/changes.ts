@@ -1,7 +1,18 @@
-import { auditAction, type AuditChange, statusText, postingText } from '@wms/contracts';
+import {
+  auditAction,
+  type AuditChange,
+  statusText,
+  postingText,
+  scanSourceLabels,
+  scanAttributionLabels,
+} from '@wms/contracts';
 import { auditObject } from './input-summary.ts';
 import { businessText } from './projection.ts';
 const fields: Record<string, { label: string; unit: string }> = {
+  barcode: { label: '条码', unit: '' },
+  productName: { label: '商品', unit: '' },
+  source: { label: '录入方式', unit: '' },
+  attribution: { label: '归属方式', unit: '' },
   scanClosedAt: { label: '扫码进度', unit: '' },
   status: { label: '状态', unit: '' },
   postingState: { label: '入账状态', unit: '' },
@@ -35,6 +46,8 @@ export function parsedAuditObject(value: unknown) {
 function display(field: string, value: unknown, kind: string): string {
   if (field === 'scanClosedAt') return value == null ? '可扫码' : '已结束扫码';
   if (value == null) return '未记录';
+  if (field === 'source') return scanSourceLabels[value as keyof typeof scanSourceLabels] ?? '未识别';
+  if (field === 'attribution') return scanAttributionLabels[value as keyof typeof scanAttributionLabels] ?? '未识别';
   if (field === 'status' && kind === 'stocktake') return stocktakeStates.get(String(value)) ?? '未识别';
   if (field === 'status') return statusText(String(value), kind === 'inbound' ? 'inbound' : 'outbound');
   if (field === 'postingState')

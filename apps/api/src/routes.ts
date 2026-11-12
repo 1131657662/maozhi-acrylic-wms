@@ -22,6 +22,7 @@ import { stocktakeRouter } from './features/stocktake/router.ts';
 import { reportRouter } from './features/reports/router.ts';
 import { listPreferencesRouter } from './features/list-preferences/router.ts';
 import { auditRouter, auditOk } from './features/audit/router.ts';
+import { scanWorkbenchRouter } from './features/scan-workbench/router.ts';
 
 export function businessRouter(db: Database, origins: string[], catalogPublishEnabled = false): Router {
   const router = Router();
@@ -32,6 +33,7 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   const numbering = numberingController(db);
   const stockSource = stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(scanWorkbenchRouter(db, origins));
   router.use('/web/lists/audit', auditRouter(db, origins));
   router.get('/audit', requireChannel('web', origins), async (_req, res) => auditOk(res, await auditRows(db)));
   router.use('/audit', auditRouter(db, origins));

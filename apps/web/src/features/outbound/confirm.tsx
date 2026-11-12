@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { App, Alert, Button, Card, Form } from 'antd';
+import { App, Alert, Button, Card, Form, Space } from 'antd';
+import { Workbench } from '../scan-workbench/workbench';
 import { type Detail, type ActualQuantity, outboundPrefillSchema } from '@wms/contracts';
 import { RequestError } from '../../components/RequestError';
 import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
@@ -35,8 +36,10 @@ export function Confirm({ order }: { order: Detail }) {
         }),
       });
       draft.change();
+      return true;
     } catch (error) {
       setPrefillError(error);
+      return false;
     } finally {
       setPrefilling(false);
     }
@@ -71,11 +74,14 @@ export function Confirm({ order }: { order: Detail }) {
     <Card
       title={text.title}
       extra={
-        editable && (
-          <Button onClick={() => void prefill()} loading={prefilling} disabled={modal.busy}>
-            {text.prefill}
-          </Button>
-        )
+        <Space>
+          <Workbench order={order} prefill={prefill} />
+          {editable && (
+            <Button onClick={() => void prefill()} loading={prefilling} disabled={modal.busy}>
+              {text.prefill}
+            </Button>
+          )}
+        </Space>
       }
     >
       <Form

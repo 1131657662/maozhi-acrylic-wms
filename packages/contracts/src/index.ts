@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { scanContextInputSchema } from './scan-context.ts';
 import { plannedWeightGramsSchema } from './outbound-plan.ts';
 import { correctionSummarySchema } from './corrections.ts';
+import { scanSourceSchema, scanAttributionSchema } from './scan-workbench.ts';
+export * from './scan-workbench.ts';
 export * from './business-date.ts';
 export * from './document-types.ts';
 export * from './corrections.ts';
@@ -65,6 +67,8 @@ export const factInputSchema = z.strictObject({
   planVersion: z.literal(1),
 });
 export const factSchema = factInputSchema.extend({
+  source: scanSourceSchema.nullable().optional(),
+  attribution: scanAttributionSchema.nullable().optional(),
   planId: idSchema,
   recordedBy: z.string(),
   receivedAt: z.string(),

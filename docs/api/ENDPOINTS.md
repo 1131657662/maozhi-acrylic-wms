@@ -4,6 +4,11 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/outbound/{id}/scan-candidates | web | 本单商品候选，片段至少四位；无可靠映射需人工确认归属 |
+| GET | /api/v1/outbound/{id}/scan-summary | web | 未撤销清点记录的计划、已录、差额及商品汇总 |
+| POST | /api/v1/outbound/{id}/scan-records | web | 按本单商品计入清点记录，不扣库存 |
+| POST | /api/v1/outbound/{id}/scan-records/batch | web | 逐条独立提交，允许同批多商品与部分成功 |
+| DELETE | /api/v1/outbound/{id}/scan-records/{recordId} | web | 仅未确认时撤销；保留原始证据 |
 | POST | /api/v1/outbound/{id}/scan-reopen | web | 重新扫码：仅未发货的计划中单据 |
 | GET | /api/v1/outbound/{id}/prefill | web | 按商品汇总扫码并按计划行序分配；仅预填不扣库存 |
 | GET | /api/v1/outbound/{id}/scan-records.xlsx | web | 完整生成本单扫码清单；含合计，上限十万条 |
