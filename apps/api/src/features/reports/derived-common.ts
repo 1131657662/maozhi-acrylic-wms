@@ -17,6 +17,9 @@ export function completePeriod(fromDay: string, toDay: string, today = shanghaiT
   for (let day = fromDay; day <= throughDay; day = shiftDay(day, 1)) days.push(day);
   return { days, throughDay, incomplete: toDay >= today };
 }
+export function snapshotPeriod(query: { fromDay: string; toDay: string }, projection: Projection): CompletePeriod {
+  return completePeriod(query.fromDay, query.toDay, shanghaiToday(Date.parse(projection.snapshot.watermarks.asOf)));
+}
 
 export function shiftDay(day: string, offset: number): string {
   return new Date(Date.parse(day + 'T00:00:00Z') + offset * 86400000).toISOString().slice(0, 10);
@@ -44,7 +47,9 @@ export function dailyBalances(cell: Cell, days: string[]) {
   const byDay = eventsByDay(cell.events ?? []),
     events = cell.events ?? [],
     first = days[0],
-    prior = first ? events.filter((event) => event.localTime && event.localTime < first + ' 00:00:00').at(-1) : undefined,
+    prior = first
+      ? events.filter((event) => event.localTime && event.localTime < first + ' 00:00:00').at(-1)
+      : undefined,
     firstEvent = first ? events.find((event) => event.localTime && event.localTime >= first + ' 00:00:00') : undefined;
   let balance: number | null = prior?.afterGrams ?? (firstEvent?.beforeGrams === 0 ? 0 : null);
   const values = days.map((day) => {
@@ -53,7 +58,10 @@ export function dailyBalances(cell: Cell, days: string[]) {
     return balance !== null && balance >= 0 ? balance : null;
   });
   const completeDays = values.filter((value) => value !== null).length;
-  return { completeDays, sumGrams: completeDays === days.length ? values.reduce<number>((sum, value) => sum + value!, 0) : null };
+  return {
+    completeDays,
+    sumGrams: completeDays === days.length ? values.reduce<number>((sum, value) => sum + value!, 0) : null,
+  };
 }
 
 function eventsByDay(events: LedgerEvent[]) {

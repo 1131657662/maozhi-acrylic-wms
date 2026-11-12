@@ -15,7 +15,7 @@ interface Anchors {
   digest: Hash;
 }
 function validateStock(cell: Cell, row: Row, periods: Period[]): void {
-  const last = cell.previous;
+  const last = cell.auditTail ?? cell.previous;
   if (!last) {
     for (const item of cell.periods.values()) mark(item, reportCopy.stockOnly);
     return;
@@ -27,7 +27,7 @@ function validateStock(cell: Cell, row: Row, periods: Period[]): void {
       reason: reportCopy.stockMismatch,
     });
   const source = objectJson(row.source_row_json),
-    legacy = cell.lastHistorical;
+    legacy = cell.auditHistoricalTail ?? cell.lastHistorical;
   if (!legacy) return;
   const packages = nullableInt(source.stock_qty),
     grams = optionalGrams(source.stock_weight);
@@ -52,8 +52,8 @@ function observeStock(row: Row, state: Anchors): string {
       state.periods,
     );
   state.cells.set(key, cell);
-  cell.snapshotPackages = nullableInt(row.packages);
-  cell.snapshotGrams = optionalGrams(row.weight_tonnes);
+  cell.snapshotPackages = cell.hasLaterEvents ? (cell.previous?.afterPackages ?? null) : nullableInt(row.packages);
+  cell.snapshotGrams = cell.hasLaterEvents ? (cell.previous?.afterGrams ?? null) : optionalGrams(row.weight_tonnes);
   validateStock(cell, row, state.periods);
   return key;
 }

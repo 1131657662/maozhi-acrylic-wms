@@ -427,6 +427,46 @@
         ],
         "type": "object"
       },
+      "S_1388f2901bc9df24": {
+        "additionalProperties": false,
+        "properties": {
+          "checkState": {
+            "$ref": "#/components/schemas/S_d1888830ffc6c831"
+          },
+          "closingGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "closingPackages": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "differenceGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "differencePackages": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "openingGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "openingPackages": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "reasons": {
+            "$ref": "#/components/schemas/S_6f1049c85b09115d"
+          }
+        },
+        "required": [
+          "openingPackages",
+          "openingGrams",
+          "closingPackages",
+          "closingGrams",
+          "differencePackages",
+          "differenceGrams",
+          "checkState",
+          "reasons"
+        ],
+        "type": "object"
+      },
       "S_13ae8985539b33ad": {
         "default": "createdAt",
         "enum": [
@@ -1432,6 +1472,53 @@
         },
         "type": "array"
       },
+      "S_5666571eb3084d2b": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/S_e634163a71f3acce"
+          },
+          "deltaGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "deltaPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "inRange": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "month": {
+            "$ref": "#/components/schemas/S_ccb5d3ef6ddbb396"
+          },
+          "postedGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "postedPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "restatedGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "restatedPackages": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "month",
+          "category",
+          "inRange",
+          "postedPackages",
+          "postedGrams",
+          "restatedPackages",
+          "restatedGrams",
+          "deltaPackages",
+          "deltaGrams"
+        ],
+        "type": "object"
+      },
       "S_582ced3fda711f4e": {
         "items": {
           "$ref": "#/components/schemas/S_73cfa770ad21aaef"
@@ -1911,6 +1998,133 @@
             "$ref": "#/components/schemas/S_ada490857814a487"
           }
         },
+        "type": "object"
+      },
+      "S_6a33ac1dc500db12": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_6ad4885f9e7d47ba"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
+      "S_6ad4885f9e7d47ba": {
+        "additionalProperties": false,
+        "properties": {
+          "balanceMode": {
+            "$ref": "#/components/schemas/S_823a1e69548c6845"
+          },
+          "basis": {
+            "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+          },
+          "bridge": {
+            "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+          },
+          "bytes": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "columns": {
+            "$ref": "#/components/schemas/S_f36b924a373c642e"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "elapsedMs": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "error": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "errorCode": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "format": {
+            "$ref": "#/components/schemas/S_081c4797b6f407b0"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "inventoryBasis": {
+            "$ref": "#/components/schemas/S_be4035c3d5395183"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_3c9135158f98d651"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/S_373c422304eb28d8"
+          },
+          "processed": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "requestHash": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "restatedBalance": {
+            "$ref": "#/components/schemas/S_1388f2901bc9df24"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/S_ae946eb878ef6041"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/S_051114523dc3c550"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "state": {
+            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/S_78a1736e4c355538"
+          },
+          "watermarks": {
+            "$ref": "#/components/schemas/S_d7599046fe48d8bd"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scope",
+          "schema",
+          "format",
+          "state",
+          "createdAt",
+          "expiresAt",
+          "processed",
+          "total",
+          "columns",
+          "totals",
+          "preview",
+          "error",
+          "errorCode",
+          "sha256",
+          "bytes",
+          "elapsedMs",
+          "requestHash"
+        ],
         "type": "object"
       },
       "S_6aef2449e2661cf8": {
@@ -2449,6 +2663,14 @@
         ],
         "type": "object"
       },
+      "S_823a1e69548c6845": {
+        "enum": [
+          "posted",
+          "restated",
+          "unverifiable"
+        ],
+        "type": "string"
+      },
       "S_836195ac4b977fb0": {
         "default": 50,
         "maximum": 9007199254740991,
@@ -2527,31 +2749,6 @@
           "empty"
         ],
         "type": "string"
-      },
-      "S_86823722a418c35b": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_d26d7d879ca4250c"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
       },
       "S_86ec77b1bd5c9e95": {
         "anyOf": [
@@ -2890,6 +3087,13 @@
         ],
         "type": "object"
       },
+      "S_95d13da1bebfd4c3": {
+        "enum": [
+          "posted",
+          "restated"
+        ],
+        "type": "string"
+      },
       "S_97074ba8c8e6d248": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -2958,6 +3162,10 @@
           "records"
         ],
         "type": "object"
+      },
+      "S_97c3f2221af6a411": {
+        "pattern": "^\\d{4}-\\d{2}$",
+        "type": "string"
       },
       "S_97f2f05f6e0578db": {
         "additionalProperties": {
@@ -3258,6 +3466,12 @@
           "right"
         ],
         "type": "string"
+      },
+      "S_a9d487ad2c1c0dba": {
+        "items": {
+          "$ref": "#/components/schemas/S_5666571eb3084d2b"
+        },
+        "type": "array"
       },
       "S_aac005ebd51395b6": {
         "items": {
@@ -3575,6 +3789,14 @@
         ],
         "type": "object"
       },
+      "S_b35d6a8e8a3144dc": {
+        "default": "posted",
+        "enum": [
+          "posted",
+          "restated"
+        ],
+        "type": "string"
+      },
       "S_b4685c29266fd612": {
         "const": "OK",
         "type": "string"
@@ -3737,6 +3959,10 @@
       },
       "S_bcde375ebd4cbacf": {
         "type": "null"
+      },
+      "S_be4035c3d5395183": {
+        "const": "posted",
+        "type": "string"
       },
       "S_be5ac72348ac0f64": {
         "minimum": 1,
@@ -3903,6 +4129,16 @@
           "traceId"
         ],
         "type": "object"
+      },
+      "S_ccb5d3ef6ddbb396": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_97c3f2221af6a411"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
       },
       "S_cd7b6eb577995794": {
         "exclusiveMinimum": 0,
@@ -4079,90 +4315,6 @@
         ],
         "type": "object"
       },
-      "S_d26d7d879ca4250c": {
-        "additionalProperties": false,
-        "properties": {
-          "bytes": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "columns": {
-            "$ref": "#/components/schemas/S_f36b924a373c642e"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "elapsedMs": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "error": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "errorCode": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "expiresAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "format": {
-            "$ref": "#/components/schemas/S_081c4797b6f407b0"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_3c9135158f98d651"
-          },
-          "preview": {
-            "$ref": "#/components/schemas/S_373c422304eb28d8"
-          },
-          "processed": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "requestHash": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "schema": {
-            "$ref": "#/components/schemas/S_ae946eb878ef6041"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/S_051114523dc3c550"
-          },
-          "sha256": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "state": {
-            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "totals": {
-            "$ref": "#/components/schemas/S_78a1736e4c355538"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "scope",
-          "schema",
-          "format",
-          "state",
-          "createdAt",
-          "expiresAt",
-          "processed",
-          "total",
-          "columns",
-          "totals",
-          "preview",
-          "error",
-          "errorCode",
-          "sha256",
-          "bytes",
-          "elapsedMs",
-          "requestHash"
-        ],
-        "type": "object"
-      },
       "S_d2cd2a8974b40380": {
         "additionalProperties": false,
         "properties": {
@@ -4281,6 +4433,26 @@
         "minimum": 0,
         "multipleOf": 100,
         "type": "integer"
+      },
+      "S_d7599046fe48d8bd": {
+        "additionalProperties": false,
+        "properties": {
+          "asOf": {
+            "$ref": "#/components/schemas/S_4747412d47680923"
+          },
+          "dateCorrectionMaxId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
+          },
+          "journalMaxId": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          }
+        },
+        "required": [
+          "journalMaxId",
+          "dateCorrectionMaxId",
+          "asOf"
+        ],
+        "type": "object"
       },
       "S_dce143aa75224178": {
         "additionalProperties": false,
@@ -4470,6 +4642,17 @@
         "maximum": 9007199254740991,
         "minimum": -9007199254740991,
         "type": "integer"
+      },
+      "S_e634163a71f3acce": {
+        "enum": [
+          "入库",
+          "出库",
+          "更正",
+          "盘点",
+          "期初",
+          "其他"
+        ],
+        "type": "string"
       },
       "S_e73abb9662f17ed6": {
         "maxLength": 100,
@@ -24986,7 +25169,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_86823722a418c35b"
+                  "$ref": "#/components/schemas/S_6a33ac1dc500db12"
                 }
               }
             },
@@ -25112,7 +25295,7 @@
                     "data": {
                       "anyOf": [
                         {
-                          "$ref": "#/components/schemas/S_d26d7d879ca4250c"
+                          "$ref": "#/components/schemas/S_6ad4885f9e7d47ba"
                         },
                         {
                           "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -25258,7 +25441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_86823722a418c35b"
+                  "$ref": "#/components/schemas/S_6a33ac1dc500db12"
                 }
               }
             },
@@ -25384,7 +25567,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_86823722a418c35b"
+                  "$ref": "#/components/schemas/S_6a33ac1dc500db12"
                 }
               }
             },
@@ -28440,6 +28623,22 @@
           },
           {
             "in": "query",
+            "name": "basis",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b35d6a8e8a3144dc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asOf",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_c6b5eba0874323e5"
+            }
+          },
+          {
+            "in": "query",
             "name": "warehouse",
             "required": false,
             "schema": {
@@ -28525,6 +28724,18 @@
                     "data": {
                       "additionalProperties": false,
                       "properties": {
+                        "balanceMode": {
+                          "$ref": "#/components/schemas/S_823a1e69548c6845"
+                        },
+                        "basis": {
+                          "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                        },
+                        "bridge": {
+                          "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+                        },
+                        "inventoryBasis": {
+                          "$ref": "#/components/schemas/S_be4035c3d5395183"
+                        },
                         "items": {
                           "items": {
                             "additionalProperties": false,
@@ -28649,6 +28860,9 @@
                         "report": {
                           "$ref": "#/components/schemas/S_642fce9f503ed7df"
                         },
+                        "restatedBalance": {
+                          "$ref": "#/components/schemas/S_1388f2901bc9df24"
+                        },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
                         },
@@ -28697,9 +28911,16 @@
                         },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "watermarks": {
+                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
                         }
                       },
                       "required": [
+                        "basis",
+                        "watermarks",
+                        "balanceMode",
+                        "inventoryBasis",
                         "total",
                         "page",
                         "pageSize",
@@ -28854,6 +29075,22 @@
           },
           {
             "in": "query",
+            "name": "basis",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b35d6a8e8a3144dc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asOf",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_c6b5eba0874323e5"
+            }
+          },
+          {
+            "in": "query",
             "name": "fromDay",
             "required": false,
             "schema": {
@@ -28939,6 +29176,18 @@
                     "data": {
                       "additionalProperties": false,
                       "properties": {
+                        "balanceMode": {
+                          "$ref": "#/components/schemas/S_823a1e69548c6845"
+                        },
+                        "basis": {
+                          "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                        },
+                        "bridge": {
+                          "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+                        },
+                        "inventoryBasis": {
+                          "$ref": "#/components/schemas/S_be4035c3d5395183"
+                        },
                         "items": {
                           "items": {
                             "additionalProperties": false,
@@ -28982,6 +29231,9 @@
                               "createdAt": {
                                 "$ref": "#/components/schemas/S_174e29b899b9ef91"
                               },
+                              "dateReason": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
                               "deltaGrams": {
                                 "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                               },
@@ -28992,6 +29244,9 @@
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
                               "documentId": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "effectiveBusinessDate": {
                                 "$ref": "#/components/schemas/S_174e29b899b9ef91"
                               },
                               "id": {
@@ -29038,6 +29293,9 @@
                               },
                               "referenceNo": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "reportingDate": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
                               },
                               "status": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
@@ -29111,6 +29369,9 @@
                         "report": {
                           "$ref": "#/components/schemas/S_f3aeb41bc9265041"
                         },
+                        "restatedBalance": {
+                          "$ref": "#/components/schemas/S_1388f2901bc9df24"
+                        },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
                         },
@@ -29119,9 +29380,16 @@
                         },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "watermarks": {
+                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
                         }
                       },
                       "required": [
+                        "basis",
+                        "watermarks",
+                        "balanceMode",
+                        "inventoryBasis",
                         "total",
                         "page",
                         "pageSize",
@@ -29250,7 +29518,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "ERP 入账明细（含撤销补偿），历史上海本地时间未核实；携带收发存对账与断点诊断",
+        "summary": "出入库事件明细，默认入账口径；支持重述、截止时间与双水位、未归期及分类桥接，实际余额独立保留",
         "x-client-channel": "web"
       }
     },
@@ -29271,6 +29539,22 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_0af5aa9d3b6073b5"
+            }
+          },
+          {
+            "in": "query",
+            "name": "basis",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b35d6a8e8a3144dc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asOf",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_c6b5eba0874323e5"
             }
           },
           {
@@ -29360,6 +29644,18 @@
                     "data": {
                       "additionalProperties": false,
                       "properties": {
+                        "balanceMode": {
+                          "$ref": "#/components/schemas/S_823a1e69548c6845"
+                        },
+                        "basis": {
+                          "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                        },
+                        "bridge": {
+                          "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+                        },
+                        "inventoryBasis": {
+                          "$ref": "#/components/schemas/S_be4035c3d5395183"
+                        },
                         "items": {
                           "items": {
                             "additionalProperties": false,
@@ -29481,6 +29777,9 @@
                               "period": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
+                              "postedBalance": {
+                                "$ref": "#/components/schemas/S_9e23fafdf9b8cf8e"
+                              },
                               "productCode": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
@@ -29489,6 +29788,9 @@
                               },
                               "reasons": {
                                 "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                              },
+                              "restatedBalance": {
+                                "$ref": "#/components/schemas/S_1388f2901bc9df24"
                               },
                               "timeStatus": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
@@ -29568,6 +29870,9 @@
                         "report": {
                           "$ref": "#/components/schemas/S_f3aeb41bc9265041"
                         },
+                        "restatedBalance": {
+                          "$ref": "#/components/schemas/S_1388f2901bc9df24"
+                        },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
                         },
@@ -29576,9 +29881,16 @@
                         },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "watermarks": {
+                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
                         }
                       },
                       "required": [
+                        "basis",
+                        "watermarks",
+                        "balanceMode",
+                        "inventoryBasis",
                         "total",
                         "page",
                         "pageSize",
@@ -29707,7 +30019,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "ERP 仓库商品月度收发存；未知边界为 null，调整与撤销分列，不补平差额",
+        "summary": "仓库商品月报，支持入账/重述及守恒桥接；实际余额不切换，无锚点的重述余额为 null",
         "x-client-channel": "web"
       }
     },
@@ -29728,6 +30040,22 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_0af5aa9d3b6073b5"
+            }
+          },
+          {
+            "in": "query",
+            "name": "basis",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b35d6a8e8a3144dc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asOf",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_c6b5eba0874323e5"
             }
           },
           {
@@ -29809,6 +30137,18 @@
                     "data": {
                       "additionalProperties": false,
                       "properties": {
+                        "balanceMode": {
+                          "$ref": "#/components/schemas/S_823a1e69548c6845"
+                        },
+                        "basis": {
+                          "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                        },
+                        "bridge": {
+                          "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+                        },
+                        "inventoryBasis": {
+                          "$ref": "#/components/schemas/S_be4035c3d5395183"
+                        },
                         "items": {
                           "items": {
                             "additionalProperties": false,
@@ -29921,6 +30261,9 @@
                         "report": {
                           "$ref": "#/components/schemas/S_642fce9f503ed7df"
                         },
+                        "restatedBalance": {
+                          "$ref": "#/components/schemas/S_1388f2901bc9df24"
+                        },
                         "rowTokens": {
                           "$ref": "#/components/schemas/S_78a1736e4c355538"
                         },
@@ -29945,9 +30288,16 @@
                         },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "watermarks": {
+                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
                         }
                       },
                       "required": [
+                        "basis",
+                        "watermarks",
+                        "balanceMode",
+                        "inventoryBasis",
                         "total",
                         "page",
                         "pageSize",

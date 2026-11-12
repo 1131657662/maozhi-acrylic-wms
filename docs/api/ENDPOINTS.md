@@ -77,8 +77,8 @@
 | GET | /api/v1/inbound/{id}/date-corrections | web | 查询全部日期更正记录、独立版本与当前有效业务日期 |
 | POST | /api/v1/outbound/{id}/date-corrections | web | 追加已入账业务日期更正；独立版本互斥与幂等，不改原日期或库存 |
 | GET | /api/v1/outbound/{id}/date-corrections | web | 查询全部日期更正记录、独立版本与当前有效业务日期 |
-| GET | /api/v1/web/reports/details | web | ERP 入账明细（含撤销补偿），历史上海本地时间未核实；携带收发存对账与断点诊断 |
-| GET | /api/v1/web/reports/monthly | web | ERP 仓库商品月度收发存；未知边界为 null，调整与撤销分列，不补平差额 |
+| GET | /api/v1/web/reports/details | web | 出入库事件明细，默认入账口径；支持重述、截止时间与双水位、未归期及分类桥接，实际余额独立保留 |
+| GET | /api/v1/web/reports/monthly | web | 仓库商品月报，支持入账/重述及守恒桥接；实际余额不切换，无锚点的重述余额为 null |
 | GET | /api/v1/web/reports/turnover | web | 吨数净出库除以完整日逐日日终平均库存，含调整盘点说明和对账诊断 |
 | GET | /api/v1/web/reports/aging | web | 截止水位吨数 FIFO 库龄五档，未知余额独立显示并提供对账诊断 |
 | GET | /api/v1/stocktakes | web | 盘点分页查询；status=counting 为暂停窗口常驻入口 |

@@ -10,6 +10,7 @@ import { validateAnchors } from './anchors.ts';
 import { totalBalance } from './totals.ts';
 import { sourceDiagnostics, hashReferences } from './diagnostics.ts';
 import { documentCounts } from './counts.ts';
+import { reportSnapshot, snapshotLocalTime, REPORT_BATCH_SIZE, type ReportSnapshot } from './snapshot.ts';
 
 interface ProjectionState {
   cells: Map<string, Cell>;
@@ -23,12 +24,22 @@ interface ProjectionState {
   lastTime: string;
   movement: ReportQuery['movement'];
   captureEvents: boolean;
+  snapshot: ReportSnapshot;
 }
 function consumeRow(state: ProjectionState, row: Row): void {
   state.digest.update(JSON.stringify(row));
   const event = normalizeEvent(row);
   state.cursor = event.sequence;
   if (event.deleted) return;
+  const key = JSON.stringify([event.warehouseCode, event.productCode]);
+  const cell = state.cells.get(key) ?? cellFor(event, state.periods);
+  state.cells.set(key, cell);
+  cell.auditTail = event;
+  if (event.historical) cell.auditHistoricalTail = event;
+  if (event.localTime && event.localTime > snapshotLocalTime(state.snapshot)) {
+    cell.hasLaterEvents = true;
+    return;
+  }
   state.historical ||= event.historical;
   if (!event.localTime) state.missingTime++;
   if (event.localTime) {
@@ -44,9 +55,6 @@ function consumeRow(state: ProjectionState, row: Row): void {
     (state.movement === 'all' || state.movement === event.family)
   )
     state.detailTotal++;
-  const key = JSON.stringify([event.warehouseCode, event.productCode]);
-  const cell = state.cells.get(key) ?? cellFor(event, state.periods);
-  state.cells.set(key, cell);
   if (state.captureEvents) cell.events!.push(event);
   consumeEvent(cell, event, state.periods);
 }
@@ -56,14 +64,18 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
     // A primary-key batch stays bounded; hash joins otherwise sort the remaining ledger on every batch.
     const rows = await db.all(
       `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN ${balanceFields} ${balanceFrom}
-      WHERE s.id>? ${filter.sql} ORDER BY s.id LIMIT 2000`,
-      [state.cursor, ...filter.values],
+      WHERE s.id>? AND s.id<=? ${filter.sql} ORDER BY s.id LIMIT ?`,
+      [state.cursor, state.snapshot.watermarks.journalMaxId, ...filter.values, REPORT_BATCH_SIZE],
     );
     if (!rows.length) return;
     for (const row of rows) consumeRow(state, row);
   }
 }
-export async function buildProjection(db: Database, query: ReportQuery, captureEvents = false): Promise<Projection> {
+export async function buildProjection(
+  db: Database,
+  query: ReportQuery,
+  options: { captureEvents?: boolean; snapshot?: ReportSnapshot } = {},
+): Promise<Projection> {
   const state: ProjectionState = {
     cells: new Map(),
     periods: reportPeriods(query),
@@ -75,13 +87,14 @@ export async function buildProjection(db: Database, query: ReportQuery, captureE
     chronological: true,
     lastTime: '',
     movement: query.movement,
-    captureEvents,
+    captureEvents: options.captureEvents ?? false,
+    snapshot: options.snapshot ?? (await reportSnapshot(db, query)),
   };
   await readEvents(db, state, query);
-  await documentCounts(db, state.cells, query);
+  await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
   await validateAnchors(db, { ...state, query });
   await hashReferences(db, state.digest);
-  const diagnostics = await sourceDiagnostics(db, query);
+  const diagnostics = await sourceDiagnostics(db, query, state.snapshot);
   state.digest.update(JSON.stringify(diagnostics));
   for (const cell of state.cells.values()) for (const row of cell.periods.values()) finishRow(row);
   return finishProjection(state, query, diagnostics);
@@ -98,6 +111,7 @@ function finishProjection(
     reconciliation.reasons.push('存在无法判定库存来源的流水，未混入有库存资格商品的发生额；需核实基础资料');
   }
   return {
+    snapshot: state.snapshot,
     cells: state.cells,
     periods: state.periods,
     detailTotal: state.detailTotal,
