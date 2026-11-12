@@ -117,7 +117,7 @@ test('B5c-1 overage requires per-line reason in either unit and stock shortage r
   try {
     const body = shipmentBody(await c.current(), 101);
     const rejected = await c.send(`${c.path}/shipments`, body).expect(422);
-    assert.equal(rejected.body.data.fields[0].path, 'lines.0.overageReason');
+    assert.deepEqual(rejected.body.data.fields[0].path, ['lines', 0, 'overageReason']);
     await c
       .send(`${c.path}/shipments`, {
         ...body,

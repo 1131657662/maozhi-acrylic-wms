@@ -36,6 +36,10 @@ export const shipmentSchema = z.object({
   shippedAt: z.string(),
   businessDate: z.string(),
   operator: z.string(),
+  packages: z.number().int(),
+  weightGrams: z.number().int(),
+  effectivePackages: z.number().int(),
+  effectiveWeightGrams: z.number().int(),
   lines: z.array(
     z.object({
       lineId: z.string(),
@@ -52,8 +56,33 @@ export const shipmentSchema = z.object({
     }),
   ),
 });
+export const shipmentQuantitySchema = z.object({
+  lineId: z.string(),
+  productCode: z.string(),
+  productName: z.string(),
+  contractNo: z.string().nullable(),
+  memo: z.string().nullable(),
+  plannedPackages: z.number().int(),
+  plannedWeightGrams: z.number().int(),
+  effectivePackages: z.number().int(),
+  effectiveWeightGrams: z.number().int(),
+  remainingPackages: z.number().int().nonnegative(),
+  remainingWeightGrams: z.number().int().nonnegative(),
+  prefillPackages: z.number().int().nonnegative().nullable(),
+  prefillWeightGrams: z.number().int().nonnegative().nullable(),
+});
 export const shipmentListSchema = z.object({
   items: z.array(shipmentSchema),
+  revision: z.number().int(),
+  digest: z.string(),
+  status: z.string(),
+  vehicleNo: z.string(),
+  nextSeq: z.number().int().positive(),
+  plannedPackages: z.number().int(),
+  plannedWeightGrams: z.number().int(),
+  effectivePackages: z.number().int(),
+  effectiveWeightGrams: z.number().int(),
+  lines: z.array(shipmentQuantitySchema),
   remainingPackages: z.number().int(),
   remainingWeightGrams: z.number().int(),
   completedAt: z.string().nullable(),
@@ -63,3 +92,5 @@ export const shipmentListSchema = z.object({
 });
 export type ShipmentInput = z.infer<typeof shipmentInputSchema>;
 export type ShipmentPlan = z.infer<typeof shipmentPlanSchema>;
+export type ShipmentList = z.infer<typeof shipmentListSchema>;
+export type ShipmentQuantity = z.infer<typeof shipmentQuantitySchema>;

@@ -1,5 +1,5 @@
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { detailSchema, listSchema, auditSchema } from '@wms/contracts';
+import { detailSchema, listSchema, auditSchema, shipmentListSchema } from '@wms/contracts';
 import { request } from '../../api/client';
 export interface Filters {
   page: number;
@@ -21,5 +21,9 @@ export const outboundKeys = createQueryKeys('outbound', {
     },
   }),
   detail: (id: string) => ({ queryKey: [id], queryFn: () => request(`/outbound/${id}`, detailSchema) }),
+  shipments: (id: string) => ({
+    queryKey: [id],
+    queryFn: () => request(`/outbound/${id}/shipments`, shipmentListSchema),
+  }),
   audit: { queryKey: null, queryFn: () => request('/audit', auditSchema) },
 });

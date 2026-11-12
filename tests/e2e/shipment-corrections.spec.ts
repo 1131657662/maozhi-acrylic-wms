@@ -56,8 +56,9 @@ test('B5c-2 发货行更正后，详情实发、差异与列表显示有效量',
     expect(records.items.map((sh) => sh.lines[0]!.effectivePackages)).toEqual([40, 50]);
     expect(records.remainingPackages).toBe(10);
     await page.goto(`/outbound/${order.id}`);
-    await expect(page.locator('.metrics')).toContainText('100 / 90');
-    await expect(page.getByTestId('actual-lines')).toContainText('-10 包 / -3.0000 吨');
+    await expect(page.getByTestId('shipment-metrics')).toContainText('100 包 / 30.0000 吨');
+    await expect(page.getByTestId('shipment-metrics')).toContainText('90 包 / 27.0000 吨');
+    await expect(page.getByTestId('actual-lines')).toContainText('10 包 / 3.0000 吨');
     await expect(page.getByTestId('correction-summary')).toContainText('90 包 / 27.0000 吨');
     await expect(page.getByTestId('correction-summary')).toContainText('第 2 次发货');
     await page.screenshot({ path: '.local/evidence/b5c-2-correction-detail-1440.png' });

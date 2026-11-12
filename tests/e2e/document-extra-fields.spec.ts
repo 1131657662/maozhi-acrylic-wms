@@ -113,8 +113,8 @@ test('B4e 出库表单与编辑保存扩展信息，保留商品和数量，导�
       },
     ],
   });
-  await expect(page.getByText('B4E-新合同', { exact: true })).toBeVisible();
-  await expect(page.getByText('B4E-新行备注', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('actual-lines').getByText('合同号：B4E-新合同', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('actual-lines').getByText('行备注：B4E-新行备注', { exact: true })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: '.local/evidence/b4e-outbound-detail-1440.png',

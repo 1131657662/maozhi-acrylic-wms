@@ -32,16 +32,16 @@ test('B4d 预填、修改实发、确认及扫码清单导出', async ({ page })
     }
     await page.goto(`/outbound/${order.id}`);
     await page.getByRole('button', { name: '按扫码预填', exact: true }).click();
-    await expect(page.getByRole('spinbutton', { name: '实发包数 1' })).toHaveValue('2');
-    await page.getByRole('spinbutton', { name: '实发包数 1' }).fill('1');
-    await page.getByRole('spinbutton', { name: '实发吨数 1' }).fill('0.2000');
+    await expect(page.getByRole('spinbutton', { name: '本次实发包数 1' })).toHaveValue('2');
+    await page.getByRole('spinbutton', { name: '本次实发包数 1' }).fill('1');
+    await page.getByRole('spinbutton', { name: '本次实发吨数 1' }).fill('0.2000');
     await screenshotWidths(page, 'b4d-actual');
-    await page.getByRole('button', { name: '核对并确认出库', exact: true }).click();
+    await page.getByRole('button', { name: '确认本次发货', exact: true }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toContainText('1 包 / 0.2000 吨');
     await expect(dialog).not.toContainText('扫码');
     await screenshotWidths(page, 'b4d-confirm');
-    await dialog.getByRole('button', { name: '确认出库', exact: true }).click();
+    await dialog.getByRole('button', { name: '确认发货', exact: true }).click();
     await expect(page.getByText('部分发货', { exact: true }).first()).toBeVisible();
     const saved = await db.get('SELECT packages,weight_tonnes FROM stock WHERE product_code=?', [cell.productCode]);
     expect(saved).toEqual({ packages: 5, weight_tonnes: '1.6000' });

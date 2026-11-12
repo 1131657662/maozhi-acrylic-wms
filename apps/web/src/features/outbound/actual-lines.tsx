@@ -1,124 +1,117 @@
-import { Form, InputNumber, Table, Typography, theme, type FormInstance } from 'antd';
-import { tonnes, type Detail, OUTBOUND_ACTUAL_MAX_GRAMS, OUTBOUND_ACTUAL_MAX_PACKAGES } from '@wms/contracts';
-import { actualText as text, ACTUAL_TABLE_WIDTH } from './actual-text';
+import { Form, InputNumber, Table, Typography, Flex, type FormInstance } from 'antd';
+import {
+  OUTBOUND_ACTUAL_MAX_GRAMS,
+  OUTBOUND_ACTUAL_MAX_PACKAGES,
+  documentExtraCopy,
+  snapshotText,
+  type ShipmentQuantity,
+} from '@wms/contracts';
+import { shipmentCopy as text, SHIPMENT_UI as ui } from './shipment-copy';
+import { ShipmentDifference } from './shipment-difference';
 
 export interface ActualForm {
-  lines: { actualPackages?: number; actualWeightTonnes?: number }[];
+  lines: { actualPackages?: number | null; actualWeightTonnes?: number | null }[];
 }
 interface Props {
-  order: Detail;
-  form: FormInstance<ActualForm>;
-  editable: boolean;
+  lines: ShipmentQuantity[];
+  form?: FormInstance<ActualForm>;
 }
-export function ActualLines({ order, form, editable }: Props) {
-  const { token } = theme.useToken();
-  const values = Form.useWatch('lines', form) as ActualForm['lines'] | undefined;
-  const effectiveLines = order.lines.map((line) => {
-    const quantity = order.corrections?.lines.find((item) => item.originalLineId === line.id)?.effective;
-    return quantity ? { ...line, actualPackages: quantity.packages, actualWeightGrams: quantity.weightGrams } : line;
-  });
+
+export function ActualLines({ lines, form }: Props) {
   return (
-    <Table
-      rowKey="id"
-      dataSource={effectiveLines}
+    <Table<ShipmentQuantity>
+      rowKey="lineId"
+      dataSource={lines}
       pagination={false}
       tableLayout="fixed"
-      scroll={{ x: ACTUAL_TABLE_WIDTH }}
+      scroll={{ x: ui.tableWidth }}
       data-testid="actual-lines"
       columns={[
         {
           title: text.product,
-          width: 220,
+          width: ui.productWidth,
           render: (_, line) => (
             <>
               <div>{line.productName}</div>
               <Typography.Text type="secondary">{line.productCode}</Typography.Text>
+              <div>
+                <Typography.Text type="secondary">
+                  {documentExtraCopy.contractNo}：{snapshotText(line.contractNo)}
+                </Typography.Text>
+              </div>
+              <div>
+                <Typography.Text type="secondary">
+                  {documentExtraCopy.lineMemo}：{snapshotText(line.memo)}
+                </Typography.Text>
+              </div>
             </>
           ),
         },
         {
-          title: text.planned,
-          width: 180,
-          render: (_, line) => `${line.plannedPackages} / ${tonnes(line.plannedWeightGrams)}`,
+          title: text.planLine,
+          width: ui.quantityWidth,
+          align: 'right',
+          onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+          onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+          render: (_, line) => text.quantity(line.plannedPackages, line.plannedWeightGrams),
         },
         {
-          title: text.scanned,
-          width: 180,
-          render: (_, line) => (
-            <Typography.Text type="secondary">
-              {line.scanPackages == null || line.scanPackages === 0
-                ? text.notScanned
-                : `${line.scanPackages} / ${tonnes(line.scanWeightGrams ?? 0)}`}
-            </Typography.Text>
-          ),
+          title: text.shippedLine,
+          width: ui.quantityWidth,
+          align: 'right',
+          onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+          onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+          render: (_, line) => text.quantity(line.effectivePackages, line.effectiveWeightGrams),
         },
         {
-          title: text.packages,
-          width: 160,
-          render: (_, line, index) =>
-            editable ? (
-              <Form.Item name={['lines', index, 'actualPackages']} rules={[{ required: true, message: text.required }]}>
-                <InputNumber
-                  aria-label={`${text.packages} ${index + 1}`}
-                  min={0}
-                  max={OUTBOUND_ACTUAL_MAX_PACKAGES}
-                  precision={0}
-                />
-              </Form.Item>
-            ) : (
-              line.actualPackages
-            ),
+          title: text.pendingLine,
+          width: ui.quantityWidth,
+          align: 'right',
+          onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+          onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+          render: (_, line) => text.quantity(line.remainingPackages, line.remainingWeightGrams),
         },
         {
-          title: text.tonnes,
-          width: 170,
-          render: (_, line, index) =>
-            editable ? (
-              <Form.Item
-                name={['lines', index, 'actualWeightTonnes']}
-                rules={[{ required: true, message: text.required }]}
-              >
-                <InputNumber
-                  aria-label={`${text.tonnes} ${index + 1}`}
-                  min={0}
-                  max={OUTBOUND_ACTUAL_MAX_GRAMS / 1_000_000}
-                  precision={4}
-                  step={0.0001}
-                />
-              </Form.Item>
-            ) : (
-              tonnes(line.actualWeightGrams)
-            ),
+          title: text.actual,
+          width: ui.inputWidth,
+          render: (_, _line, index) => (form ? <ActualInputs index={index} /> : text.empty),
         },
         {
           title: text.difference,
-          width: 220,
-          render: (_, line, index) => {
-            const value = editable
-              ? values?.[index]
-              : { actualPackages: line.actualPackages, actualWeightTonnes: line.actualWeightGrams / 1_000_000 };
-            if (value?.actualPackages == null || value.actualWeightTonnes == null) return '—';
-            const packages = value.actualPackages - line.plannedPackages;
-            const grams = Math.round(value.actualWeightTonnes * 1_000_000) - line.plannedWeightGrams;
-            return (
-              <span
-                style={{
-                  color:
-                    packages > 0 || grams > 0
-                      ? token.colorPrimary
-                      : packages < 0 || grams < 0
-                        ? token.colorWarning
-                        : token.colorText,
-                }}
-              >
-                {packages > 0 ? '+' : ''}
-                {packages} 包 / {grams > 0 ? '+' : ''}
-                {tonnes(grams)} 吨
-              </span>
-            );
-          },
+          width: ui.differenceWidth,
+          align: 'right',
+          render: (_, line, index) =>
+            form ? <ShipmentDifference line={line} form={form} index={index} /> : text.empty,
         },
       ]}
     />
+  );
+}
+
+function ActualInputs({ index }: { index: number }) {
+  return (
+    <Flex vertical gap="small">
+      <Form.Item name={['lines', index, 'actualPackages']} noStyle>
+        <InputNumber
+          aria-label={`${text.packages} ${index + 1}`}
+          placeholder={text.zero}
+          min={0}
+          max={OUTBOUND_ACTUAL_MAX_PACKAGES}
+          precision={0}
+          suffix={text.packageUnit}
+        />
+      </Form.Item>
+      <Form.Item name={['lines', index, 'actualWeightTonnes']} noStyle>
+        <InputNumber
+          aria-label={`${text.tonnes} ${index + 1}`}
+          placeholder={text.zero}
+          min={0}
+          max={OUTBOUND_ACTUAL_MAX_GRAMS / ui.gramsPerTonne}
+          precision={ui.tonnePrecision}
+          step={ui.tonneStep}
+          suffix={text.tonneUnit}
+        />
+      </Form.Item>
+    </Flex>
   );
 }

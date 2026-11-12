@@ -840,6 +840,16 @@
         ],
         "type": "object"
       },
+      "S_3e121eecf4430035": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
+      },
       "S_3edbe3e16d7603b1": {
         "additionalProperties": false,
         "properties": {
@@ -18374,12 +18384,27 @@
                         "completedAt": {
                           "$ref": "#/components/schemas/S_174e29b899b9ef91"
                         },
+                        "digest": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "effectivePackages": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "effectiveWeightGrams": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
                         "items": {
                           "items": {
                             "additionalProperties": false,
                             "properties": {
                               "businessDate": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "effectivePackages": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "effectiveWeightGrams": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                               },
                               "id": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
@@ -18442,6 +18467,9 @@
                               "operator": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
+                              "packages": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
                               "seq": {
                                 "$ref": "#/components/schemas/S_9c3981b1e1b076db"
                               },
@@ -18450,6 +18478,9 @@
                               },
                               "vehicleNo": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "weightGrams": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                               }
                             },
                             "required": [
@@ -18459,16 +18490,95 @@
                               "shippedAt",
                               "businessDate",
                               "operator",
+                              "packages",
+                              "weightGrams",
+                              "effectivePackages",
+                              "effectiveWeightGrams",
                               "lines"
                             ],
                             "type": "object"
                           },
                           "type": "array"
                         },
+                        "lines": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractNo": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "effectivePackages": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "effectiveWeightGrams": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "lineId": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "memo": {
+                                "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                              },
+                              "plannedPackages": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "plannedWeightGrams": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "prefillPackages": {
+                                "$ref": "#/components/schemas/S_3e121eecf4430035"
+                              },
+                              "prefillWeightGrams": {
+                                "$ref": "#/components/schemas/S_3e121eecf4430035"
+                              },
+                              "productCode": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "productName": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "remainingPackages": {
+                                "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                              },
+                              "remainingWeightGrams": {
+                                "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                              }
+                            },
+                            "required": [
+                              "lineId",
+                              "productCode",
+                              "productName",
+                              "contractNo",
+                              "memo",
+                              "plannedPackages",
+                              "plannedWeightGrams",
+                              "effectivePackages",
+                              "effectiveWeightGrams",
+                              "remainingPackages",
+                              "remainingWeightGrams",
+                              "prefillPackages",
+                              "prefillWeightGrams"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "nextSeq": {
+                          "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+                        },
+                        "plannedPackages": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "plannedWeightGrams": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
                         "remainingPackages": {
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
                         "remainingWeightGrams": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "revision": {
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
                         "shortClosure": {
@@ -18501,10 +18611,26 @@
                               "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
                             }
                           ]
+                        },
+                        "status": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "vehicleNo": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
                         }
                       },
                       "required": [
                         "items",
+                        "revision",
+                        "digest",
+                        "status",
+                        "vehicleNo",
+                        "nextSeq",
+                        "plannedPackages",
+                        "plannedWeightGrams",
+                        "effectivePackages",
+                        "effectiveWeightGrams",
+                        "lines",
                         "remainingPackages",
                         "remainingWeightGrams",
                         "completedAt",
