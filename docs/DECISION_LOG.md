@@ -240,3 +240,14 @@
 | 2026-11-12 | 日期更正水位保留 UUID 最大值，但重放固定可见记录集合，不假定 UUID 递增；默认实际余额字段不变，重述余额独立返回；无新增迁移 | 生效 | REPORT_SPEC §10.1 |
 | 2026-11-12 | B5d-2 周转分子按所选 basis 归期，日均库存分母及 FIFO 保持入账序列；完整日受 asOf 限制，无法归期出库不以零计算重述周转 | 生效 | REPORT_SPEC §10.1 |
 | 2026-11-12 | B5d-2 用户验收通过，349/134/0；授权更新完成状态、以 merge: b5d-2 report restatement 非快进合并并推送 master；本批无迁移，收尾后停止，B6j 换新会话 | 生效 | IMPLEMENTATION_PLAN B5d-2、REPORT_SPEC §10.3 |
+
+## B6j-1 token 与检查（2026-11-12）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-12 | B6j 分步执行：B6j-1 仅目标 token、CSS 变量输出与 Web 检查；共享组件、页面迁移和 AF-053 留后续。全局主题保留 borderRadius=8 及所有原有效值，目标卡片 12/控件 8 留 B6j-2 接入 | 生效 | VISUAL_SPEC §13、IMPLEMENTATION_PLAN B6j-1 |
+| 2026-11-12 | 目标间距 4/8/16/24；常规字号 20/16/14/12，KPI 专用 fontSize.kpi=28；颜色只以语义名映射调用方 AntD token。补充原“字号四档”决定：四档仅指常规文字，KPI 单列 | 生效 | VISUAL_SPEC §3/§12/§13 |
+| 2026-11-12 | 检查仅 apps/web/src：颜色 hex/rgb/命名色、所有数值圆角和所有非零非百分比裸 padding；padding 裸 4/8/16/24 同样违规。token/CSS 变量引用放行，裸 fallback 检查。取代本轮最初 padding 范围中的歧义表述 | 生效 | VISUAL_SPEC §13.3 |
+| 2026-11-12 | allowlist 按 file/kind/value/reason/计划批次逐项登记且限制出现次数；旧项报告、新项失败，不允许整目录豁免；不扫不改小程序/PDA | 生效 | VISUAL_SPEC §13.3 |
+| 2026-11-12 | 批准三提交：规格与台账、token 与脚本、验证记录；检查用例、单测与构建完成后停止，不合并、不 push。页面视觉不变，不为截图改基础设施或写样本库 | 已废弃（停止及禁止合并部分） | 被本日 B6j-1 用户验收后的收尾授权取代；三实现提交、页面视觉与样本库边界保留 |
+| 2026-11-12 | B6j-1 用户验收通过，401/134/0（E2E 134 沿用 B5d-2 基线，本批未重跑）；授权更新完成状态与 check:design-tokens 命令记录，以 merge: b6j-1 design tokens 非快进合并并推送 master。本批无迁移，收尾后停止，不开始 B6j-2 | 生效 | VISUAL_SPEC §13.6、IMPLEMENTATION_PLAN B6j-1 |
