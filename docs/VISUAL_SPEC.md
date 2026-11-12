@@ -41,7 +41,7 @@
 | 卡片标题 | 16 / 24 | 600 |
 | 正文、表格 | 14 / 22 | 400 |
 | 辅助说明、单位 | 12 / 20 | 400 |
-| KPI 大数字 | 28 / 36 | 600 |
+| KPI 大数字（专用档，`fontSize.kpi`） | 28 / 36 | 600 |
 
 规则：
 - 数字用等宽（tabular-nums），右对齐；
@@ -163,7 +163,44 @@ KPI 卡 ×4
 
 1. 截图对比：同类型页面（两个列表、两个详情）在 1440 下骨架一致；
 2. 间距抽查：随机 5 处，值只能是 4/8/16/24；
-3. 字号抽查：页面内不超过 4 种字号；
+3. 字号抽查：常规文字使用 20/16/14/12 四档，KPI 大数字另用专用 28px 档；
 4. 颜色抽查：页面无裸色值；
 5. 1280 与 1024 下无页面横向滚动；
 6. 表格行高统一，密集模式可切换。
+
+## 13. B6j-1：目标 token 与 Web 检查（2026-11-12）
+
+### 13.1 范围与兼容
+
+- 本步只交付 token 模块、CSS 变量输出、Web 裸值检查及逐项 allowlist；不交付共享组件或页面迁移，不改变任何页面视觉。
+- `apps/web/src/app.tsx` 的全局主题继续使用 `borderRadius=8`，主色、背景、字体和其他有效主题值不变。不得提前将目标卡片圆角写入当前 ConfigProvider；AntD 会派生圆角并同时影响卡片、按钮等现有控件。
+- B6j-2 迁移页面时再接入目标 token/CSS 变量并切换目标样式；输入框 AF-053 随后续页面迁移处理。本步不做配色改版、暗色模式、PDA、小程序、数据库迁移或样本库写入。
+
+### 13.2 公共导出
+
+`apps/web/src/theme/design-tokens.ts` 提供以下目标值，不自动修改主题或向 DOM 注入样式：
+
+| 导出 | 值 / 来源 | CSS 变量 |
+|---|---|---|
+| `radius` | `{ card: 12, control: 8 }` | `--wms-radius-card`、`--wms-radius-control` |
+| `spacing` | 4、8、16、24 | `--wms-space-4/8/16/24` |
+| `fontSize` | `{ pageTitle: 20, cardTitle: 16, body: 14, auxiliary: 12, kpi: 28 }` | `--wms-font-size-page-title/card-title/body/auxiliary/kpi` |
+| `color(token)` | 接收当前 AntD token；primary/success/warning/error/border/text/textSecondary/background/surface/textOnSolid 分别映射到相应 AntD 语义 token | `--wms-color-*`，使用同名语义的短横线形式 |
+
+CSS 变量由同一模块输出变量对象及 `:root` CSS 文本，长度带 px；颜色从调用方传入的 AntD token 取值，不复制裸色、不读取另一套默认主题。B6j-1 不在页面导入或应用这些输出；B6j-2 接入时使用当时的有效主题。
+
+### 13.3 检查与过渡
+
+- 入口 `scripts/check-design-tokens.ts`（命令 `npm run check:design-tokens`）只递归扫描 `apps/web/src` 内 TS/TSX、JS/JSX 及 CSS/LESS/SCSS 源文件，包含未提交新文件，排除 Umi 生成目录与依赖；不扫 `apps/web/config`、小程序或 PDA。
+- 检查裸 hex、rgb(a)/hsl(a) 和命名颜色（含 transparent）；AntD 的 success/warning/processing/default 等语义状态不是命名颜色。检查 CSS 与 JS 的 border-radius/borderRadius（含分角与逻辑角）及 padding（含方向、逻辑方向）数值。
+- padding 中任何非零长度/数值均违规，包括 px、rem、视口单位、简写、calc 内裸长度以及 4/8/16/24；零（含 0px）、百分比、auto/inherit 等非长度关键字不违规。圆角任何数值均检查，含零、百分比及 4/6/8/12。
+- token 引用与 CSS 变量引用放行；CSS 变量建议使用 `var(--wms-space-8)` 等公共命名。变量 fallback 中另写的裸颜色/长度仍检查；注释、URL 和普通 CSS 文本内容不得误报。检查针对静态字面量，不承诺跨文件追踪运行时计算值。
+- 使用已有 TypeScript 解析器检查脚本语法，使用明确声明的 PostCSS 与值解析器检查 CSS；不新增测试框架。解析失败应使命令失败，不静默跳过。
+- allowlist 每项必须记录 `file`、`kind`、`value`、`reason`、`batch`（计划批次）。路径必须为精确 Web 源文件，不接受目录、glob 或批量豁免；同一值每次出现消耗一个条目，复制出新的同值违规仍失败。
+- 现有已登记项逐条报告且不失败；新增未登记项退出码非零。已消失的 allowlist 项提示清理，不自动扩充基线。旧全局主题中的裸值也逐项登记，不给整个主题文件免检。
+
+### 13.4 验证与交付
+
+- 检查脚本的检出、豁免、重复违规、精确 allowlist、Web 边界与错误退出需通过隔离临时文件测试；运行既有单测及严格类型检查/Web 构建。
+- 通过 Git 差异确认当前主题与页面文件未改变；本步不改变版式、颜色或布局，不要求截图，不改变 E2E/设备冒烟的数据来源。
+- 三提交：规格与台账、token 与脚本、验证记录。完成后停止，不合并、不 push；不将本地自动化通过写成设备或生产验收。

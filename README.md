@@ -106,6 +106,8 @@ npm run miniapp:prepare
 
 ## 验证
 
+B6j-1 新增文件登记：`apps/web/src/theme/design-tokens.ts` 提供目标 token 与 CSS 变量输出；`scripts/check-design-tokens.ts`、`scripts/design-tokens/` 提供 Web 裸值检查、逐项 allowlist 与隔离用例。执行规则与验证状态见 [VISUAL_SPEC §13](docs/VISUAL_SPEC.md#13-b6j-1目标-token-与-web-检查2026-11-12) 及 [实施记录](docs/IMPLEMENTATION_PLAN.md)。本步不接入页面、不改变当前全局主题。
+
 ```powershell
 npm run test
 npm run build
