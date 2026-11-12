@@ -358,6 +358,22 @@ Q2 的 COALESCE 仅用于这条“把缺行视作零再比较”的诊断假设�
 修订记录：C07 更正及抵消单列且不双计，明确重述归期/桥接/未知值及汇总算法。
 修订记录：C17 普通报表未知类型仅中文提示，原值遵守审计折叠区例外。
 
+### 10.1 B5d-2 读模型与契约（2026-11-12）
+
+本批在 B5d-1 与 021 已完成的基础上实现报表重述读模型，默认入账口径不变。仅扩展查询、契约、现有导出与验证；页面重做留 B7a，不改日期更正写入或库存链路，不建立 T0 锚点，不新增迁移。
+
+- 查询与导出 query 增加 `basis: posted | restated`（默认 posted）、`asOf`（可选，带时区的 ISO 时间，缺省为本次查询时刻；未来截止拒绝）。响应顶层增加 `basis`、`watermarks: { journalMaxId, dateCorrectionMaxId, asOf }`、`balanceMode: posted | restated | unverifiable`。
+- `journalMaxId` 是本次只读快照可见流水的最大编号；`dateCorrectionMaxId` 是截止点内可见日期更正 UUID 的字典序最大值，无记录为 null。UUID 不是递增序号，不能仅用 UUID 大小判断是否属于快照；实际重放固定该次可见更正集合并按原单 revision 选择最新有效日期。水位与 asOf 在同一只读快照确定。
+- posted 继续使用入账日；restated 将原单、数量更正、反向补偿按原单截至快照的有效业务日期归期，各自类型不变。无原单日期的盘点/调整/转移沿用自身入账日并附中文例外说明；原单日期未知进入未归期，不能借导入日或制单日补齐。
+- restated 响应增加 `bridge`，每个分类（入库、出库、更正、盘点、期初、其他）每月一行：`month, category, inRange, postedPackages, postedGrams, restatedPackages, restatedGrams, deltaPackages, deltaGrams`；`delta = restated - posted`。分类互斥，数量更正仅在“更正”桥接分类中出现，撤销采用完整流水数，不再次叠加 correctionOffset。桥接数量采用库存 signed delta，出库扣减为负，包数和克数独立。
+- 桥接事件集取同一仓品/来源范围内、入账日或有效业务日期命中查询区间的事件并集；日期缺失而无法排除的事件也保留。为同一事件同时保留入账月与重述月，因此可包含查询区间外月份；`inRange` 表示该月份是否与查询区间相交，`month=null` 时为 false。未归期按分类合并为 `month=null` 行，附去重后的中文 `reason`；已知数量原样保留，未知日期不是数量零。
+- 守恒检查为所有桥接行的 `deltaPackages` 合计 = 0、`deltaGrams` 合计 = 0；**单月允许非零**。此条按用户本次更正取代“每月差额为零”。例如 10 包从一月移到二月，一月 -10、二月 +10；只查二月仍保留一月且 inRange=false。未归期行同样参与闭合。页面查询与导出共用同一 bridge 计算结果。
+- `report.reconciliation` 始终是 posted 实际对账；月行既有期初/期末/对账差额字段也始终保留 posted 值。restated 月行发生额按重述日期统计，并另带 `postedBalance` 保存完整实际等式，禁止将重述发生额与既有余额字段拼成等式。另增 `restatedBalance`（总区间及月行），只表示“重述余额（非当时实际库存）”。
+- 只有已存在、可验证的锚点与全部重分配事件均可定位，且没有跨锚点/未知日期/链断点时，重述余额可给出；否则 `balanceMode=unverifiable`，`restatedBalance` 的期初/期末/差额均为 null 并附原因。切换 basis 不改变默认实际余额字段。本批不伪造或建立正式切账锚点。
+- 周转和库龄的库存序列与 FIFO 日期保持原入账口径，明确标注；不以重述日期重放库存。重述附加信息与桥接使用同一查询快照。
+- 导出沿用现有 viewToken 校验，将本次查询水位绑定到该视图，避免缺省 asOf 在导出时重新取当前。有限期的进程内快照过期/缺失或来源证据变化时明确要求刷新，不静默使用新水位；无新数据库表、无页面重做。
+- 验证：默认 posted 的既有字段与改造前相等；跨月日期更正及窄区间桥接守恒；未知日期未归期与原因；入出库数量更正/撤销不双计；双水位与 asOf 截止、UUID 非单调；查询/导出同水位同桥接；切换 basis 保留 posted 余额；不可定位重述余额为 null。复用隔离合成库，不写开发样本库。
+
 ## 11. B5d-1 已入账业务日期更正（2026-11-12）
 
 本批实现 §10 第 4 条：仅入/出库原单的追加式日期更正，复用 011 未入账 PATCH，不覆盖头表或发货记录日期，不改变报表入账归期、数量更正与库存。分支 `codex/b5d-1-date-corrections`，起点 `e6f277e`；实现提交 `feat(documents): append-only business date corrections`。初始停止边界已完成；用户验收后授权开发样本库应用及合并推送，见 §11.2。
