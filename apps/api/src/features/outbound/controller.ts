@@ -1,17 +1,8 @@
 import type { Request, Response } from 'express';
 import type { Database } from '../../db/mysql.ts';
-import {
-  idSchema,
-  listQuerySchema,
-  listSchema,
-  confirmOutboundSchema,
-  sessionSchema,
-  outboundPrefillSchema,
-} from '@wms/contracts';
-import { z } from 'zod';
+import { idSchema, listQuerySchema, listSchema, sessionSchema, outboundPrefillSchema } from '@wms/contracts';
 import { getOrder, listOrders } from './repository.ts';
-import { confirmOutbound } from './confirm.ts';
-import { actorFrom, ok } from '../../middleware/http.ts';
+import { ok } from '../../middleware/http.ts';
 import { exportScanRecords } from './scan-export.ts';
 import { pdaScanProjection } from '../scan/projection.ts';
 import { exposePlans } from './exposure.ts';
@@ -62,19 +53,6 @@ export function outboundController(db: Database) {
             scanPackages: line.scanPackages ?? 0,
             scanWeightGrams: line.scanWeightGrams ?? 0,
           })),
-        }),
-      );
-    },
-    confirm: async (req: Request, res: Response): Promise<void> => {
-      const input = confirmOutboundSchema.parse(req.body);
-      ok(
-        res,
-        await confirmOutbound(db, {
-          planId: idSchema.parse(req.params.id),
-          key: z.uuid().parse(req.get('idempotency-key')),
-          expected: { revision: input.revision, digest: input.digest },
-          lines: input.lines,
-          actor: actorFrom(res),
         }),
       );
     },

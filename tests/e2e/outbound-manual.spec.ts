@@ -42,7 +42,7 @@ test('B4d 预填、修改实发、确认及扫码清单导出', async ({ page })
     await expect(dialog).not.toContainText('扫码');
     await screenshotWidths(page, 'b4d-confirm');
     await dialog.getByRole('button', { name: '确认出库', exact: true }).click();
-    await expect(page.getByRole('button', { name: '已确认出库', exact: true })).toBeDisabled();
+    await expect(page.getByText('部分发货', { exact: true }).first()).toBeVisible();
     const saved = await db.get('SELECT packages,weight_tonnes FROM stock WHERE product_code=?', [cell.productCode]);
     expect(saved).toEqual({ packages: 5, weight_tonnes: '1.6000' });
     const downloadPromise = page.waitForEvent('download');

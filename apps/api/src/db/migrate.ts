@@ -122,6 +122,7 @@ const migrations = [
   },
   { id: '017_document_extra_fields', guardedTables: [] },
   { id: '018_scan_workbench', guardedTables: [] },
+  { id: '019_shipment_close', guardedTables: [] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -204,6 +205,13 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (
+          migration.id === '019_shipment_close' &&
+          (await connection.get(`SELECT id FROM outbound_orders
+          WHERE short_closed_at IS NOT NULL OR short_close_reason IS NOT NULL
+          OR short_closed_packages IS NOT NULL OR short_closed_grams IS NOT NULL LIMIT 1`))
+        )
+          throw new Error('拒绝回退：单据已有短关证据，禁止删除');
         if (migration.id === '018_scan_workbench') await guardScanWorkbenchDown(connection);
         if (
           migration.id === '016_outbound_shipments' &&

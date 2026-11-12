@@ -19,7 +19,7 @@ test('017 空库 up/down/up 保持新增字段结构一致', async () => {
       ['outbound_lines', 'contract_no'],
     ])
       assert.equal(await context.db.get(`SHOW COLUMNS FROM \`${table}\` LIKE '${column}'`), undefined);
-    await migrateUp(context.db);
+    await migrateUp(context.db, '017_document_extra_fields');
     assert.deepEqual(
       await Promise.all(tables.map((table) => context.db.get(`SHOW CREATE TABLE \`${table}\``))),
       before,

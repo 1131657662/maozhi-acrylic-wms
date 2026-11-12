@@ -4,6 +4,11 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/outbound/{id}/shipments | web | 本单全部发货记录、待发与结单信息 |
+| POST | /api/v1/outbound/{id}/shipments | web | 确认本次实发；发满自动结单，否则部分发货；库存、发货记录和审计同事务 |
+| POST | /api/v1/outbound/{id}/complete | web | 所有明细待发为零时完成发货 |
+| POST | /api/v1/outbound/{id}/short-close | web | 记录剩余数量与原因并短关；不变库存 |
+| PATCH | /api/v1/outbound/{id}/plan | web | 计划中或部分发货时修改现有计划行；已发记录不变 |
 | GET | /api/v1/outbound/{id}/scan-candidates | web | 本单商品候选，片段至少四位；无可靠映射需人工确认归属 |
 | GET | /api/v1/outbound/{id}/scan-summary | web | 未撤销清点记录的计划、已录、差额及商品汇总 |
 | POST | /api/v1/outbound/{id}/scan-records | web | 按本单商品计入清点记录，不扣库存 |
@@ -131,7 +136,7 @@
 | POST | /api/v1/outbound | web | 创建待扫码出库计划；不预占库存 |
 | PATCH | /api/v1/outbound/{id} | web | 本地 open 计划仅修改车号/备注；保留明细行 ID，已下发或已扫码同样禁止改明细 |
 | GET | /api/v1/outbound/{id} | any | 出库详情与逐包实重 |
-| POST | /api/v1/outbound/{id}/confirm | web | Web 唯一库存扣减入口；单事务确认 |
+| POST | /api/v1/outbound/{id}/confirm | web | shipments 的兼容别名；本次实发扣库，发满自动结单，未发满为部分发货 |
 | GET | /api/v1/inbound | web | 入库记录分页查询 |
 | GET | /api/v1/inbound/{id} | web | 入库单详情及商品总重量 |
 | POST | /api/v1/inbound | web | 创建待确认入库单；包数、总吨数独立记录，不增加库存 |

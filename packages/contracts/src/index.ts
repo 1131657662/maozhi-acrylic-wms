@@ -4,6 +4,7 @@ import { plannedWeightGramsSchema } from './outbound-plan.ts';
 import { correctionSummarySchema } from './corrections.ts';
 import { scanSourceSchema, scanAttributionSchema } from './scan-workbench.ts';
 export * from './scan-workbench.ts';
+export * from './outbound-shipments.ts';
 export * from './business-date.ts';
 export * from './document-types.ts';
 export * from './corrections.ts';

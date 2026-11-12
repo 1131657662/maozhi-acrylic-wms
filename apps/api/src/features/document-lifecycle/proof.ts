@@ -3,6 +3,7 @@ import type { Database, Row } from '../../db/mysql.ts';
 import { decimalToGrams } from '../../db/weight.ts';
 import type { LifecycleDocument } from './document.ts';
 import { correctedReversalRows } from '../corrections/reversal.ts';
+import { shipmentReversalRows } from './shipment-proof.ts';
 
 const incomplete = {
   code: 'ORIGINAL_EVIDENCE_MISSING',
@@ -83,9 +84,17 @@ export async function reversalProof(db: Database, doc: LifecycleDocument) {
     `${doc.kind}.confirm`,
     doc.id,
   ]);
+  if (doc.kind === 'outbound') {
+    const shipment = await shipmentReversalRows(db, doc, operations);
+    if (shipment === null) return { originalOperationId: null, lines: [], blockers: [incomplete] };
+    if (shipment) {
+      if (!matches(doc, shipment.rows))
+        return { originalOperationId: shipment.originalOperationId, lines: [], blockers: [incomplete] };
+      return inspectRows(db, doc, shipment);
+    }
+  }
   const originalOperationId = operations.length === 1 ? String(operations[0]!.id) : null;
-  const lines: LifecyclePreview['lines'] = [],
-    blockers: LifecycleBlocker[] = [];
+  const lines: LifecyclePreview['lines'] = [];
   if (!originalOperationId || (doc.kind === 'inbound' && doc.confirmationId !== originalOperationId))
     return { originalOperationId, lines, blockers: [incomplete] };
   const rows = await db.all('SELECT * FROM stock_journal WHERE operation_id=? ORDER BY product_code,id', [
@@ -98,12 +107,21 @@ export async function reversalProof(db: Database, doc: LifecycleDocument) {
   );
   if (!matches(doc, rows) || unrelated || rows.some((r) => r[journalRef] !== doc.id))
     return { originalOperationId, lines, blockers: [incomplete] };
-  const expanded = await correctedReversalRows(db, doc, rows);
+  return inspectRows(db, doc, { originalOperationId, rows });
+}
+async function inspectRows(
+  db: Database,
+  doc: LifecycleDocument,
+  evidence: { originalOperationId: string; rows: Row[] },
+) {
+  const lines: LifecyclePreview['lines'] = [],
+    blockers: LifecycleBlocker[] = [];
+  const expanded = await correctedReversalRows(db, doc, evidence.rows);
   blockers.push(...expanded.blockers);
   for (const row of expanded.rows) {
     const result = await inspectLine(db, row);
     lines.push(result.line);
     blockers.push(...result.blockers);
   }
-  return { originalOperationId, lines, blockers };
+  return { originalOperationId: evidence.originalOperationId, lines, blockers };
 }

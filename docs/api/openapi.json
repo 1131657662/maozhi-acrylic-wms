@@ -1392,6 +1392,14 @@
         },
         "type": "array"
       },
+      "S_582ced3fda711f4e": {
+        "items": {
+          "$ref": "#/components/schemas/S_73cfa770ad21aaef"
+        },
+        "maxItems": 50,
+        "minItems": 1,
+        "type": "array"
+      },
       "S_589624e26d2207d3": {
         "enum": [
           "true",
@@ -1725,6 +1733,29 @@
         },
         "maxItems": 100,
         "type": "array"
+      },
+      "S_73cfa770ad21aaef": {
+        "additionalProperties": false,
+        "properties": {
+          "actualPackages": {
+            "$ref": "#/components/schemas/S_42424aab32fb1473"
+          },
+          "actualWeightGrams": {
+            "$ref": "#/components/schemas/S_d755ad685e85e3ff"
+          },
+          "lineId": {
+            "$ref": "#/components/schemas/S_9eb0eb957a2a89f3"
+          },
+          "overageReason": {
+            "$ref": "#/components/schemas/S_9ae5ec65647cb279"
+          }
+        },
+        "required": [
+          "lineId",
+          "actualPackages",
+          "actualWeightGrams"
+        ],
+        "type": "object"
       },
       "S_73d87709de36c2d3": {
         "additionalProperties": false,
@@ -4065,6 +4096,36 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_e4ca597a58579820": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "backdateConfirmed": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "businessDate": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "digest": {
+            "$ref": "#/components/schemas/S_2bc7825d922e6db8"
+          },
+          "lines": {
+            "$ref": "#/components/schemas/S_582ced3fda711f4e"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "vehicleNo": {
+            "$ref": "#/components/schemas/S_e73abb9662f17ed6"
+          }
+        },
+        "required": [
+          "revision",
+          "digest",
+          "lines"
+        ],
+        "type": "object"
       },
       "S_e5ae5c0f5f1acc42": {
         "maximum": 9007199254740991,
@@ -15702,7 +15763,7 @@
         "x-client-channel": "web"
       }
     },
-    "/outbound/{id}/confirm": {
+    "/outbound/{id}/complete": {
       "post": {
         "parameters": [
           {
@@ -15726,50 +15787,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$schema": "https://json-schema.org/draft/2020-12/schema",
-                "additionalProperties": false,
-                "properties": {
-                  "digest": {
-                    "$ref": "#/components/schemas/S_2bc7825d922e6db8"
-                  },
-                  "lines": {
-                    "items": {
-                      "additionalProperties": false,
-                      "properties": {
-                        "actualPackages": {
-                          "$ref": "#/components/schemas/S_42424aab32fb1473"
-                        },
-                        "actualWeightGrams": {
-                          "$ref": "#/components/schemas/S_d755ad685e85e3ff"
-                        },
-                        "lineId": {
-                          "$ref": "#/components/schemas/S_9eb0eb957a2a89f3"
-                        },
-                        "overageReason": {
-                          "$ref": "#/components/schemas/S_9ae5ec65647cb279"
-                        }
-                      },
-                      "required": [
-                        "lineId",
-                        "actualPackages",
-                        "actualWeightGrams"
-                      ],
-                      "type": "object"
-                    },
-                    "maxItems": 50,
-                    "minItems": 1,
-                    "type": "array"
-                  },
-                  "revision": {
-                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
-                  }
-                },
-                "required": [
-                  "revision",
-                  "digest",
-                  "lines"
-                ],
-                "type": "object"
+                "$ref": "#/components/schemas/S_8c482771aeea3cc2"
               }
             }
           },
@@ -15885,7 +15903,151 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Web 唯一库存扣减入口；单事务确认",
+        "summary": "所有明细待发为零时完成发货",
+        "x-client-channel": "web"
+      }
+    },
+    "/outbound/{id}/confirm": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_e4ca597a58579820"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "shipments 的兼容别名；本次实发扣库，发满自动结单，未发满为部分发货",
         "x-client-channel": "web"
       }
     },
@@ -16280,6 +16442,213 @@
           }
         ],
         "summary": "误确认撤销/未入账作废预览；列出下游阻断证据",
+        "x-client-channel": "web"
+      }
+    },
+    "/outbound/{id}/plan": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "digest": {
+                    "$ref": "#/components/schemas/S_2bc7825d922e6db8"
+                  },
+                  "plan": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "billType": {
+                        "$ref": "#/components/schemas/S_ef77a7d182753640"
+                      },
+                      "containerNo": {
+                        "$ref": "#/components/schemas/S_b90666ca7a14d303"
+                      },
+                      "lines": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "contractNo": {
+                              "$ref": "#/components/schemas/S_c43fd84959f0fed1"
+                            },
+                            "id": {
+                              "$ref": "#/components/schemas/S_9eb0eb957a2a89f3"
+                            },
+                            "memo": {
+                              "$ref": "#/components/schemas/S_672fbce7220060f0"
+                            },
+                            "plannedPackages": {
+                              "$ref": "#/components/schemas/S_0c2eb204791b3ffd"
+                            },
+                            "plannedWeightGrams": {
+                              "$ref": "#/components/schemas/S_cd7b6eb577995794"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "plannedPackages",
+                            "plannedWeightGrams"
+                          ],
+                          "type": "object"
+                        },
+                        "maxItems": 50,
+                        "type": "array"
+                      },
+                      "memo": {
+                        "$ref": "#/components/schemas/S_672fbce7220060f0"
+                      },
+                      "vehicleNo": {
+                        "$ref": "#/components/schemas/S_e73abb9662f17ed6"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "revision": {
+                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                  }
+                },
+                "required": [
+                  "revision",
+                  "digest",
+                  "plan"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "计划中或部分发货时修改现有计划行；已发记录不变",
         "x-client-channel": "web"
       }
     },
@@ -17871,6 +18240,579 @@
           }
         ],
         "summary": "未撤销清点记录的计划、已录、差额及商品汇总",
+        "x-client-channel": "web"
+      }
+    },
+    "/outbound/{id}/shipments": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "completedAt": {
+                          "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                        },
+                        "items": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "businessDate": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "id": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "lines": {
+                                "items": {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "lineId": {
+                                      "$ref": "#/components/schemas/S_00404e686415370f"
+                                    },
+                                    "overageReason": {
+                                      "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                    },
+                                    "packages": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
+                                    "productCode": {
+                                      "$ref": "#/components/schemas/S_00404e686415370f"
+                                    },
+                                    "productName": {
+                                      "$ref": "#/components/schemas/S_00404e686415370f"
+                                    },
+                                    "weightGrams": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    }
+                                  },
+                                  "required": [
+                                    "lineId",
+                                    "productCode",
+                                    "productName",
+                                    "packages",
+                                    "weightGrams",
+                                    "overageReason"
+                                  ],
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "operator": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "seq": {
+                                "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+                              },
+                              "shippedAt": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "vehicleNo": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "seq",
+                              "vehicleNo",
+                              "shippedAt",
+                              "businessDate",
+                              "operator",
+                              "lines"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "remainingPackages": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "remainingWeightGrams": {
+                          "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                        },
+                        "shortClosure": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "at": {
+                                  "$ref": "#/components/schemas/S_00404e686415370f"
+                                },
+                                "packages": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                },
+                                "reason": {
+                                  "$ref": "#/components/schemas/S_00404e686415370f"
+                                },
+                                "weightGrams": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                }
+                              },
+                              "required": [
+                                "at",
+                                "reason",
+                                "packages",
+                                "weightGrams"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "remainingPackages",
+                        "remainingWeightGrams",
+                        "completedAt",
+                        "shortClosure"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "本单全部发货记录、待发与结单信息",
+        "x-client-channel": "web"
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S_e4ca597a58579820"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "确认本次实发；发满自动结单，否则部分发货；库存、发货记录和审计同事务",
+        "x-client-channel": "web"
+      }
+    },
+    "/outbound/{id}/short-close": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "digest": {
+                    "$ref": "#/components/schemas/S_2bc7825d922e6db8"
+                  },
+                  "reason": {
+                    "$ref": "#/components/schemas/S_2ac3e7fadf2b1465"
+                  },
+                  "revision": {
+                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                  }
+                },
+                "required": [
+                  "revision",
+                  "digest",
+                  "reason"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_d6cbd59818c0f8cb"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "记录剩余数量与原因并短关；不变库存",
         "x-client-channel": "web"
       }
     },

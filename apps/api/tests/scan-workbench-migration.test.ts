@@ -9,12 +9,12 @@ test('018 empty up/down/up restores schema; captures empty-fixture query plans',
   const c = await createTestDatabase('017_document_extra_fields');
   try {
     const beforePlan = await c.db.all("EXPLAIN SELECT id FROM scan_facts WHERE plan_id='test' AND barcode='test'");
-    await migrateUp(c.db);
+    await migrateUp(c.db, '018_scan_workbench');
     const schema = await c.db.get('SHOW CREATE TABLE scan_facts');
     const afterPlan = await c.db.all("EXPLAIN SELECT id FROM scan_facts WHERE plan_id='test' AND barcode='test'");
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW COLUMNS FROM scan_facts LIKE 'attribution'"), undefined);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '018_scan_workbench');
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE scan_facts'), schema);
     console.log(
       'B4G_018 empty=up/down/up explain_empty_fixture=' + JSON.stringify({ before: beforePlan, after: afterPlan }),
@@ -25,7 +25,7 @@ test('018 empty up/down/up restores schema; captures empty-fixture query plans',
 });
 
 test('018 down refuses new evidence before DDL without changing schema', async () => {
-  const c = await countingFixture();
+  const c = await countingFixture('018_scan_workbench');
   try {
     await c.post({ barcode: 'DEMO-032-11', productCode: 'ACR-032', source: 'manual' }).expect(200);
     const plan = await c.db.all("EXPLAIN SELECT id FROM scan_facts WHERE plan_id='DEMO-001' AND barcode='DEMO-032-11'");
@@ -50,7 +50,7 @@ test('018 preserves historical NULL provenance and refuses global-unique restora
       .run(`INSERT INTO scan_facts(id,plan_id,barcode,weight_tonnes,catalog_version,weight_source,device_id,scanned_at,received_at,recorded_by,payload_hash)
       VALUES(UUID(),'DEMO-001','DEMO-032-11','0.3025',1,'catalog','old',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'owner',REPEAT('a',64))`);
     const original = await c.db.all('SELECT * FROM scan_facts');
-    await migrateUp(c.db);
+    await migrateUp(c.db, '018_scan_workbench');
     const { source, attribution, revoked_at, revoked_by, ...row } = (await c.db.get('SELECT * FROM scan_facts'))!;
     assert.deepEqual([source, attribution, revoked_at, revoked_by], [null, null, null, null]);
     assert.deepEqual(row, original[0]);

@@ -26,8 +26,20 @@ export const auditActions: Record<string, AuditActionDefinition> = {
   'inbound.reverse': entry('撤销入库', 'inbound', true),
   'inbound.void': entry('作废入库单', 'inbound', true),
   'outbound.plan.create': entry('新建出库计划', 'outbound'),
-  'outbound.plan.update': entry('修改出库计划', 'outbound', false, ['vehicleNo', 'memo']),
+  'outbound.plan.update': entry('修改出库计划', 'outbound', false, [
+    'vehicleNo',
+    'memo',
+    'plannedPackages',
+    'plannedWeightGrams',
+  ]),
   'outbound.confirm': entry('确认出库', 'outbound'),
+  'outbound.complete': entry('完成发货', 'outbound'),
+  'outbound.short-close': entry('短关出库单', 'outbound', true, [
+    'status',
+    'shortCloseReason',
+    'shortClosedPackages',
+    'shortClosedWeightGrams',
+  ]),
   'outbound.reverse': entry('撤销出库', 'outbound', true),
   'outbound.void': entry('作废出库单', 'outbound', true),
   'scan.record': entry('记录扫码', 'outbound', false, [
