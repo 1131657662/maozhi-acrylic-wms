@@ -576,3 +576,10 @@ B4d 出库手工实发
 - 修复后 `npm run test` 324/324，`npm run build` exit 0，`npm run test:e2e` 主 118/118 + catalog 9/9；定向 shipment UI E2E 4/4。Ant Design lint 0 issues，Prettier 检查及 `git diff --check` 通过。
 - 更新截图仅在 `.local/evidence/`：详情录入 `b5c-3-visual-entry-{1440,1280}.png`，差异列横向滚动后 `b5c-3-visual-entry-difference-{1440,1280}.png`，确认弹窗 `b5c-3-visual-confirm-{1440,1280}.png`，短关弹窗 `b5c-3-short-close-{1440,1280}.png`。均为本地 Chromium 隔离 E2E 数据，不代表实体设备或生产验收。
 - 用户已授权以 no-ff 合并并推送本分支，执行边界与验证记录见 B5C_SPEC §17.3；最终回复报告合并与远端 HEAD。没有开发样本库写入、迁移或扩大本批范围。
+
+### AF-054 商品列补修（实现与验证完成）
+
+- 由已推送的 `621c3de` 新建 `codex/b5c-3-af054`，按用户最新指定列宽实施：商品最小 200 并吸收宽屏剩余空间，三数量列固定 130、实发列 160、差异列 200；总宽至少 950，超出时只在表格内滚动。
+- 商品名称单行省略；非空合同号、行备注组合第二行，均为空时隐藏，长文本有 Tooltip。差异单元格使用 theme token 调整内边距与字号，以容纳完整符号与状态词；AF-053 控件样式仍留 B6j。
+- 修复提交 `e9db3e6`；test 324/324，build exit 0，完整 E2E 128/128（主 119 + catalog 9），定向界面回归 8/8，全部 exit 0。AF-054 已修 B5c-3；截图与原生像素裁切仅存 `.local/evidence/`，原始日志和几何测量记录见 B5C_SPEC §17.4。
+- 用户已授权本次 no-ff 合并推送；最终回复报告合并 hash 与远端 HEAD。不进入下一批；无开发样本库写入、迁移或实体设备/生产验收。

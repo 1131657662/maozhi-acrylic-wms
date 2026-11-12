@@ -1,9 +1,9 @@
-import { Form, InputNumber, Table, Typography, Flex, type FormInstance } from 'antd';
+import { Form, InputNumber, Table, Typography, Flex, theme, type FormInstance } from 'antd';
 import {
   OUTBOUND_ACTUAL_MAX_GRAMS,
   OUTBOUND_ACTUAL_MAX_PACKAGES,
   documentExtraCopy,
-  snapshotText,
+  tonnes,
   type ShipmentQuantity,
 } from '@wms/contracts';
 import { shipmentCopy as text, SHIPMENT_UI as ui } from './shipment-copy';
@@ -18,6 +18,7 @@ interface Props {
 }
 
 export function ActualLines({ lines, form }: Props) {
+  const { token } = theme.useToken();
   return (
     <Table<ShipmentQuantity>
       rowKey="lineId"
@@ -25,27 +26,16 @@ export function ActualLines({ lines, form }: Props) {
       pagination={false}
       tableLayout="fixed"
       scroll={{ x: ui.tableWidth }}
+      style={{ minWidth: 0 }}
       data-testid="actual-lines"
       columns={[
         {
           title: text.product,
-          width: ui.productWidth,
-          render: (_, line) => (
-            <>
-              <div>{line.productName}</div>
-              <Typography.Text type="secondary">{line.productCode}</Typography.Text>
-              <div>
-                <Typography.Text type="secondary">
-                  {documentExtraCopy.contractNo}：{snapshotText(line.contractNo)}
-                </Typography.Text>
-              </div>
-              <div>
-                <Typography.Text type="secondary">
-                  {documentExtraCopy.lineMemo}：{snapshotText(line.memo)}
-                </Typography.Text>
-              </div>
-            </>
-          ),
+          minWidth: ui.productWidth,
+          ellipsis: { showTitle: false },
+          onHeaderCell: () => ({ style: { minWidth: ui.productWidth, whiteSpace: 'nowrap' } }),
+          onCell: () => ({ style: { minWidth: ui.productWidth } }),
+          render: (_, line) => <ProductCell line={line} />,
         },
         {
           title: text.planLine,
@@ -53,7 +43,7 @@ export function ActualLines({ lines, form }: Props) {
           align: 'right',
           onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
           onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
-          render: (_, line) => text.quantity(line.plannedPackages, line.plannedWeightGrams),
+          render: (_, line) => <QuantityCell packages={line.plannedPackages} grams={line.plannedWeightGrams} />,
         },
         {
           title: text.shippedLine,
@@ -61,7 +51,7 @@ export function ActualLines({ lines, form }: Props) {
           align: 'right',
           onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
           onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
-          render: (_, line) => text.quantity(line.effectivePackages, line.effectiveWeightGrams),
+          render: (_, line) => <QuantityCell packages={line.effectivePackages} grams={line.effectiveWeightGrams} />,
         },
         {
           title: text.pendingLine,
@@ -69,7 +59,7 @@ export function ActualLines({ lines, form }: Props) {
           align: 'right',
           onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
           onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
-          render: (_, line) => text.quantity(line.remainingPackages, line.remainingWeightGrams),
+          render: (_, line) => <QuantityCell packages={line.remainingPackages} grams={line.remainingWeightGrams} />,
         },
         {
           title: text.actual,
@@ -80,11 +70,47 @@ export function ActualLines({ lines, form }: Props) {
           title: text.difference,
           width: ui.differenceWidth,
           align: 'right',
+          onHeaderCell: () => ({ style: { paddingInline: token.paddingXS } }),
+          onCell: () => ({ style: { paddingInline: token.paddingXS, fontSize: token.fontSizeSM } }),
           render: (_, line, index) =>
             form ? <ShipmentDifference line={line} form={form} index={index} /> : text.empty,
         },
       ]}
     />
+  );
+}
+
+function ProductCell({ line }: { line: ShipmentQuantity }) {
+  const extras = [
+    line.contractNo?.trim() ? `${documentExtraCopy.contractNo}：${line.contractNo}` : null,
+    line.memo?.trim() ? `${documentExtraCopy.lineMemo}：${line.memo}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  return (
+    <div>
+      <Typography.Text style={{ display: 'block' }} ellipsis={{ tooltip: line.productName }}>
+        {line.productName}
+      </Typography.Text>
+      {extras && (
+        <Typography.Text style={{ display: 'block' }} type="secondary" ellipsis={{ tooltip: extras }}>
+          {extras}
+        </Typography.Text>
+      )}
+    </div>
+  );
+}
+
+function QuantityCell({ packages, grams }: { packages: number; grams: number }) {
+  return (
+    <>
+      <div>
+        {packages} {text.packageUnit}
+      </div>
+      <div>
+        {tonnes(grams)} {text.tonneUnit}
+      </div>
+    </>
   );
 }
 
