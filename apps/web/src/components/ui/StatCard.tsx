@@ -27,12 +27,7 @@ export function StatCard({ label, value, type = 'default', onClick }: StatCardPr
     <Card padding="compact">
       <div style={{ display: 'flex', flexDirection: 'column', gap: spacing[4] }}>
         {onClick ? (
-          <Button
-            type="link"
-            size="small"
-            onClick={onClick}
-            style={{ ...labelStyle, height: 'auto', paddingInline: 0 }}
-          >
+          <Button type="link" size="small" onClick={onClick} style={{ ...labelStyle, paddingInline: 0 }}>
             {label}
           </Button>
         ) : (
@@ -45,7 +40,15 @@ export function StatCard({ label, value, type = 'default', onClick }: StatCardPr
 }
 
 const styles = {
-  label: { fontSize: fontSize.auxiliary, lineHeight: `${lineHeight.auxiliary}px` },
+  label: {
+    alignItems: 'center',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    height: lineHeight.auxiliary,
+    fontSize: fontSize.auxiliary,
+    lineHeight: `${lineHeight.auxiliary}px`,
+    textAlign: 'right',
+  },
   value: {
     fontSize: fontSize.kpi,
     fontVariantNumeric: 'tabular-nums',

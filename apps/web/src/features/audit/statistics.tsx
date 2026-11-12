@@ -1,4 +1,3 @@
-import { Space } from 'antd';
 import type { AuditStatistics as Statistics } from '@wms/contracts';
 import { auditCopy as t } from './text';
 import { SectionTitle, StatCard } from '../../components/ui';
@@ -25,7 +24,14 @@ export function AuditStatistics({
   return (
     <div data-testid="audit-statistics" style={{ display: 'grid', gap: spacing[8] }}>
       <SectionTitle title={data?.today ? t.today : t.current} />
-      <Space wrap size={spacing[16]} style={{ display: 'flex' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gridAutoRows: '1fr',
+          gap: spacing[16],
+        }}
+      >
         {metrics.map((metric) => (
           <StatCard
             key={metric.label}
@@ -35,7 +41,7 @@ export function AuditStatistics({
             onClick={metric.action}
           />
         ))}
-      </Space>
+      </div>
     </div>
   );
 }

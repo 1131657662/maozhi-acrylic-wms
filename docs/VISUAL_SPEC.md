@@ -232,11 +232,20 @@ CSS 变量由同一模块输出变量对象及 `:root` CSS 文本，长度带 px
 - 只为操作记录列表提供显式 design shell，保留现有 BusinessList 表格引擎和所有查询、列、排序、分页、导出、选择及缓存行为。时间线分组和详情内容使用上述壳；共享给其他详情页的对象时间线仍保留旧外壳。全局 AntD 主题仍为 `borderRadius=8`；不调整表格行高、表格字重或内部样式。
 - 同一隔离 E2E 数据库及同一记录、筛选、滚动位置形成改前/改后证据；列表、失败筛选、时间线、详情、raw 两个宽度均需对应。不要改测试框架、冒烟数据源或写入开发样本库。
 - 验收：状态筛选、统计筛选、列表/时间线切换、详情及 raw 懒加载、导出保持原行为；`check:design-tokens` 无新项，移除本批真实迁移的审计 allowlist；test/build/完整 E2E 通过。与代码、构建、浏览器验证分别记录，不代表设备或生产验收。
-- 一个提交：`feat(web): shared ui components and audit pilot`。完成后停下，不合并、不 push，不开始其他迁移。
+- 原实现提交：`feat(web): shared ui components and audit pilot`。原停止及禁止合并要求已由 §14.2 的用户收尾授权取代；不开始其他迁移。
 
 ### 14.1 B6j-2 实现审查（2026-11-13）
 
-- 七个组件分别为 31/36/52/29/56/30/10 行（Card/EmptyState/PageShell/SectionTitle/StatCard/StatusTag/Toolbar），均小于 200 行；无 feature 导入、业务分支或任意 style/rawColor/rawRadius 覆盖参数。业务状态映射留在 `features/audit/labels.tsx`，全局主题 `borderRadius=8` 无变更。
+- 原实现七个组件分别为 31/36/52/29/56/30/10 行（Card/EmptyState/PageShell/SectionTitle/StatCard/StatusTag/Toolbar），均小于 200 行；无 feature 导入、业务分支或任意 style/rawColor/rawRadius 覆盖参数。业务状态映射留在 `features/audit/labels.tsx`，全局主题 `borderRadius=8` 无变更。
 - `BusinessList` 只增加可选外壳；表格、结果组件、表格 CSS、列定义、查询键、筛选、raw 面板、排序/分页/导出/偏好缓存实现和依赖清单均无修改。非审计页沿用原壳；对象时间线的其他调用方沿用原标签和空态。
 - 按 WMS 提交前审查要求复核全部改动，未发现阻断问题；AntD 检查 0 问题。同数据截图与功能回归证据见 AUDIT_PAGE_SPEC §16.1。代码完成和本地浏览器验证不代表用户验收、实体设备或生产验收。
 - 最终本地验证：单测 401/401、严格类型检查及 Web 构建通过、完整 E2E 136/136（127 + 9），各命令 exit 0。裸值检查 Web 文件 275、现有 34、新增 0、待清理 0，exit 0；审计专属 allowlist 为 0→0，共享/全局及其他页面的既有 34 项不在本批迁移。代码格式检查和 `git diff --check` 通过。
+
+### 14.2 B6j-2 KPI 布局修订与收尾（2026-11-13）
+
+- 用户验收通过，合并前修订四项审计 KPI：容器改为 `repeat(auto-fit, minmax(180px, 1fr))`，四项固定指标最多四列，间距使用 spacing[16]，等高网格行铺满可用内容区。180px 为本次明确指定的卡片最小列宽，不新增间距档位。
+- StatCard 标签与数字统一右对齐，标签行高/高度使用既有辅助字号行高 token，数字继续 28/36、600；点击标签与普通标签保持相同位置和卡片高度。业务指标、筛选回调、配色、全局主题和表格均不变。
+- 代码仅改 `features/audit/statistics.tsx` 和 `components/ui/StatCard.tsx` 布局。1440 四张卡铺满；1280 按可用宽度自然排布，空间不足自动换行，不人为强制两列。补两个宽度截图并重跑全部验证后，使用 `merge: b6j-2 ui components and audit pilot` 非快进合并当前分支到 master、推送 origin master，核对合并 hash 与远端 HEAD 后停止。
+- 浏览器实测：1440 内容区 1056px，每卡 252×94px；1280 内容区 896px，每卡 212×94px。四卡等宽等高，标签行与数字行分别对齐，首尾卡边缘与内容区一致，页面无横向溢出。临时将 KPI 容器收窄为 700px，自动形成两行，仍等高且无溢出；此临时测量不修改源代码。
+- 补充截图为 `.local/evidence/b6j-2-kpi-after-1440.png` 与 `b6j-2-kpi-after-1280.png`，几何测量记录为 `b6j-2-kpi-layout.json`。两张使用同一隔离数据、筛选与 (0,0) 滚动位置，属于本次布局补图；不替换 §14.1 的历史前后对照。无开发样本库/生产写入。
+- 补修后实际重跑 test 401/401（失败 0、跳过 0）、build、完整 E2E 136/136（127 + 9，无跳过或重试通过），全部 exit 0；check:design-tokens 275 文件、现有 34、新增 0、待清理 0，exit 0。AntD 0 问题，Prettier 和差异检查通过；提交前审查确认源代码仅上述两文件布局差异，筛选回调、数字/语义色 token、其他组件和页面不变。日志为 `.local/evidence/b6j-2-kpi-{test,build,e2e,check}.log`。按用户授权合并推送后停止，不开始下一批。

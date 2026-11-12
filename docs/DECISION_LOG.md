@@ -260,4 +260,5 @@
 | 2026-11-12 | 只迁移操作记录列表、时间线和详情壳。BusinessList 仅允许通过明确的 design shell 接入替换外壳；表格列/内部、排序、分页、导出、查询和缓存保持原样。全局 AntD borderRadius 仍为 8；不调整表格行高或字重。 | 生效 | AUDIT_PAGE_SPEC §16、VISUAL_SPEC §14 |
 | 2026-11-12 | 新壳及 KPI 使用 VISUAL_SPEC 既有排版档位；行高/字重 token 只可用于这些壳，不传播到 BusinessList 表格。紧凑空态最大高度 120px，颜色、间距、字号、圆角均走语义设计 token/CSS 变量，不提供裸色或裸圆角覆盖参数。 | 生效 | VISUAL_SPEC §3、§14 |
 | 2026-11-12 | 改前改后截图必须来自同一隔离合成数据集、同一记录/筛选/视图和相同滚动位置；仅对比同状态证据。不修改截图基础设施、冒烟数据源或开发样本库。 | 生效 | AUDIT_PAGE_SPEC §16 |
-| 2026-11-12 | 一个提交 `feat(web): shared ui components and audit pilot`；完整本地验证后停止，不合并、不 push，不开始其他迁移。 | 生效 | IMPLEMENTATION_PLAN B6j-2、VISUAL_SPEC §14 |
+| 2026-11-12 | 一个提交 `feat(web): shared ui components and audit pilot`；完整本地验证后停止，不合并、不 push，不开始其他迁移。 | 已废弃（停止及禁止合并部分） | 被 2026-11-13 B6j-2 KPI 修订与合并推送授权取代；原实现提交和范围边界保留 |
+| 2026-11-13 | B6j-2 用户验收通过，合并前只修审计 KPI 布局：四项使用 repeat(auto-fit, minmax(180px, 1fr))，最多四列，等高、标签与数字对齐；只改 statistics.tsx 与 StatCard 的布局。补 1440/1280 截图，重跑 test/build/完整 E2E/check:design-tokens 后，非快进合并到 master 并推送；不开始其他批次。 | 生效 | VISUAL_SPEC §14.2、IMPLEMENTATION_PLAN B6j-2 |
