@@ -18,7 +18,7 @@ test('B5c-3 三次人工发货后短关，保留记录和未发证据', async ({
     await inputShipment(page, amount, String(amount * 0.3));
     if (amount === 40) {
       await screenshotWidths(page, 'b5c-3-visual-entry');
-      await expect(page.getByTestId('actual-lines')).toContainText('−60 包 / −18.0000 吨（欠发）');
+      await expect(page.getByTestId('actual-lines')).toContainText(/−60 包\s*−18\.0000 吨（欠发）/);
       for (const width of [1440, 1280]) {
         await page.setViewportSize({ width, height: 960 });
         await page
@@ -62,7 +62,7 @@ test('B5c-3 空白按零且全零禁止，溢发由服务端要求逐行原因',
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('spinbutton', { name: '本次实发包数 1', exact: true }).fill('101');
   await page.getByRole('spinbutton', { name: '本次实发吨数 1', exact: true }).fill('30.3');
-  await expect(page.getByTestId('actual-lines')).toContainText('+1 包 / +0.3000 吨（溢发）');
+  await expect(page.getByTestId('actual-lines')).toContainText(/\+1 包\s*\+0\.3000 吨（溢发）/);
   await page.getByRole('button', { name: '确认本次发货', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('本次：1 行，共 101 包 / 30.3000 吨');

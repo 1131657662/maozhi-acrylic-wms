@@ -42,20 +42,30 @@ test('AF-054 商品列保持宽度与省略提示，窄屏仅表内横向滚动'
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const difference = table.locator('tbody tr[data-row-key]').first().locator('td:last-child');
+    await expect(difference).toHaveCSS('white-space', 'nowrap');
+    await expect(difference.locator('.ant-typography > span')).toHaveText(['−60 包', '−18.0000 吨（欠发）']);
     const differenceFits = await difference.evaluate((cell) => {
-      const text = cell.querySelector('.ant-typography')!.getBoundingClientRect();
       const bounds = cell.getBoundingClientRect();
+      const viewport = cell.closest('.ant-table-content')!.getBoundingClientRect();
+      const lines = [...cell.querySelectorAll('.ant-typography > span')].map((line) => {
+        const range = document.createRange();
+        range.selectNodeContents(line);
+        return range.getBoundingClientRect();
+      });
       return {
-        fits: text.left >= bounds.left && text.right <= bounds.right,
-        textLeft: text.left,
-        textRight: text.right,
-        cellLeft: bounds.left,
-        cellRight: bounds.right,
+        fits: lines.every(
+          (line) =>
+            line.left >= Math.max(bounds.left, viewport.left) && line.right <= Math.min(bounds.right, viewport.right),
+        ),
+        twoLines: lines[1]!.top >= lines[0]!.bottom,
+        lineRight: lines.map((line) => line.right),
+        viewportRight: viewport.right,
         cellWidth: bounds.width,
       };
     });
     console.log('AF054_DIFF_BOUNDS', JSON.stringify({ width, ...differenceFits }));
     expect(differenceFits.fits).toBe(true);
+    expect(differenceFits.twoLines).toBe(true);
     for (const [index, content] of [name, extras].entries()) {
       const text = products.first().locator('.ant-typography').nth(index);
       await expect(text).toHaveCSS('white-space', 'nowrap');
@@ -65,9 +75,9 @@ test('AF-054 商品列保持宽度与省略提示，窄屏仅表内横向滚动'
       await expect(page.getByRole('tooltip')).toHaveCount(0);
     }
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({
-      path: `.local/evidence/b5c-3-af054-entry-${width}.png`,
-      fullPage: true,
+    await scroll.screenshot({
+      path: `.local/evidence/b5c-3-af054-retest-table-${width}.png`,
+      scale: 'css',
       animations: 'disabled',
     });
     await scroll.evaluate((element) => {

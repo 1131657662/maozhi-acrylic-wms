@@ -71,7 +71,9 @@ export function ActualLines({ lines, form }: Props) {
           width: ui.differenceWidth,
           align: 'right',
           onHeaderCell: () => ({ style: { paddingInline: token.paddingXS } }),
-          onCell: () => ({ style: { paddingInline: token.paddingXS, fontSize: token.fontSizeSM } }),
+          onCell: () => ({
+            style: { paddingInline: token.paddingXS, fontSize: token.fontSizeSM, whiteSpace: 'nowrap' },
+          }),
           render: (_, line, index) =>
             form ? <ShipmentDifference line={line} form={form} index={index} /> : text.empty,
         },
