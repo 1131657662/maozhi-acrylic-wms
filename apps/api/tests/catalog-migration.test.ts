@@ -85,14 +85,19 @@ test('006 非空 v1 事实/冻结旧单迁移保持正文与摘要，原冻结�
           hash(JSON.stringify({ planId: 'DEMO-001', fact: f })),
         ],
       );
-    const projection = (await db.all(`${factSql} ORDER BY id`)).map((row) => rawFactSchema.parse(row));
+    // The v1 projection predates 018 provenance; those fields never enter the immutable digest.
+    const v1FactSql = factSql.replace(',source,attribution', '');
+    const projection = (await db.all(`${v1FactSql} ORDER BY id`)).map((row) => rawFactSchema.parse(row));
     const digest = hash(JSON.stringify(projection));
     await db.run("UPDATE outbound_orders SET status='frozen',revision=3 WHERE id='DEMO-001'");
     await db.run("INSERT INTO scan_submissions VALUES('DEMO-001',?,2,'2026-01-03')", [digest]);
     const facts = await db.all('SELECT * FROM scan_facts ORDER BY id'),
       submissions = await db.all('SELECT * FROM scan_submissions');
     await migrateUp(db);
-    assert.deepEqual(await db.all('SELECT * FROM scan_facts ORDER BY id'), facts);
+    const originalColumns = Object.keys(facts[0]!)
+      .map((column) => `\`${column}\``)
+      .join(',');
+    assert.deepEqual(await db.all(`SELECT ${originalColumns} FROM scan_facts ORDER BY id`), facts);
     assert.deepEqual(await db.all('SELECT * FROM scan_submissions'), submissions);
     assert.equal((await getOrder(db, 'DEMO-001')).digest, digest);
     const after = await confirmOutbound(db, {

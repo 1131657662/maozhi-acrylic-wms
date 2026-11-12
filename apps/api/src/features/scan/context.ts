@@ -8,6 +8,7 @@ import { sqlDate } from '../../db/dates.ts';
 export interface ResolvedContext extends ScanContextInput {
   productCode: string;
   bindingSource: string;
+  attribution: 'catalog' | 'manual';
 }
 export async function resolveContext(
   db: Database,
@@ -39,6 +40,7 @@ export async function resolveContext(
     ...context,
     productCode: String(line.product_code),
     bindingSource: input.context ? 'explicit-line' : 'legacy-exact',
+    attribution: row.legacy_product_code === line.product_code ? 'catalog' : 'manual',
   };
 }
 async function legacyContext(

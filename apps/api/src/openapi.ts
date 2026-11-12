@@ -11,6 +11,7 @@ import { catalogOperations } from './features/catalog/openapi.ts';
 import { handoffOperations } from './features/handoff/openapi.ts';
 import { listPreferencesOperations } from './features/list-preferences/openapi.ts';
 import { auditOperations } from './features/audit/openapi.ts';
+import { scanWorkbenchOperations } from './features/scan-workbench/openapi.ts';
 import { auditObjectNames } from '@wms/contracts';
 import { exportKindSchema } from '@wms/contracts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
@@ -62,6 +63,7 @@ export interface Operation {
   safeEnvelope?: boolean;
 }
 export const operations: Operation[] = [
+  ...scanWorkbenchOperations,
   {
     method: 'post',
     path: '/outbound/{id}/scan-reopen',

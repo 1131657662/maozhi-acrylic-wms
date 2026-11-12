@@ -56,7 +56,7 @@ test('016 upgrades existing correction rows without changing evidence and refuse
       [correctionId, lineId],
     );
     const old = await c.db.get('SELECT * FROM document_correction_lines');
-    await migrateUp(c.db);
+    await migrateUp(c.db, '017_document_extra_fields');
     const { original_line_id: migratedLineId, ...current } = (await c.db.get(
       'SELECT * FROM document_correction_lines',
     ))!;
@@ -86,6 +86,7 @@ test('016 nonempty down refuses before DDL and keeps structure and evidence', as
       actor,
       lines: [{ lineId: before.lines[0]!.id, actualPackages: 1, actualWeightGrams: 200000 }],
     });
+    await migrateDown(c.db); // 018: no counting provenance in this shipment-only fixture.
     await migrateDown(c.db);
     const fingerprints = await tableFingerprints(c.db);
     const structure = await c.db.get('SHOW CREATE TABLE outbound_lines');

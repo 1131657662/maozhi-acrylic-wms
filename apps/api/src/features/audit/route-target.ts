@@ -11,6 +11,13 @@ interface RouteRule {
 }
 const routes: RouteRule[] = [
   {
+    pattern: /^\/outbound\/([^/]+)\/scan-records(?:\/[^/]+)?$/,
+    action: (_, method) => (method === 'DELETE' ? 'scan.revoke' : 'scan.record'),
+    kind: 'outbound',
+    id: 1,
+    channel: 'web',
+  },
+  {
     pattern: /^\/outbound\/([^/]+)\/scan-reopen$/,
     action: () => 'scan.reopen',
     kind: 'outbound',

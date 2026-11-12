@@ -45,4 +45,4 @@ export const lineSql = `SELECT id,order_id AS orderId,product_code AS productCod
   (SELECT SUM(sl.weight_grams) FROM outbound_shipment_lines sl WHERE sl.order_line_id=outbound_lines.id) AS actualWeightGrams FROM outbound_lines`;
 export const factSql = `SELECT id,plan_id AS planId,barcode,weight_tonnes AS weightGrams,catalog_version AS catalogVersion,
   weight_source AS weightSource,device_id AS deviceId,scanned_at AS scannedAt,received_at AS receivedAt,
-  recorded_by AS recordedBy,1 AS planVersion FROM scan_facts`;
+  recorded_by AS recordedBy,source,attribution,1 AS planVersion FROM scan_facts`;

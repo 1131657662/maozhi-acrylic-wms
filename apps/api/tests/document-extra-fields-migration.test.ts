@@ -9,7 +9,7 @@ const tables = ['inbound_receipts', 'inbound_lines', 'outbound_orders', 'outboun
 test('017 空库 up/down/up 保持新增字段结构一致', async () => {
   const context = await createTestDatabase('016_outbound_shipments');
   try {
-    await migrateUp(context.db);
+    await migrateUp(context.db, '017_document_extra_fields');
     const before = await Promise.all(tables.map((table) => context.db.get(`SHOW CREATE TABLE \`${table}\``)));
     await migrateDown(context.db);
     for (const [table, column] of [
@@ -30,7 +30,7 @@ test('017 空库 up/down/up 保持新增字段结构一致', async () => {
 });
 
 test('017 新字段有值时在 DDL 前拒绝回退并保持结构', async () => {
-  const context = await fixture();
+  const context = await fixture('017_document_extra_fields');
   try {
     const before = await Promise.all(tables.map((table) => context.db.get(`SHOW CREATE TABLE \`${table}\``)));
     // Seeded outbound rows are historical; they must remain NULL after up.

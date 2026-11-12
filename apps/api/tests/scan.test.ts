@@ -40,11 +40,13 @@ test('同一事实重试不新增记录，正文冲突拒绝', async () => {
     await dispose();
   }
 });
-test('同条码不同事实或跨计划重复被拦截', async () => {
+test('B4g 同单条码重复拒绝，跨计划各自保留记录', async () => {
   const { db, dispose } = await fixture();
   try {
     await recordFact(db, { planId: 'DEMO-001', fact: fact(), actor });
-    await assert.rejects(recordFact(db, { planId: 'DEMO-002', fact: fact(), actor }), { code: 'DUPLICATE_BARCODE' });
+    await assert.rejects(recordFact(db, { planId: 'DEMO-001', fact: fact(), actor }), { code: 'DUPLICATE_BARCODE' });
+    await recordFact(db, { planId: 'DEMO-002', fact: fact(), actor });
+    assert.equal((await db.all('SELECT id FROM scan_facts')).length, 2);
   } finally {
     await dispose();
   }

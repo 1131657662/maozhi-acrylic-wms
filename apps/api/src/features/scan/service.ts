@@ -15,12 +15,13 @@ interface ScanCommand {
   fact: FactInput;
   actor: Actor;
   context?: ScanContextInput;
+  metadata?: { source: 'scanner' | 'search' | 'paste' | 'manual'; attribution: 'catalog' | 'manual' };
 }
 async function insertFact(db: Database, command: ScanCommand, payloadHash: string): Promise<void> {
   const { planId, fact, actor } = command;
   await db.run(
     `INSERT INTO scan_facts(id,plan_id,barcode,weight_tonnes,catalog_version,weight_source,
-    device_id,scanned_at,received_at,recorded_by,payload_hash) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+    device_id,scanned_at,received_at,recorded_by,payload_hash,source,attribution) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       fact.id,
       planId,
@@ -33,6 +34,8 @@ async function insertFact(db: Database, command: ScanCommand, payloadHash: strin
       sqlDate(new Date().toISOString()),
       actor.username,
       payloadHash,
+      command.metadata?.source ?? 'scanner',
+      command.metadata?.attribution ?? null,
     ],
   );
 }
@@ -65,10 +68,14 @@ export async function recordFact(db: Database, command: ScanCommand): Promise<De
     const context = await resolveContext(tx, command);
     await validateFact(tx, plan, fact, context.outboundLineId);
     try {
-      await insertFact(tx, command, payloadHash);
+      await insertFact(
+        tx,
+        { ...command, metadata: command.metadata ?? { source: 'scanner', attribution: context.attribution } },
+        payloadHash,
+      );
     } catch (error) {
       if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ER_DUP_ENTRY')
-        ensure(false, 'DUPLICATE_BARCODE', '条码已被其他事实记录，原记录未改变');
+        ensure(false, 'DUPLICATE_BARCODE', '已录入');
       throw error;
     }
     await saveFactContext(tx, fact, context);
@@ -77,7 +84,14 @@ export async function recordFact(db: Database, command: ScanCommand): Promise<De
       action: 'scan.record',
       targetId: planId,
       before: { revision: plan.revision },
-      after: fact,
+      after: {
+        ...fact,
+        productCode: context.productCode,
+        productName: plan.lines.find((l) => l.id === context.outboundLineId)?.productName,
+        source: command.metadata?.source ?? 'scanner',
+        attribution: command.metadata?.attribution ?? context.attribution,
+        orderNo: plan.orderNo,
+      },
     });
     return getOrder(tx, planId);
   });
