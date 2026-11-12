@@ -45,7 +45,7 @@ export async function readDocument(db: Database, target: DocumentTarget) {
     warehouse: doc.warehouseCode,
     legacy: raw?.source_id !== null,
     pending: doc.status === 'open',
-    confirmed: doc.status === 'confirmed',
+    confirmed: ['confirmed', 'partially_shipped', 'short_closed'].includes(doc.status),
     confirmationId: null,
     facts: doc.facts.length,
     fingerprint: doc,

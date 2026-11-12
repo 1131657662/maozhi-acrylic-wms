@@ -19,10 +19,13 @@ export async function createShipment(
   actor: Actor,
 ) {
   const id = randomUUID();
+  const seq = Number(
+    (await db.get('SELECT COALESCE(MAX(seq),0)+1 AS seq FROM outbound_shipments WHERE order_id=?', [order.id]))?.seq,
+  );
   await db.run(
     `INSERT INTO outbound_shipments(id,order_id,seq,vehicle_no,shipped_at,business_date,operator,operation_id)
-    VALUES(?,?,1,?,UTC_TIMESTAMP(3),COALESCE(?,DATE(UTC_TIMESTAMP()+INTERVAL 8 HOUR)),?,?)`,
-    [id, order.id, order.vehicleNo, order.businessDate, actor.username, operationId],
+    VALUES(?,?,?,?,UTC_TIMESTAMP(3),COALESCE(?,DATE(UTC_TIMESTAMP()+INTERVAL 8 HOUR)),?,?)`,
+    [id, order.id, seq, order.vehicleNo, order.businessDate, actor.username, operationId],
   );
   for (const line of lines) {
     await db.run(
@@ -31,11 +34,10 @@ export async function createShipment(
       [id, line.lineId, line.actualPackages, line.actualWeightGrams, line.overageReason ?? null],
     );
     const scan = order.lines.find((item) => item.id === line.lineId)!;
-    await db.run('UPDATE outbound_lines SET scan_packages=?,scan_weight_grams=? WHERE id=?', [
-      scan.scanPackages ?? 0,
-      scan.scanWeightGrams ?? 0,
-      line.lineId,
-    ]);
+    await db.run(
+      'UPDATE outbound_lines SET scan_packages=COALESCE(scan_packages,?),scan_weight_grams=COALESCE(scan_weight_grams,?) WHERE id=?',
+      [scan.scanPackages ?? 0, scan.scanWeightGrams ?? 0, line.lineId],
+    );
   }
   return id;
 }

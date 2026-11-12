@@ -12,6 +12,7 @@ import { handoffOperations } from './features/handoff/openapi.ts';
 import { listPreferencesOperations } from './features/list-preferences/openapi.ts';
 import { auditOperations } from './features/audit/openapi.ts';
 import { scanWorkbenchOperations } from './features/scan-workbench/openapi.ts';
+import { shipmentOperations } from './features/shipments/openapi.ts';
 import { auditObjectNames } from '@wms/contracts';
 import { exportKindSchema } from '@wms/contracts';
 import { confirmInboundSchema, stockAdjustmentSchema, stockAdjustmentResultSchema } from '@wms/contracts';
@@ -24,7 +25,7 @@ import {
   detailSchema,
   scanRequestSchema,
   revisionSchema,
-  confirmOutboundSchema,
+  shipmentInputSchema,
   outboundPrefillSchema,
   catalogSchema,
   stockSchema,
@@ -63,6 +64,7 @@ export interface Operation {
   safeEnvelope?: boolean;
 }
 export const operations: Operation[] = [
+  ...shipmentOperations,
   ...scanWorkbenchOperations,
   {
     method: 'post',
@@ -202,8 +204,8 @@ export const operations: Operation[] = [
   {
     method: 'post',
     path: '/outbound/{id}/confirm',
-    summary: 'Web 唯一库存扣减入口；单事务确认',
-    body: confirmOutboundSchema,
+    summary: 'shipments 的兼容别名；本次实发扣库，发满自动结单，未发满为部分发货',
+    body: shipmentInputSchema,
     response: detailSchema,
     channel: 'web',
     idempotent: true,

@@ -76,7 +76,7 @@ test('016 upgrades existing correction rows without changing evidence and refuse
   }
 });
 test('016 nonempty down refuses before DDL and keeps structure and evidence', async () => {
-  const c = await fixture();
+  const c = await fixture('018_scan_workbench');
   try {
     const before = await getOrder(c.db, 'DEMO-001');
     await confirmOutbound(c.db, {

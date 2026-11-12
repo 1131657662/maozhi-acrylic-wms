@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { fixture } from './fixture.ts';
 import { addV1Fixture } from './catalog-fixture.ts';
 
-export async function countingFixture() {
-  const c = await fixture();
+export async function countingFixture(through?: string) {
+  const c = await fixture(through);
   try {
     await c.db.run(`INSERT INTO master_products(code,name,active,created_at,updated_at,origin_kind,inventory_eligible)
       VALUES('SECOND','第二商品',1,UTC_TIMESTAMP(3),UTC_TIMESTAMP(3),'legacy',1)`);

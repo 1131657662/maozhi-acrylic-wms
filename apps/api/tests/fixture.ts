@@ -45,6 +45,9 @@ export async function confirmScannedFixture(
       lineId: line.id,
       actualPackages: line.scanPackages ?? 0,
       actualWeightGrams: line.scanWeightGrams ?? 0,
+      ...((line.scanPackages ?? 0) > line.plannedPackages || (line.scanWeightGrams ?? 0) > line.plannedWeightGrams
+        ? { overageReason: '合成验收：明确接受扫码预填的溢发量' }
+        : {}),
     })),
   });
 }

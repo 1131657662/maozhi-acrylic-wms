@@ -58,7 +58,7 @@ export async function recordFact(db: Database, command: ScanCommand): Promise<De
     }
     const plan = await getOrder(tx, planId);
     const acceptsLate =
-      plan.status === 'confirmed' &&
+      ['partially_shipped', 'confirmed', 'short_closed'].includes(plan.status) &&
       (await tx.get('SELECT id FROM outbound_shipments WHERE order_id=? LIMIT 1', [planId]));
     ensure(
       (plan.status === 'open' && !plan.scanClosedAt) || acceptsLate,

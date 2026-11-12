@@ -23,6 +23,7 @@ import { reportRouter } from './features/reports/router.ts';
 import { listPreferencesRouter } from './features/list-preferences/router.ts';
 import { auditRouter, auditOk } from './features/audit/router.ts';
 import { scanWorkbenchRouter } from './features/scan-workbench/router.ts';
+import { shipmentRouter } from './features/shipments/router.ts';
 
 export function businessRouter(db: Database, origins: string[], catalogPublishEnabled = false): Router {
   const router = Router();
@@ -33,6 +34,7 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   const numbering = numberingController(db);
   const stockSource = stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(shipmentRouter(db, origins));
   router.use(scanWorkbenchRouter(db, origins));
   router.use('/web/lists/audit', auditRouter(db, origins));
   router.get('/audit', requireChannel('web', origins), async (_req, res) => auditOk(res, await auditRows(db)));
@@ -61,7 +63,6 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   router.get('/outbound/:id/prefill', requireChannel('web', origins), outbound.prefill);
   router.post('/outbound', requireChannel('web', origins), outboundPlans.create);
   router.patch('/outbound/:id', requireChannel('web', origins), outboundPlans.edit);
-  router.post('/outbound/:id/confirm', requireChannel('web', origins), outbound.confirm);
   router.post('/outbound/:id/scan-reopen', requireChannel('web', origins), scan.reopen);
   router.get('/inbound', requireChannel('web', origins), inbound.list);
   router.get('/inbound/:id', requireChannel('web', origins), inbound.detail);

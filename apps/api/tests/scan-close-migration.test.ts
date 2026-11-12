@@ -27,7 +27,7 @@ test('016 migrates legacy frozen using original submission time and permits manu
       key: randomUUID(),
       lines: [{ lineId: plan.lines[0]!.id, actualPackages: 1, actualWeightGrams: 200000 }],
     });
-    assert.equal(confirmed.status, 'confirmed');
+    assert.equal(confirmed.status, 'partially_shipped');
     assert.equal(confirmed.scanClosedAt, plan.scanClosedAt);
     assert.deepEqual(await c.db.all('SELECT * FROM scan_submissions'), evidence);
     console.log('B4D_LEGACY_CLOSE frozen_to_open=true timestamp=2026-11-10T02:03:04.123Z confirmation=success');

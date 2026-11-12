@@ -71,7 +71,7 @@ test('B4g 清点三通道、人工归属、撤销与导出一致，带入可改�
     await page.getByRole('spinbutton', { name: '实发吨数 1' }).fill('0.3');
     await page.getByRole('button', { name: '核对并确认出库', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: '确认出库', exact: true }).click();
-    await expect(page.getByRole('button', { name: '已确认出库' })).toBeDisabled();
+    await expect(page.getByText('部分发货', { exact: true }).first()).toBeVisible();
     await page.getByRole('button', { name: '清点工作台', exact: true }).click();
     await expect(drawer.getByLabel('条码或片段', { exact: true })).toHaveCount(0);
     await expect(drawer.getByRole('button', { name: '撤销上一条' })).toBeDisabled();

@@ -12,6 +12,8 @@ const states = new Map([
   ['open', { text: '待扫码', color: 'processing' }],
   ['frozen', { text: '已扫码，待确认', color: 'warning' }],
   ['confirmed', { text: '已出库', color: 'success' }],
+  ['partially_shipped', { text: '部分发货', color: 'processing' }],
+  ['short_closed', { text: '已短关', color: 'default' }],
   ['audited', { text: '历史单据', color: 'default' }],
   ['submit', { text: '历史单据', color: 'default' }],
   ['cancelled', { text: '已撤销', color: 'default' }],

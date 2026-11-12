@@ -22,16 +22,18 @@
    └──作废
 ```
 
+补充（2026-11-12 裁定）：任何一次发货后，若所有行包数与克数的待发均为 0，直接进入「已出库」；首次也可直接发满结单。图中的「完成发货」仅保留用于计划修改后待发归零的显式确认。
+
 | 状态 | 含义 | 库存 |
 |---|---|---|
 | 计划中 | 未确认任何数量 | 0 |
 | 部分发货 | 已确认部分，仍有待发 | 按已确认扣 |
-| 已出库 | 主动结单，货已发完 | 按已确认扣 |
+| 已出库 | 实发已满足全部待发，或待发为零后显式完成 | 按已确认扣 |
 | 已短关 | 主动结单，剩余不发 | 按已确认扣 |
 | 已作废 | 未确认前作废 | 0 |
 
 规则：
-- 「已出库」与「已短关」由人工动作触发，不按数字自动判定（溢发、短发都会让自动判定失真）；
+- 每次人工确认实发后按行分别计算包数与克数待发：全部为 0 自动转「已出库」，否则「部分发货」；「已短关」仍须填写原因并明确触发。禁止新产生已出库但仍有待发的单据；
 - 已出库 / 已短关不可再确认、不可改计划、不可重开；
 - 撤销沿用整单撤销：反向所有发货记录，写库存流水。
 
@@ -47,7 +49,7 @@
 规则：
 1. **结束扫码不阻断确认**：可以从 open 直接填实发并确认，确认时自动写入 `scan_closed_at`；
 2. 「重新扫码」：未结单前可清空 `scan_closed_at` 继续扫；
-3. 计划与明细在**生成第一条发货记录后**锁定，与扫码状态无关；
+3. 已生成的发货记录不可改；计划中与部分发货时仍可改计划，按 §7 重算待发。业务日期锁定另按 DOMAIN_RULES §2.2，与扫码状态无关；
 4. 历史 `frozen` 单据迁移为 `open + scan_closed_at`，不再产生新 frozen；
 5. 状态枚举保留 frozen 以兼容历史数据，代码不再写入。
 
@@ -89,8 +91,8 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 ① 打开出库详情 → 点「本次发货」
 ② 明细表出现「本次实发包数 / 吨数」，预填 = 累计扫码 − 已确认实发
 ③ 人工修改本次数量（可只发部分行）
-④ 确认本次发货 → 生成发货记录 → 扣库存 → 状态转「部分发货」
-⑤ 重复 ①–④ 直到发完 → 点「完成发货」→ 已出库
+④ 确认本次发货 → 生成发货记录 → 扣库存 → 仍有待发为「部分发货」，发满自动「已出库」
+⑤ 重复 ①–④ 直到发满自动结单；改计划后待发为零可显式点「完成发货」
    或 点「短关」→ 已短关
 ```
 
@@ -235,7 +237,7 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 |---|---|
 | 装车单 / 车次单据 | 现场按单打印，不需要 |
 | 单批发货记录撤销 | 先只支持整单撤销；真有需要再加 |
-| 自动判定已出库 | 溢发/短发会让判定失真，改由人工结单 |
+| 有待发时自动结单 | 必须继续发货或填写原因短关；发满自动结单按 §2 |
 | 计划预占库存 | 计划只是参考 |
 
 ## 14. 验收
@@ -263,3 +265,49 @@ B4d（手工实发）实现时，确认动作**直接按“创建第 1 条发货
 - 更正迁移单独一步，因为 B5a 的更正挂在订单行，改到发货行会影响既有测试与撤销链路；
 - 总工作量按 **2–3 周** 估算，不是最初的两周；
 - B5c-2 未完成前，B5c 不得合并到 master。
+
+### 15.1 B5c-1 实施边界（2026-11-12）
+
+- 复用 016 两张发货表；019 只新增开工要求的四个可空短关字段，不回填历史数据，不重建发货表。down 在任何 DDL 和迁移状态变更前检查四列，零值和空字符串也算已有证据。
+- 新增 `POST /outbound/:id/shipments`、`complete`、`short-close`，以及 `PATCH /outbound/:id/plan`；写入均要求 Web 登录、允许的 Origin、UUID 幂等键、当前 revision/digest。发货沿用库存写锁、单据行锁和同事务库存/流水/成功审计；失败留证走现有独立事务。
+- 发货请求的 `lines` 为本单全部明细，含本次不发的零值行。任一行包数或克数超过对应待发都须填写 `overageReason`。包、克分别比较，不通过件重换算。按用户后续裁定，发满自动结单；未发满保持部分发货。`/complete` 保留待发检查，已自动结单且待发为零时不重复写完成事件或库存。
+- 计划接口的 `plan.lines` 在本步按行 ID 修改现有行的计划包数、克数、合同号、备注；未传行保持原值。表头可改车牌、柜号、类型、备注，客户/仓库/单号/业务日期不可借此修改。总纲中的明细增删属于完整 B5c 目标，本步没有开放删行或更换商品，页面及增删衔接在后续步骤落实。
+- `GET /outbound/:id/shipments` 返回按 seq 排序的全部发货记录、剩余包/克、完成时间及短关证据；显式完成时间取 `outbound.complete` 成功审计时间，自动完成取最后一次发货时间，不额外扩列。短关只从部分发货进入，未发货单沿用作废流程。
+- 按用户最后裁定，旧 `/confirm` 保留为 `/shipments` 的严格别名，共用请求校验、状态规则与幂等空间，同键跨入口重放不重复扣库。两者都使用请求中的人工本次实发：100 发满结单，40 只发 40 并保留 60；不能无条件 confirmed，也不把输入强行改成计划。网页调用地址与交互本步保持，分批输入界面留 B5c-3。
+- 整单撤销先逐次核对 shipment → operation → 库存流水，再按商品汇总全部实际数量一次反向补偿；保留每条原发货记录。沿用原有“流水之间及之后存在其他库存动作则拒绝自动撤销”的保护。闭单表原操作引用锚定 seq=1，补偿范围为整单全部记录；存储状态沿用 `cancelled`，界面为「已撤销」。
+- B5c-2 前多次发货单不开放旧订单行更正；原有单次确认的更正与撤销链继续兼容。没有增加分批页面、送货单打印、报表归期修改或生产连接。
+- B4d 允许已发货单补传扫码的保护随新状态延伸至部分发货与短关；补传只追加原始扫码记录，不改变实发、首次扫码快照或库存。Web 清点修改仍按原有只读边界处理。
+
+验证与回退：019 仅在随机隔离测试库进行 up/down/up 与非空拒绝测试；本步不应用开发样本库 3307。停止写入后，四列全 NULL 才可运行 019 down；已有短关证据时拒绝删列，保留结构与数据并前向修复。已有分批记录的环境不能直接退回不支持分批的应用版本。
+
+### 15.2 B5c-1 本地自动化结果（2026-11-12）
+
+以下为随机隔离 MySQL 测试库的结果，不代表开发样本库迁移、实体设备或生产验收。
+
+| 验证 | 结果 | 日志 |
+|---|---|---|
+| 完整单测/API/小程序 | exit 0；295 通过、0 失败 | `.local/evidence/b5c-1-test.log` |
+| 严格类型检查与 Web 构建 | exit 0 | `.local/evidence/b5c-1-build.log` |
+| 完整 Chromium E2E | exit 0；121 通过、0 失败（主 112 + catalog 9） | `.local/evidence/b5c-1-e2e.log` |
+| OpenAPI 生成 | exit 0 | `.local/evidence/b5c-1-openapi.log` |
+
+关键原始输出（包数与克数分别核对）：
+
+```text
+B5C1_ALIAS entry=confirm actual=100 status=confirmed remaining=0 replay_via=shipments shipments=1
+B5C1_ALIAS entry=confirm actual=40 status=partially_shipped remaining=60 then_shipments=60 confirmed=true
+B5C1_ALIAS entry=shipments actual=100 status=confirmed remaining=0 replay_via=confirm shipments=1
+B5C1_ALIAS entry=shipments actual=40 status=partially_shipped remaining=60 then_confirm=60 confirmed=true
+B5C1_FLOW shipments=3 actual=90/27000000g stock=110/33000000g short_closed=10/3000000g short_close_journal_delta=0 reverse_stock=200/60000000g replay_compensations=1
+B5C1_COMPLETE remaining=60 rejected=422 remaining=0 status=confirmed completed_at=recorded inventory_delta=0
+B5C1_PLAN plan=100->50 shipped=40 unchanged remaining=60->10 shipment_snapshots_unchanged=true
+B5C1_OVERAGE without_reason=422 with_reason=200 stock_shortage=409 rollback=true
+B5C1_CONCURRENCY statuses=200/409 shipments=1 success_events=1 same_key_replay=original stock_deduction=40
+B5C1_MIGRATION empty=up/down/up nullable_columns=4 identical_schema=true
+B5C1_MIGRATION nonnull_fields=4 refused=4 ddl=0 schema_unchanged=true
+B5C1_E2E shipments=40/30/20 actual=90 short_closed=10 complete_with_remaining=422 reversed=90 stock_restored=true
+```
+
+补充覆盖：包数已满但仍差 100 克时拒绝完成；计划改小使待发归零后可显式完成且不写库存流水；库存写入后注入失败时整笔业务回滚、失败尝试保留；盘点锁仓、匿名/非 Web、终态、旧版本、外单/重复明细均拒绝。已有单次更正及整单撤销的回归保留。
+
+回归调整：017/018 迁移测试固定到各自目标版本，避免新增 019 后误把最新结构当旧版本结构；旧 016 兼容测试与 B4d/B4g 页面断言按本次裁定改为“未发满显示部分发货”。未通过删除用例或放宽库存断言规避失败。

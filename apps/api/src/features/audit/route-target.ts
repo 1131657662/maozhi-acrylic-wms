@@ -11,6 +11,20 @@ interface RouteRule {
 }
 const routes: RouteRule[] = [
   {
+    pattern: /^\/outbound\/([^/]+)\/(shipments|complete|short-close|plan)$/,
+    action: (m, method) =>
+      method === 'GET'
+        ? 'outbound.read'
+        : m[2] === 'plan'
+          ? 'outbound.plan.update'
+          : m[2] === 'shipments'
+            ? 'outbound.confirm'
+            : `outbound.${m[2]}`,
+    kind: 'outbound',
+    id: 1,
+    channel: 'web',
+  },
+  {
     pattern: /^\/outbound\/([^/]+)\/scan-records(?:\/[^/]+)?$/,
     action: (_, method) => (method === 'DELETE' ? 'scan.revoke' : 'scan.record'),
     kind: 'outbound',
