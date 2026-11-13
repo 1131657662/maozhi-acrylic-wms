@@ -30,6 +30,7 @@ export const masterListQuerySchema = z.strictObject({
   page: z.coerce.number().int().min(1).max(1_000_000).default(1),
   pageSize: z.coerce.number().int().min(1).max(200).default(20),
   keyword: z.string().trim().max(200).default(''),
+  q: z.string().trim().max(200).optional(),
   status: z.enum(['all', 'active', 'inactive']).default('all'),
   scope: z.literal('inventory').optional(),
 });

@@ -286,3 +286,15 @@
 | 日期 | 决定 | 状态 | 落到哪 |
 |---|---|---|---|
 | 2026-11-13 | B6d 拆为 B6d-1 页面骨架与 B6d-2 新增能力；B6g 联想搜索顺延到 B6d-1 之后，理由：联想搜索不影响目录页结构；其余批次顺序不变 | 生效 | IMPLEMENTATION_PLAN 主链、CATALOG_PAGE_SPEC §16 |
+
+## B6g 持久化搜索（2026-11-13）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-13 | 选 A：后端持久化 search_text；数据联想的正确规格入口为 UX_STANDARDS §12，不是 WEB_UX_SPEC §12 | 生效 | UX_STANDARDS §12.8、WEB_UX_SPEC §12 |
+| 2026-11-13 | 使用 pinyin-pro 精确版本 3.29.5，MIT 许可证（包内 LICENSE，Copyright (c) 2022-present zh-lx）；默认多音字，无人工词库；仅写入/回填时转换 | 生效 | UX_STANDARDS §12.8、apps/api/package.json、package-lock.json |
+| 2026-11-13 | 商品=编码+名称+型号+名称/型号全拼与首字母；客户/供应商=编码+名称+旧编码+名称全拼与首字母；车辆=归一化车牌+原车牌；小写、去空白/标点、按片段去重，超 512 字符明确拒绝且不截断 | 生效 | UX_STANDARDS §12.8 |
+| 2026-11-13 | 022 为四表增加 nullable VARCHAR(512) 与非唯一普通索引；四表任一 search_text 非 NULL 则拒绝 down；同函数同步所有应用写入，独立幂等脚本只补 NULL；授权开发样本库备份后迁移及回填 | 生效 | UX_STANDARDS §12.8、022_master_search_text |
+| 2026-11-13 | 本批复用分页接口，q 优先、keyword 兼容；空词按编码分页、管理列表启停筛选不变、候选只启用且商品限库存资格；车辆继续归一化搜索；完整联想其他目标不在本次交付 | 生效 | UX_STANDARDS §12.8、IMPLEMENTATION_PLAN B6g |
+| 2026-11-13 | B-tree 不能为前后通配提供范围定位；开发样本 428 个启用库存商品/377 个启用客户的 EXPLAIN 均未选 search_text 索引；各 10 个不同词服务端 p95（nearest-rank）为 6.878/3.381ms，低于 150ms；只对本机样本可接受，不代表生产/放大量，超过阈值后报告并提出方案，不擅自缓存 | 生效 | UX_STANDARDS §12.8、B6G_ACCEPTANCE |
+| 2026-11-13 | 本次持久化检索交付按 B6g-1 收尾：先逐条复核两个 E2E 红灯、各连续三次记录实测；稳定失败必须修复，不改 50ms 长任务门槛或放宽断言；确认的长任务偶发记录原始分布并归 B6i；完整主套件全绿、022 已应用且四表 search_text 无 NULL 后才允许合并推送，随后停止，不启动 B6g-2 | 生效 | UX_STANDARDS §12.8、B6G_ACCEPTANCE、AUDIT_FINDINGS |

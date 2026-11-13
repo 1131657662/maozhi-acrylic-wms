@@ -22,7 +22,7 @@ const routes: Operation[] = [
   {
     method: 'get',
     path: '/{catalog}',
-    summary: '分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品',
+    summary: '分页搜索资料；q优先、keyword兼容；商品/客户/供应商支持持久化拼音检索；scope=inventory仅库存资格商品',
     query: masterListQuerySchema,
     response: masterPageSchema,
     channel: 'web',

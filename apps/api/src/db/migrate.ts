@@ -6,6 +6,7 @@ import { prepareStocktakeDown } from './stocktake-migration.ts';
 import { guardCorrectionDown } from './correction-migration.ts';
 import { migrateProductEligibility } from './product-eligibility.ts';
 import { guardScanWorkbenchDown } from './scan-workbench-migration.ts';
+import { guardSearchTextDown } from './search-text-migration.ts';
 
 const migrations = [
   {
@@ -125,6 +126,7 @@ const migrations = [
   { id: '019_shipment_close', guardedTables: [] },
   { id: '020_correction_shipment_line', guardedTables: [] },
   { id: '021_document_date_corrections', guardedTables: ['document_date_corrections'] },
+  { id: '022_master_search_text', guardedTables: [] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -207,6 +209,7 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (migration.id === '022_master_search_text') await guardSearchTextDown(connection);
         if (
           migration.id === '020_correction_shipment_line' &&
           (await connection.get(

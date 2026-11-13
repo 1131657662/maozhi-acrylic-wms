@@ -32,7 +32,7 @@ writeFileSync(
     '',
     '统一响应 `{ code, message, data, traceId }`；重量整数克，吨数展示除以 1,000,000，保留四位小数。',
     'Web 确认要求 Cookie + 允许的 Origin，PDA 与小程序 Bearer 会话不能确认库存。',
-    '列表参数 page/pageSize/status/keyword；结果 data.items/total/page/pageSize。详情含 lines/facts/digest。',
+    '列表常规参数 page/pageSize/status/keyword；主数据列表额外接受 q 并优先于 keyword；结果 data.items/total/page/pageSize。详情含 lines/facts/digest。',
   ].join('\n'),
 );
 console.log('已生成 docs/api/openapi.json 与 ENDPOINTS.md');

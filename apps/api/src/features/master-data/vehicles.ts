@@ -12,6 +12,7 @@ import { audit, type Actor } from '../../shared/audit.ts';
 import { AppError } from '../../shared/errors.ts';
 import { lockInventoryWriter } from '../inventory/operation.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
+import { refreshMasterSearchText } from './search-text-write.ts';
 function vehicle(row: Row) {
   return vehicleSchema.parse({
     id: row.id,
@@ -33,7 +34,7 @@ export async function readVehicle(db: Database, id: string) {
 }
 export async function listVehicles(db: Database, input: unknown) {
   const query = masterListQuerySchema.parse(input),
-    pattern = `%${normalizePlate(query.keyword).replace(/[!%_]/g, '!$&')}%`;
+    pattern = `%${normalizePlate(query.q ?? query.keyword).replace(/[!%_]/g, '!$&')}%`;
   const filter = `plate_normalized LIKE ? ESCAPE '!'${query.status === 'all' ? '' : ` AND active=${Number(query.status === 'active')}`}`;
   return db.readSnapshot(async (tx) => ({
     items: (
@@ -63,6 +64,7 @@ export async function createVehicle(db: Database, input: unknown, actor: Actor, 
       VALUES(?,?,?,?,?,?,'manual',UTC_TIMESTAMP(3),UTC_TIMESTAMP(3))`,
       [id, data.plate, normalized, data.driver ?? null, data.phone ?? null, data.memo ?? null],
     );
+    await refreshMasterSearchText(tx, 'vehicles', id);
     const after = await readVehicle(tx, id);
     await audit(tx, actor, { action: 'vehicle.create', targetId: id, before: null, after });
     if (key) await saveCommand(tx, 'vehicle.create', key, data, actor, after);
@@ -82,6 +84,7 @@ export async function updateVehicle(db: Database, id: string, input: unknown, ac
       Number(after.active),
       id,
     ]);
+    await refreshMasterSearchText(tx, 'vehicles', id);
     await audit(tx, actor, { action: 'vehicle.update', targetId: id, before, after });
     return after;
   });
@@ -99,8 +102,10 @@ export async function resolveDocumentVehicle(db: Database, plate: string, actor:
       [id, original, normalized],
     );
     row = await db.get('SELECT * FROM master_vehicles WHERE plate_normalized=? FOR UPDATE', [normalized]);
-    if (row?.id === id)
+    if (row?.id === id) {
+      await refreshMasterSearchText(db, 'vehicles', id);
       await audit(db, actor, { action: 'vehicle.auto-create', targetId: id, before: null, after: vehicle(row) });
+    }
   }
   if (!row || Number(row.active) !== 1) throw new AppError('VEHICLE_INACTIVE', '该车牌已停用，请先启用', 422);
   return vehicle(row);

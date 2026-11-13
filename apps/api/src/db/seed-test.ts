@@ -3,6 +3,7 @@ import type { Database } from './mysql.ts';
 import { initializeCatalogV1 } from './catalog-bootstrap.ts';
 import { decimalToGrams } from './weight.ts';
 import type { CatalogEntry } from '../features/catalog/hash.ts';
+import { backfillSeedSearchText } from '../features/master-data/search-text-backfill.ts';
 
 export async function seedDemo(db: Database, password: string): Promise<void> {
   const masterV2 = Boolean(await db.get("SHOW COLUMNS FROM master_products LIKE 'inventory_eligible'"));
@@ -36,6 +37,7 @@ export async function seedDemo(db: Database, password: string): Promise<void> {
     const entries: CatalogEntry[] = [];
     for (let n = 1; n <= 3; n++) entries.push(...(await seedPlan(tx, n)));
     await initializeCatalogV1(tx, entries);
+    await backfillSeedSearchText(tx);
   });
 }
 

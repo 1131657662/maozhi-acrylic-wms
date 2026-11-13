@@ -32,7 +32,7 @@
 | GET | /api/v1/audit/{id} | web | 结构化变化与关联摘要；无原始数据 |
 | GET | /api/v1/me/list-preferences/{kind} | web | 当前登录身份的列偏好；未保存时返回空值 |
 | PUT | /api/v1/me/list-preferences/{kind} | web | 保存当前登录身份的列偏好；空 columns 重置；旧版本按列键保留 |
-| GET | /api/v1/master/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
+| GET | /api/v1/master/{catalog} | web | 分页搜索资料；q优先、keyword兼容；商品/客户/供应商支持持久化拼音检索；scope=inventory仅库存资格商品 |
 | GET | /api/v1/master/{catalog}/{code} | web | 按编码读取资料，含停用项 |
 | POST | /api/v1/master/products | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
 | POST | /api/v1/master/categories | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
@@ -49,7 +49,7 @@
 | GET | /api/v1/master/vehicles/{id} | web | 读取车辆档案 |
 | POST | /api/v1/master/vehicles | web | 手工建档；归一化车牌唯一；可选 Idempotency-Key，同键同内容返回首次结果 |
 | PATCH | /api/v1/master/vehicles/{id} | web | 修改司机、电话、备注及启停；不改历史单据车牌 |
-| GET | /api/v1/master-data/{catalog} | web | 分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品 |
+| GET | /api/v1/master-data/{catalog} | web | 分页搜索资料；q优先、keyword兼容；商品/客户/供应商支持持久化拼音检索；scope=inventory仅库存资格商品 |
 | GET | /api/v1/master-data/{catalog}/{code} | web | 按编码读取资料，含停用项 |
 | POST | /api/v1/master-data/products | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
 | POST | /api/v1/master-data/categories | web | 新建资料；客户/供应商/仓库禁止传编码，由系统生成；商品/分类手工编码。可选幂等键重放返回原资料 |
@@ -154,4 +154,4 @@
 
 统一响应 `{ code, message, data, traceId }`；重量整数克，吨数展示除以 1,000,000，保留四位小数。
 Web 确认要求 Cookie + 允许的 Origin，PDA 与小程序 Bearer 会话不能确认库存。
-列表参数 page/pageSize/status/keyword；结果 data.items/total/page/pageSize。详情含 lines/facts/digest。
+列表常规参数 page/pageSize/status/keyword；主数据列表额外接受 q 并优先于 keyword；结果 data.items/total/page/pageSize。详情含 lines/facts/digest。

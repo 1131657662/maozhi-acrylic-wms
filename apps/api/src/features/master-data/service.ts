@@ -10,6 +10,7 @@ import { lockInventoryWriter } from '../inventory/operation.ts';
 import { readMasterItem } from './read.ts';
 import { insertGeneratedMaster } from './code-allocation.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
+import { refreshMasterSearchText } from './search-text-write.ts';
 export { listMasterItems, readMasterItem } from './read.ts';
 
 async function saveFields(
@@ -30,6 +31,7 @@ async function saveFields(
   }
   if (assignments.length)
     await db.run(`UPDATE ${catalogTable(catalog)} SET ${assignments.join(',')} WHERE code=?`, [...values, code]);
+  await refreshMasterSearchText(db, catalog, code);
 }
 export async function createMasterItem(
   db: Database,

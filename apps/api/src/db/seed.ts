@@ -3,6 +3,7 @@ import type { Database } from './mysql.ts';
 import { seedMasters } from './seed-masters.ts';
 import { seedScanCatalog } from './seed-catalog.ts';
 import { seedHistory } from './seed-history.ts';
+import { backfillSeedSearchText } from '../features/master-data/search-text-backfill.ts';
 
 export const identity = 'maozhi-local-mysql8-v1';
 
@@ -16,6 +17,7 @@ export async function seedFromSamples(db: Database, password: string): Promise<v
     await seedMasters(tx, now);
     await seedScanCatalog(tx, now);
     await seedHistory(tx, now);
+    await backfillSeedSearchText(tx);
   });
 }
 

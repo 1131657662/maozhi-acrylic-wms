@@ -174,6 +174,8 @@
 
 ## 12. 公共契约与兼容（C16）
 
+数据选择与联想的规范入口为 **UX_STANDARDS §12**；本节不是数据联想规格。B6g 的已批准实施范围见 UX_STANDARDS §12.8。
+
 本文件唯一负责查询抽屉、选择/批量栏、详情入口、保存视图及导出公共行为；各页面只增加业务筛选与字段，不能另定一套参数或动作。
 
 - 保留现有GET契约的fromDay/toDay、movement、sortBy、items、viewToken与rowToken；新增productCodes/productMode=any|all、matchedLines/Count等字段采用可选扩展，未知参数严格校验。未实现CSV/商品反查/单张导出/批量写不得当作已有能力；旧PDA/小程序契约不改名。
