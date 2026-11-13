@@ -474,7 +474,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | **B4f PDA 文案改口** | PDA_SCAN_SPEC §8.1 | 无迁移；只改文案，B4d 合并后立即做 |
 | **B4e 单据字段扩展** | MASTER_DATA_SPEC §9 | 已完成并通过用户验收；269/119/0（test/E2E/build）；017 已应用 3307，历史/新建/类型筛选冒烟通过；范围及合并记录见本文顶部 |
 | **B4g Web 清点工作台** | OUTBOUND_FACT_SPEC §5.1 | 已完成并通过用户验收；276/120/0（test/E2E/build）；018 扩展原扫码表的来源/归属/撤销元信息与订单内条码唯一约束，已应用 3307；录入/去重/撤销与导出冒烟通过，已合并推送 |
-| **B6i 性能专项** | LIST_UX_AUDIT、B6B_ACCEPTANCE | 排序绘制 579ms、反查翻页 850ms、10 万导出 45.6s；B7b 前 |
+| **B6i 性能专项** | LIST_UX_AUDIT、B6B_ACCEPTANCE、B6G_ACCEPTANCE | 排序绘制 579ms、反查翻页 850ms、10 万导出 45.6s、AF-056 拖拽偶发长任务（保持 50ms 门槛）；B7b 前 |
 | **B8d 小程序补页** | README 术语表 | 补入库、库存、流水只读页；B8c 后 |
 | **B11 PDA 连续扫码** | PDA_SCAN_SPEC | 广播优先 + 键盘楔兜底、手工输完整条码、撤销、声音；B9 前 |
 | B9 打印接入 | PRINT_SPEC | M-PRINT-TEMPLATES（含请求去重），依赖主数据快照/B5c/B5d数据契约及真实模板配置，先合成样本PDF验收 |
@@ -683,6 +683,6 @@ B4d 出库手工实发
 - 起点 `3ae28f8`，分支 `codex/b6g-persisted-search-text`，新增迁移 022；前置 B6d-1 已完成。
 - 已批准范围：pinyin-pro 固定版本、四表 search_text 与索引、统一生成/写入同步、NULL 幂等回填、q/keyword 兼容、开发样本库回填和 EXPLAIN/p95 实测。规格为 UX_STANDARDS §12.8，相关决定见 DECISION_LOG B6g。
 - 不做：前端全量过滤/缓存、最近使用、统一新联想接口、全站输入改版、单据多值输入、B6d-2、库存行为变更、生产/设备验收。
-- 完成验证：`npm run test` **406/406**；`npm run build` exit 0；目录专项 E2E **11/11**。主 E2E 首轮 **129/131**，审计筛选用例单独复跑 **2/2**；拖拽长任务用例单独复跑仍因 62ms 长任务超过既有 50ms 门槛失败，完整 `npm run test:e2e` 因此 exit 1。详见 [B6G_ACCEPTANCE.md](B6G_ACCEPTANCE.md)，不放宽范围外测试门槛。
+- 完成验证：`npm run test` **406/406**；`npm run build` exit 0；完整 `npm run test:e2e` **142/142**（主套件 131/131、目录专项 11/11）。两个原失败均非 search_text 功能断言；审计筛选单独连跑 3 次通过；入库拖拽首组分布 67ms 失败/无长任务通过/无长任务通过，后续正式连跑 3 次均通过（观测区间 2922.6/2877.9/2910.3ms，均无 >50ms 长任务）。门槛及断言未改，已知偶发记入 AF-056 并归 B6i。详情见 [B6G_ACCEPTANCE.md](B6G_ACCEPTANCE.md)。
 - 样本开发库已备份并应用 022；首次回填商品/客户/供应商/车辆分别 569/377/2/4 行，复跑各 0，原业务字段指纹一致。EXPLAIN/p95 及当前数据量结论见验收记录。
-- 代码完成、构建通过；自动化 E2E 有一项既有列表拖拽长任务门槛未通过；未做实体设备或生产验收。提交 `feat(master-data): persisted search text with pinyin` 后按用户要求停止，不合并、不 push。
+- 代码完成、构建通过、完整自动化 E2E 通过；拖拽长任务有一次 67ms 偶发失败，后续连续三次及完整主套件通过，归 AF-056/B6i；022 已应用，四表 search_text 无 NULL。待按用户授权 no-ff 合并并推送；之后停止，不开始 B6g-2。未做实体设备或生产验收。
