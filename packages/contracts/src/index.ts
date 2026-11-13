@@ -10,6 +10,7 @@ export * from './date-corrections.ts';
 export * from './document-types.ts';
 export * from './corrections.ts';
 export * from './catalog.ts';
+export * from './catalog-query.ts';
 export * from './scan-context.ts';
 export * from './handoff.ts';
 export * from './inventory-posting.ts';

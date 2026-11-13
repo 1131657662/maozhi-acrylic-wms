@@ -109,6 +109,10 @@
 | POST | /api/v1/web/exports/{id}/cancel | web | 取消生成；不提供部分文件 |
 | GET | /api/v1/web/exports/{id}/download | web | 下载校验完成的 XLSX 或 CSV；只读 Cookie 会话下载 |
 | GET | /api/v1/catalog | web | 当前目录与可执行发布门禁；仅扫码取重，不参与库存 |
+| GET | /api/v1/catalog/search | web | 当前已发布目录条码/规格分页搜索；只读 |
+| GET | /api/v1/catalog/spec-summary | web | 当前已发布目录按规格汇总重量；只读 |
+| GET | /api/v1/catalog/barcode-trace | web | 查询条码在已发布版本和待发布候选中的出现轨迹；只读 |
+| GET | /api/v1/catalog/lookup | web | 当前目录只读扫描测试；无匹配时返回 found=false |
 | POST | /api/v1/catalog/uploads | web | 整版校验 txt；相同内容默认不建版，重建须显式确认历史版本 |
 | GET | /api/v1/catalog/uploads/{id} | web | 按原上传 UUID 核验结果，支持响应丢失恢复 |
 | GET | /api/v1/catalog/versions | web | 不可变版本历史（包括完整未发布候选） |
