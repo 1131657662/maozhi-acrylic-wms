@@ -57,3 +57,23 @@ export const masterCopy = {
 export const MASTER_PAGE_SIZE = 20;
 export const MASTER_PAGE_SIZES = [20, 50, 100, 200];
 export const MASTER_DRAWER_SIZE = 640;
+export const MASTER_SEARCH = { debounceMs: 300, minLength: 1, vehicleMaxLength: 100 } as const;
+export const masterSearchCopy = {
+  placeholder: '输入编码、名称或型号搜索',
+  vehiclePlaceholder: '输入车牌搜索或填写新车牌',
+  prompt: '请输入至少 1 个字符搜索',
+  loading: '正在搜索',
+  selectedLoading: '加载中',
+  unavailable: '资料不可用',
+  failed: '加载失败，请重试',
+  previous: '上一页资料',
+  next: '下一页资料',
+  empty: {
+    products: '没有匹配的商品，换个关键词试试',
+    customers: '没有匹配的客户，换个关键词试试',
+    suppliers: '没有匹配的供应商，换个关键词试试',
+    warehouses: '没有匹配的仓库，换个关键词试试',
+    categories: '没有匹配的分类，换个关键词试试',
+    vehicles: '没有匹配的车辆，换个关键词试试',
+  },
+};

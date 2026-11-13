@@ -12,10 +12,14 @@ export function MasterLabel({ item }: { item: Pick<MasterItem, 'code' | 'name' |
       </span>
       <span
         onMouseDown={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
+          if (event.target instanceof Element && event.target.closest('button')) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
         }}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          if (event.target instanceof Element && event.target.closest('button')) event.stopPropagation();
+        }}
       >
         <Typography.Text
           style={{ color: token.colorTextSecondary, fontSize: token.fontSizeSM }}
