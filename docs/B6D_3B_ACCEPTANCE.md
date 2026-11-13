@@ -97,3 +97,9 @@
 - 回滚后所有持久化表的数据行指纹与冒烟前一致，023 仍为 applied；回滚插入可能推进自增计数器，不把计数器宣称为不变。没有清理或删除样本历史数据。
 
 收尾日志为 `.local/evidence/b6d3b-closeout-{test,build,e2e}.log`；备份、指纹、迁移恢复和冒烟证据在 `.local/evidence/b6d3b-closeout/`，均不入 Git。未进行实体设备或生产验收。
+
+## 合并与计划收尾
+
+补提示及样本库验收提交 `08fe408`。按用户指定命令非快进合并功能分支，合并提交 `d22115471bf61dfcfd3122b303af95871797a6c1`（`merge: b6d-3b candidate abandon`）；首次推送后，远端 HEAD 与 `refs/heads/master` 均为该 hash。checkout / merge / push / 远端核对 exit code 均为 0。
+
+按 AGENTS.md 要求，在合并后的 `codex/b6d-3b-closeout` 分支同步 IMPLEMENTATION_PLAN、AUDIT_FINDINGS 和规格完成状态，再以 `--no-ff` 合并推送；此收尾仅改文档，最终远端 HEAD 在交付回复中报告。B6d-1/2/3a/3b 全部结束，435/E2E 全绿，后续 backlog 不扩大为本批范围；完成后停止。
