@@ -159,3 +159,5 @@ ORDER BY code LIMIT 20;
 - 临时 CDP profiling 仅用于定位，正式测试 import 已恢复；没有将临时探针纳入代码提交。
 
 状态区分：代码完成；本机构建通过；完整 API/Web E2E 自动化通过；拖拽 67ms 偶发已登记 B6i；未进行实体设备或生产验收。
+
+合并收尾：实现提交 `d01b135`、复核文档 `e46edde` 已以 `--no-ff` 合并为 `2e86824`；合并后更新 IMPLEMENTATION_PLAN 与 AUDIT_FINDINGS。原 `AGENTS.md` 未暂存改动未纳入提交；本批推送 origin/master 后停止，不开始 B6g-2。

@@ -464,6 +464,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B6a 主数据与单据快照 | MASTER_DATA_SPEC；C01/C03/C04/C05 | 已完成；012_M及快照迁移已应用本机开发库；逐项状态见B6A_ACCEPTANCE；顺序1 |
 | B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 已完成并通过用户验收；test 200/200、E2E 84/0、build exit 0；013_list_preferences 已应用 3307 开发样本库，备份/指纹/冒烟通过；性能另列 B6b-perf；见 B6B_ACCEPTANCE；顺序2 |
 | B6d-1 条码目录页面骨架 | CATALOG_PAGE_SPEC §2、现有目录页功能 | 已完成（401/142/0）；只重建 Web 展示结构，不新增接口/迁移；保留上传、候选、版本列表、发布门禁及交接行为；B6j-4 后 |
+| B6g-1 主数据持久化检索 | UX_STANDARDS §12.8、B6G_ACCEPTANCE | 已合并 `2e86824`；022 已应用开发样本库且四表无 NULL；406/142/0；AF-056 偶发拖拽长任务归 B6i；B6g-2 未开始 |
 | B6d-2 条码目录新增能力 | CATALOG_PAGE_SPEC §§3–16 | 当前目录查询/聚合、条码轨迹、版本比较导出、候选放弃及交接投影；含 M-CATALOG-CANDIDATES；B6g 后 |
 | B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
@@ -492,7 +493,7 @@ B4d 出库手工实发
  → B5d（1 追加式业务日期更正已完成，333/134/0；2 报表重述读模型已完成、用户验收通过，349/134/0）
  → B6j 设计系统（B6j-1 已完成、用户验收通过，401/134/0；B6j-2/3 已完成、用户验收通过，401/136/0；B6j-4 先修 AF-055，再进入 B6d-1）
  → B6d-1 目录页骨架（已完成，401/142/0）
- → B6g 联想搜索（本次实施四类主数据持久化检索，见 UX_STANDARDS §12.8；B6d-1 后）
+ → B6g 联想搜索（B6g-1 四类主数据持久化检索已合并；B6g-2 未开始，见 UX_STANDARDS §12.8；B6d-1 后）
  → B6d-2 目录新增能力
  → B6f 库存页
  → B6e 盘点增强
@@ -678,11 +679,11 @@ B4d 出库手工实发
 - 1440/1280 改前改后截图位于 `.local/evidence/b6d-1-before-{1440,1280}.png` 与 `.local/evidence/b6d-1-after-{1440,1280}.png`，同一隔离目录数据；不代表用户验收、实体设备或生产验收。未写开发样本库；验收后按本次授权非快进合并并推送 origin master。
 - 实现提交：`feat(web): rebuild catalog page shell`。收尾合并推送后停止，不开始 B6g 或 B6d-2。
 
-## B6g：四类主数据持久化搜索（2026-11-13，代码完成）
+## B6g-1：四类主数据持久化搜索（2026-11-13，已合并）
 
 - 起点 `3ae28f8`，分支 `codex/b6g-persisted-search-text`，新增迁移 022；前置 B6d-1 已完成。
 - 已批准范围：pinyin-pro 固定版本、四表 search_text 与索引、统一生成/写入同步、NULL 幂等回填、q/keyword 兼容、开发样本库回填和 EXPLAIN/p95 实测。规格为 UX_STANDARDS §12.8，相关决定见 DECISION_LOG B6g。
 - 不做：前端全量过滤/缓存、最近使用、统一新联想接口、全站输入改版、单据多值输入、B6d-2、库存行为变更、生产/设备验收。
 - 完成验证：`npm run test` **406/406**；`npm run build` exit 0；完整 `npm run test:e2e` **142/142**（主套件 131/131、目录专项 11/11）。两个原失败均非 search_text 功能断言；审计筛选单独连跑 3 次通过；入库拖拽首组分布 67ms 失败/无长任务通过/无长任务通过，后续正式连跑 3 次均通过（观测区间 2922.6/2877.9/2910.3ms，均无 >50ms 长任务）。门槛及断言未改，已知偶发记入 AF-056 并归 B6i。详情见 [B6G_ACCEPTANCE.md](B6G_ACCEPTANCE.md)。
 - 样本开发库已备份并应用 022；首次回填商品/客户/供应商/车辆分别 569/377/2/4 行，复跑各 0，原业务字段指纹一致。EXPLAIN/p95 及当前数据量结论见验收记录。
-- 代码完成、构建通过、完整自动化 E2E 通过；拖拽长任务有一次 67ms 偶发失败，后续连续三次及完整主套件通过，归 AF-056/B6i；022 已应用，四表 search_text 无 NULL。待按用户授权 no-ff 合并并推送；之后停止，不开始 B6g-2。未做实体设备或生产验收。
+- 代码完成、构建通过、完整自动化 E2E 通过；拖拽长任务有一次 67ms 偶发失败，后续连续三次及完整主套件通过，归 AF-056/B6i；022 已应用，四表 search_text 无 NULL。实现 `d01b135`、验收 `e46edde` 已按用户授权以 `--no-ff` 合并为 `2e86824`；合并后更新本表与 AUDIT_FINDINGS。本批收尾文档同样经 codex 分支非快进合并，推送 origin/master 后停止，不开始 B6g-2。未做实体设备或生产验收。
