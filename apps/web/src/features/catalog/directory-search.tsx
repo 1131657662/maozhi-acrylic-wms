@@ -16,7 +16,7 @@ export function CatalogDirectorySearch() {
         <DirectorySearchTable
           query={query}
           result={result.data}
-          loading={result.isLoading}
+          loading={result.isFetching}
           error={result.error}
           onSearch={(q) => setQuery((current) => ({ ...current, q, page: 1 }))}
           onPage={(page, pageSize) =>

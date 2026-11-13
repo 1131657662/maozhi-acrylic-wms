@@ -7,6 +7,7 @@ import type { CatalogUploadResult } from '@wms/contracts';
 import { useUpload } from './use-upload';
 import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
+import { UploadErrors } from './upload-errors';
 
 export function CatalogUpload({
   onCandidate,
@@ -40,6 +41,7 @@ export function CatalogUpload({
       />
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         {error && <RequestError type="error" showIcon error={error} description={businessCopy.catalogUpload1} />}
+        <UploadErrors error={error} />
         {result?.duplicate && <DuplicateNotice result={result} pending={lock.busy} onRebuild={run} />}
         <Button
           type={hasCandidate ? 'default' : 'primary'}

@@ -6,6 +6,8 @@ import { StatusTag } from '../../components/ui';
 import { spacing } from '../../theme/design-tokens';
 import { catalogQueryCopy, CATALOG_QUERY_MAX_LENGTH, CATALOG_QUERY_PAGE_SIZE_OPTIONS } from './query-copy';
 import { formatCatalogWeight } from './query-display';
+import { CatalogExportButton } from './export-button';
+import { catalogReadCopy } from './export-copy';
 
 type SearchItem = CatalogSearchResult['items'][number];
 
@@ -33,7 +35,7 @@ export function DirectorySearchTable(props: SearchTableProps) {
       )}
       <Table<SearchItem>
         rowKey="barcode"
-        columns={searchColumns(props.onTrace)}
+        columns={searchColumns(props.onTrace, props.result?.version?.versionId)}
         dataSource={props.error ? [] : props.result?.items}
         loading={props.loading}
         locale={{ emptyText: catalogQueryCopy.searchEmpty }}
@@ -51,7 +53,7 @@ export function DirectorySearchTable(props: SearchTableProps) {
   );
 }
 
-function SearchToolbar({ query, result, loading, onSearch }: SearchTableProps) {
+function SearchToolbar({ query, result, loading, error, onSearch }: SearchTableProps) {
   return (
     <Space wrap size={spacing[8]} style={{ width: '100%' }}>
       <Input.Search
@@ -68,11 +70,15 @@ function SearchToolbar({ query, result, loading, onSearch }: SearchTableProps) {
       {result?.version && (
         <StatusTag status={catalogQueryCopy.currentVersion(result.version.versionId)} type="processing" />
       )}
+      <CatalogExportButton
+        query={result?.version ? { q: query.q, versionId: result.version.versionId } : null}
+        disabled={loading || !!error || !result?.total}
+      />
     </Space>
   );
 }
 
-function searchColumns(onTrace: (barcode: string) => void): TableColumnsType<SearchItem> {
+function searchColumns(onTrace: (barcode: string) => void, versionId?: number): TableColumnsType<SearchItem> {
   return [
     {
       title: catalogQueryCopy.barcode,
@@ -96,6 +102,7 @@ function searchColumns(onTrace: (barcode: string) => void): TableColumnsType<Sea
       dataIndex: 'sourceSpec',
       render: (spec: string | null) => spec ?? catalogQueryCopy.noSpec,
     },
-    { title: catalogQueryCopy.weight, dataIndex: 'weightGrams', render: formatCatalogWeight, align: 'right' },
+    { title: catalogReadCopy.weight, dataIndex: 'weightGrams', render: formatCatalogWeight, align: 'right' },
+    { title: catalogReadCopy.version, render: () => (versionId ? catalogReadCopy.versionLabel(versionId) : '—') },
   ];
 }

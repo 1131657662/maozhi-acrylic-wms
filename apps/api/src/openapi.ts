@@ -55,6 +55,7 @@ export interface Operation {
   path: string;
   summary: string;
   response: z.ZodType;
+  errorData?: z.ZodType;
   body?: z.ZodType;
   query?: z.ZodType;
   rawBody?: boolean;
@@ -331,13 +332,14 @@ function operationDocument(operation: Operation): object {
     z.object({
       code: z.string(),
       message: z.string(),
-      data: z
-        .object({
+      data: (
+        operation.errorData ??
+        z.object({
           references: z.array(z.object({ kind: z.string(), documentNo: z.string() })),
           total: z.number(),
           truncated: z.boolean(),
         })
-        .nullable(),
+      ).nullable(),
       traceId: z.string(),
     }),
   );
