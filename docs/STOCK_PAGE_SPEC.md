@@ -55,11 +55,11 @@
 ## 8. 接口
 
 GET /api/v1/web/lists/stock：新增scope=inventory；旧source=erp-product仍仅返回历史ERP子集，二者互斥，详见MASTER_DATA_SPEC；保留现有warehouse/product、page/pageSize/sortBy等契约及viewToken/行token；新增productKeyword/productMode、hasPending、packagesMin/Max、tonnesMin/Max、zeroStock、agingBucket、hasUnaging、changedFrom/To，兼容规则见WEB_UX_SPEC §11。
-响应保留items/summary/total，扩展onHand、pending、available（各包/克）、agingBuckets、unagingGrams、lastMovementAt、asOf、watermark、verification；不改名rows。
+响应保留items/subtotal/total，扩展onHand、pending、available（各包/克）、agingBuckets、unagingGrams、lastMovementAt、asOf、watermark、verification；不改名rows。分阶段字段以 §12 为准。
 
 GET /api/v1/web/stock/:warehouse/:product/journal?limit=20
 
-汇总与列表在同一读快照/水位返回，按仓×品先聚合库存、订单行余额、库龄再连接，禁止N+1或JOIN放大。summary是全部筛选结果；pageTotals只对当前页；品种数去重。流水下钻扩展类型/时间/单号/分页/导出，现有最近20条不能冒充全量读模型。
+汇总与列表在同一读快照/水位返回，按仓×品先聚合库存、订单行余额、库龄再连接，禁止N+1或JOIN放大。subtotal是全部筛选结果；pageTotals只对当前页；品种数去重。流水下钻扩展类型/时间/单号/分页/导出，现有最近20条不能冒充全量读模型。B6f-2a 的 subtotal 仍仅为现有在库包数/克数，不新增全筛选待发汇总或 pageTotals。
 
 ## 9. 边界
 
@@ -67,7 +67,7 @@ GET /api/v1/web/stock/:warehouse/:product/journal?limit=20
 
 ## 10. 验收
 
-1. 全筛选summary与独立全量聚合一致；pageTotals与本页可加项之和一致，品种数去重；
+1. 全筛选subtotal与独立全量聚合一致；pageTotals与本页可加项之和一致，品种数去重；
 2. 抽 3 个有计划的商品：可发 = 在库 − 待发；
 3. 行内展开、抽屉、流水页三处一致；
 4. 库龄色阶与报表分档一致；
@@ -78,7 +78,7 @@ GET /api/v1/web/stock/:warehouse/:product/journal?limit=20
 
 ## 11. 实施依赖
 
-B6f（UI-4）需要新增上述库存/流水读模型，原列表仅有在库数。依赖B6a资格映射、B5c发货余额；库龄复用REPORT_SPEC D7及已实现B3c。不为只读投影新造库存表；索引由实现时EXPLAIN与基准决定。B5c未上线前，分批余额标「不支持」，不能用原计划总数伪造待发；本地普通单与legacy-open按各自未入账余额纳入，历史已发不重复计。查询抽屉、保存视图、分页和导出公共行为仅由WEB_UX_SPEC规定。
+B6f（UI-4）需要新增上述库存/流水读模型，原列表仅有在库数。依赖B6a资格映射、B5c发货余额；库龄复用REPORT_SPEC D7及已实现B3c。不为只读投影新造库存表；索引由实现时EXPLAIN与基准决定。待发只统计 open / partially_shipped，排除其他状态及软删单据/明细；有效已发复用现有分批发货与未抵消数量更正口径，不承接或迁移历史单据。查询抽屉、保存视图、分页和导出公共行为仅由WEB_UX_SPEC规定。
 
 修订记录：C01 改库存资格白名单，禁止以非sku-spec代替合法商品集合。
 修订记录：C06 定义包吨待发/可发、计划缺口、五档库龄及全筛选/本页汇总，补读模型依赖。
@@ -94,10 +94,25 @@ B6f（UI-4）需要新增上述库存/流水读模型，原列表仅有在库数
 
 实现状态（2026-11-14）：已完成、用户验收通过，已合并推送 `0c70973`；435/435 单测、143+18 完整 Web E2E、构建通过，token 既有 22 条未增加；1440/1280 改前改后截图与库存调整核对见 [B6F_1_ACCEPTANCE.md](B6F_1_ACCEPTANCE.md)。收尾后停止，B6f-2 未开始。
 
-### B6f-2：库存读模型与交互
+### B6f-2a：本页待发/可发（2026-11-14 用户确认）
 
-- 增加待发/可发、五档库龄色阶、行内最近 3 条流水展开和按商品流水抽屉。
-- 必须新增库存只读读模型：将当前在库、按包与克独立聚合的未发货余额、FIFO 库龄及无法归龄数据关联到同一读快照/水位，并返回校验信息。现有报告库龄字段不是库存列表字段，前端不得从当前页或计划总量推算待发/可发。
-- 根据当前数据和查询计划执行 EXPLAIN 与基准，再决定是否新增索引。调整是否增加二次确认弹窗也在本阶段确定并同步决策台账。
+- 仅扩展现有 `/web/lists/stock`，不新增接口。保留现有筛选、排序、分页、库存资格、零库存行为、subtotal、行 token、保存视图及导出；不新增按待发/可发筛选或排序。
+- 每个 item 增加 `onHand`、`pending`、`available`，三者均为 `{ packages, weightGrams }`；保留已有顶层 packages/weightGrams，onHand 与它们完全相同。available 允许负数，只供展示，不改变实际库存或确认资格。
+- 只对本页 warehouse×product 一次批量查询。先按订单行汇总有效已发（原已发加未抵消更正差额），再逐行分别计算 `max(计划包数－有效已发包数, 0)` 与 `max(计划克数－有效已发克数, 0)`，最后按仓×品汇总；仅 open / partially_shipped，排除软删单据/明细。不能先按商品合并计划与已发后再取 max；扫码不参与。
+- 当前在库、subtotal 和本页待发来自同一 REPEATABLE READ 事务。响应增加 `asOf`（数据库 UTC 读取时间）与 `watermark`（当前返回业务内容的稳定摘要，不含读取时间，不是全库序号或历史重放凭证）；数据不变时 viewToken/行 token 不因 asOf 改变，导出继续验证业务内容。
+- 在库明细仅增加「待发」「可发」两列，每列显示包数与吨数，前端直接显示后端值，不重算；可发的负数部分使用主题错误色，保留负号，并给 tooltip「待发超过在库」。正数/零不标红。
+- 导出保留原字段与顺序，新增两列使用同一服务端数值；本页/全部/选中范围、排序和旧列数值不变。subtotal 仍仅为现有在库小计。
+- 不做库龄、行内展开、流水抽屉、固定合计行、调整二次确认；不新增迁移或修改任何库存写入链路。
+- 验证：同商品多仓、终态排除、部分发货、逐行取零及有效更正、负数红色/tooltip、50 行仅一次列表请求并记录 SQL 条数；分页/排序/导出回归；完整 test/build/E2E、1440/1280 截图。截图只用独立可销毁测试库，不写开发样本库。
+- 三笔提交：规格、实现、验收；完成即停止，不合并、不推送、不开始 b/c。
+
+### B6f-2b：库龄读模型（未开始）
+
+- 五档 FIFO 库龄、无法归龄与校验信息接入库存一致快照，复用 B3c；具体实施前再确认规格与验证范围。
+
+### B6f-2c：流水与剩余交互（未开始）
+
+- 行内最近 3 条流水、按商品流水抽屉、固定合计行及调整二次确认决策归此阶段；查询/视图/导出扩展在本阶段具体方案中界定，不提前实施。
 
 修订记录：2026-11-14 按 B6f-1/B6f-2 拆分库存页交付；B6f-1 保持现有行为，B6f-2 明确需要新增库存读模型。
+修订记录：2026-11-14 用户确认 B6f-2a/b/c；待发限定 open / partially_shipped，响应名称统一 subtotal；本批仅实现本页待发/可发。
