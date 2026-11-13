@@ -273,3 +273,10 @@
 | 2026-11-13 | 入库/出库/主数据/登录各 1440/1280 截图；排除页面和审计按同数据同状态截图验证零变化；运行完整 E2E、test/build/token 检查，不改截图基础设施、不写开发样本库 | 生效 | VISUAL_SPEC §15、IMPLEMENTATION_PLAN B6j-3 |
 | 2026-11-13 | B6j-3 使用单提交 feat(web): migrate list shell master data and login，完成后停止，不合并、不 push | 已废弃（停止及禁止合并部分） | 被 2026-11-13 B6j-3 用户验收收尾及 B6j-4 授权取代；原实现提交边界保留 |
 | 2026-11-13 | B6j-3 验收通过；补收尾文档后以 merge: b6j-3 retained page shells 非快进合并并推送 master，报告 hash 与 exit code；随后继续 B6j-4 AF-055，B6d 排在其后 | 生效 | IMPLEMENTATION_PLAN B6j-3、VISUAL_SPEC §15.2 |
+
+## B6j-4 AF-055 列表状态列遮挡（2026-11-13）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-13 | 仅修入库/出库列定义与滚动配置：状态/入账状态默认 140px、最小 90px、nowrap，固定在右侧操作列左边；其他列宽不变，scroll.x 覆盖最终可见列宽及选择列之和，不改查询与业务逻辑 | 生效 | VISUAL_SPEC §16、IMPLEMENTATION_PLAN B6j-4 |
+| 2026-11-13 | 补入库/出库 1440/1280 截图，运行 test/build/完整 E2E/token 检查；以 fix(web): keep list status column readable 提交，通过后非快进合并推送；B6d 排在本批之后 | 生效 | VISUAL_SPEC §16、IMPLEMENTATION_PLAN B6j-4 |

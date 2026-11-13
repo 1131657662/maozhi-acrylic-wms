@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Page, type Locator } from '@playwright/test';
 
 export async function columnMetrics(page: Page, kind: string) {
   return page.getByTestId(`${kind}-list`).evaluate((element) => {
@@ -30,9 +30,38 @@ export async function columnMetrics(page: Page, kind: string) {
   });
 }
 
+export async function revealTableCell(target: Locator) {
+  await expect(target).toBeVisible();
+  await target.evaluate((node) => {
+    const header = node.closest<HTMLElement>('th,td')!;
+    if (header.style.insetInlineStart || header.style.insetInlineEnd) return;
+    const root = header.closest('[data-table-resize-root]')!;
+    const body = root.querySelector<HTMLElement>('.ant-table-body')!;
+    const headers = [...root.querySelectorAll<HTMLElement>('thead th')];
+    const left = Math.max(
+      body.getBoundingClientRect().left,
+      ...headers.filter((cell) => cell.style.insetInlineStart).map((cell) => cell.getBoundingClientRect().right),
+    );
+    const right = Math.min(
+      body.getBoundingClientRect().right,
+      ...headers.filter((cell) => cell.style.insetInlineEnd).map((cell) => cell.getBoundingClientRect().left),
+    );
+    const rect = node.getBoundingClientRect();
+    body.scrollLeft += rect.x + rect.width / 2 - (left + right) / 2;
+  });
+  await expect
+    .poll(() =>
+      target.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+      }),
+    )
+    .toBe(true);
+}
+
 export async function resizeColumn(page: Page, key: string, pixels: number) {
   const handle = page.getByTestId(`resize-${key}`);
-  await expect(handle).toBeVisible();
+  await revealTableCell(handle);
   const box = (await handle.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();

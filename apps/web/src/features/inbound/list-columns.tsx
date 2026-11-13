@@ -8,6 +8,7 @@ import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
 import { CorrectionRowActions } from '../corrections/row-actions';
 import { matchedSummary } from '../../components/BusinessList/matched-lines';
+import { COLUMN_WIDTH } from '../../components/BusinessList/column-settings';
 
 export const inboundColumns: ProColumns<WebInboundRow>[] = [
   {
@@ -51,13 +52,23 @@ export const inboundColumns: ProColumns<WebInboundRow>[] = [
   {
     title: '原始状态',
     dataIndex: 'status',
-    width: 240,
+    width: COLUMN_WIDTH.status,
+    minWidth: COLUMN_WIDTH.statusMin,
+    fixed: 'right',
+    ellipsis: false,
+    onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+    onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
     render: (_, row) => <StatusTag status={row.status} kind="inbound" />,
   },
   {
     title: '入账状态',
     dataIndex: 'postingState',
-    width: 120,
+    width: COLUMN_WIDTH.status,
+    minWidth: COLUMN_WIDTH.statusMin,
+    fixed: 'right',
+    ellipsis: false,
+    onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+    onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
     render: (_, row) => <Tag>{postingText[row.postingState]}</Tag>,
   },
   {

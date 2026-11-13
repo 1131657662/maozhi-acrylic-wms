@@ -7,6 +7,7 @@ import { ListDetailLink } from '../../components/BusinessList/navigation';
 import { formatTime } from '../../lib/format-time';
 import { CorrectionRowActions } from '../corrections/row-actions';
 import { matchedSummary } from '../../components/BusinessList/matched-lines';
+import { COLUMN_WIDTH } from '../../components/BusinessList/column-settings';
 
 export const outboundColumns: ProColumns<WebOutboundRow>[] = [
   {
@@ -59,7 +60,12 @@ export const outboundColumns: ProColumns<WebOutboundRow>[] = [
   {
     title: '状态',
     dataIndex: 'status',
-    width: 240,
+    width: COLUMN_WIDTH.status,
+    minWidth: COLUMN_WIDTH.statusMin,
+    fixed: 'right',
+    ellipsis: false,
+    onCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+    onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
     render: (_, row) => <StatusTag status={row.status} />,
   },
   { title: '客户', dataIndex: 'customerName', width: 180, ellipsis: true, sorter: true },
