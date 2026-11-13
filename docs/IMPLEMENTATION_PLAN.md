@@ -467,7 +467,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B6g-1 主数据持久化检索 | UX_STANDARDS §12.8、B6G_ACCEPTANCE | 已合并 `2e86824`；022 已应用开发样本库且四表无 NULL；406/142/0；AF-056 偶发拖拽长任务归 B6i |
 | B6g-2 Web 联想接入 | UX_STANDARDS §12.9、B6G_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `51aad21`；300ms/1 字符、q/keyword、竞态、20 条分页与已选回填；406/153/0；只改 Web，无迁移；收尾后停止，不开始 B6d-2 |
 | B6d-2 条码目录只读查询 | CATALOG_PAGE_SPEC §§3–4、10、12、16 | 已验收完成并合并推送 `7e5ecff`；条码/规格搜索、五项规格聚合、含候选状态的条码版本轨迹、只读扫描测试；407/154/0（test/E2E/build）；无迁移、不改006/007；收尾后停止，不开始 B6d-3 |
-| B6d-3a 条码目录只读导出 | CATALOG_PAGE_SPEC §§3、5–7、12、16；B6D_3A_ACCEPTANCE | 代码与本地验证完成，待用户验收；423/158/0（test/E2E/build）；任意两版分页对比、当前全部命中集流式 XLSX、上传错误 CSV；单目录，不加迁移、不写业务库、不改发布门禁或 006/007；未合并/推送，停止，不开始 3b |
+| B6d-3a 条码目录只读导出 | CATALOG_PAGE_SPEC §§3、5–7、12、16；B6D_3A_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `17bc1e2`；423/158/0（test/E2E/build）；任意两版分页对比、当前全部命中集流式 XLSX、上传错误 CSV；单目录，不加迁移、不写业务库、不改发布门禁或 006/007；收尾后停止，不开始 3b |
 | B6d-3b 条码目录候选与交接 | CATALOG_PAGE_SPEC §§7、9、12、16 | 未开始；候选放弃（M-CATALOG-CANDIDATES）与已登记交接证据投影；不推断实时设备状态 |
 | B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
@@ -500,7 +500,7 @@ B4d 出库手工实发
  → B6d-1 目录页骨架（已完成，401/142/0）
  → B6g 联想搜索（B6g-1 已合并；B6g-2 已完成、用户验收通过，已合并推送 51aad21，406/153/0；见 UX_STANDARDS §§12.8–12.9；收尾后停止，不开始 B6d-2）
  → B6d-2 目录只读查询（已验收完成并合并推送 `7e5ecff`；407/154/0；停止，不开始 B6d-3）
- → B6d-3a 目录对比与导出（代码/本地验证完成，待用户验收；423/158/0；未合并/推送，停止）
+ → B6d-3a 目录对比与导出（已完成、用户验收通过，已合并推送 `17bc1e2`；423/158/0；收尾后停止）
  → B6d-3b 候选放弃与交接证据投影（未开始）
  → B6f 库存页
  → B6e 盘点增强
