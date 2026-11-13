@@ -56,11 +56,11 @@ test('B4e 入库表单保存类型、柜号和行备注，导出与筛选屏幕�
 
 async function fillPlan(page: Page) {
   await page.goto('/outbound/new');
-  await page.getByLabel('客户', { exact: true }).click();
+  await page.getByLabel('客户', { exact: true }).fill('DEMO-CUST-1');
   await page.locator('.ant-select-dropdown:visible .ant-select-item-option').filter({ hasText: 'DEMO-CUST-1' }).click();
-  await page.getByLabel('仓库', { exact: true }).click();
+  await page.getByLabel('仓库', { exact: true }).fill('DEMO-WH');
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
-  await page.getByLabel('商品', { exact: true }).click();
+  await page.getByLabel('商品', { exact: true }).fill('ACR-032');
   await page.locator('.ant-select-dropdown:visible .ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('计划包数', { exact: true }).fill('1');
   await page.getByLabel('计划重量（吨）', { exact: true }).fill('0.3025');

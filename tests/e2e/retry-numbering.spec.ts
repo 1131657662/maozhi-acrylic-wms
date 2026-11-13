@@ -9,11 +9,11 @@ async function login(page: Page) {
 }
 async function fillReceipt(page: Page) {
   await page.goto('/inbound/new');
-  await page.getByLabel('供应商').click();
+  await page.getByLabel('供应商').fill('DEMO-SUPPLIER');
   await page.getByTitle('合成供应商 · DEMO-SUPPLIER', { exact: true }).click();
-  await page.getByLabel('仓库').click();
+  await page.getByLabel('仓库').fill('DEMO-WH');
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
-  await page.getByLabel('商品').click();
+  await page.getByLabel('商品').fill('ACR-032');
   await page.locator('.ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');
   await page.getByLabel('本次总重量（吨）').fill('0.3025');

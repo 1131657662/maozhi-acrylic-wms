@@ -11,11 +11,11 @@ test('B5a 新建业务日期上海默认与超过三个月二次确认', async (
   await page.goto('/inbound/new');
   const field = page.getByLabel('业务日期', { exact: true });
   await expect(field).toHaveValue(shanghaiToday());
-  await page.getByLabel('供应商', { exact: true }).click();
+  await page.getByLabel('供应商', { exact: true }).fill('DEMO-SUPPLIER');
   await page.getByTitle('合成供应商 · DEMO-SUPPLIER', { exact: true }).click();
-  await page.getByLabel('仓库', { exact: true }).click();
+  await page.getByLabel('仓库', { exact: true }).fill('DEMO-WH');
   await page.getByTitle('合成仓库 · DEMO-WH', { exact: true }).click();
-  await page.getByLabel('商品', { exact: true }).click();
+  await page.getByLabel('商品', { exact: true }).fill('ACR-032');
   await page.locator('.ant-select-item-option').filter({ hasText: 'ACR-032' }).click();
   await page.getByLabel('包数', { exact: true }).fill('1');
   await page.getByLabel('本次总重量（吨）').fill('0.3025');
