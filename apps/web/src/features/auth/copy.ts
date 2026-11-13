@@ -1,0 +1,16 @@
+export const loginCopy = {
+  englishName: 'Maozhi Acrylic Fiber WMS',
+  productName: '茂智云仓 · 腈纶仓储管理系统',
+  traceable: '每一包有据可查。',
+  confirmed: '每一次出库明确确认。',
+  environment: '本地合成数据环境',
+  title: '登录工作台',
+  description: '使用本机初始化时生成的账户',
+  submit: '登录',
+  username: '用户名',
+  password: '密码',
+  usernameRequired: '请输入用户名',
+  passwordRequired: '请输入密码',
+  failed: '登录失败，请重试',
+  accessHint: '登录信息见项目 .local/demo-access.txt',
+};

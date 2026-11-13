@@ -12,6 +12,7 @@ import {
   WarehouseFilter,
 } from '../../components/BusinessList/filters';
 import { StatusFilter } from '../../components/BusinessList/status-filter';
+import { ImportOutlined } from '@ant-design/icons';
 import { useListState } from '../../components/BusinessList/use-list-state';
 import { webListKeys } from '../web-lists/keys';
 import { inboundColumns } from './list-columns';
@@ -25,6 +26,9 @@ export function InboundList() {
       query={query}
       config={{
         name: 'inbound',
+        designShell: true,
+        designViewToolbar: true,
+        icon: <ImportOutlined />,
         title: '入库记录',
         columns: inboundColumns,
         description: '按登记时间查询。包数与总吨数独立记录；创建后须明确确认才入账。',

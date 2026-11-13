@@ -13,6 +13,8 @@ import { masterCopy as t, MASTER_PAGE_SIZE, MASTER_PAGE_SIZES } from './copy';
 import { ApiError } from '../../api/client';
 import { z } from 'zod';
 import { ItemEditor, NewItemButton } from './item-editor';
+import { Card, SectionTitle, Toolbar } from '../../components/ui';
+import { spacing } from '../../theme/design-tokens';
 
 export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
   const [contactOwner, setContactOwner] = useState<string | null>(null);
@@ -80,13 +82,17 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
     },
   ];
   return (
-    <>
-      <Input.Search
-        aria-label={businessCopy.masterDataCatalogTable1}
-        placeholder="按编码或名称搜索"
-        allowClear
-        onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
-      />
+    <div style={{ display: 'grid', gap: spacing[16], minWidth: 0 }}>
+      <Card>
+        <Toolbar>
+          <Input.Search
+            aria-label={businessCopy.masterDataCatalogTable1}
+            placeholder={t.search}
+            allowClear
+            onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
+          />
+        </Toolbar>
+      </Card>
       {error && (
         <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />
       )}
@@ -115,8 +121,12 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
           onChange: (page, pageSize) => setQuery({ ...query, page: pageSize === query.pageSize ? page : 1, pageSize }),
         }}
         toolbar={{
-          title: businessCopy.masterDataCatalogTable2,
-          actions: [<NewItemButton key="new" onClick={() => setCreating(true)} />],
+          title: <SectionTitle title={businessCopy.masterDataCatalogTable2} />,
+          actions: [
+            <Toolbar key="new">
+              <NewItemButton onClick={() => setCreating(true)} />
+            </Toolbar>,
+          ],
         }}
         locale={{ emptyText: businessCopy.masterDataCatalogTable3 }}
       />
@@ -140,6 +150,6 @@ export function CatalogTable({ catalog }: { catalog: MasterCatalog }) {
           onClose={() => setContactOwner(null)}
         />
       )}
-    </>
+    </div>
   );
 }

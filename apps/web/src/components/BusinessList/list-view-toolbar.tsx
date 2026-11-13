@@ -2,21 +2,23 @@ import { SaveOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Button, Input, Select, Space } from 'antd';
 import { useState } from 'react';
 import type { ListView } from './use-list-views';
+import { Toolbar } from '../ui';
 
 interface Props {
   views: ListView[];
   apply: (view: ListView) => void;
   save: (name: string) => void;
   remove: (name: string) => void;
+  design?: boolean;
 }
 
-export function ListViewToolbar({ views, apply, save, remove }: Props) {
+export function ListViewToolbar({ views, apply, save, remove, design = false }: Props) {
   const [name, setName] = useState('');
   const [selected, setSelected] = useState<string>();
   const canSave = name.trim().length > 0;
   const selectedView = views.find((view) => view.name === selected);
-  return (
-    <Space wrap size="small" aria-label="列表视图">
+  const controls = (
+    <>
       <Select
         allowClear
         aria-label="已保存视图"
@@ -64,6 +66,15 @@ export function ListViewToolbar({ views, apply, save, remove }: Props) {
       >
         删除视图
       </Button>
+    </>
+  );
+  return design ? (
+    <div aria-label="列表视图">
+      <Toolbar>{controls}</Toolbar>
+    </div>
+  ) : (
+    <Space wrap size="small" aria-label="列表视图">
+      {controls}
     </Space>
   );
 }

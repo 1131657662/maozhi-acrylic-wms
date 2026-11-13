@@ -2,12 +2,6 @@
   .metrics {
     gap: 10px;
   }
-  .login-intro {
-    padding: 16vh 5vw;
-  }
-  .login-intro h1 {
-    font-size: 28px;
-  }
 }
 @media (max-width: 680px) {
   .metrics {
@@ -20,14 +14,5 @@
   .confirm-bar {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .login-page {
-    grid-template-columns: 1fr;
-  }
-  .login-intro {
-    padding: 40px;
-  }
-  .login-intro .demo-label {
-    margin-top: 16px;
   }
 }

@@ -30,6 +30,7 @@ interface Config<Row> {
   onExportOpen?: () => void;
   skeleton?: boolean;
   designShell?: boolean;
+  designViewToolbar?: boolean;
 }
 interface Props<Row> {
   config: Config<Row>;
@@ -87,6 +88,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
       {session?.username && (
         <div className="business-list-view-toolbar" style={{ marginBottom: token.marginSM }}>
           <ListViewToolbar
+            design={config.designShell && config.designViewToolbar}
             key={scopeKey}
             views={views.views}
             apply={views.apply}

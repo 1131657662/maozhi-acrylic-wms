@@ -10,6 +10,8 @@ import { vehicleKeys } from './vehicle-keys';
 import { useUpdateVehicle } from './use-update-vehicle';
 import { VehicleEditor } from './vehicle-editor';
 import { masterCopy as t, MASTER_PAGE_SIZE, MASTER_PAGE_SIZES } from './copy';
+import { Card, SectionTitle, Toolbar } from '../../components/ui';
+import { spacing } from '../../theme/design-tokens';
 export function VehicleTable() {
   const [query, setQuery] = useState({ page: 1, pageSize: MASTER_PAGE_SIZE, keyword: '' }),
     [editor, setEditor] = useState<{ item: Vehicle | null } | null>(null);
@@ -17,13 +19,17 @@ export function VehicleTable() {
     update = useUpdateVehicle();
   const lock = useSubmitLock();
   return (
-    <>
-      <Input.Search
-        aria-label={t.plate}
-        placeholder={t.plate}
-        allowClear
-        onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
-      />
+    <div style={{ display: 'grid', gap: spacing[16], minWidth: 0 }}>
+      <Card>
+        <Toolbar>
+          <Input.Search
+            aria-label={t.plate}
+            placeholder={t.plate}
+            allowClear
+            onSearch={(keyword) => setQuery({ ...query, keyword, page: 1 })}
+          />
+        </Toolbar>
+      </Card>
       {error && <RequestError type="error" error={error} />}
       <ProTable<Vehicle>
         rowKey="id"
@@ -32,11 +38,13 @@ export function VehicleTable() {
         search={false}
         options={false}
         toolbar={{
-          title: t.vehicles,
+          title: <SectionTitle title={t.vehicles} />,
           actions: [
-            <Button key="new" type="primary" onClick={() => setEditor({ item: null })}>
-              {t.newVehicle}
-            </Button>,
+            <Toolbar key="new">
+              <Button type="primary" onClick={() => setEditor({ item: null })}>
+                {t.newVehicle}
+              </Button>
+            </Toolbar>,
           ],
         }}
         pagination={{
@@ -82,6 +90,6 @@ export function VehicleTable() {
         ]}
       />
       {editor && <VehicleEditor editing={editor.item} onClose={() => setEditor(null)} />}
-    </>
+    </div>
   );
 }
