@@ -4,9 +4,11 @@ import { ListTable, type ListData } from './table';
 import type { ListColumnPreferences } from './use-list-columns';
 import type { ListState } from './use-list-state';
 import type { ListSelectionRow, SelectionKeys } from './use-list-selection';
+import { SectionTitle } from '../ui';
+import { spacing } from '../../theme/design-tokens';
 
 interface ResultsProps<Row extends { id: Key }> {
-  config: { name: ExportKind; exportInHeader?: boolean };
+  config: { name: ExportKind; exportInHeader?: boolean; resultCardTitle?: ReactNode };
   data: ListData<Row>;
   state: ListState;
   selection: {
@@ -34,21 +36,32 @@ export function ListResults<Row extends { id: Key }>({
   summary,
   emptyText,
 }: ResultsProps<Row>) {
+  const table = (
+    <ListTable
+      name={config.name}
+      data={data}
+      state={state}
+      refreshing={refreshing}
+      placeholder={placeholder}
+      reload={reload}
+      selection={selection}
+      columnPrefs={columnPrefs}
+      emptyText={emptyText}
+      exportInHeader={config.exportInHeader}
+    />
+  );
   return (
-    <section data-testid={config.name + '-list'}>
+    <section
+      data-testid={config.name + '-list'}
+      style={
+        config.resultCardTitle
+          ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: spacing[8], minWidth: 0 }
+          : undefined
+      }
+    >
       {summary}
-      <ListTable
-        name={config.name}
-        data={data}
-        state={state}
-        refreshing={refreshing}
-        placeholder={placeholder}
-        reload={reload}
-        selection={selection}
-        columnPrefs={columnPrefs}
-        emptyText={emptyText}
-        exportInHeader={config.exportInHeader}
-      />
+      {config.resultCardTitle && <SectionTitle title={config.resultCardTitle} />}
+      {table}
     </section>
   );
 }

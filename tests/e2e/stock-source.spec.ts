@@ -47,12 +47,13 @@ test('用途隔离：库存仅资格商品，无 SPEC 或未归属入口、空�
   }
   await expect(page.getByText('未归属', { exact: false })).toHaveCount(0);
   await expect(page.getByText('SPEC 条码目录商品', { exact: false })).toHaveCount(0);
-  await expect(page.getByText('库存商品 · 最近 20 条库存流水', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '库存概览', level: 1 })).toBeVisible();
+  await expect(page.locator('h2')).toHaveText(['库存概览', '在库明细', '最近变动']);
   await expect(page.locator('.ant-spin-blur')).toHaveCount(0);
-  await page.screenshot({ path: '.local/evidence/erp-inventory-only-1440.png', fullPage: true });
+  await page.screenshot({ path: '.local/evidence/b6f-1-after-1440.png', fullPage: true });
   await page.setViewportSize({ width: 1280, height: 900 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
-  await page.screenshot({ path: '.local/evidence/erp-inventory-only-1280.png', fullPage: true });
+  await page.screenshot({ path: '.local/evidence/b6f-1-after-1280.png', fullPage: true });
   expect(stockRequests.length).toBeGreaterThan(0);
   expect(
     stockRequests.every((url) => {
