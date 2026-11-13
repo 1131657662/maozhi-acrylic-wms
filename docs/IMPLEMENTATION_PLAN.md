@@ -492,7 +492,7 @@ B4d 出库手工实发
  → B5d（1 追加式业务日期更正已完成，333/134/0；2 报表重述读模型已完成、用户验收通过，349/134/0）
  → B6j 设计系统（B6j-1 已完成、用户验收通过，401/134/0；B6j-2/3 已完成、用户验收通过，401/136/0；B6j-4 先修 AF-055，再进入 B6d-1）
  → B6d-1 目录页骨架（已完成，401/142/0）
- → B6g 联想搜索（顺延到 B6d-1 之后；联想搜索不影响目录页结构）
+ → B6g 联想搜索（本次实施四类主数据持久化检索，见 UX_STANDARDS §12.8；B6d-1 后）
  → B6d-2 目录新增能力
  → B6f 库存页
  → B6e 盘点增强
@@ -677,3 +677,12 @@ B4d 出库手工实发
 - 最终验证：`npm run test` **401/401**；`npm run build` exit 0；完整 `npm run test:e2e` **142/142**（主套件 131 + catalog 专项 11，无失败或跳过）；`npm run check:design-tokens` 扫描 277 个 Web 文件，现有 22、新增 0、待清理 0；`git diff --check` 通过。实现涉及的 TS/TSX 与 E2E 文件 Prettier 检查通过。
 - 1440/1280 改前改后截图位于 `.local/evidence/b6d-1-before-{1440,1280}.png` 与 `.local/evidence/b6d-1-after-{1440,1280}.png`，同一隔离目录数据；不代表用户验收、实体设备或生产验收。未写开发样本库；验收后按本次授权非快进合并并推送 origin master。
 - 实现提交：`feat(web): rebuild catalog page shell`。收尾合并推送后停止，不开始 B6g 或 B6d-2。
+
+## B6g：四类主数据持久化搜索（2026-11-13，代码完成）
+
+- 起点 `3ae28f8`，分支 `codex/b6g-persisted-search-text`，新增迁移 022；前置 B6d-1 已完成。
+- 已批准范围：pinyin-pro 固定版本、四表 search_text 与索引、统一生成/写入同步、NULL 幂等回填、q/keyword 兼容、开发样本库回填和 EXPLAIN/p95 实测。规格为 UX_STANDARDS §12.8，相关决定见 DECISION_LOG B6g。
+- 不做：前端全量过滤/缓存、最近使用、统一新联想接口、全站输入改版、单据多值输入、B6d-2、库存行为变更、生产/设备验收。
+- 完成验证：`npm run test` **406/406**；`npm run build` exit 0；目录专项 E2E **11/11**。主 E2E 首轮 **129/131**，审计筛选用例单独复跑 **2/2**；拖拽长任务用例单独复跑仍因 62ms 长任务超过既有 50ms 门槛失败，完整 `npm run test:e2e` 因此 exit 1。详见 [B6G_ACCEPTANCE.md](B6G_ACCEPTANCE.md)，不放宽范围外测试门槛。
+- 样本开发库已备份并应用 022；首次回填商品/客户/供应商/车辆分别 569/377/2/4 行，复跑各 0，原业务字段指纹一致。EXPLAIN/p95 及当前数据量结论见验收记录。
+- 代码完成、构建通过；自动化 E2E 有一项既有列表拖拽长任务门槛未通过；未做实体设备或生产验收。提交 `feat(master-data): persisted search text with pinyin` 后按用户要求停止，不合并、不 push。

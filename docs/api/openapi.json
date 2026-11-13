@@ -12061,6 +12061,14 @@
           },
           {
             "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "status",
             "required": false,
             "schema": {
@@ -12739,6 +12747,14 @@
           },
           {
             "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "status",
             "required": false,
             "schema": {
@@ -12864,7 +12880,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品",
+        "summary": "分页搜索资料；q优先、keyword兼容；商品/客户/供应商支持持久化拼音检索；scope=inventory仅库存资格商品",
         "x-client-channel": "web"
       }
     },
@@ -14336,6 +14352,14 @@
           },
           {
             "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "status",
             "required": false,
             "schema": {
@@ -15014,6 +15038,14 @@
           },
           {
             "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "status",
             "required": false,
             "schema": {
@@ -15139,7 +15171,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "分页搜索资料；商品排除条码规格，scope=inventory仅库存资格商品",
+        "summary": "分页搜索资料；q优先、keyword兼容；商品/客户/供应商支持持久化拼音检索；scope=inventory仅库存资格商品",
         "x-client-channel": "web"
       }
     },

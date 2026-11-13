@@ -1,28 +1,17 @@
-import { masterListQuerySchema, masterPageSchema, type MasterCatalog, type MasterListQuery } from '@wms/contracts';
+import { masterListQuerySchema, masterPageSchema, type MasterCatalog } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { AppError } from '../../shared/errors.ts';
 import { catalogTable } from './catalogs.ts';
 import { masterItem } from './fields.ts';
 import { partyProjection } from './party-projection.ts';
+import { masterListPredicate } from './search-query.ts';
 
 function sourcePredicate(catalog: MasterCatalog): string {
   return `source_del_flag=0${catalog === 'products' ? " AND source_kind<>'sku-spec'" : ''}`;
 }
-function predicate(catalog: MasterCatalog, query: MasterListQuery) {
-  const clauses = [sourcePredicate(catalog)],
-    values: string[] = [];
-  if (catalog === 'products' && query.scope === 'inventory') clauses.push('inventory_eligible=1');
-  if (query.keyword) {
-    clauses.push("(code LIKE ? ESCAPE '!' OR name LIKE ? ESCAPE '!')");
-    const keyword = `%${query.keyword.replace(/[!%_]/g, '!$&')}%`;
-    values.push(keyword, keyword);
-  }
-  if (query.status !== 'all') clauses.push(`active=${query.status === 'active' ? 1 : 0}`);
-  return { sql: clauses.join(' AND '), values };
-}
 export async function listMasterItems(db: Database, catalog: MasterCatalog, input: unknown = {}) {
   const query = masterListQuerySchema.parse(input),
-    filter = predicate(catalog, query),
+    filter = masterListPredicate(catalog, query),
     table = catalogTable(catalog);
   return db.readSnapshot(async (tx) => {
     const total = Number((await tx.get(`SELECT COUNT(*) AS n FROM ${table} WHERE ${filter.sql}`, filter.values))?.n);

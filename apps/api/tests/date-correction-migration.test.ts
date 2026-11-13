@@ -16,6 +16,7 @@ test('021 empty up/down/up preserves existing tables and installs date chain ind
     );
     assert.ok(cols.length === 2 && cols.every((col) => col.Null === 'NO'));
     await migrateDown(c.db);
+    await migrateDown(c.db); // 022 is down; remove the empty 021 migration next.
     assert.equal(await c.db.get("SHOW TABLES LIKE 'document_date_corrections'"), undefined);
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE inbound_receipts'), original);
     await migrateUp(c.db);
@@ -31,6 +32,9 @@ test('021 records cannot be updated/deleted; nonempty down rejects before any DD
     await c.send(dateInput()).expect(200);
     await assert.rejects(c.db.run("UPDATE document_date_corrections SET reason='replace'"), /immutable/);
     await assert.rejects(c.db.run('DELETE FROM document_date_corrections'), /immutable/);
+    for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
+      await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // Restore the pre-022 state before testing the 021 guard.
     const before = await businessFingerprint(c.db),
       statements: string[] = [];
     const withConnection = c.db.withConnection.bind(c.db);

@@ -52,7 +52,10 @@ for (const replenish of [false, true])
         current = (await c.detail()).body.data;
         assert.equal(current.status, 'confirmed');
         assert.equal(current.corrections.effective.packages, original.actualPackages);
-        await migrateDown(c.db); // Empty 021, then the intended 020 migration.
+        for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
+          await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+        await migrateDown(c.db); // 022: restore the pre-search-text migration state.
+        await migrateDown(c.db); // Empty 021 before the intended 020 migration.
         await migrateDown(c.db);
         await migrateUp(c.db);
         assert.equal(
