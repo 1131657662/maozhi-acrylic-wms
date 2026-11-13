@@ -560,6 +560,18 @@
         ],
         "type": "object"
       },
+      "S_18865a67f771dcd4": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "$ref": "#/components/schemas/S_f24de8571523c86a"
+          }
+        },
+        "required": [
+          "fields"
+        ],
+        "type": "object"
+      },
       "S_18df4b27b27c5a6a": {
         "additionalProperties": {
           "$ref": "#/components/schemas/S_44136fa355b3678a"
@@ -668,6 +680,12 @@
           "lastUsedAt"
         ],
         "type": "object"
+      },
+      "S_1f68f1a21a4c916f": {
+        "type": [
+          "string",
+          "number"
+        ]
       },
       "S_203c3cf04ed0a409": {
         "maxLength": 255,
@@ -897,6 +915,31 @@
         },
         "type": "array"
       },
+      "S_37ca87dae9481d3a": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_ae6c1e2c7a02aa9e"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_3a1f80216867d662": {
         "additionalProperties": false,
         "properties": {
@@ -924,6 +967,12 @@
           "events"
         ],
         "type": "object"
+      },
+      "S_3b3dae3423638f75": {
+        "items": {
+          "$ref": "#/components/schemas/S_1f68f1a21a4c916f"
+        },
+        "type": "array"
       },
       "S_3bdc839484f8c4b7": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -997,6 +1046,10 @@
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
           }
         ]
+      },
+      "S_3e4c610161a4c884": {
+        "maxLength": 400,
+        "type": "string"
       },
       "S_3edbe3e16d7603b1": {
         "additionalProperties": false,
@@ -1077,6 +1130,22 @@
         "maximum": 2147483647,
         "minimum": 0,
         "type": "integer"
+      },
+      "S_425221b16515f16b": {
+        "additionalProperties": false,
+        "properties": {
+          "errors": {
+            "$ref": "#/components/schemas/S_6afdb08b541f672c"
+          },
+          "truncated": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          }
+        },
+        "required": [
+          "errors",
+          "truncated"
+        ],
+        "type": "object"
       },
       "S_42ad1d719d2f17b3": {
         "enum": [
@@ -2194,6 +2263,13 @@
         ],
         "type": "object"
       },
+      "S_6afdb08b541f672c": {
+        "items": {
+          "$ref": "#/components/schemas/S_fb45d82f780b3c4d"
+        },
+        "maxItems": 500,
+        "type": "array"
+      },
       "S_6c1ea734b7eea9f4": {
         "maxLength": 32,
         "type": "string"
@@ -2334,6 +2410,16 @@
         "maxItems": 100,
         "type": "array"
       },
+      "S_7338cea821edbe76": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_425221b16515f16b"
+          },
+          {
+            "$ref": "#/components/schemas/S_18865a67f771dcd4"
+          }
+        ]
+      },
       "S_73cfa770ad21aaef": {
         "additionalProperties": false,
         "properties": {
@@ -2356,6 +2442,11 @@
           "actualWeightGrams"
         ],
         "type": "object"
+      },
+      "S_740208be10524a91": {
+        "default": "",
+        "maxLength": 255,
+        "type": "string"
       },
       "S_74718fdbe8ea0fb7": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -3567,6 +3658,16 @@
         "anyOf": [
           {
             "$ref": "#/components/schemas/S_9b59c71e18354d0d"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
+      },
+      "S_ae6c1e2c7a02aa9e": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_7338cea821edbe76"
           },
           {
             "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -4860,6 +4961,12 @@
         ],
         "type": "object"
       },
+      "S_f24de8571523c86a": {
+        "items": {
+          "$ref": "#/components/schemas/S_fafcc742fc0a41bd"
+        },
+        "type": "array"
+      },
       "S_f36b924a373c642e": {
         "items": {
           "$ref": "#/components/schemas/S_8d4730e513fb356a"
@@ -5010,6 +5117,42 @@
           }
         ],
         "default": null
+      },
+      "S_fafcc742fc0a41bd": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "path": {
+            "$ref": "#/components/schemas/S_3b3dae3423638f75"
+          }
+        },
+        "required": [
+          "path",
+          "message"
+        ],
+        "type": "object"
+      },
+      "S_fb45d82f780b3c4d": {
+        "additionalProperties": false,
+        "properties": {
+          "line": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          },
+          "raw": {
+            "$ref": "#/components/schemas/S_3e4c610161a4c884"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "line",
+          "raw",
+          "reason"
+        ],
+        "type": "object"
       },
       "S_fc7cd0801a95bc4f": {
         "enum": [
@@ -7028,6 +7171,140 @@
         "x-client-channel": "web"
       }
     },
+    "/catalog/export": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_740208be10524a91"
+            }
+          },
+          {
+            "in": "query",
+            "name": "versionId",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_cddf8275afa15408"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_55c9bc289f10b16f"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "当前搜索全部命中结果 XLSX，固定屏幕版本，不持久化；超过十万行422",
+        "x-client-channel": "web"
+      }
+    },
     "/catalog/handoffs": {
       "get": {
         "parameters": [],
@@ -8075,9 +8352,7 @@
             "name": "q",
             "required": false,
             "schema": {
-              "default": "",
-              "maxLength": 255,
-              "type": "string"
+              "$ref": "#/components/schemas/S_740208be10524a91"
             }
           },
           {
@@ -8532,7 +8807,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8542,7 +8817,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8552,7 +8827,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8562,7 +8837,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8572,7 +8847,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8582,7 +8857,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8592,7 +8867,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8602,7 +8877,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8612,7 +8887,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                  "$ref": "#/components/schemas/S_37ca87dae9481d3a"
                 }
               }
             },
@@ -8627,7 +8902,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "整版校验 txt；相同内容默认不建版，重建须显式确认历史版本",
+        "summary": "整版校验 txt；422最多返回500条行错误，不持久化；相同内容默认不建版",
         "x-client-channel": "web"
       }
     },
@@ -8934,17 +9209,26 @@
           },
           {
             "in": "query",
+            "name": "against",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_cddf8275afa15408"
+            }
+          },
+          {
+            "in": "query",
             "name": "kind",
             "required": false,
             "schema": {
+              "default": "all",
               "enum": [
                 "all",
                 "added",
                 "removed",
                 "weight",
                 "spec",
-                "changed",
-                "unchanged"
+                "unchanged",
+                "changed"
               ],
               "type": "string"
             }
@@ -8954,7 +9238,7 @@
             "name": "afterBarcode",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/S_00404e686415370f"
+              "$ref": "#/components/schemas/S_b7eb5ae9d2cbaf7d"
             }
           },
           {
@@ -8962,7 +9246,10 @@
             "name": "limit",
             "required": false,
             "schema": {
-              "$ref": "#/components/schemas/S_cddf8275afa15408"
+              "default": 50,
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
             }
           }
         ],
@@ -9161,7 +9448,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "固定基线版本的差异分页",
+        "summary": "任意两版游标分页；against缺省沿用基线；不存在404、未校验422",
         "x-client-channel": "web"
       }
     },

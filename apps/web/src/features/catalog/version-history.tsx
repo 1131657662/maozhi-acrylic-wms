@@ -8,6 +8,8 @@ import { ProDescriptions } from '@ant-design/pro-components';
 import type { CatalogVersion } from '@wms/contracts';
 import { catalogKeys } from './keys';
 import { Card, EmptyState, SectionTitle, StatusTag, Toolbar } from '../../components/ui';
+import { DiffPreview } from './diff-preview';
+import { catalogReadCopy as copy, CATALOG_COMPARE_DRAWER_SIZE } from './export-copy';
 
 export function VersionHistory({
   open,
@@ -23,6 +25,8 @@ export function VersionHistory({
   onSelect: (version: CatalogVersion) => void;
 }) {
   const [page, setPage] = useState(1);
+  const [base, setBase] = useState<CatalogVersion | null>(null);
+  const [comparison, setComparison] = useState<{ version: CatalogVersion; against: number } | null>(null);
   const { data: history, error, isLoading, refetch } = useQuery({ ...catalogKeys.history(page), enabled: open });
   return (
     <section data-testid="catalog-section-history">
@@ -50,6 +54,7 @@ export function VersionHistory({
             description="发布纠正版请重新上传完整文件。不能删除旧版本或直接退回 v1；历史扫码记录须继续追溯。"
           />
           {isLoading && <Skeleton active />}
+          <Alert type="info" title={base ? copy.comparisonBase(base.versionId) : copy.compareHint} />
           {error && (
             <RequestError
               type="error"
@@ -60,6 +65,16 @@ export function VersionHistory({
           {history?.items.map((version) => (
             <div key={version.versionId}>
               <VersionRecord version={version} />
+              <Space wrap>
+                <Button aria-label={copy.chooseBaseLabel(version.versionId)} onClick={() => setBase(version)}>
+                  {copy.chooseBase}
+                </Button>
+                {base && (
+                  <Button onClick={() => setComparison({ version, against: base.versionId })}>
+                    {copy.compareWith(version.versionId)}
+                  </Button>
+                )}
+              </Space>
               {version.versionId === currentVersionId && <StatusTag status="当前活动版本" type="processing" />}
               {version.status === 'validated' && (
                 <Button
@@ -82,6 +97,21 @@ export function VersionHistory({
             showSizeChanger={false}
           />
         </Space>
+      </Drawer>
+      <Drawer
+        title={copy.compareTitle}
+        open={!!comparison}
+        onClose={() => setComparison(null)}
+        size={CATALOG_COMPARE_DRAWER_SIZE}
+        destroyOnHidden
+      >
+        {comparison && (
+          <DiffPreview
+            key={`${comparison.against}-${comparison.version.versionId}`}
+            version={comparison.version}
+            against={comparison.against}
+          />
+        )}
       </Drawer>
     </section>
   );

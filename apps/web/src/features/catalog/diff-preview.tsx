@@ -3,22 +3,26 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Radio, Space } from 'antd';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
-import type { CatalogDiffRow, CatalogVersion } from '@wms/contracts';
+import { CATALOG_DIFF_PAGE_SIZE, type CatalogDiffRow, type CatalogVersion } from '@wms/contracts';
 import { catalogKeys } from './keys';
 import { EmptyState } from '../../components/ui';
+import { catalogReadCopy as copy } from './export-copy';
 
 const weight = (grams: number | null) =>
   grams === null ? '—' : `${grams / 1000} kg / ${(grams / 1000000).toFixed(4)} 吨`;
 const columns: ProColumns<CatalogDiffRow>[] = [
-  { title: '条码', dataIndex: 'barcode', fixed: 'left', width: 180 },
+  { title: copy.barcode, dataIndex: 'barcode', fixed: 'left', width: 180 },
   {
-    title: '变化',
+    title: copy.change,
     dataIndex: 'kind',
     width: 80,
-    valueEnum: { added: '新增', removed: '消失', changed: '变更', unchanged: '未变' },
+    render: (_, row) =>
+      row.kind === 'changed'
+        ? [row.weightChanged && copy.weightChanged, row.specChanged && copy.specChanged].filter(Boolean).join('、')
+        : { added: copy.added, removed: copy.removed, unchanged: copy.unchanged }[row.kind],
   },
   {
-    title: '原规格 → 新规格',
+    title: copy.specChange,
     width: 280,
     render: (_, row) => (
       <>
@@ -28,7 +32,7 @@ const columns: ProColumns<CatalogDiffRow>[] = [
     ),
   },
   {
-    title: '原重量 → 新重量',
+    title: copy.weightChange,
     width: 300,
     render: (_, row) => (
       <>
@@ -38,7 +42,7 @@ const columns: ProColumns<CatalogDiffRow>[] = [
     ),
   },
 ];
-export function DiffPreview({ version }: { version: CatalogVersion }) {
+export function DiffPreview({ version, against }: { version: CatalogVersion; against?: number }) {
   const [kind, setKind] = useState('all');
   const [cursors, setCursors] = useState(['']);
   const {
@@ -46,18 +50,19 @@ export function DiffPreview({ version }: { version: CatalogVersion }) {
     error,
     isFetching,
     refetch,
-  } = useQuery(catalogKeys.diff(version.versionId, kind, cursors.at(-1)!));
+  } = useQuery(catalogKeys.diff(version.versionId, kind, cursors.at(-1)!, against));
   const options = [
-    { label: '全部差异与条目', value: 'all' },
-    { label: '新增', value: 'added' },
-    { label: '消失', value: 'removed' },
-    { label: '重量变更', value: 'weight' },
-    { label: '规格变更', value: 'spec' },
+    { label: copy.allDiff, value: 'all' },
+    { label: copy.added, value: 'added' },
+    { label: copy.removed, value: 'removed' },
+    { label: copy.weightChanged, value: 'weight' },
+    { label: copy.specChanged, value: 'spec' },
+    { label: copy.unchanged, value: 'unchanged' },
   ];
   return (
     <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
       <Radio.Group
-        aria-label="差异类型"
+        aria-label={copy.diffKind}
         options={options}
         value={kind}
         onChange={(e) => {
@@ -69,12 +74,12 @@ export function DiffPreview({ version }: { version: CatalogVersion }) {
         <RequestError
           type="error"
           error={error}
-          action={<Button onClick={() => void refetch()}>重试差异查询</Button>}
+          action={<Button onClick={() => void refetch()}>{copy.retryDiff}</Button>}
         />
       )}
       <ProTable<CatalogDiffRow>
         rowKey="barcode"
-        headerTitle={`第 ${version.baseVersionId} → ${version.versionId} 版差异`}
+        headerTitle={copy.comparison(diff ? diff.baseVersionId : (against ?? version.baseVersionId), version.versionId)}
         search={false}
         options={false}
         columns={columns}
@@ -82,18 +87,18 @@ export function DiffPreview({ version }: { version: CatalogVersion }) {
         loading={isFetching}
         pagination={false}
         scroll={{ x: 840 }}
-        locale={{ emptyText: <EmptyState description="该类没有差异条目" /> }}
+        locale={{ emptyText: <EmptyState description={copy.noDiff} /> }}
       />
       <Space wrap>
-        <span>共 {diff?.total ?? '…'} 条 · 每页最多 50 条</span>
+        <span>{copy.diffCount(diff?.total)}</span>
         <Button disabled={cursors.length === 1 || isFetching} onClick={() => setCursors(cursors.slice(0, -1))}>
-          上一页
+          {copy.previous}
         </Button>
         <Button
-          disabled={!diff || cursors.length * 50 >= diff.total || isFetching}
+          disabled={!diff?.items.length || cursors.length * CATALOG_DIFF_PAGE_SIZE >= diff.total || isFetching}
           onClick={() => setCursors([...cursors, diff!.items.at(-1)!.barcode])}
         >
-          下一页
+          {copy.next}
         </Button>
       </Space>
     </Space>

@@ -108,15 +108,16 @@
 | GET | /api/v1/web/exports/{id} | web | 导出进度、预览与本次范围合计；有效期24小时 |
 | POST | /api/v1/web/exports/{id}/cancel | web | 取消生成；不提供部分文件 |
 | GET | /api/v1/web/exports/{id}/download | web | 下载校验完成的 XLSX 或 CSV；只读 Cookie 会话下载 |
+| GET | /api/v1/catalog/export | web | 当前搜索全部命中结果 XLSX，固定屏幕版本，不持久化；超过十万行422 |
 | GET | /api/v1/catalog | web | 当前目录与可执行发布门禁；仅扫码取重，不参与库存 |
 | GET | /api/v1/catalog/search | web | 当前已发布目录条码/规格分页搜索；只读 |
 | GET | /api/v1/catalog/spec-summary | web | 当前已发布目录按规格汇总重量；只读 |
 | GET | /api/v1/catalog/barcode-trace | web | 查询条码在已发布版本和待发布候选中的出现轨迹；只读 |
 | GET | /api/v1/catalog/lookup | web | 当前目录只读扫描测试；无匹配时返回 found=false |
-| POST | /api/v1/catalog/uploads | web | 整版校验 txt；相同内容默认不建版，重建须显式确认历史版本 |
+| POST | /api/v1/catalog/uploads | web | 整版校验 txt；422最多返回500条行错误，不持久化；相同内容默认不建版 |
 | GET | /api/v1/catalog/uploads/{id} | web | 按原上传 UUID 核验结果，支持响应丢失恢复 |
 | GET | /api/v1/catalog/versions | web | 不可变版本历史（包括完整未发布候选） |
-| GET | /api/v1/catalog/versions/{versionId}/diff | web | 固定基线版本的差异分页 |
+| GET | /api/v1/catalog/versions/{versionId}/diff | web | 任意两版游标分页；against缺省沿用基线；不存在404、未校验422 |
 | POST | /api/v1/catalog/versions/{versionId}/publish | web | 门禁通过后原子发布；指针、审计、幂等结果同事务 |
 | GET | /api/v1/scan/catalog/manifest | web-pda | 当前已发布目录清单；不要求 PDA 在线扫码 |
 | GET | /api/v1/scan/catalog/versions/{versionId}/entries | web-pda | 固定历史版分页；同期发布不会混页 |

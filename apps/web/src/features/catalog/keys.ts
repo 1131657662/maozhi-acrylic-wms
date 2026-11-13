@@ -8,6 +8,7 @@ import {
   catalogSearchResultSchema,
   catalogSpecSummaryResultSchema,
   type CatalogSearchQuery,
+  CATALOG_DIFF_PAGE_SIZE,
 } from '@wms/contracts';
 import { request } from '../../api/client';
 
@@ -39,11 +40,11 @@ export const catalogKeys = createQueryKeys('catalog', {
     queryKey: [page],
     queryFn: () => request(`/catalog/versions?page=${page}`, catalogHistorySchema),
   }),
-  diff: (version: number, kind: string, after: string) => ({
-    queryKey: [version, kind, after],
+  diff: (version: number, kind: string, after: string, against?: number) => ({
+    queryKey: [version, kind, after, against],
     queryFn: () =>
       request(
-        `/catalog/versions/${version}/diff?kind=${kind}&afterBarcode=${encodeURIComponent(after)}&limit=50`,
+        `/catalog/versions/${version}/diff?kind=${kind}&afterBarcode=${encodeURIComponent(after)}&limit=${CATALOG_DIFF_PAGE_SIZE}${against === undefined ? '' : `&against=${against}`}`,
         catalogDiffPageSchema,
       ),
   }),

@@ -1,9 +1,10 @@
 import type { Database } from '../../db/mysql.ts';
 import { ensure, AppError } from '../../shared/errors.ts';
 import { catalogUploadResultSchema } from '@wms/contracts';
-import { getVersion, head, readEntries, entryRow } from './repository.ts';
+import { getVersion, head, entryRow } from './repository.ts';
 import { publicationGate } from './gate.ts';
-import { catalogDiff } from './diff.ts';
+import { queryVersionDiff } from './diff-query.ts';
+import { catalogDiffQuerySchema } from '@wms/contracts';
 
 export async function overview(db: Database, enabled: boolean) {
   return db.transaction(async (tx) => {
@@ -27,23 +28,10 @@ export async function versionDiff(
   db: Database,
   input: { versionId: number; kind: string; after: string; limit: number },
 ) {
-  const version = await getVersion(db, input.versionId);
-  const rows = catalogDiff(
-    version.baseVersionId ? await readEntries(db, version.baseVersionId) : [],
-    await readEntries(db, input.versionId),
-  );
-  const selected = rows.filter(
-    (r) =>
-      input.kind === 'all' ||
-      input.kind === r.kind ||
-      (input.kind === 'weight' && r.weightChanged) ||
-      (input.kind === 'spec' && r.specChanged),
-  );
-  return {
-    items: selected.filter((r) => r.barcode > input.after).slice(0, input.limit),
-    total: selected.length,
-    baseVersionId: version.baseVersionId,
-  };
+  return queryVersionDiff(db, {
+    versionId: input.versionId,
+    ...catalogDiffQuerySchema.parse({ kind: input.kind, afterBarcode: input.after, limit: input.limit }),
+  });
 }
 export async function manifest(db: Database) {
   const current = await head(db);

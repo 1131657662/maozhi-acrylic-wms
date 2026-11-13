@@ -14,10 +14,22 @@ import {
   catalogSearchQuerySchema,
   catalogSearchResultSchema,
   catalogSpecSummaryResultSchema,
+  catalogDiffQuerySchema,
+  catalogExportQuerySchema,
+  catalogUploadErrorsSchema,
 } from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
 
 export const catalogOperations: Operation[] = [
+  {
+    method: 'get',
+    path: '/catalog/export',
+    summary: '当前搜索全部命中结果 XLSX，固定屏幕版本，不持久化；超过十万行422',
+    query: catalogExportQuerySchema,
+    response: z.string(),
+    channel: 'web',
+    responseMedia: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+  },
   {
     method: 'get',
     path: '/catalog',
@@ -59,7 +71,7 @@ export const catalogOperations: Operation[] = [
   {
     method: 'post',
     path: '/catalog/uploads',
-    summary: '整版校验 txt；相同内容默认不建版，重建须显式确认历史版本',
+    summary: '整版校验 txt；422最多返回500条行错误，不持久化；相同内容默认不建版',
     rawBody: true,
     query: z.object({
       encoding: z.enum(['utf-8', 'gb18030']),
@@ -67,6 +79,12 @@ export const catalogOperations: Operation[] = [
       rebuildOfVersionId: z.number().int().positive().optional(),
     }),
     response: catalogUploadResultSchema,
+    errorData: z.union([
+      catalogUploadErrorsSchema,
+      z.object({
+        fields: z.array(z.object({ path: z.array(z.union([z.string(), z.number()])), message: z.string() })),
+      }),
+    ]),
     channel: 'web',
     idempotent: true,
   },
@@ -88,12 +106,8 @@ export const catalogOperations: Operation[] = [
   {
     method: 'get',
     path: '/catalog/versions/{versionId}/diff',
-    summary: '固定基线版本的差异分页',
-    query: z.object({
-      kind: z.enum(['all', 'added', 'removed', 'weight', 'spec', 'changed', 'unchanged']).optional(),
-      afterBarcode: z.string().optional(),
-      limit: z.number().optional(),
-    }),
+    summary: '任意两版游标分页；against缺省沿用基线；不存在404、未校验422',
+    query: catalogDiffQuerySchema,
     response: catalogDiffPageSchema,
     channel: 'web',
   },

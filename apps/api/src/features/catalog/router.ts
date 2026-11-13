@@ -2,6 +2,8 @@ import express from 'express';
 import { z } from 'zod';
 import {
   catalogBarcodeQuerySchema,
+  catalogDiffQuerySchema,
+  catalogExportQuerySchema,
   catalogPublishInputSchema,
   catalogSearchQuerySchema,
   idSchema,
@@ -10,10 +12,12 @@ import {
 import type { Database } from '../../db/mysql.ts';
 import { actorFrom, ok, requireChannel } from '../../middleware/http.ts';
 import { AppError } from '../../shared/errors.ts';
+import { queryVersionDiff } from './diff-query.ts';
+import { exportCatalog } from './export.ts';
 import { uploadCatalog } from './upload.ts';
 import { publishCatalog } from './publish.ts';
 import { history } from './repository.ts';
-import { overview, uploadResult, versionDiff, manifest, versionEntries } from './read.ts';
+import { overview, uploadResult, manifest, versionEntries } from './read.ts';
 import { lookupCatalogBarcode, searchCatalog, summarizeCatalogSpecs, traceCatalogBarcode } from './query.ts';
 import { factContexts } from '../scan/notices.ts';
 
@@ -35,6 +39,17 @@ export function catalogRouter(db: Database, origins: string[], enabled: boolean)
   const router = express.Router();
   const web = requireChannel('web', origins);
   router.get('/catalog', web, async (_req, res) => ok(res, await overview(db, enabled)));
+  router.get('/catalog/export', web, async (req, res) => {
+    try {
+      await exportCatalog(db, catalogExportQuerySchema.parse(req.query), res);
+    } catch (error) {
+      if (res.headersSent || res.destroyed) {
+        res.destroy();
+        return;
+      }
+      throw error;
+    }
+  });
   router.get('/catalog/search', web, async (req, res) =>
     ok(res, await searchCatalog(db, catalogSearchQuerySchema.parse(req.query))),
   );
@@ -72,18 +87,11 @@ export function catalogRouter(db: Database, origins: string[], enabled: boolean)
     ok(res, await uploadResult(db, z.uuid().parse(req.params.id), actorFrom(res).username)),
   );
   router.get('/catalog/versions/:versionId/diff', web, async (req, res) => {
-    const p = paging.parse(req.query);
-    const kind = z
-      .enum(['all', 'added', 'removed', 'weight', 'spec', 'unchanged', 'changed'])
-      .default('all')
-      .parse(req.query.kind);
     ok(
       res,
-      await versionDiff(db, {
+      await queryVersionDiff(db, {
+        ...catalogDiffQuerySchema.parse(req.query),
         versionId: versionId.parse(req.params.versionId),
-        kind,
-        after: p.afterBarcode,
-        limit: p.limit,
       }),
     );
   });
