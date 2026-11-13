@@ -1,6 +1,12 @@
 import express from 'express';
 import { z } from 'zod';
-import { catalogPublishInputSchema, idSchema, sessionSchema } from '@wms/contracts';
+import {
+  catalogBarcodeQuerySchema,
+  catalogPublishInputSchema,
+  catalogSearchQuerySchema,
+  idSchema,
+  sessionSchema,
+} from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { actorFrom, ok, requireChannel } from '../../middleware/http.ts';
 import { AppError } from '../../shared/errors.ts';
@@ -8,6 +14,7 @@ import { uploadCatalog } from './upload.ts';
 import { publishCatalog } from './publish.ts';
 import { history } from './repository.ts';
 import { overview, uploadResult, versionDiff, manifest, versionEntries } from './read.ts';
+import { lookupCatalogBarcode, searchCatalog, summarizeCatalogSpecs, traceCatalogBarcode } from './query.ts';
 import { factContexts } from '../scan/notices.ts';
 
 const uploadQuery = z.object({
@@ -28,6 +35,18 @@ export function catalogRouter(db: Database, origins: string[], enabled: boolean)
   const router = express.Router();
   const web = requireChannel('web', origins);
   router.get('/catalog', web, async (_req, res) => ok(res, await overview(db, enabled)));
+  router.get('/catalog/search', web, async (req, res) =>
+    ok(res, await searchCatalog(db, catalogSearchQuerySchema.parse(req.query))),
+  );
+  router.get('/catalog/spec-summary', web, async (_req, res) => ok(res, await summarizeCatalogSpecs(db)));
+  router.get('/catalog/barcode-trace', web, async (req, res) => {
+    const { barcode } = catalogBarcodeQuerySchema.parse(req.query);
+    ok(res, await traceCatalogBarcode(db, barcode));
+  });
+  router.get('/catalog/lookup', web, async (req, res) => {
+    const { barcode } = catalogBarcodeQuerySchema.parse(req.query);
+    ok(res, await lookupCatalogBarcode(db, barcode));
+  });
   router.get('/catalog/versions', web, async (req, res) =>
     ok(res, await history(db, z.coerce.number().int().min(1).default(1).parse(req.query.page))),
   );

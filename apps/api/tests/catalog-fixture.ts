@@ -32,24 +32,34 @@ export async function publish(db: Database, id: number) {
   });
 }
 export async function catalogSnapshot(db: Database) {
-  const tables = [
-    'catalog_versions',
-    'catalog_entries',
-    'catalog_head',
-    'scan_facts',
-    'scan_fact_context',
-    'scan_submissions',
-    'outbound_orders',
-    'stock',
-    'stock_journal',
-    'operation_log',
-    'idempotent_commands',
-  ];
   const result: Record<string, unknown> = {};
-  for (const table of tables)
+  for (const table of CATALOG_SNAPSHOT_TABLES)
     result[table] = (await db.all(`SELECT * FROM ${table}`)).map((r) => JSON.stringify(r)).sort();
   return result;
 }
+export async function catalogRowCounts(db: Database) {
+  const result: Record<string, unknown> = {};
+  for (const table of CATALOG_SNAPSHOT_TABLES)
+    result[table] = Number((await db.get(`SELECT COUNT(*) AS rowCount FROM ${table}`))?.rowCount ?? 0);
+  return result;
+}
+const CATALOG_SNAPSHOT_TABLES = [
+  'catalog_versions',
+  'catalog_entries',
+  'catalog_head',
+  'catalog_client_activity',
+  'pda_handoffs',
+  'pda_handoff_records',
+  'pda_handoff_clients',
+  'scan_facts',
+  'scan_fact_context',
+  'scan_submissions',
+  'outbound_orders',
+  'stock',
+  'stock_journal',
+  'operation_log',
+  'idempotent_commands',
+];
 // Only disposable synthetic fixture preparation; never available from business routes or the sample seed.
 export async function addV1Fixture(db: Database, entry: { barcode: string; product: string; tonnes: string }) {
   if (!/^maozhi_test_[a-f0-9]+$/.test(String((await db.get('SELECT DATABASE() AS n'))?.n)))

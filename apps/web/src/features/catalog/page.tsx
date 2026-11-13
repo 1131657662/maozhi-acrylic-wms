@@ -12,6 +12,9 @@ import { CatalogUpload } from './upload';
 import { CatalogCandidate } from './candidate';
 import { VersionHistory } from './version-history';
 import { HandoffPanel } from './handoff-panel';
+import { CatalogDirectorySearch } from './directory-search';
+import { CatalogSpecSummary } from './spec-summary';
+import { CatalogLookup } from './lookup';
 import { Card as DesignCard, PageShell, SectionTitle, Toolbar } from '../../components/ui';
 import { spacing } from '../../theme/design-tokens';
 
@@ -48,6 +51,18 @@ export function CatalogPage() {
           />
         )}
         {overview && <CatalogOverview overview={overview} />}
+        {overview && (
+          <Space
+            orientation="vertical"
+            size={spacing[16]}
+            style={{ width: '100%' }}
+            data-testid="catalog-section-query"
+          >
+            <CatalogDirectorySearch />
+            <CatalogSpecSummary />
+            <CatalogLookup />
+          </Space>
+        )}
         {overview && (
           <section data-testid="catalog-section-upload">
             <Space orientation="vertical" size={spacing[8]} style={{ width: '100%' }}>

@@ -8,6 +8,12 @@ import {
   catalogPublishResultSchema,
   catalogEntryPageSchema,
   factContextPageSchema,
+  catalogBarcodeQuerySchema,
+  catalogBarcodeTraceResultSchema,
+  catalogLookupResultSchema,
+  catalogSearchQuerySchema,
+  catalogSearchResultSchema,
+  catalogSpecSummaryResultSchema,
 } from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
 
@@ -17,6 +23,37 @@ export const catalogOperations: Operation[] = [
     path: '/catalog',
     summary: '当前目录与可执行发布门禁；仅扫码取重，不参与库存',
     response: catalogOverviewSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/catalog/search',
+    summary: '当前已发布目录条码/规格分页搜索；只读',
+    query: catalogSearchQuerySchema,
+    response: catalogSearchResultSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/catalog/spec-summary',
+    summary: '当前已发布目录按规格汇总重量；只读',
+    response: catalogSpecSummaryResultSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/catalog/barcode-trace',
+    summary: '查询条码在已发布版本和待发布候选中的出现轨迹；只读',
+    query: catalogBarcodeQuerySchema,
+    response: catalogBarcodeTraceResultSchema,
+    channel: 'web',
+  },
+  {
+    method: 'get',
+    path: '/catalog/lookup',
+    summary: '当前目录只读扫描测试；无匹配时返回 found=false',
+    query: catalogBarcodeQuerySchema,
+    response: catalogLookupResultSchema,
     channel: 'web',
   },
   {
