@@ -42,27 +42,6 @@
     "batch": "B6j-2"
   },
   {
-    "file": "apps/web/src/features/catalog/overview.tsx",
-    "kind": "color",
-    "value": "blue",
-    "reason": "目录页重写时替换当前版本标签色",
-    "batch": "B6d"
-  },
-  {
-    "file": "apps/web/src/features/catalog/version-history.tsx",
-    "kind": "color",
-    "value": "blue",
-    "reason": "目录页重写时替换活动版本标签色",
-    "batch": "B6d"
-  },
-  {
-    "file": "apps/web/src/features/catalog/version-history.tsx",
-    "kind": "color",
-    "value": "green",
-    "reason": "目录页重写时替换发布结果标签色",
-    "batch": "B6d"
-  },
-  {
     "file": "apps/web/src/styles/base.css",
     "kind": "color",
     "value": "#193333",

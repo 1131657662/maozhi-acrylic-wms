@@ -280,3 +280,9 @@
 |---|---|---|---|
 | 2026-11-13 | 仅修入库/出库列定义与滚动配置：状态/入账状态默认 140px、最小 90px、nowrap，固定在右侧操作列左边；其他列宽不变，scroll.x 覆盖最终可见列宽及选择列之和，不改查询与业务逻辑 | 生效 | VISUAL_SPEC §16、IMPLEMENTATION_PLAN B6j-4 |
 | 2026-11-13 | 补入库/出库 1440/1280 截图，运行 test/build/完整 E2E/token 检查；以 fix(web): keep list status column readable 提交，通过后非快进合并推送；B6d 排在本批之后 | 生效 | VISUAL_SPEC §16、IMPLEMENTATION_PLAN B6j-4 |
+
+## B6d 拆分与 B6g 顺序（2026-11-13）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-13 | B6d 拆为 B6d-1 页面骨架与 B6d-2 新增能力；B6g 联想搜索顺延到 B6d-1 之后，理由：联想搜索不影响目录页结构；其余批次顺序不变 | 生效 | IMPLEMENTATION_PLAN 主链、CATALOG_PAGE_SPEC §16 |

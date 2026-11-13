@@ -1,6 +1,20 @@
 import { test, expect, loginCatalog, uploadFile, publishFile, catalogShot, pdaToken } from './catalog-helpers';
 import { catalogSnapshot } from '../../apps/api/tests/catalog-fixture';
 
+test('catalog-invalid-encoding-rejected：编码解码失败不改变目录数据', async ({ page, catalogDb: db }) => {
+  await loginCatalog(page);
+  const before = await catalogSnapshot(db);
+  await page.locator('input[type=file]').setInputFiles({
+    name: 'sku.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from([0xff]),
+  });
+  await page.getByRole('button', { name: '上传并检查' }).click();
+  await expect(page.locator('.ant-alert').filter({ hasText: '文件编码无法完整解码，请核对所选编码' })).toBeVisible();
+  await expect(page.getByText('sku.txt', { exact: true })).toBeVisible();
+  expect(await catalogSnapshot(db)).toEqual(before);
+});
+
 test('catalog-invalid-snapshot-rejected：坏文件整版拒绝并保留文件', async ({ page, catalogDb: db }) => {
   await loginCatalog(page);
   const before = await catalogSnapshot(db);

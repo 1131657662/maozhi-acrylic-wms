@@ -11,7 +11,9 @@ for (const [name, path, ready] of [
   test(`B 文案：${name} 页面使用业务中文`, async ({ page }) => {
     await page.goto(path!);
     await expect(
-      page.locator(name === 'master' ? 'h1' : '.ant-page-header-heading-title').filter({ hasText: ready! }),
+      page
+        .locator(name === 'master' || name === 'catalog' ? 'h1' : '.ant-page-header-heading-title')
+        .filter({ hasText: ready! }),
     ).toBeVisible();
     await expect(page.locator('.ant-skeleton')).toHaveCount(0);
     await expect(page.locator('body')).not.toContainText(

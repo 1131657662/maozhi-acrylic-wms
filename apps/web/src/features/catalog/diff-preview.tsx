@@ -1,10 +1,11 @@
 import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Empty, Radio, Space } from 'antd';
+import { Button, Radio, Space } from 'antd';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import type { CatalogDiffRow, CatalogVersion } from '@wms/contracts';
 import { catalogKeys } from './keys';
+import { EmptyState } from '../../components/ui';
 
 const weight = (grams: number | null) =>
   grams === null ? '—' : `${grams / 1000} kg / ${(grams / 1000000).toFixed(4)} 吨`;
@@ -81,7 +82,7 @@ export function DiffPreview({ version }: { version: CatalogVersion }) {
         loading={isFetching}
         pagination={false}
         scroll={{ x: 840 }}
-        locale={{ emptyText: <Empty description="该类没有差异条目" /> }}
+        locale={{ emptyText: <EmptyState description="该类没有差异条目" /> }}
       />
       <Space wrap>
         <span>共 {diff?.total ?? '…'} 条 · 每页最多 50 条</span>

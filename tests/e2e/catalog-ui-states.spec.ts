@@ -1,5 +1,22 @@
 import { test, expect, loginCatalog, uploadFile, publishFile } from './catalog-helpers';
 
+test('catalog-section-order：目录区块按规格顺序显示', async ({ page }) => {
+  await loginCatalog(page);
+  const sections = [
+    page.getByTestId('catalog-section-overview'),
+    page.getByTestId('catalog-section-upload'),
+    page.getByTestId('catalog-section-history'),
+    page.getByTestId('catalog-section-handoff'),
+  ];
+  for (const section of sections) await expect(section).toBeVisible();
+  const tops = await Promise.all(
+    sections.map((section) => section.evaluate((element) => element.getBoundingClientRect().top)),
+  );
+  expect(tops[0]).toBeLessThan(tops[1]!);
+  expect(tops[1]).toBeLessThan(tops[2]!);
+  expect(tops[2]).toBeLessThan(tops[3]!);
+});
+
 test('catalog-candidate-recovery：刷新后从版本历史恢复候选并发布', async ({ page }) => {
   await loginCatalog(page);
   await uploadFile(page, '恢复规格 RESUME-A 301');

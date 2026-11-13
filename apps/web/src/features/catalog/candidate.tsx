@@ -2,10 +2,11 @@ import { useLockedConfirm } from '../../components/form-protection/use-locked-co
 import { formCopy } from '../../components/form-protection/copy';
 import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
-import { Alert, Button, Card, Space, Tag } from 'antd';
+import { Alert, Button, Space } from 'antd';
 import type { CatalogUploadResult } from '@wms/contracts';
 import { DiffPreview } from './diff-preview';
 import { usePublish } from './use-publish';
+import { Card, SectionTitle, StatusTag } from '../../components/ui';
 
 export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadResult; allowed: boolean }) {
   const version = upload.version!;
@@ -22,8 +23,15 @@ export function CatalogCandidate({ upload, allowed }: { upload: CatalogUploadRes
     });
   return (
     <Card
-      title={published ? `第 ${version.versionId} 版已发布` : `第 ${version.versionId} 版待发布`}
-      extra={<Tag>{published ? '历史记录保留' : '当前目录尚未改变'}</Tag>}
+      title={
+        <SectionTitle title={published ? `第 ${version.versionId} 版已发布` : `第 ${version.versionId} 版待发布`} />
+      }
+      extra={
+        <StatusTag
+          status={published ? '历史记录保留' : '当前目录尚未改变'}
+          type={published ? 'success' : 'processing'}
+        />
+      }
     >
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         <Space wrap>

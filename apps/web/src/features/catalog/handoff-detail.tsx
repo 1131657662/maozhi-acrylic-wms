@@ -1,10 +1,11 @@
 import { RequestError } from '../../components/RequestError';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Drawer, Empty, Result, Skeleton, Space } from 'antd';
+import { Alert, Button, Drawer, Result, Skeleton, Space } from 'antd';
 import { ProTable } from '@ant-design/pro-components';
 import { ApiError } from '../../api/client';
 import { handoffKeys } from './handoff-keys';
 import { HandoffBind } from './handoff-bind';
+import { EmptyState } from '../../components/ui';
 
 export function HandoffDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const { data, error, isLoading, refetch } = useQuery(handoffKeys.detail(id));
@@ -32,7 +33,7 @@ export function HandoffDetail({ id, onClose }: { id: string; onClose: () => void
           <Button onClick={() => void refetch()}>刷新收妥结果</Button>
           {!data.summary.confirmedAt && <HandoffBind id={id} records={data.items} />}
           {!data.total ? (
-            <Empty description="此设备上报空队列，仍须确认设备清点完成" />
+            <EmptyState description="此设备上报空队列，仍须确认设备清点完成" />
           ) : (
             <ProTable
               rowKey="factId"
