@@ -65,7 +65,9 @@ for (const kind of ['inbound', 'outbound'] as const) {
     await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(50);
     const key = kind === 'inbound' ? 'receiptNo' : 'orderNo';
     const positions = await fixedPositions(page);
-    expect(positions.keys).toEqual([key, 'action']);
+    expect(positions.keys).toEqual(
+      kind === 'inbound' ? [key, 'status', 'postingState', 'action'] : [key, 'status', 'action'],
+    );
     await list.locator('.ant-table-body').evaluate((body) => {
       body.scrollLeft = 500;
     });

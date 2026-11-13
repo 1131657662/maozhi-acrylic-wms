@@ -2,6 +2,7 @@ import { expect, type Page, type Locator } from '@playwright/test';
 import { test } from './list-test';
 import { e2eDatabase } from './inventory-helpers';
 import { seedListEvidence } from '../../scripts/e2e-list-fixtures';
+import { revealTableCell } from './column-helpers';
 
 async function baseline(page: Page, kind: 'inbound' | 'outbound') {
   const db = e2eDatabase();
@@ -24,7 +25,7 @@ async function rowRect(list: Locator) {
 }
 
 async function selectText(page: Page, cell: Locator) {
-  await cell.evaluate((element) => element.scrollIntoView({ block: 'nearest', inline: 'center' }));
+  await revealTableCell(cell);
   const bounds = await cell.evaluate((element) => {
     const text = [...element.childNodes].find((node) => node.nodeType === Node.TEXT_NODE)!;
     const range = document.createRange();
@@ -45,6 +46,7 @@ for (const kind of ['inbound', 'outbound'] as const) {
     const row = list.locator('tbody tr[data-row-key]').first();
     const blank = row.locator(`td[data-export-field="${kind === 'inbound' ? 'packages' : 'plannedPackages'}"]`);
     const checkbox = row.getByRole('checkbox');
+    await revealTableCell(blank);
     const before = await rowRect(list);
     await blank.click();
     await expect(checkbox).toBeChecked();
@@ -53,6 +55,7 @@ for (const kind of ['inbound', 'outbound'] as const) {
       await page.setViewportSize({ width, height: 960 });
       await page.screenshot({ path: `.local/evidence/list-ux-a/${kind}-selection-batch-${width}.png`, fullPage: true });
     }
+    await revealTableCell(blank);
     await blank.click();
     await expect(checkbox).not.toBeChecked();
     await row.focus();
@@ -104,9 +107,9 @@ for (const kind of ['inbound', 'outbound'] as const) {
         sessionStorage.setItem('row-selection-changes', JSON.stringify(changes));
       }).observe(element, { attributes: true, attributeFilter: ['aria-selected'] });
     });
-    await row
-      .locator(`td[data-export-field="${kind === 'inbound' ? 'packages' : 'plannedPackages'}"]`)
-      .dblclick({ delay: 60 });
+    const cell = row.locator(`td[data-export-field="${kind === 'inbound' ? 'packages' : 'plannedPackages'}"]`);
+    await revealTableCell(cell);
+    await cell.dblclick({ delay: 60 });
     await expect(page).toHaveURL(new RegExp(`/${kind}/${id}$`));
     expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('row-selection-changes')!))).toEqual([]);
     await page.goBack();

@@ -29,7 +29,7 @@ for (const kind of ['inbound', 'outbound'])
       const packagesKey = kind === 'inbound' ? 'packages' : 'plannedPackages';
       expect(defaults.widths[numberKey]).toBe(220);
       expect(defaults.widths[packagesKey]).toBe(100);
-      expect(defaults.widths.status).toBe(240);
+      expect(defaults.widths.status).toBe(140);
       expect(defaults.widths.action).toBe(180);
       await resizeColumn(page, packagesKey, 20);
       await expect

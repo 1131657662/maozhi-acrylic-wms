@@ -64,8 +64,9 @@ export function displayColumn<Row>(kind: ExportKind, column: ProColumns<Row>): P
     ...column,
     hideInTable: false,
     title: field.label,
-    ellipsis: true,
-    onCell: () => ({ 'data-export-field': field.key }) as HTMLAttributes<HTMLElement>,
+    ellipsis: column.ellipsis ?? true,
+    onCell: (row, index) =>
+      ({ ...column.onCell?.(row, index), 'data-export-field': field.key }) as HTMLAttributes<HTMLElement>,
     render: preserve ? column.render : (_, row) => listCellText(kind, field, row as Record<string, unknown>),
   };
 }

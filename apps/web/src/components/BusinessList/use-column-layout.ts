@@ -20,18 +20,18 @@ export function useColumnLayout<Row>(
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-  const width = columns
-    .filter((column) => !column.hideInTable && preferences.value[columnKey(column)]?.show !== false)
-    .reduce<number>((total, column) => total + Number(column.width), COLUMN_WIDTH.selection);
   const configured = columns.map((column) => {
     const key = columnKey(column);
     const label = typeof column.title === 'string' ? column.title : undefined;
+    const columnWidth = Math.max(column.minWidth ?? COLUMN_WIDTH.min, Number(column.width));
     return {
       ...column,
-      onHeaderCell: (): ResizeHeaderProps => ({
+      width: columnWidth,
+      onHeaderCell: (headerColumn): ResizeHeaderProps => ({
+        ...column.onHeaderCell?.(headerColumn),
         columnLabel: label,
         columnKey: key,
-        columnWidth: Number(column.width),
+        columnWidth,
         resize: (next) => preferences.resize(key, next),
         resetWidth: () => preferences.resetWidth(key),
         sort: column.sorter
@@ -46,7 +46,10 @@ export function useColumnLayout<Row>(
             }
           : undefined,
       }),
-    };
+    } satisfies ProColumns<Row>;
   });
+  const width = configured
+    .filter((column) => !column.hideInTable && preferences.value[columnKey(column)]?.show !== false)
+    .reduce<number>((total, column) => total + column.width, COLUMN_WIDTH.selection);
   return { root, width, columns: configured, canResize: containerWidth > 0 };
 }
