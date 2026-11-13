@@ -675,5 +675,5 @@ B4d 出库手工实发
 - 按顺序重建当前目录、上传与候选、版本历史、交接四区块，使用共享 PageShell/Card/SectionTitle/Toolbar/StatusTag/EmptyState。只迁移现有上传、编码选择、候选差异、版本列表、发布门禁、交接清单与确认；未加导出、搜索、版本对比或新接口，未改 API/数据库。
 - 上传校验、版本化、发布门禁及交接清单行为保持原样；编码解码失败、上传发布成功、发布门禁阻断、交接确认路径均通过隔离 E2E。目录区块顺序及 catalog 中文文案回归通过。
 - 最终验证：`npm run test` **401/401**；`npm run build` exit 0；完整 `npm run test:e2e` **142/142**（主套件 131 + catalog 专项 11，无失败或跳过）；`npm run check:design-tokens` 扫描 277 个 Web 文件，现有 22、新增 0、待清理 0；`git diff --check` 通过。实现涉及的 TS/TSX 与 E2E 文件 Prettier 检查通过。
-- 1440/1280 改前改后截图位于 `.local/evidence/b6d-1-before-{1440,1280}.png` 与 `.local/evidence/b6d-1-after-{1440,1280}.png`，同一隔离目录数据；不代表用户验收、实体设备或生产验收。未写开发样本库、未合并、未 push。
+- 1440/1280 改前改后截图位于 `.local/evidence/b6d-1-before-{1440,1280}.png` 与 `.local/evidence/b6d-1-after-{1440,1280}.png`，同一隔离目录数据；不代表用户验收、实体设备或生产验收。未写开发样本库；验收后按本次授权非快进合并并推送 origin master。
 - 实现提交：`feat(web): rebuild catalog page shell`。收尾合并推送后停止，不开始 B6g 或 B6d-2。
