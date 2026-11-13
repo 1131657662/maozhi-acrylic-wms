@@ -27,7 +27,7 @@ test('整版放弃、刷新追溯、同内容重传及显式重建保留证据',
   await page.getByRole('button', { name: '查看第 2 版放弃记录' }).click();
   await expect(card.getByText('合成验收：供应文件待修正', { exact: false })).toBeVisible();
   await uploadFile(page, '放弃验收 ABANDON-E2E 300');
-  await expect(page.getByText('内容相同的候选已放弃，如需重新处理请显式重建')).toBeVisible();
+  await expect(page.getByText('与第 2 版内容一致，该候选已放弃；如需重新处理，请显式重建候选')).toBeVisible();
   expect(Number((await catalogDb.get('SELECT COUNT(*) AS n FROM catalog_versions'))?.n)).toBe(2);
   await card.getByRole('button', { name: '重建候选', exact: true }).click();
   await page.getByRole('button', { name: '确认重建候选', exact: true }).click();

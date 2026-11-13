@@ -71,13 +71,19 @@ test('同内容重传返回已放弃版且不新建；原上传重试与查询�
     };
     const original = await uploadCatalog(c.db, input);
     const priorDuplicateInput = { ...input, key: randomUUID() };
-    assert.equal((await uploadCatalog(c.db, priorDuplicateInput)).version, null);
+    const priorDuplicate = await uploadCatalog(c.db, priorDuplicateInput);
+    assert.equal(priorDuplicate.version, null);
+    assert.equal(priorDuplicate.message, `与第 ${original.version!.versionId} 版内容一致`);
     await abandonCandidate(c.db, command(original.version!.versionId));
     const duplicate = await upload(c.db, '规格 SAME-1 300\r\n');
     assert.equal(duplicate.duplicate, true);
     assert.equal(duplicate.version?.status, 'abandoned');
     assert.equal(duplicate.matchedVersionId, original.version!.versionId);
-    assert.equal(duplicate.message, '内容相同的候选已放弃，如需重新处理请显式重建');
+    assert.match(duplicate.message, /已放弃/);
+    assert.equal(
+      duplicate.message,
+      `与第 ${original.version!.versionId} 版内容一致，该候选已放弃；如需重新处理，请显式重建候选`,
+    );
     assert.equal(Number((await c.db.get('SELECT COUNT(*) AS n FROM catalog_versions'))?.n), 2);
     assert.equal((await uploadCatalog(c.db, input)).version?.status, 'abandoned');
     assert.equal((await uploadResult(c.db, input.key, actor.username)).version?.status, 'abandoned');

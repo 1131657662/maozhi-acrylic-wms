@@ -11,7 +11,7 @@ export async function projectUploadResult(db: Database, result: CatalogUploadRes
     const abandoned = version.status === 'abandoned';
     return {
       ...result,
-      message: abandoned ? catalogCandidateCopy.duplicateAbandoned : `与第 ${id} 版内容一致`,
+      message: abandoned ? catalogCandidateCopy.duplicateAbandoned(id) : `与第 ${id} 版内容一致`,
       version: abandoned ? version : null,
     };
   }

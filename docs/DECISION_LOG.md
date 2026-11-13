@@ -334,3 +334,4 @@
 | 2026-11-13 | 行数骤减 ≥50% 定义为上传返回 warning + 前端确认，记 backlog，本批不实现，不做服务端发布硬门禁 | 生效 | CATALOG_PAGE_SPEC §§6、13、15、17；IMPLEMENTATION_PLAN B6d-3b |
 | 2026-11-13 | 023 新增追加式 catalog_candidate_abandons；version_id 用有符号 INT、正值 CHECK、父版本外键 RESTRICT；operation_id CHAR(36) UNIQUE；不改父键，非空 down 在 DDL 前拒绝 | 生效 | CATALOG_PAGE_SPEC §17 |
 | 2026-11-13 | 候选详情下分页只读展示基准版本已登记交接摘要；无证据显示未知，不推断实时设备状态；已放弃候选保留历史/轨迹/差异可查 | 生效 | CATALOG_PAGE_SPEC §§9、12、17 |
+| 2026-11-13 | B6d-3b 用户验收通过；查重命中 abandoned 时提示补充匹配版本号：「与第 X 版内容一致，该候选已放弃；如需重新处理，请显式重建候选」，其他状态文案不变、前端不改；授权备份后应用 023 到开发样本库并冒烟，再合并推送，B6d 全部结束 | 生效 | CATALOG_PAGE_SPEC §7、B6D_3B_ACCEPTANCE |

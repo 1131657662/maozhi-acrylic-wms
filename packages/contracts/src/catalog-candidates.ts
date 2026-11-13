@@ -6,7 +6,7 @@ export const CATALOG_HANDOFF_MAX_PAGE = 100000;
 export const catalogCandidateCopy = {
   abandoned: '该候选已放弃，请重建候选',
   notAbandonable: '仅已校验未发布的候选可放弃',
-  duplicateAbandoned: '内容相同的候选已放弃，如需重新处理请显式重建',
+  duplicateAbandoned: (versionId: number) => `与第 ${versionId} 版内容一致，该候选已放弃；如需重新处理，请显式重建候选`,
   reasonRequired: '请填写放弃原因',
   reasonTooLong: '放弃原因不能超过500字',
   baseChanged: '基准已变时拒绝发布，需重建候选',
