@@ -42,6 +42,10 @@ API 专项使用隔离的 `maozhi_test_*` 合成库。测试覆盖条码精确�
 
 ## 状态与边界
 
-状态：代码完成；本机构建通过；API、Web 与目录自动化通过。没有进行实体设备或生产验收，也没有写入开发样本库或生产库；自动化测试仅使用隔离、可销毁的合成数据库。分支尚未合并或推送。
+状态：代码完成；本机构建通过；API、Web 与目录自动化通过。没有进行实体设备或生产验收，也没有写入开发样本库或生产库；自动化测试仅使用隔离、可销毁的合成数据库。
+
+## 合并收尾
+
+用户验收通过后，功能分支以 `--no-ff` 合并至 `master`，合并提交为 `7e5ecffc8480fb065c111f13d856f21a150d2bcb`，消息为 `merge: b6d-2 catalog queries and trace`。`git checkout master`、`git merge --no-ff` 与首次 `git push origin master` 均 exit 0；首次推送后的 `origin/master` 为 `7e5ecffc8480fb065c111f13d856f21a150d2bcb`。
 
 下一批 B6d-3 仍负责任意两版对比、XLSX 导出、上传错误 CSV、候选放弃（含迁移）及交接证据投影；本批不包含这些能力。
