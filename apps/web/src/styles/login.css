@@ -1,43 +1,48 @@
 .login-page {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: var(--wms-space-24);
+  padding: var(--wms-space-24);
   min-height: 100vh;
+  background: var(--wms-color-background);
+  color: var(--wms-color-text);
 }
-.login-intro {
-  padding: 18vh 9vw;
-  background: #103f3f;
-  color: white;
+.login-intro,
+.login-card {
+  min-width: 0;
 }
 .login-intro h1 {
-  font-size: 36px;
-  line-height: 1.6;
+  letter-spacing: normal;
 }
-.login-intro .eyebrow,
-.login-intro p {
-  color: #abd0c8;
+.login-principles {
+  font-size: var(--wms-font-size-card-title);
+  line-height: var(--wms-line-height-card-title);
 }
-.login-intro .demo-label {
-  color: #abd0c8;
-  border-color: #376361;
-  margin-top: 60px;
+.login-environment {
+  margin-top: var(--wms-space-24);
+  color: var(--wms-color-text-secondary);
+  font-size: var(--wms-font-size-auxiliary);
+  line-height: var(--wms-line-height-auxiliary);
 }
 .login-card {
-  max-width: 440px;
   width: 100%;
-  align-self: center;
+  max-width: var(--wms-login-form-width);
   justify-self: center;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
 }
 .login-card label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--wms-font-size-body);
+  font-weight: var(--wms-font-weight-regular);
 }
-.login-card p {
-  margin-bottom: 8px;
+.login-description {
+  margin-bottom: var(--wms-space-24);
+  color: var(--wms-color-text-secondary);
+  font-size: var(--wms-font-size-body);
+  line-height: var(--wms-line-height-body);
 }
-.login-card small {
+.login-access-hint {
+  margin-bottom: var(--wms-space-16);
   text-align: center;
+  color: var(--wms-color-text-secondary);
+  font-size: var(--wms-font-size-auxiliary);
+  line-height: var(--wms-line-height-auxiliary);
 }

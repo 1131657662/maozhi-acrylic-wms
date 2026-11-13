@@ -12,6 +12,7 @@ import {
   WarehouseFilter,
 } from '../../components/BusinessList/filters';
 import { StatusFilter } from '../../components/BusinessList/status-filter';
+import { ExportOutlined } from '@ant-design/icons';
 import { useListState } from '../../components/BusinessList/use-list-state';
 import { webListKeys } from '../web-lists/keys';
 import { outboundColumns } from './list-columns';
@@ -25,6 +26,9 @@ export function OrderList() {
       query={query}
       config={{
         name: 'outbound',
+        designShell: true,
+        designViewToolbar: true,
+        icon: <ExportOutlined />,
         title: '出库工作台',
         columns: outboundColumns,
         description: '扫码仅记录收发情况，核对并确认出库后才扣减库存。计划数量和扫码数量分别展示。',

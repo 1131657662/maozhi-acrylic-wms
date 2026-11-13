@@ -262,3 +262,14 @@
 | 2026-11-12 | 改前改后截图必须来自同一隔离合成数据集、同一记录/筛选/视图和相同滚动位置；仅对比同状态证据。不修改截图基础设施、冒烟数据源或开发样本库。 | 生效 | AUDIT_PAGE_SPEC §16 |
 | 2026-11-12 | 一个提交 `feat(web): shared ui components and audit pilot`；完整本地验证后停止，不合并、不 push，不开始其他迁移。 | 已废弃（停止及禁止合并部分） | 被 2026-11-13 B6j-2 KPI 修订与合并推送授权取代；原实现提交和范围边界保留 |
 | 2026-11-13 | B6j-2 用户验收通过，合并前只修审计 KPI 布局：四项使用 repeat(auto-fit, minmax(180px, 1fr))，最多四列，等高、标签与数字对齐；只改 statistics.tsx 与 StatCard 的布局。补 1440/1280 截图，重跑 test/build/完整 E2E/check:design-tokens 后，非快进合并到 master 并推送；不开始其他批次。 | 生效 | VISUAL_SPEC §14.2、IMPLEMENTATION_PLAN B6j-2 |
+
+## B6j-3 保留页面外壳迁移（2026-11-13）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-13 | 保留页面外壳迁移，不含后续重建页面；仅入库/出库列表、主数据六页签页头与工具条、登录展示壳。审计保持原样作回归，库存/目录/盘点/报表/B7b 工作台不动 | 生效 | IMPLEMENTATION_PLAN B6j-3、VISUAL_SPEC §15、MASTER_DATA_SPEC §13 |
+| 2026-11-13 | BusinessList designShell 默认 false，仅入库/出库新增显式 true；视图工具条用独立 designViewToolbar 显式开启，并同时受 designShell 限定。审计已有接入保持不变，不改变其他调用方或共享组件默认样式。表格引擎、查询、分页、导出、筛选及现有交互完全不变 | 生效 | VISUAL_SPEC §15 |
+| 2026-11-13 | 本批迁移文件消除对应裸值并删除 allowlist 条目，不增加豁免；检查现有条目必须从 34 下降，新裸值仍失败 | 生效 | VISUAL_SPEC §15 |
+| 2026-11-13 | 入库/出库/主数据/登录各 1440/1280 截图；排除页面和审计按同数据同状态截图验证零变化；运行完整 E2E、test/build/token 检查，不改截图基础设施、不写开发样本库 | 生效 | VISUAL_SPEC §15、IMPLEMENTATION_PLAN B6j-3 |
+| 2026-11-13 | B6j-3 使用单提交 feat(web): migrate list shell master data and login，完成后停止，不合并、不 push | 已废弃（停止及禁止合并部分） | 被 2026-11-13 B6j-3 用户验收收尾及 B6j-4 授权取代；原实现提交边界保留 |
+| 2026-11-13 | B6j-3 验收通过；补收尾文档后以 merge: b6j-3 retained page shells 非快进合并并推送 master，报告 hash 与 exit code；随后继续 B6j-4 AF-055，B6d 排在其后 | 生效 | IMPLEMENTATION_PLAN B6j-3、VISUAL_SPEC §15.2 |
