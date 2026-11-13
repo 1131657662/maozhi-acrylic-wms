@@ -463,7 +463,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | 011应用专项（非功能批次） | MIGRATION_011_APPLICATION_PLAN | 另轮按备份/指纹/副本演练/冒烟/非空拒绝回退执行，现有CLI足够，不等待维护UI |
 | B6a 主数据与单据快照 | MASTER_DATA_SPEC；C01/C03/C04/C05 | 已完成；012_M及快照迁移已应用本机开发库；逐项状态见B6A_ACCEPTANCE；顺序1 |
 | B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 已完成并通过用户验收；test 200/200、E2E 84/0、build exit 0；013_list_preferences 已应用 3307 开发样本库，备份/指纹/冒烟通过；性能另列 B6b-perf；见 B6B_ACCEPTANCE；顺序2 |
-| B6d-1 条码目录页面骨架 | CATALOG_PAGE_SPEC §2、现有目录页功能 | 只重建 Web 展示结构，不新增接口/迁移；保留上传、候选、版本列表、发布门禁及交接行为；B6j-4 后 |
+| B6d-1 条码目录页面骨架 | CATALOG_PAGE_SPEC §2、现有目录页功能 | 已完成（401/142/0）；只重建 Web 展示结构，不新增接口/迁移；保留上传、候选、版本列表、发布门禁及交接行为；B6j-4 后 |
 | B6d-2 条码目录新增能力 | CATALOG_PAGE_SPEC §§3–16 | 当前目录查询/聚合、条码轨迹、版本比较导出、候选放弃及交接投影；含 M-CATALOG-CANDIDATES；B6g 后 |
 | B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
@@ -491,7 +491,7 @@ B4d 出库手工实发
  → B5b 入库异常（后置：入库无计划字段，短装/溢装口径待定）
  → B5d（1 追加式业务日期更正已完成，333/134/0；2 报表重述读模型已完成、用户验收通过，349/134/0）
  → B6j 设计系统（B6j-1 已完成、用户验收通过，401/134/0；B6j-2/3 已完成、用户验收通过，401/136/0；B6j-4 先修 AF-055，再进入 B6d-1）
- → B6d-1 目录页骨架
+ → B6d-1 目录页骨架（已完成，401/142/0）
  → B6g 联想搜索（顺延到 B6d-1 之后；联想搜索不影响目录页结构）
  → B6d-2 目录新增能力
  → B6f 库存页
@@ -669,11 +669,11 @@ B4d 出库手工实发
 - 一个修复提交 `fix(web): keep list status column readable`；验证通过后非快进合并推送 master 并核对 hash/exit code。B6d 为后续批次，本批先完成 AF-055。
 - 最终 test 401/401、build exit 0、完整 E2E 140/140（主套件 131 + 目录专项 9），各命令 exit 0；token 检查 277 文件、现有 25、新增 0、待清理 0，allowlist 未改。四张 1440/1280 最终截图与失败运行记录均保留在 `.local/evidence/`，索引 `b6j-4-comparison.md`；详见 VISUAL_SPEC §16.1。逐文件提交前审查、AntD、格式及差异检查通过。本地验证不等于用户另行视觉验收或生产验收；按用户已授权流程提交、非快进合并推送。
 
-## B6d-1：条码目录页面骨架（2026-11-13，本地代码与验证完成）
+## B6d-1：条码目录页面骨架（2026-11-13，已完成，401/142/0）
 
-- 起点 `e0c9fbf`，分支 `master`；最大迁移编号 021，本批无迁移。按已登记拆分先重建页面结构，后续顺序为 B6d-1 → B6g → B6d-2。
+- 起点 `e0c9fbf`，实现提交 `418db5b`；收尾分支 `codex/b6d-1-catalog-shell`；最大迁移编号 021，本批无迁移。按已登记拆分先重建页面结构，后续顺序为 B6d-1 → B6g → B6d-2。
 - 按顺序重建当前目录、上传与候选、版本历史、交接四区块，使用共享 PageShell/Card/SectionTitle/Toolbar/StatusTag/EmptyState。只迁移现有上传、编码选择、候选差异、版本列表、发布门禁、交接清单与确认；未加导出、搜索、版本对比或新接口，未改 API/数据库。
 - 上传校验、版本化、发布门禁及交接清单行为保持原样；编码解码失败、上传发布成功、发布门禁阻断、交接确认路径均通过隔离 E2E。目录区块顺序及 catalog 中文文案回归通过。
 - 最终验证：`npm run test` **401/401**；`npm run build` exit 0；完整 `npm run test:e2e` **142/142**（主套件 131 + catalog 专项 11，无失败或跳过）；`npm run check:design-tokens` 扫描 277 个 Web 文件，现有 22、新增 0、待清理 0；`git diff --check` 通过。实现涉及的 TS/TSX 与 E2E 文件 Prettier 检查通过。
 - 1440/1280 改前改后截图位于 `.local/evidence/b6d-1-before-{1440,1280}.png` 与 `.local/evidence/b6d-1-after-{1440,1280}.png`，同一隔离目录数据；不代表用户验收、实体设备或生产验收。未写开发样本库、未合并、未 push。
-- 单提交：`feat(web): rebuild catalog page shell`。完成后停止，不开始 B6g 或 B6d-2。
+- 实现提交：`feat(web): rebuild catalog page shell`。收尾合并推送后停止，不开始 B6g 或 B6d-2。
