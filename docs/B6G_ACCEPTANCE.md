@@ -191,4 +191,6 @@ ORDER BY code LIMIT 20;
 - 提交前审查覆盖全部 Web/测试/文档差异：请求参数编码及 schema 验证沿用客户端；请求取消与定时器清理、候选资格、表单字符串值、中文空态/错误均已核对；未引入后端/数据库/依赖变更及调试残留，无未解决阻断问题。
 - 原始日志在 `.local/evidence/b6g-2/{test,build-final,e2e-final,fix-recheck,design-tokens}.log`；首轮失败摘要保留在 `e2e.log`，默认 Playwright trace 目录随后被完整重跑更新，未将其伪称为仍完整留存。
 
-状态：代码完成、构建通过、完整自动化通过；待用户验收/合并。本批不合并、不推送；本机自动化与构建不等于实体设备或生产验收。
+状态：代码完成、构建通过、完整自动化通过；用户验收通过。本机自动化与构建不等于实体设备或生产验收。
+
+合并收尾（2026-11-13）：按用户授权，`codex/b6g-2-web-autocomplete` 以 `--no-ff` 合并为 `51aad21db7b5ebf8fdfa1fcf1e380208fa948166`，消息为 `merge: b6g-2 web autocomplete`；checkout、merge、push exit code 均为 0，origin/master 已接收。合并后由 `codex/b6g-2-closeout` 更新批次表及审计状态，再以 `--no-ff` 合入并推送；沿用已验收的 406/153/0，本轮未改代码或重跑测试。收尾后停止，不开始 B6d-2。
