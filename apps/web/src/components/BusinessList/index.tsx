@@ -31,6 +31,7 @@ interface Config<Row> {
   skeleton?: boolean;
   designShell?: boolean;
   designViewToolbar?: boolean;
+  resultCardTitle?: ReactNode;
 }
 interface Props<Row> {
   config: Config<Row>;

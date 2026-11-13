@@ -1,10 +1,10 @@
 import { AuthGate } from './AuthGate';
-import { Stock } from '../features/outbound/stock';
+import { StockPage as StockPageContent } from '../features/stock/page';
 
 export default function StockPage() {
   return (
     <AuthGate>
-      <Stock />
+      <StockPageContent />
     </AuthGate>
   );
 }
