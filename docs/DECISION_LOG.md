@@ -271,4 +271,5 @@
 | 2026-11-13 | BusinessList designShell 默认 false，仅入库/出库新增显式 true；视图工具条用独立 designViewToolbar 显式开启，并同时受 designShell 限定。审计已有接入保持不变，不改变其他调用方或共享组件默认样式。表格引擎、查询、分页、导出、筛选及现有交互完全不变 | 生效 | VISUAL_SPEC §15 |
 | 2026-11-13 | 本批迁移文件消除对应裸值并删除 allowlist 条目，不增加豁免；检查现有条目必须从 34 下降，新裸值仍失败 | 生效 | VISUAL_SPEC §15 |
 | 2026-11-13 | 入库/出库/主数据/登录各 1440/1280 截图；排除页面和审计按同数据同状态截图验证零变化；运行完整 E2E、test/build/token 检查，不改截图基础设施、不写开发样本库 | 生效 | VISUAL_SPEC §15、IMPLEMENTATION_PLAN B6j-3 |
-| 2026-11-13 | B6j-3 使用单提交 feat(web): migrate list shell master data and login，完成后停止，不合并、不 push | 生效 | IMPLEMENTATION_PLAN B6j-3 |
+| 2026-11-13 | B6j-3 使用单提交 feat(web): migrate list shell master data and login，完成后停止，不合并、不 push | 已废弃（停止及禁止合并部分） | 被 2026-11-13 B6j-3 用户验收收尾及 B6j-4 授权取代；原实现提交边界保留 |
+| 2026-11-13 | B6j-3 验收通过；补收尾文档后以 merge: b6j-3 retained page shells 非快进合并并推送 master，报告 hash 与 exit code；随后继续 B6j-4 AF-055，B6d 排在其后 | 生效 | IMPLEMENTATION_PLAN B6j-3、VISUAL_SPEC §15.2 |
