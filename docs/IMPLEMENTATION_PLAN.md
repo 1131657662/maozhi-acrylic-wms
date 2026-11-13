@@ -465,7 +465,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B6b 公共交互（UI-2） | UX_STANDARDS、WEB_UX_SPEC；C16/C17 | 已完成并通过用户验收；test 200/200、E2E 84/0、build exit 0；013_list_preferences 已应用 3307 开发样本库，备份/指纹/冒烟通过；性能另列 B6b-perf；见 B6B_ACCEPTANCE；顺序2 |
 | B6d-1 条码目录页面骨架 | CATALOG_PAGE_SPEC §2、现有目录页功能 | 已完成（401/142/0）；只重建 Web 展示结构，不新增接口/迁移；保留上传、候选、版本列表、发布门禁及交接行为；B6j-4 后 |
 | B6g-1 主数据持久化检索 | UX_STANDARDS §12.8、B6G_ACCEPTANCE | 已合并 `2e86824`；022 已应用开发样本库且四表无 NULL；406/142/0；AF-056 偶发拖拽长任务归 B6i |
-| B6g-2 Web 联想接入 | UX_STANDARDS §12.9、B6G_ACCEPTANCE | 代码完成、待用户验收/合并；300ms/1 字符、q/keyword、竞态、20 条分页与已选回填；406/153/0；只改 Web，无迁移；B6g-1 后 |
+| B6g-2 Web 联想接入 | UX_STANDARDS §12.9、B6G_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `51aad21`；300ms/1 字符、q/keyword、竞态、20 条分页与已选回填；406/153/0；只改 Web，无迁移；收尾后停止，不开始 B6d-2 |
 | B6d-2 条码目录新增能力 | CATALOG_PAGE_SPEC §§3–16 | 当前目录查询/聚合、条码轨迹、版本比较导出、候选放弃及交接投影；含 M-CATALOG-CANDIDATES；B6g 后 |
 | B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
@@ -494,7 +494,7 @@ B4d 出库手工实发
  → B5d（1 追加式业务日期更正已完成，333/134/0；2 报表重述读模型已完成、用户验收通过，349/134/0）
  → B6j 设计系统（B6j-1 已完成、用户验收通过，401/134/0；B6j-2/3 已完成、用户验收通过，401/136/0；B6j-4 先修 AF-055，再进入 B6d-1）
  → B6d-1 目录页骨架（已完成，401/142/0）
- → B6g 联想搜索（B6g-1 已合并；B6g-2 Web 接入代码完成、待用户验收/合并，406/153/0；见 UX_STANDARDS §§12.8–12.9；B6d-1 后）
+ → B6g 联想搜索（B6g-1 已合并；B6g-2 已完成、用户验收通过，已合并推送 51aad21，406/153/0；见 UX_STANDARDS §§12.8–12.9；收尾后停止，不开始 B6d-2）
  → B6d-2 目录新增能力
  → B6f 库存页
  → B6e 盘点增强
@@ -689,10 +689,11 @@ B4d 出库手工实发
 - 样本开发库已备份并应用 022；首次回填商品/客户/供应商/车辆分别 569/377/2/4 行，复跑各 0，原业务字段指纹一致。EXPLAIN/p95 及当前数据量结论见验收记录。
 - 代码完成、构建通过、完整自动化 E2E 通过；拖拽长任务有一次 67ms 偶发失败，后续连续三次及完整主套件通过，归 AF-056/B6i；022 已应用，四表 search_text 无 NULL。实现 `d01b135`、验收 `e46edde` 已按用户授权以 `--no-ff` 合并为 `2e86824`；合并后更新本表与 AUDIT_FINDINGS。本批收尾文档同样经 codex 分支非快进合并，推送 origin/master 后停止，不开始 B6g-2。未做实体设备或生产验收。
 
-## B6g-2：Web 联想接入（2026-11-13，代码完成）
+## B6g-2：Web 联想接入（2026-11-13，已完成并合并）
 
 - 起点 `cc92d5f`，工作分支 `codex/b6g-2-web-autocomplete`；用户既有 AGENTS.md 分支纪律改动已单独提交为 `be4eae9`。
 - 所有 MasterSelect 与车辆选择统一 300ms 防抖、1 字符起查、q 参数，兼容原 keyword 调用；每页 20 条、换词回首页、取消/隔离旧请求；Spin/分类型空态、名称/编码/型号上下文、键盘交互、已选详情回填均保留。停用与无库存资格商品不入候选。
 - 范围仅 Web、E2E 和文档；不改 API、共享契约、数据库或依赖，不改变列表页其他筛选控件。最大迁移仍为 022，未连接或写入开发样本库；合成测试数据只进入独立内存 E2E 环境。
 - 验证：`npm run test` **406/406**；最终 `npm run build` exit 0；完整 `npm run test:e2e` **153/153**（主 142/142、目录 11/11）；设计 token 新增违规 0；1440 候选/Spin/空态已检查，截图不进 Git。首次主套件 140/142 的出库选择失败已修复，原断言未放宽，详见 B6G_ACCEPTANCE。
-- 代码与本机自动化完成，待用户验收/合并；无实体设备或生产验收。本批提交后停止，不合并、不推送、不启动后续批次。
+- 用户验收通过；实现 `dd2b1d3` 与 AGENTS.md 提交 `be4eae9` 已按授权以 `--no-ff` 合并为 `51aad21`（`merge: b6g-2 web autocomplete`），推送 origin/master 成功，checkout/merge/push exit code 均为 0。合并后通过 codex 文档分支更新本表与 AUDIT_FINDINGS，继续以 `--no-ff` 收尾。
+- 验证结果为 **406/153/0**（test/E2E/build exit code），沿用本次已验收实现的完整验证；本轮只合并及更新文档，未重复运行测试。无实体设备或生产验收。收尾推送后停止，不开始 B6d-2。
