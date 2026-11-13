@@ -75,6 +75,8 @@ export const auditActions: Record<string, AuditActionDefinition> = {
   'vehicle.update': entry('修改车辆', 'vehicle', false, ['vehicleNo']),
   'catalog.upload': entry('上传条码目录', 'catalog', false, ['rowCount']),
   'catalog.publish': entry('发布条码目录', 'catalog', true, ['rowCount']),
+  'catalog.abandon': entry('放弃目录候选', 'catalog', true, ['status', 'reason']),
+  'catalog.rebuild': entry('重建目录候选', 'catalog', false, ['rowCount']),
   'catalog.handoff.register': entry('登记条码交接', 'handoff'),
   'catalog.handoff.link': entry('关联条码交接', 'handoff'),
   'catalog.handoff.bind': entry('关联扫码记录', 'handoff'),

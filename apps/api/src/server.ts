@@ -25,6 +25,10 @@ if (!String(version?.version).startsWith('8.')) {
 }
 try {
   await assertCatalogReady(db);
+  if (
+    (await db.get("SELECT state FROM schema_migrations WHERE id='023_catalog_candidate_abandons'"))?.state !== 'applied'
+  )
+    throw new Error('023 候选放弃迁移未完成，拒绝启动写服务');
   await assertHandoffReady(db);
   await assertLifecycleReady(db);
   await assertStocktakeReady(db);

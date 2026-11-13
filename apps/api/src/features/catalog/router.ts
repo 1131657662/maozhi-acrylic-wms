@@ -20,6 +20,7 @@ import { history } from './repository.ts';
 import { overview, uploadResult, manifest, versionEntries } from './read.ts';
 import { lookupCatalogBarcode, searchCatalog, summarizeCatalogSpecs, traceCatalogBarcode } from './query.ts';
 import { factContexts } from '../scan/notices.ts';
+import { attachCandidateRoutes } from './candidate-routes.ts';
 
 const uploadQuery = z.object({
   encoding: z.enum(['utf-8', 'gb18030']),
@@ -108,6 +109,7 @@ export function catalogRouter(db: Database, origins: string[], enabled: boolean)
     ),
   );
   attachReaders(router, db);
+  attachCandidateRoutes(router, db, web);
   return router;
 }
 function attachReaders(router: express.Router, db: Database): void {

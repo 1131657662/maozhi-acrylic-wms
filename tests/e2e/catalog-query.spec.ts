@@ -36,8 +36,9 @@ async function searchCurrentBarcode(page: Parameters<typeof loginCatalog>[0]) {
 async function openBarcodeTrace(page: Parameters<typeof loginCatalog>[0]) {
   await page.getByRole('button', { name: '查看版本轨迹 TRACE-BARCODE-001' }).click();
   await expect(page.getByText('条码版本轨迹 · TRACE-BARCODE-001')).toBeVisible();
-  await expect(page.getByText('已发布', { exact: true })).toBeVisible();
-  await expect(page.getByText('待发布', { exact: true })).toBeVisible();
+  const trace = page.getByRole('dialog');
+  await expect(trace.getByText('已发布', { exact: true })).toBeVisible();
+  await expect(trace.getByText('待发布', { exact: true })).toBeVisible();
 }
 
 async function runBarcodeLookup(page: Parameters<typeof loginCatalog>[0]) {

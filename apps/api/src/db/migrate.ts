@@ -127,6 +127,7 @@ const migrations = [
   { id: '020_correction_shipment_line', guardedTables: [] },
   { id: '021_document_date_corrections', guardedTables: ['document_date_corrections'] },
   { id: '022_master_search_text', guardedTables: [] },
+  { id: '023_catalog_candidate_abandons', guardedTables: ['catalog_candidate_abandons'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

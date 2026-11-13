@@ -19,8 +19,10 @@ import {
   catalogUploadErrorsSchema,
 } from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
+import { candidateOperations } from './candidate-openapi.ts';
 
 export const catalogOperations: Operation[] = [
+  ...candidateOperations,
   {
     method: 'get',
     path: '/catalog/export',

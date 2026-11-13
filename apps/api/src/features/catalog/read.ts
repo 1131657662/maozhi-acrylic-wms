@@ -5,6 +5,7 @@ import { getVersion, head, entryRow } from './repository.ts';
 import { publicationGate } from './gate.ts';
 import { queryVersionDiff } from './diff-query.ts';
 import { catalogDiffQuerySchema } from '@wms/contracts';
+import { projectUploadResult } from './upload-projection.ts';
 
 export async function overview(db: Database, enabled: boolean) {
   return db.transaction(async (tx) => {
@@ -22,7 +23,7 @@ export async function uploadResult(db: Database, id: string, username: string) {
   ]);
   if (!row) throw new AppError('NOT_FOUND', '未找到上传结果，请使用原文件与原幂等键重试', 404);
   const result = catalogUploadResultSchema.parse(JSON.parse(String(row.result_json)));
-  return { ...result, version: result.version ? await getVersion(db, result.version.versionId) : null };
+  return projectUploadResult(db, result);
 }
 export async function versionDiff(
   db: Database,

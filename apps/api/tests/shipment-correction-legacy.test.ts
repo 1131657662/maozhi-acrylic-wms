@@ -54,6 +54,7 @@ for (const replenish of [false, true])
         assert.equal(current.corrections.effective.packages, original.actualPackages);
         for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
           await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+        await migrateDown(c.db); // Remove empty 023 before exercising the 020 migration roundtrip.
         await migrateDown(c.db); // 022: restore the pre-search-text migration state.
         await migrateDown(c.db); // Empty 021 before the intended 020 migration.
         await migrateDown(c.db);

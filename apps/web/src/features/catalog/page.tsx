@@ -73,6 +73,7 @@ export function CatalogPage() {
                     key={candidate.uploadId}
                     upload={candidate}
                     allowed={!!overview.gate.allowed && !error}
+                    onCandidate={setCandidate}
                   />
                 )}
                 <DesignCard title={candidate?.version ? businessCopy.catalogPage1 : '上传全部条码'}>

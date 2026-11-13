@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { catalogAbandonmentSchema } from './catalog-candidates.ts';
 
 export const catalogVersionId = z.number().int().positive().max(2_147_483_647);
 export const catalogEntrySchema = z.object({
@@ -18,7 +19,8 @@ export const catalogDiffCountsSchema = z.object({
 export const catalogVersionSchema = z.object({
   versionId: catalogVersionId,
   uploadId: z.string(),
-  status: z.enum(['validated', 'published']),
+  status: z.enum(['validated', 'published', 'abandoned']),
+  abandonment: catalogAbandonmentSchema.nullable().default(null),
   baseVersionId: catalogVersionId.nullable(),
   baseRevision: z.number().int(),
   contentSha256: z.string(),

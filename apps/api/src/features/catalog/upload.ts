@@ -7,6 +7,7 @@ import { parseCatalog } from './parse.ts';
 import { contentHash, bytesHash, type CatalogEntry } from './hash.ts';
 import { getVersion, head, insertEntries, readEntries } from './repository.ts';
 import { catalogDiff, diffCounts } from './diff.ts';
+import { projectUploadResult } from './upload-projection.ts';
 
 export interface UploadCommand {
   bytes: Buffer;
@@ -26,7 +27,7 @@ export async function uploadCatalog(db: Database, command: UploadCommand): Promi
   return db.transaction(async (tx) => {
     await tx.get("SELECT value FROM app_meta WHERE meta_key='identity' FOR UPDATE");
     const old = await replayCommand(tx, 'catalog.upload', command.key, input, command.actor, catalogUploadResultSchema);
-    if (old) return old;
+    if (old) return projectUploadResult(tx, old);
     const digest = contentHash(entries);
     const match = await tx.get(
       "SELECT version_id FROM catalog_versions WHERE content_sha256=? AND status<>'staging' ORDER BY version_id DESC LIMIT 1",
@@ -34,14 +35,20 @@ export async function uploadCatalog(db: Database, command: UploadCommand): Promi
     );
     const result =
       match && !command.rebuildOfVersionId
-        ? duplicate(command.key, Number(match.version_id))
+        ? await duplicate(tx, command.key, Number(match.version_id))
         : await createCandidate(tx, { command, entries, digest });
     await saveCommand(tx, 'catalog.upload', command.key, input, command.actor, result);
     return result;
   });
 }
-function duplicate(key: string, id: number): CatalogUploadResult {
-  return { uploadId: key, duplicate: true, matchedVersionId: id, message: `与第 ${id} 版内容一致`, version: null };
+async function duplicate(db: Database, key: string, id: number): Promise<CatalogUploadResult> {
+  return projectUploadResult(db, {
+    uploadId: key,
+    duplicate: true,
+    matchedVersionId: id,
+    message: `与第 ${id} 版内容一致`,
+    version: null,
+  });
 }
 async function createCandidate(
   db: Database,

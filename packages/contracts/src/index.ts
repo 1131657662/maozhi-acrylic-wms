@@ -173,3 +173,4 @@ export * from './list-preferences.ts';
 export * from './numbering-policy.ts';
 export * from './business-labels.ts';
 export * from './catalog-exports.ts';
+export * from './catalog-candidates.ts';
