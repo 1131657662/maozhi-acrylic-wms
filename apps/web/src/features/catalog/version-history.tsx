@@ -10,6 +10,8 @@ import { catalogKeys } from './keys';
 import { Card, EmptyState, SectionTitle, StatusTag, Toolbar } from '../../components/ui';
 import { DiffPreview } from './diff-preview';
 import { catalogReadCopy as copy, CATALOG_COMPARE_DRAWER_SIZE } from './export-copy';
+import { catalogStatusPresentation } from './query-display';
+import { candidateCopy } from './candidate-copy';
 
 export function VersionHistory({
   open,
@@ -76,14 +78,16 @@ export function VersionHistory({
                 )}
               </Space>
               {version.versionId === currentVersionId && <StatusTag status="当前活动版本" type="processing" />}
-              {version.status === 'validated' && (
+              {version.status !== 'published' && (
                 <Button
                   onClick={() => {
                     onSelect(version);
                     onClose();
                   }}
                 >
-                  继续核对第 {version.versionId} 版
+                  {version.status === 'abandoned'
+                    ? candidateCopy.reviewAbandoned(version.versionId)
+                    : `继续核对第 ${version.versionId} 版`}
                 </Button>
               )}
             </div>
@@ -123,8 +127,8 @@ function VersionRecord({ version }: { version: CatalogVersion }) {
       title={<SectionTitle title={`第 ${version.versionId} 版`} />}
       extra={
         <StatusTag
-          status={version.status === 'published' ? '已发布' : '待发布'}
-          type={version.status === 'published' ? 'success' : 'default'}
+          status={catalogStatusPresentation(version.status).label}
+          type={catalogStatusPresentation(version.status).tone}
         />
       }
     >

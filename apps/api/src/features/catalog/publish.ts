@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { catalogPublishResultSchema, type CatalogVersion } from '@wms/contracts';
+import { catalogPublishResultSchema, catalogCandidateCopy, type CatalogVersion } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { audit, type Actor } from '../../shared/audit.ts';
-import { ensure } from '../../shared/errors.ts';
+import { ensure, AppError } from '../../shared/errors.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { getVersion, readEntries } from './repository.ts';
 import { contentHash } from './hash.ts';
@@ -35,13 +35,14 @@ export async function publishCatalog(db: Database, command: PublishCommand) {
     if (old) return old;
     const current = await tx.get('SELECT * FROM catalog_head WHERE id=1 FOR UPDATE');
     await tx.get('SELECT version_id FROM catalog_versions WHERE version_id=? FOR UPDATE', [command.versionId]);
+    const version = await getVersion(tx, command.versionId);
+    if (version.status === 'abandoned') throw new AppError('CATALOG_ABANDONED', catalogCandidateCopy.abandoned, 422);
     await assertPublicationGate(tx, command.enabled);
     ensure(
       current && Number(current.revision) === command.baseRevision,
       'CATALOG_BASE_CHANGED',
-      '当前版本已变化，请重新上传并核对差异',
+      catalogCandidateCopy.baseChanged,
     );
-    const version = await getVersion(tx, command.versionId);
     await checkCandidate(tx, version, { ...input, currentVersion: Number(current.active_version_id) });
     return commitPublication(tx, command, version);
   });
@@ -59,7 +60,7 @@ async function checkCandidate(
   ensure(
     version.baseRevision === input.baseRevision && version.baseVersionId === input.currentVersion,
     'CATALOG_BASE_CHANGED',
-    '候选基线已经变化，请重新核对',
+    catalogCandidateCopy.baseChanged,
   );
   const entries = await readEntries(db, version.versionId);
   ensure(

@@ -14,8 +14,8 @@ test('014 空库up→down→up；未应用014拒绝写服务启动', async () =>
     await migrateUp(c.db);
     await assertMasterReady(c.db);
     assert.ok(await c.db.get("SHOW TABLES LIKE 'master_code_counters'"));
-    // Remove empty migrations 015-022 before testing the independent 014 rollback.
-    for (let migration = 0; migration < 8; migration++) await migrateDown(c.db);
+    // Remove empty migrations 015-023 before testing the independent 014 rollback.
+    for (let migration = 0; migration < 9; migration++) await migrateDown(c.db);
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'master_code_counters'"), undefined);
     assert.equal(await c.db.get("SHOW COLUMNS FROM master_customers LIKE 'legacy_code'"), undefined);

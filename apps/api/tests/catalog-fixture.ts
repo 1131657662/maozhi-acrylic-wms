@@ -45,6 +45,7 @@ export async function catalogRowCounts(db: Database) {
 }
 const CATALOG_SNAPSHOT_TABLES = [
   'catalog_versions',
+  'catalog_candidate_abandons',
   'catalog_entries',
   'catalog_head',
   'catalog_client_activity',

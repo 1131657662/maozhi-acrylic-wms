@@ -30,6 +30,7 @@ test('018 down refuses new evidence before DDL without changing schema', async (
     await c.post({ barcode: 'DEMO-032-11', productCode: 'ACR-032', source: 'manual' }).expect(200);
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // Remove empty 023 before testing the 018 evidence guard.
     await migrateDown(c.db); // Remove 022 before testing the 018 evidence guard.
     await migrateDown(c.db); // Empty 021 date corrections, then 020 and 019 before the intended 018 guard.
     await migrateDown(c.db);

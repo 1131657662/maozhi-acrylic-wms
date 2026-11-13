@@ -53,6 +53,14 @@ function display(field: string, value: unknown, kind: string): string {
   if (field === 'source') return scanSourceLabels[value as keyof typeof scanSourceLabels] ?? '未识别';
   if (field === 'attribution') return scanAttributionLabels[value as keyof typeof scanAttributionLabels] ?? '未识别';
   if (field === 'status' && kind === 'stocktake') return stocktakeStates.get(String(value)) ?? '未识别';
+  if (field === 'status' && kind === 'catalog')
+    return (
+      new Map([
+        ['validated', '待发布'],
+        ['published', '已发布'],
+        ['abandoned', '已放弃'],
+      ]).get(String(value)) ?? '未识别'
+    );
   if (field === 'status') return statusText(String(value), kind === 'inbound' ? 'inbound' : 'outbound');
   if (field === 'postingState')
     return Object.hasOwn(postingText, String(value)) ? postingText[value as keyof typeof postingText] : '未识别';

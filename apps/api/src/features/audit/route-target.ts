@@ -85,8 +85,8 @@ const routes: RouteRule[] = [
     channel: 'web',
   },
   {
-    pattern: /^\/catalog\/versions\/([^/]+)\/publish$/,
-    action: () => 'catalog.publish',
+    pattern: /^\/catalog\/versions\/([^/]+)\/(publish|abandon|rebuild)$/,
+    action: (m) => `catalog.${m[2]}`,
     kind: 'catalog',
     id: 1,
     channel: 'web',

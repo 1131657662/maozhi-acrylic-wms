@@ -59,7 +59,7 @@ export const catalogBarcodeTraceResultSchema = z.object({
   versions: z.array(
     z.object({
       versionId: catalogVersionId,
-      status: z.enum(['validated', 'published']),
+      status: z.enum(['validated', 'published', 'abandoned']),
       sourceSpec: z.string().nullable(),
       weightGrams: catalogQueryEntrySchema.shape.weightGrams,
       createdAt: z.string(),

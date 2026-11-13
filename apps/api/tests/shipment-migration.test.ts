@@ -88,6 +88,7 @@ test('016 nonempty down refuses before DDL and keeps structure and evidence', as
     });
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // 022: restore the pre-search-text migration state.
     await migrateDown(c.db); // 021: no date corrections.
     await migrateDown(c.db); // 020: no quantity corrections.

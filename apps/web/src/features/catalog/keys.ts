@@ -9,10 +9,20 @@ import {
   catalogSpecSummaryResultSchema,
   type CatalogSearchQuery,
   CATALOG_DIFF_PAGE_SIZE,
+  catalogVersionSchema,
+  catalogCandidateHandoffsSchema,
 } from '@wms/contracts';
 import { request } from '../../api/client';
 
 export const catalogKeys = createQueryKeys('catalog', {
+  version: (id: number) => ({
+    queryKey: [id],
+    queryFn: () => request(`/catalog/versions/${id}`, catalogVersionSchema),
+  }),
+  handoffs: (id: number, page: number) => ({
+    queryKey: [id, page],
+    queryFn: () => request(`/catalog/versions/${id}/handoffs?page=${page}`, catalogCandidateHandoffsSchema),
+  }),
   overview: { queryKey: null, queryFn: () => request('/catalog', catalogOverviewSchema) },
   search: (query: CatalogSearchQuery) => ({
     queryKey: [query],

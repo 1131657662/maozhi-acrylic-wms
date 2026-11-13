@@ -55,8 +55,10 @@ export async function summarizeCatalogSpecs(db: Database) {
 export async function traceCatalogBarcode(db: Database, barcode: string) {
   return db.readSnapshot(async (tx) => {
     const rows = await tx.all(
-      `SELECT e.*,v.status,v.created_at AS createdAt,v.published_at AS publishedAt
+      `SELECT e.*,CASE WHEN a.version_id IS NOT NULL THEN 'abandoned' ELSE v.status END AS status,
+      v.created_at AS createdAt,v.published_at AS publishedAt
       FROM catalog_entries e INNER JOIN catalog_versions v ON v.version_id=e.version_id
+      LEFT JOIN catalog_candidate_abandons a ON a.version_id=v.version_id
       WHERE e.barcode=? AND v.status IN ('validated','published') ORDER BY e.version_id`,
       [barcode],
     );

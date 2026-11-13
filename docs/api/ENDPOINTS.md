@@ -108,6 +108,10 @@
 | GET | /api/v1/web/exports/{id} | web | 导出进度、预览与本次范围合计；有效期24小时 |
 | POST | /api/v1/web/exports/{id}/cancel | web | 取消生成；不提供部分文件 |
 | GET | /api/v1/web/exports/{id}/download | web | 下载校验完成的 XLSX 或 CSV；只读 Cookie 会话下载 |
+| GET | /api/v1/catalog/versions/{id} | web | 目录版本最新状态和整版放弃证据；只读 |
+| GET | /api/v1/catalog/versions/{id}/handoffs | web | 候选基准版本的已登记交接摘要；分页只读，不代表实时设备状态 |
+| POST | /api/v1/catalog/versions/{id}/abandon | web | 整版放弃；原因必填、追加证据与审计同事务；同键重放成功，新键重复422 |
+| POST | /api/v1/catalog/versions/{id}/rebuild | web | 从上传原文显式重建新候选，使用当前基准，不恢复旧版本 |
 | GET | /api/v1/catalog/export | web | 当前搜索全部命中结果 XLSX，固定屏幕版本，不持久化；超过十万行422 |
 | GET | /api/v1/catalog | web | 当前目录与可执行发布门禁；仅扫码取重，不参与库存 |
 | GET | /api/v1/catalog/search | web | 当前已发布目录条码/规格分页搜索；只读 |
