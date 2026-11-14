@@ -471,8 +471,8 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B6d-3b 条码目录候选与交接 | CATALOG_PAGE_SPEC §§7、9、12、16–17；B6D_3B_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `d221154`；435/160/0（test/E2E/build）全绿，补提示后重跑 435/435、build exit 0、受影响 E2E 2/2；完整 E2E 沿用本批已通过的 142+18。023 已备份、还原与指纹核验后应用开发样本库，冒烟通过；整版放弃、显式重建、只读基准交接摘要完成。≥50% warning/前端确认仍为 backlog；B6d 全部结束，停止 |
 | B6f-1 库存页骨架 | STOCK_PAGE_SPEC §12；B6F_1_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `0c70973`；435/161/0（test/E2E/build），token 既有 22→22、新增 0；1440/1280 改前改后截图已核对。页面归位 stock/page.tsx，顺序为库存概览（现有小计）→在库明细→最近变动；原列表、全局最近 20 条流水与调整抽屉原样迁入，不改接口、查询、排序、分页、保存视图、导出及调整行为，不加二次确认或迁移。收尾后停止，不开始 B6f-2 |
 | B6f-2a 本页待发/可发 | STOCK_PAGE_SPEC §§3、8、12；B6F_2A_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `ae20ebd`；446/446 test、完整 E2E 146+18=164/164 一次全绿、build exit 0。合并前完整 E2E 无失败/跳过/重试，日志 b6f-2a-e2e-premerge-full.log；固定列判定规则已提交 `da741c7`。50 行仅 1 次列表 HTTP/1 条待发 SQL，service 6 读+3 事务；1440/1280 已复核，token 既有 22、新增 0。前置 B6f-1/B5c；本页仓×品批量聚合 open/partially_shipped 逐行有效余额，同事务返回 onHand/pending/available、asOf/watermark；保留 subtotal，负数错误色/tooltip，前端不重算。无迁移；库龄/流水交互/合计行/调整二次确认未做。收尾后停止，不开始 B6f-2b/c |
-| B6f-2b 库龄读模型 | STOCK_PAGE_SPEC §12 | 未开始；FIFO 五档/无法归龄/校验信息接入库存一致快照，复用 B3c；具体方案另行确认 |
-| B6f-2c 流水与剩余交互 | STOCK_PAGE_SPEC §12 | 未开始；行内展开、按商品流水抽屉、固定合计行与调整二次确认决策，具体方案另行确认 |
+| B6f-2b 固定合计行与库龄合并 | STOCK_PAGE_SPEC §12 | 已确认、实施中；前置 B6f-2a/B3c。BusinessList 可选表底固定当前页合计；库存页新五档 0–30/31–60/61–90/91–180/>180 与不可归龄，同快照一次本页仓×品批量 FIFO；1 次列表 HTTP/1 次库龄批量 SQL。无迁移；不做行内展开、流水抽屉、调整二次确认。规格/实现/验收三提交后停止，不合并推送 |
+| B6f-2c 流水与剩余交互 | STOCK_PAGE_SPEC §12 | 未开始；行内展开、按商品流水抽屉与调整二次确认决策；固定合计行已移至 b，具体方案另行确认 |
 | B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |
@@ -508,7 +508,7 @@ B4d 出库手工实发
  → B6d-3b 整版候选放弃与基准交接证据投影（已完成、用户验收通过，已合并推送 `d221154`；435/160/0 全绿；023 已应用开发样本库并冒烟；B6d 全部结束，停止）
  → B6f-1 库存页骨架（已完成、用户验收通过，已合并推送 `0c70973`；435/161/0；收尾后停止，不开始 B6f-2）
  → B6f-2a 本页待发/可发（已完成、用户验收通过，已合并推送 `ae20ebd`；446/164/0 全绿，收尾后停止，不开始 b/c）
- → B6f-2b 库龄读模型
+ → B6f-2b 固定合计行与库龄合并（已确认、实施中；三提交后停止，不合并）
  → B6f-2c 流水与剩余交互
  → B6e 盘点增强
  → B7a 报表页
