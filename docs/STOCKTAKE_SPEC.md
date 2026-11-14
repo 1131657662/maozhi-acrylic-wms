@@ -312,3 +312,7 @@ GET /api/v1/stocktakes/:id/export?kind=blank|result
 本地证据在 `.local/evidence/b6e2-closeout/`：`backup.json`、`before.json`、`rehearsal.json`、`migration.log`/`migration.exit`（首轮失败）、`restore-resume.log`/`restore-resume.exit`、`applied.json`、`smoke.json`、`smoke-responses.json`、`smoke-before.json`/`smoke-after.json`、`smoke.log`/`smoke.exit`。脚本、备份及证据不入Git。未连接生产、未修改warehouse系统、未做实体设备或生产验收。
 
 合并前已核对功能四笔提交及本次迁移记录，master与origin/master均为d99f373且无分歧，用户验收及合并授权已具备。按AGENTS.md，合并后完成状态文档另经codex收尾分支提交和非快进合并推送，master不直接提交；最终回复同时报告功能merge hash与最终远端HEAD。B6e-2收尾后停止，B6e-3及AF-057锁仓补全等不启动。
+
+已执行 `git checkout master`、`git merge --no-ff codex/b6e-2-stocktake-discoveries -m "merge: b6e-2 stocktake discoveries"`、`git push origin master`，exit均0。功能merge hash `4ea1ede2df695a0994ae1b7fc95166062a2bc053`；推送后 `git ls-remote origin HEAD refs/heads/master` 两项均为该hash，exit 0。025部署和实际HTTP冒烟记录提交为 `f687f7a`。
+
+随后在 `codex/b6e-2-closeout` 更新IMPLEMENTATION_PLAN为“B6e-2完成，497/172/0”，同步AUDIT_FINDINGS和台账。本次文档收尾继续通过--no-ff合并推送，最终远端HEAD包含该收尾合并，交付回复报告最终值。工作完成后停止，不开始B6e-3。
