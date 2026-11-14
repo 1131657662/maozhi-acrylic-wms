@@ -5,15 +5,18 @@ import {
   ProFormText,
   ProFormSelect,
 } from '@ant-design/pro-components';
+import { Segmented } from 'antd';
 import type { ListState } from '../../components/BusinessList/use-list-state';
+import { businessCopy } from '../../business-copy';
 
 export function reportDefaults() {
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
-  return { fromDay: today.slice(0, 7) + '-01', toDay: today };
+  return { basis: 'posted', fromDay: today.slice(0, 7) + '-01', toDay: today };
 }
-export function derivedReportDefaults(): { scope: string; fromDay: string; toDay: string };
+export function derivedReportDefaults(): { scope: string; basis: string; fromDay: string; toDay: string };
 export function derivedReportDefaults(aging: true): {
   scope: string;
+  basis: string;
   fromDay: string;
   toDay: string;
   cutoffDay: string;
@@ -24,6 +27,7 @@ export function derivedReportDefaults(aging = false) {
     monthStart = today.slice(0, 7) + '-01';
   return {
     scope: 'inventory',
+    basis: 'posted',
     fromDay: monthStart,
     toDay: yesterday < monthStart ? today : yesterday,
     ...(aging ? { cutoffDay: today } : {}),
@@ -42,6 +46,143 @@ function dateRangeFor(preset: string, custom: unknown): [string, string] | null 
     return [new Date(Date.parse(yesterday + 'T00:00:00Z') - 29 * 86400000).toISOString().slice(0, 10), yesterday];
   return Array.isArray(custom) && custom.length === 2 ? [String(custom[0]), String(custom[1])] : null;
 }
+interface FilterOptions {
+  state: ListState;
+  detail: boolean;
+  aging: boolean;
+  derived: boolean;
+}
+
+function reportFilterDefaults({ derived, aging }: FilterOptions) {
+  if (derived) return aging ? derivedReportDefaults(true) : derivedReportDefaults();
+  return reportDefaults();
+}
+
+function reportFilterInitial({ state, aging }: FilterOptions) {
+  return {
+    dateRange: [state.params.fromDay, state.params.toDay],
+    periodPreset: 'custom',
+    ...(aging ? { cutoffDay: state.params.cutoffDay } : {}),
+    warehouse: state.params.warehouse,
+    product: state.params.product,
+    movement: state.params.movement ?? 'all',
+  };
+}
+
+function ReportBasisToggle({ state }: { state: ListState }) {
+  const basis = state.params.basis === 'restated' ? 'restated' : 'posted';
+  return (
+    <div role="group" aria-label={businessCopy.reportsBasisGroup}>
+      <Segmented<string>
+        value={basis}
+        options={[
+          { label: businessCopy.reportsBasisOptionPosted, value: 'posted' },
+          { label: businessCopy.reportsBasisOptionRestated, value: 'restated' },
+        ]}
+        onChange={(value) => state.change({ basis: value === 'restated' ? 'restated' : 'posted' })}
+      />
+    </div>
+  );
+}
+
+async function submitReportFilters(values: Record<string, unknown>, options: FilterOptions): Promise<boolean> {
+  const { state, detail, aging, derived } = options,
+    range = dateRangeFor(derived ? String(values.periodPreset ?? 'custom') : 'custom', values.dateRange);
+  if (!range) return false;
+  state.searchFor({
+    fromDay: range[0],
+    toDay: range[1],
+    ...(aging ? { cutoffDay: String(values.cutoffDay ?? range[1]) } : {}),
+    warehouse: String(values.warehouse ?? ''),
+    product: String(values.product ?? ''),
+    movement: detail ? String(values.movement ?? 'all') : 'all',
+    basis: state.params.basis === 'restated' ? 'restated' : 'posted',
+  });
+  return true;
+}
+
+function ReportFilterFields({ detail, aging, derived }: Omit<FilterOptions, 'state'>) {
+  return (
+    <>
+      {derived && (
+        <ProFormSelect
+          name="periodPreset"
+          label={businessCopy.reportsPeriodPreset}
+          options={[
+            { value: 'current', label: businessCopy.reportsPeriodCurrent },
+            { value: 'previous', label: businessCopy.reportsPeriodPrevious },
+            { value: '30days', label: businessCopy.reportsPeriodRecent30 },
+            { value: 'custom', label: businessCopy.reportsPeriodCustom },
+          ]}
+          allowClear={false}
+        />
+      )}
+      <ProFormDateRangePicker
+        name="dateRange"
+        label={businessCopy.reportsPostedDateRange}
+        colProps={{ xs: 24, sm: 24, lg: 12 }}
+        rules={[{ required: true, message: businessCopy.reportsDateRangeRequired }]}
+        fieldProps={{ allowClear: false }}
+      />
+      {aging && (
+        <ProFormDatePicker
+          name="cutoffDay"
+          label={businessCopy.reportsAgingCutoff}
+          rules={[{ required: true, message: businessCopy.reportsAgingCutoffRequired }]}
+          fieldProps={{ allowClear: false }}
+        />
+      )}
+      <ProFormText
+        name="warehouse"
+        label={businessCopy.reportsWarehouseFilter}
+        colProps={{ xs: 24, sm: 12, lg: 6 }}
+        placeholder={businessCopy.reportsNameOrCode}
+      />
+      <ProFormText
+        name="product"
+        label={businessCopy.reportsProductFilter}
+        colProps={{ xs: 24, sm: 12, lg: 6 }}
+        placeholder={businessCopy.reportsNameOrCode}
+      />
+      {detail && (
+        <ProFormSelect
+          name="movement"
+          label={businessCopy.reportsMovementFilter}
+          options={[
+            { value: 'all', label: businessCopy.reportsMovementAll },
+            { value: 'inbound', label: businessCopy.reportsMovementInbound },
+            { value: 'outbound', label: businessCopy.reportsMovementOutbound },
+          ]}
+          allowClear={false}
+        />
+      )}
+    </>
+  );
+}
+
+function ReportFilterForm({ state, detail, aging, derived }: FilterOptions) {
+  const initial = reportFilterInitial({ state, detail, aging, derived }),
+    defaults = reportFilterDefaults({ state, detail, aging, derived }),
+    basis = state.params.basis === 'restated' ? 'restated' : 'posted';
+  return (
+    <QueryFilter<Record<string, unknown>>
+      key={JSON.stringify(initial)}
+      initialValues={initial}
+      labelWidth="auto"
+      span={{ xs: 24, sm: 12, lg: 12 }}
+      defaultCollapsed={false}
+      dateFormatter="string"
+      searchText={businessCopy.reportsFilterSubmit}
+      resetText={businessCopy.reportsFilterReset}
+      onReset={() => state.searchFor({ ...defaults, basis })}
+      submitter={{ submitButtonProps: { type: 'default' } }}
+      onFinish={(values) => submitReportFilters(values, { state, detail, aging, derived })}
+    >
+      <ReportFilterFields detail={detail} aging={aging} derived={derived} />
+    </QueryFilter>
+  );
+}
+
 export function ReportFilters({
   state,
   detail = false,
@@ -53,82 +194,11 @@ export function ReportFilters({
   aging?: boolean;
   derived?: boolean;
 }) {
-  const initial = {
-    dateRange: [state.params.fromDay, state.params.toDay],
-    periodPreset: 'custom',
-    cutoffDay: state.params.cutoffDay,
-    warehouse: state.params.warehouse,
-    product: state.params.product,
-    movement: state.params.movement ?? 'all',
-  };
+  const options = { state, detail, aging, derived };
   return (
-    <QueryFilter<Record<string, unknown>>
-      key={JSON.stringify(initial)}
-      initialValues={initial}
-      labelWidth="auto"
-      span={{ xs: 24, sm: 12, lg: 12 }}
-      defaultCollapsed={false}
-      dateFormatter="string"
-      searchText="查询"
-      resetText="本月"
-      onReset={state.reset}
-      submitter={{ submitButtonProps: { type: 'default' } }}
-      onFinish={async (values) => {
-        const range = dateRangeFor(derived ? String(values.periodPreset ?? 'custom') : 'custom', values.dateRange);
-        if (!range) return false;
-        state.searchFor({
-          fromDay: range[0],
-          toDay: range[1],
-          ...(aging ? { cutoffDay: String(values.cutoffDay ?? range[1]) } : {}),
-          warehouse: String(values.warehouse ?? ''),
-          product: String(values.product ?? ''),
-          movement: detail ? String(values.movement ?? 'all') : 'all',
-        });
-        return true;
-      }}
-    >
-      {derived && (
-        <ProFormSelect
-          name="periodPreset"
-          label="期间预设"
-          options={[
-            { value: 'current', label: '本月 1 日至昨日' },
-            { value: 'previous', label: '上月' },
-            { value: '30days', label: '近 30 天' },
-            { value: 'custom', label: '自定义' },
-          ]}
-          allowClear={false}
-        />
-      )}
-      <ProFormDateRangePicker
-        name="dateRange"
-        label="入账日期"
-        colProps={{ xs: 24, sm: 24, lg: 12 }}
-        rules={[{ required: true, message: '请选择完整入账日期范围' }]}
-        fieldProps={{ allowClear: false }}
-      />
-      {aging && (
-        <ProFormDatePicker
-          name="cutoffDay"
-          label="库龄截止日"
-          rules={[{ required: true, message: '请选择库龄截止日' }]}
-          fieldProps={{ allowClear: false }}
-        />
-      )}
-      <ProFormText name="warehouse" label="仓库" colProps={{ xs: 24, sm: 12, lg: 6 }} placeholder="名称或编码" />
-      <ProFormText name="product" label="商品" colProps={{ xs: 24, sm: 12, lg: 6 }} placeholder="名称或编码" />
-      {detail && (
-        <ProFormSelect
-          name="movement"
-          label="明细方向"
-          options={[
-            { value: 'all', label: '全部（含撤销）' },
-            { value: 'inbound', label: '入库（含撤销）' },
-            { value: 'outbound', label: '出库（含撤销）' },
-          ]}
-          allowClear={false}
-        />
-      )}
-    </QueryFilter>
+    <>
+      <ReportBasisToggle state={state} />
+      <ReportFilterForm {...options} />
+    </>
   );
 }

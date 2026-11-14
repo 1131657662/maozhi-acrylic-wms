@@ -7,6 +7,9 @@ import { reportColumns } from './columns';
 import { DerivedSummary } from './derived-summary';
 import { Reconciliation } from './reconciliation';
 import { reportKeys } from './queries';
+import { LineChartOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { ReportContextBar } from './context-bar';
+import { ReportShell } from './report-shell';
 
 const turnoverColumns = reportColumns<ReportTurnoverRow>('report-turnover');
 const agingColumns = reportColumns<ReportAgingRow>('report-aging');
@@ -22,11 +25,22 @@ export function ReportTurnover() {
       config={{
         name: 'report-turnover',
         title: '周转率',
+        icon: <LineChartOutlined />,
+        layout: ReportShell,
+        exportInHeader: true,
         columns: turnoverColumns,
         description:
           '按净出库吨数 ÷ 完整日逐日日终平均库存计算；无流水日沿用前日日终余额。调减与盘亏计入余额但不计入出库分子。',
       }}
       filters={<ReportFilters state={state} derived />}
+      beforeResults={
+        <ReportContextBar
+          view={query.isPlaceholderData ? undefined : query.data}
+          basis={state.params.basis === 'restated' ? 'restated' : 'posted'}
+          pending={query.isPending || query.isPlaceholderData}
+          unavailable={Boolean(query.error) && !query.data}
+        />
+      }
       summary={
         query.data &&
         report && (
@@ -60,10 +74,21 @@ export function ReportAging() {
       config={{
         name: 'report-aging',
         title: '库存库龄',
+        icon: <DatabaseOutlined />,
+        layout: ReportShell,
+        exportInHeader: true,
         columns: agingColumns,
         description: '截至所选日期，按先进先出计算剩余库存的存放天数；分五档展示，无法确定存放天数的数量单独列示。',
       }}
       filters={<ReportFilters state={state} aging derived />}
+      beforeResults={
+        <ReportContextBar
+          view={query.isPlaceholderData ? undefined : query.data}
+          basis={state.params.basis === 'restated' ? 'restated' : 'posted'}
+          pending={query.isPending || query.isPlaceholderData}
+          unavailable={Boolean(query.error) && !query.data}
+        />
+      }
       summary={
         query.data &&
         report && (

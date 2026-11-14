@@ -8,6 +8,9 @@ import { reportKeys } from './queries';
 import { ReportFilters, reportDefaults } from './filters';
 import { reportColumns } from './columns';
 import { Reconciliation } from './reconciliation';
+import { FileSearchOutlined, CalendarOutlined } from '@ant-design/icons';
+import { ReportContextBar } from './context-bar';
+import { ReportShell } from './report-shell';
 
 const detailColumns = reportColumns<ReportDetailRow>('report-details');
 const monthlyColumns = reportColumns<ReportMonthlyRow>('report-monthly');
@@ -21,6 +24,9 @@ export function ReportDetails() {
       config={{
         name: 'report-details',
         title: '出入库明细',
+        icon: <FileSearchOutlined />,
+        layout: ReportShell,
+        exportInHeader: true,
         columns: detailColumns,
         description: businessCopy.reportsDetailsBasis,
         extra: (
@@ -35,6 +41,14 @@ export function ReportDetails() {
         ),
       }}
       filters={<ReportFilters state={state} detail />}
+      beforeResults={
+        <ReportContextBar
+          view={query.isPlaceholderData ? undefined : query.data}
+          basis={state.params.basis === 'restated' ? 'restated' : 'posted'}
+          pending={query.isPending || query.isPlaceholderData}
+          unavailable={Boolean(query.error) && !query.data}
+        />
+      }
       summary={
         <>
           <strong>{businessLabels.reportDates}</strong>
@@ -55,6 +69,9 @@ export function ReportMonthly() {
       config={{
         name: 'report-monthly',
         title: '月度汇总',
+        icon: <CalendarOutlined />,
+        layout: ReportShell,
+        exportInHeader: true,
         columns: monthlyColumns,
         description: businessCopy.reportsMonthlyBasis,
         extra: (
@@ -64,6 +81,14 @@ export function ReportMonthly() {
         ),
       }}
       filters={<ReportFilters state={state} />}
+      beforeResults={
+        <ReportContextBar
+          view={query.isPlaceholderData ? undefined : query.data}
+          basis={state.params.basis === 'restated' ? 'restated' : 'posted'}
+          pending={query.isPending || query.isPlaceholderData}
+          unavailable={Boolean(query.error) && !query.data}
+        />
+      }
       summary={
         <>
           <strong>{businessLabels.reportDates}</strong>
