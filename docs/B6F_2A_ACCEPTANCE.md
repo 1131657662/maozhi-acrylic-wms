@@ -84,3 +84,13 @@
 在 `4dd7fe51b67c199cae17bac071ffb90a9ab5de6d` 上执行原命令 `npm run test:e2e`，未改代码、测试、超时、重试或夹具：主套件 **146/146**（16.8 分钟）、目录套件 **18/18**（3.4 分钟），合计 **164/164**，一次完整运行全绿、exit code **0**，失败/跳过/重试均为 0。日志：`.local/evidence/b6f-2a-e2e-premerge-full.log`，末尾记录 `B6F2A_PREMERGE_E2E_EXIT=0`。本轮未出现与待发/可发相关或无关的失败，无偶发失败被放过。
 
 本批 446/446 test 与构建 exit 0 沿用前述已通过记录；本轮实际新增执行的是完整 E2E，不宣称重新执行了 test/build。合并前本地 master 与远端 HEAD 均为 `170eca5a3505cf2b563a017ee4b75e68e72569b2`。
+
+## 合并收尾
+
+固定列判定规则原文及本次完整 E2E 记录已提交 `da741c7b6edcdc588a2454bb2d2a66625f0f1d68`。按用户指定命令切换 master，以 `--no-ff` 合并 `codex/b6f-2a-stock-balances`，合并消息为 `merge: b6f-2a stock pending and available`。
+
+- 功能 merge hash：`ae20ebd3758c294d8ca1a7f90213e4f630354a6b`。
+- 首次推送后远端 HEAD 与 `refs/heads/master` 均为该 hash。
+- checkout、merge、push、远端核对 exit code 均为 **0**。
+
+合并后在 `codex/b6f-2a-closeout` 同步 IMPLEMENTATION_PLAN、AUDIT_FINDINGS、规格、台账与本验收记录，再按仓库纪律以 `--no-ff` 合并推送纯文档收尾。此次只更新验收和完成状态，继续使用已验证的 446/164/0，不修改业务或测试代码。最终远端 HEAD 与收尾命令退出码在交付回复报告。B6f-2a 完成，停止，不开始 B6f-2b/c。
