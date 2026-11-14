@@ -34,6 +34,7 @@ test('020 multiple shipments or unmatched original lines stay NULL, legacy order
     const before = (await c.current()).corrections!.effective;
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // 024 is empty; remove it before the 020 guard.
     await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // 022: restore the pre-search-text migration state.
     await migrateDown(c.db); // 021 is empty; remove it before exercising 020.
@@ -47,6 +48,7 @@ test('020 multiple shipments or unmatched original lines stay NULL, legacy order
     assert.equal((await c.db.get("SELECT packages FROM stock WHERE product_code='ACR-032'"))?.packages, 200);
     // A header pointing at an order without a matching shipment must not be guessed from another order's line.
     await c.db.run("UPDATE document_corrections SET outbound_order_id='DEMO-001'");
+    await migrateDown(c.db); // 024 is empty; remove it before the 020 guard.
     await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // 022 is empty after migration reapply.
     await migrateDown(c.db); // 021 is empty; remove it before exercising 020.
@@ -67,6 +69,7 @@ test('020 backfills one shipment without changing effective amounts; non-null re
     await c.db.run('UPDATE document_correction_lines SET shipment_line_id=NULL');
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // 024 is empty; remove it before the 020 guard.
     await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // 022: restore the pre-search-text migration state.
     await migrateDown(c.db); // 021 is empty; remove it before exercising 020.
@@ -74,6 +77,7 @@ test('020 backfills one shipment without changing effective amounts; non-null re
     await migrateUp(c.db);
     assert.deepEqual((await c.detail()).body.data.corrections.effective, before);
     assert.ok((await c.db.get('SELECT shipment_line_id FROM document_correction_lines'))?.shipment_line_id);
+    await migrateDown(c.db); // 024 is empty; remove it before the 020 guard.
     await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // 022 was re-added as empty.
     await migrateDown(c.db); // Remove empty 021 before observing the 020 guard.

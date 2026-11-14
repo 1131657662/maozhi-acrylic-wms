@@ -1,20 +1,28 @@
 import { createQueryKeys } from '@lukemorales/query-key-factory';
-import { stocktakeSchema, stocktakeListSchema, stocktakeLinesSchema, stocktakePreviewSchema } from '@wms/contracts';
+import {
+  publicStocktakeSchema,
+  publicStocktakeListSchema,
+  publicStocktakeLinesSchema,
+  publicStocktakePreviewSchema,
+} from '@wms/contracts';
 import { request } from '../../api/client';
 
 export const stocktakeKeys = createQueryKeys('stocktakes', {
   list: (params: Record<string, string>) => ({
     queryKey: [params],
-    queryFn: () => request(`/stocktakes?${new URLSearchParams(params)}`, stocktakeListSchema),
+    queryFn: () => request(`/stocktakes?${new URLSearchParams(params)}`, publicStocktakeListSchema),
   }),
-  active: { queryKey: null, queryFn: () => request('/stocktakes?status=counting&pageSize=200', stocktakeListSchema) },
-  detail: (id: string) => ({ queryKey: [id], queryFn: () => request(`/stocktakes/${id}`, stocktakeSchema) }),
+  active: {
+    queryKey: null,
+    queryFn: () => request('/stocktakes?status=counting&pageSize=200', publicStocktakeListSchema),
+  },
+  detail: (id: string) => ({ queryKey: [id], queryFn: () => request(`/stocktakes/${id}`, publicStocktakeSchema) }),
   lines: (id: string, params: Record<string, string>) => ({
     queryKey: [id, params],
-    queryFn: () => request(`/stocktakes/${id}/lines?${new URLSearchParams(params)}`, stocktakeLinesSchema),
+    queryFn: () => request(`/stocktakes/${id}/lines?${new URLSearchParams(params)}`, publicStocktakeLinesSchema),
   }),
   preview: (id: string) => ({
     queryKey: [id],
-    queryFn: () => request(`/stocktakes/${id}/preview`, stocktakePreviewSchema),
+    queryFn: () => request(`/stocktakes/${id}/preview`, publicStocktakePreviewSchema),
   }),
 });

@@ -5,12 +5,12 @@ import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { Form, Alert, Button, Checkbox, Drawer, Space } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
-import { stocktakePreviewSchema, tonnes, type StocktakePreview } from '@wms/contracts';
+import { publicStocktakePreviewSchema, tonnes, type PublicStocktakePreview } from '@wms/contracts';
 import { request } from '../../api/client';
 import { usePostStocktake } from './use-post-stocktake';
 import { UnpostedTable } from './unposted-table';
 
-export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePreview; onClose: () => void }) {
+export function StocktakePostDrawer({ initial, onClose }: { initial: PublicStocktakePreview; onClose: () => void }) {
   const [preview, setPreview] = useState(initial),
     [ackToken, setAckToken] = useState(''),
     [refreshError, setRefreshError] = useState('');
@@ -23,7 +23,7 @@ export function StocktakePostDrawer({ initial, onClose }: { initial: StocktakePr
     take = preview.stocktake;
   async function refresh() {
     try {
-      setPreview(await request(`/stocktakes/${take.id}/preview`, stocktakePreviewSchema));
+      setPreview(await request(`/stocktakes/${take.id}/preview`, publicStocktakePreviewSchema));
       setRefreshError('');
     } catch (e) {
       setRefreshError(e instanceof Error ? e.message : '刷新失败');

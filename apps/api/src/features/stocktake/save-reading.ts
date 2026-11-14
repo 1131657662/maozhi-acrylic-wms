@@ -5,7 +5,8 @@ import { audit, type Actor } from '../../shared/audit.ts';
 import { ensure } from '../../shared/errors.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { lockCounting } from './window.ts';
-import { lineSelect, reading } from './read-model.ts';
+import { getStocktake, lineSelect, reading } from './read-model.ts';
+import { isBlindHidden, publicLine } from './visibility.ts';
 
 interface ReadingCommand {
   id: string;
@@ -36,7 +37,13 @@ export async function saveReading(db: Database, command: ReadingCommand) {
     const after = reading(
       (await tx.get(`${lineSelect} WHERE s.stocktake_id=? AND s.product_code=?`, [id, productCode]))!,
     );
-    await audit(tx, actor, { action: 'stocktake.reading', targetId: id, before, after });
+    const take = await getStocktake(tx, id);
+    await audit(tx, actor, {
+      action: 'stocktake.reading',
+      targetId: id,
+      before: isBlindHidden(take) ? publicLine(take, before) : before,
+      after: isBlindHidden(take) ? publicLine(take, after) : after,
+    });
     await saveCommand(tx, 'stocktake.reading', key, payload, actor, after);
     return after;
   });

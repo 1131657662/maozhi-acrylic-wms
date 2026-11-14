@@ -9,6 +9,7 @@ import { lockInventoryWriter } from '../inventory/operation.ts';
 import { activeMaster } from '../master-data/catalogs.ts';
 import { assertWarehouseOpen, journalWatermark } from './window.ts';
 import { getStocktake } from './read-model.ts';
+import { isBlindHidden, publicHeader } from './visibility.ts';
 
 async function capture(db: Database, id: string, input: CreateStocktake) {
   const codes = input.productCodes;
@@ -49,7 +50,7 @@ async function insertHeader(db: Database, input: CreateStocktake, actor: Actor) 
   const number = `PD-${time.slice(0, 10).replaceAll('-', '')}-${id.slice(0, 13).replaceAll('-', '').toUpperCase()}`;
   await db.run(
     `INSERT INTO stocktakes(id,number,warehouse_code,scope_kind,status,snapshot_at,journal_watermark,
-    snapshot_hash,line_count,created_by) VALUES(?,?,?,?,'counting',?,?,?,0,?)`,
+    snapshot_hash,line_count,created_by,mode) VALUES(?,?,?,?,'counting',?,?,?,0,?,?)`,
     [
       id,
       number,
@@ -59,6 +60,7 @@ async function insertHeader(db: Database, input: CreateStocktake, actor: Actor) 
       await journalWatermark(db, input.warehouseCode),
       '',
       actor.username,
+      input.mode ?? 'open',
     ],
   );
   await db.run('INSERT INTO stocktake_windows(stocktake_id,warehouse_code,started_at) VALUES(?,?,?)', [
@@ -70,17 +72,25 @@ async function insertHeader(db: Database, input: CreateStocktake, actor: Actor) 
 }
 export async function createStocktake(db: Database, input: CreateStocktake, key: string, actor: Actor) {
   const payload = createStocktakeSchema.parse(input);
+  // Preserve the pre-024 idempotency fingerprint for default/explicit open creation.
+  const { mode, ...legacyPayload } = payload;
+  const intent = mode === 'open' ? legacyPayload : payload;
   return db.transaction(async (tx) => {
     await lockInventoryWriter(tx);
-    const replay = await replayCommand(tx, 'stocktake.create', key, payload, actor, stocktakeSchema);
+    const replay = await replayCommand(tx, 'stocktake.create', key, intent, actor, stocktakeSchema);
     if (replay) return replay;
     await activeMaster(tx, 'warehouses', payload.warehouseCode);
     await assertWarehouseOpen(tx, payload.warehouseCode);
     const id = await insertHeader(tx, payload, actor);
     await capture(tx, id, payload);
     const after = await getStocktake(tx, id);
-    await audit(tx, actor, { action: 'stocktake.create', targetId: id, before: null, after });
-    await saveCommand(tx, 'stocktake.create', key, payload, actor, after);
+    await audit(tx, actor, {
+      action: 'stocktake.create',
+      targetId: id,
+      before: null,
+      after: isBlindHidden(after) ? publicHeader(after) : after,
+    });
+    await saveCommand(tx, 'stocktake.create', key, intent, actor, after);
     return after;
   });
 }

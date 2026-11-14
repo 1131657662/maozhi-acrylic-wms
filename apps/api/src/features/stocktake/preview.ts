@@ -1,9 +1,11 @@
-import { stocktakePreviewSchema } from '@wms/contracts';
+import { stocktakePreviewSchema, stocktakeCopy } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { hash } from '../../shared/hash.ts';
 import { getStocktake } from './read-model.ts';
 import { unpostedDocuments } from './unposted.ts';
 import { journalWatermark } from './window.ts';
+import { isBlindHidden } from './visibility.ts';
+import { ensure } from '../../shared/errors.ts';
 
 export async function balanceMismatches(db: Database, id: string, warehouse: string): Promise<number> {
   const row = await db.get(
@@ -15,8 +17,9 @@ export async function balanceMismatches(db: Database, id: string, warehouse: str
   return Number(row?.n ?? 0);
 }
 export async function stocktakePreview(db: Database, id: string) {
-  const take = await getStocktake(db, id),
-    unposted = await unpostedDocuments(db, take);
+  const take = await getStocktake(db, id);
+  ensure(!isBlindHidden(take), 'STOCKTAKE_NOT_REVEALED', stocktakeCopy.revealFirst);
+  const unposted = await unpostedDocuments(db, take);
   const watermark = await journalWatermark(db, take.warehouseCode);
   const original = await db.get('SELECT journal_watermark FROM stocktakes WHERE id=?', [id]);
   const mismatch = await balanceMismatches(db, id, take.warehouseCode),

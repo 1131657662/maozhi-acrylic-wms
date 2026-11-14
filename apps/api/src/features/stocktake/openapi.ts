@@ -1,20 +1,40 @@
 import { z } from 'zod';
 import {
   createStocktakeSchema,
-  stocktakeSchema,
-  stocktakeListSchema,
-  stocktakeLinesSchema,
+  publicStocktakeSchema as stocktakeSchema,
+  publicStocktakeListSchema as stocktakeListSchema,
+  publicStocktakeLinesSchema as stocktakeLinesSchema,
   stocktakeQuerySchema,
   saveReadingSchema,
-  stocktakeLineSchema,
-  stocktakePreviewSchema,
+  publicStocktakeLineSchema as stocktakeLineSchema,
+  publicStocktakePreviewSchema as stocktakePreviewSchema,
   stocktakePostSchema,
   voidStocktakeSchema,
   masterItemsSchema,
+  revealStocktakeSchema,
+  stocktakeExportQuerySchema,
 } from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
 
 export const stocktakeOperations: Operation[] = [
+  ...['/stocktake/{id}/reveal', '/stocktakes/{id}/reveal'].map((path): Operation => ({
+    method: 'post',
+    path,
+    summary: '不可逆揭示盲盘账面与差异；不写库存，仅一次审计',
+    body: revealStocktakeSchema,
+    response: stocktakePreviewSchema,
+    channel: 'web',
+    idempotent: true,
+  })),
+  {
+    method: 'get',
+    path: '/stocktakes/{id}/export',
+    summary: '盘点空白或结果 XLSX；未揭示盲盘不含账面与差异',
+    query: stocktakeExportQuerySchema,
+    response: z.string(),
+    channel: 'web',
+    responseMedia: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  },
   {
     method: 'get',
     path: '/stocktakes',
