@@ -250,3 +250,7 @@ GET /api/v1/stocktakes/:id/export?kind=blank|result
 收尾完整 `npm run test:e2e` 一次执行全绿：主套件 **153/153**（18.5 分钟）、目录套件 **18/18**（3.6 分钟），合计 **171/171**，失败/跳过/重试均 0，命令 exit 0。入库/出库拖拽观察窗口分别约 2819.8ms / 2964.4ms，均未观测到超过原 50ms 门槛的长任务；没有修改门槛、删除断言或进行单独复验，本轮无需启用性能例外合并条件。§14.1 的首轮失败记录继续保留，AF-056 / B6i 不因本次通过而关闭。日志 `.local/evidence/b6e1-closeout/e2e-full.log`，退出码 `e2e-full.exit`。
 
 本次仅应用已提交迁移、执行冒烟及更新收尾文档，无产品代码或测试实现变更；单测沿用本批最终 **483/483**、构建 exit 0，证据见 §14.1。提交前复核文档与日志一致、备份及本地证据未纳入 Git，`git diff --check` 通过。用户已验收，完整 E2E 已满足合并条件。
+
+已执行 `git checkout master`、`git merge --no-ff codex/b6e-1-blind-stocktake -m "merge: b6e-1 blind stocktake"`、`git push origin master`，exit 均 0；功能 merge hash 为 `9c788eda06cf3715926743de1fab8deae7e80307`。推送后 `git ls-remote origin HEAD refs/heads/master` 两项均为该 hash，核对 exit 0。
+
+按 AGENTS.md「合并后更新批次表与审计发现」及「master只接受非快进合并提交」的规则，在 `codex/b6e-1-closeout` 同步 IMPLEMENTATION_PLAN、AUDIT_FINDINGS 与台账，再以 `--no-ff` 合并推送。最终远端 HEAD 包含该文档收尾合并，交付回复报告最终值。B6e-1完成，B6e其余步骤仍后置；收尾后停止，不开始B6e-2。
