@@ -33,6 +33,7 @@ test('021 records cannot be updated/deleted; nonempty down rejects before any DD
     await assert.rejects(c.db.run('DELETE FROM document_date_corrections'), /immutable/);
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // Remove empty 025 before the previous migration boundary.
     await migrateDown(c.db); // 024 is empty; remove it before the 021 guard.
     await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // Restore the pre-022 state before testing the 021 guard.

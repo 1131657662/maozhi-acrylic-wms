@@ -5,6 +5,7 @@ import { ensure } from '../../shared/errors.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { createOperation, lockInventoryWriter } from '../inventory/operation.ts';
 import { postCountedInventory } from '../inventory/stocktake-posting.ts';
+import { postDiscoveredInventory } from '../inventory/discovery-posting.ts';
 import { lockCounting } from './window.ts';
 import { lockUnpostedOrders } from './unposted.ts';
 import { stocktakePreview } from './preview.ts';
@@ -20,7 +21,9 @@ async function commitPosting(db: Database, command: PostCommand, before: Stockta
   const input = stocktakePostSchema.parse(command.input),
     { id, actor } = command;
   const operation = await createOperation(db, 'stocktake.post', id, input.reason, actor);
-  const changed = await postCountedInventory(db, operation, before.stocktake.warehouseCode);
+  const changed =
+    (await postCountedInventory(db, operation, before.stocktake.warehouseCode)) +
+    (await postDiscoveredInventory(db, operation, before.stocktake.warehouseCode));
   ensure(changed === before.stocktake.changedCount, 'STOCKTAKE_CHANGE_MISMATCH', '差异行数变化，操作已回滚');
   await db.run(
     `UPDATE stocktakes SET status='completed',revision=revision+1,closed_at=UTC_TIMESTAMP(3),

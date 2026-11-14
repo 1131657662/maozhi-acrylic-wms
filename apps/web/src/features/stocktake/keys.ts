@@ -1,6 +1,6 @@
 import { createQueryKeys } from '@lukemorales/query-key-factory';
 import {
-  publicStocktakeSchema,
+  publicStocktakeDetailSchema,
   publicStocktakeListSchema,
   publicStocktakeLinesSchema,
   publicStocktakePreviewSchema,
@@ -16,7 +16,10 @@ export const stocktakeKeys = createQueryKeys('stocktakes', {
     queryKey: null,
     queryFn: () => request('/stocktakes?status=counting&pageSize=200', publicStocktakeListSchema),
   },
-  detail: (id: string) => ({ queryKey: [id], queryFn: () => request(`/stocktakes/${id}`, publicStocktakeSchema) }),
+  detail: (id: string) => ({
+    queryKey: [id],
+    queryFn: () => request(`/stocktakes/${id}`, publicStocktakeDetailSchema),
+  }),
   lines: (id: string, params: Record<string, string>) => ({
     queryKey: [id, params],
     queryFn: () => request(`/stocktakes/${id}/lines?${new URLSearchParams(params)}`, publicStocktakeLinesSchema),

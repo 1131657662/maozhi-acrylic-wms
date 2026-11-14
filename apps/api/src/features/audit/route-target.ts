@@ -11,6 +11,13 @@ interface RouteRule {
 }
 const routes: RouteRule[] = [
   {
+    pattern: /^\/stocktakes?\/([^/]+)\/discoveries(?:\/[^/]+)?$/,
+    action: (_, method) => `stocktake.discovery.${verb(method)}`,
+    kind: 'stocktake',
+    id: 1,
+    channel: 'web',
+  },
+  {
     pattern: /^\/(inbound|outbound)\/([^/]+)\/date-corrections$/,
     action: (m, method) => (method === 'GET' ? `${m[1]}.read` : `date-correction.${m[1]}`),
     kind: (m) => m[1]!,

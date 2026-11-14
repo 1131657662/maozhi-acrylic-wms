@@ -2,12 +2,14 @@ import { Router } from 'express';
 import type { Database } from '../../db/mysql.ts';
 import { requireChannel } from '../../middleware/http.ts';
 import { stocktakeController } from './controller.ts';
+import { discoveryRouter } from './discovery-router.ts';
 
 export function stocktakeRouter(db: Database, origins: string[]): Router {
   const router = Router(),
     controller = stocktakeController(db);
   router.use('/stocktakes', requireChannel('web', origins));
   router.use('/stocktake', requireChannel('web', origins));
+  router.use(discoveryRouter(db));
   router.post('/stocktake/:id/reveal', controller.reveal);
   router.get('/stocktakes', controller.list);
   router.get('/stocktakes/options/products', controller.products);

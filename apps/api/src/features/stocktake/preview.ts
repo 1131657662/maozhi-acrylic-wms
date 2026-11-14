@@ -1,4 +1,4 @@
-import { stocktakePreviewSchema, stocktakeCopy } from '@wms/contracts';
+import { stocktakePreviewSchema, stocktakeCopy, discoveryCopy } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { hash } from '../../shared/hash.ts';
 import { getStocktake } from './read-model.ts';
@@ -6,6 +6,7 @@ import { unpostedDocuments } from './unposted.ts';
 import { journalWatermark } from './window.ts';
 import { isBlindHidden } from './visibility.ts';
 import { ensure } from '../../shared/errors.ts';
+import { discoveryState } from './discovery-validation.ts';
 
 export async function balanceMismatches(db: Database, id: string, warehouse: string): Promise<number> {
   const row = await db.get(
@@ -22,6 +23,7 @@ export async function stocktakePreview(db: Database, id: string) {
   const unposted = await unpostedDocuments(db, take);
   const watermark = await journalWatermark(db, take.warehouseCode);
   const original = await db.get('SELECT journal_watermark FROM stocktakes WHERE id=?', [id]);
+  const discoveries = await discoveryState(db, id, take.warehouseCode);
   const mismatch = await balanceMismatches(db, id, take.warehouseCode),
     blockers: { code: string; message: string }[] = [];
   const extra =
@@ -32,13 +34,16 @@ export async function stocktakePreview(db: Database, id: string) {
               `SELECT COUNT(*) AS n FROM stock b
     JOIN master_products p ON p.code=b.product_code AND p.inventory_eligible=1 AND p.source_del_flag=0
     WHERE b.warehouse_code=? AND b.source_del_flag=0 AND NOT EXISTS(SELECT 1 FROM stocktake_snapshots s
-      WHERE s.stocktake_id=? AND s.product_code=b.product_code)`,
-              [take.warehouseCode, id],
+      WHERE s.stocktake_id=? AND s.product_code=b.product_code)
+    AND NOT EXISTS(SELECT 1 FROM stocktake_discovery_lines d WHERE d.stocktake_id=? AND d.product_code=b.product_code)`,
+              [take.warehouseCode, id, id],
             )
           )?.n,
         )
       : 0;
   if (take.status !== 'counting') blockers.push({ code: 'STOCKTAKE_CLOSED', message: '盘点已终结，不能再次回写' });
+  if (discoveries.overlap) blockers.push({ code: 'DISCOVERY_OVERLAP', message: discoveryCopy.overlap });
+  if (discoveries.invalid) blockers.push({ code: 'DISCOVERY_POSTING_INVALID', message: discoveryCopy.invalidPosting });
   if (take.recordedCount !== take.lineCount)
     blockers.push({
       code: 'STOCKTAKE_INCOMPLETE',
@@ -52,6 +57,6 @@ export async function stocktakePreview(db: Database, id: string) {
   const result = { stocktake: take, unposted, blockers };
   return stocktakePreviewSchema.parse({
     ...result,
-    token: hash(JSON.stringify({ ...result, watermark, mismatch, extra })),
+    token: hash(JSON.stringify({ ...result, watermark, mismatch, extra, discoveries })),
   });
 }

@@ -83,13 +83,19 @@
 | GET | /api/v1/web/reports/monthly | web | 仓库商品月报，支持入账/重述及守恒桥接；实际余额不切换，无锚点的重述余额为 null |
 | GET | /api/v1/web/reports/turnover | web | 吨数净出库除以完整日逐日日终平均库存，含调整盘点说明和对账诊断 |
 | GET | /api/v1/web/reports/aging | web | 截止水位吨数 FIFO 库龄五档，未知余额独立显示并提供对账诊断 |
+| POST | /api/v1/stocktake/{id}/discoveries | web | 登记快照外零账面商品，独立包克及原因必填，不写库存 |
+| PATCH | /api/v1/stocktake/{id}/discoveries/{lineId} | web | 版本校验后修改进行中发现行，旧回写令牌失效 |
+| DELETE | /api/v1/stocktake/{id}/discoveries/{lineId} | web | 版本校验后删除进行中发现行，保留删除审计 |
+| POST | /api/v1/stocktakes/{id}/discoveries | web | 登记快照外零账面商品，独立包克及原因必填，不写库存 |
+| PATCH | /api/v1/stocktakes/{id}/discoveries/{lineId} | web | 版本校验后修改进行中发现行，旧回写令牌失效 |
+| DELETE | /api/v1/stocktakes/{id}/discoveries/{lineId} | web | 版本校验后删除进行中发现行，保留删除审计 |
 | POST | /api/v1/stocktake/{id}/reveal | web | 不可逆揭示盲盘账面与差异；不写库存，仅一次审计 |
 | POST | /api/v1/stocktakes/{id}/reveal | web | 不可逆揭示盲盘账面与差异；不写库存，仅一次审计 |
 | GET | /api/v1/stocktakes/{id}/export | web | 盘点空白或结果 XLSX；未揭示盲盘不含账面与差异 |
 | GET | /api/v1/stocktakes | web | 盘点分页查询；status=counting 为暂停窗口常驻入口 |
 | POST | /api/v1/stocktakes | web | 生成固定ERP库存快照并持久暂停同仓确认、调整、撤销 |
 | GET | /api/v1/stocktakes/options/products | web | 按编码或名称查询ERP盘点商品，最多100条 |
-| GET | /api/v1/stocktakes/{id} | web | 盘点头及固定快照/实盘摘要 |
+| GET | /api/v1/stocktakes/{id} | web | 盘点摘要及发现行分页；未揭示盲盘不返回账面 |
 | GET | /api/v1/stocktakes/{id}/lines | web | 盘点行服务端分页，最大200行 |
 | PUT | /api/v1/stocktakes/{id}/lines/{product} | web | 按行实盘，版本校验及幂等，不改库存 |
 | GET | /api/v1/stocktakes/{id}/preview | web | 差异与快照后未入账收发货，token绑定完整清单 |

@@ -1,15 +1,23 @@
-import { publicStocktakePreviewSchema, type StocktakeQuery, type StocktakeLine } from '@wms/contracts';
+import {
+  publicStocktakePreviewSchema,
+  publicStocktakeDetailSchema,
+  stocktakeQuerySchema,
+  type StocktakeQuery,
+  type StocktakeLine,
+} from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { getStocktake, listStocktakes, stocktakeLines } from './read-model.ts';
 import { stocktakePreview } from './preview.ts';
 import { publicHeader, publicLine } from './visibility.ts';
+import { discoveryPage } from './discovery-read.ts';
 
 export async function publicStocktakeList(db: Database, query: StocktakeQuery) {
   const result = await listStocktakes(db, query);
   return { ...result, items: result.items.map(publicHeader) };
 }
-export async function publicStocktakeDetail(db: Database, id: string) {
-  return publicHeader(await getStocktake(db, id));
+export async function publicStocktakeDetail(db: Database, id: string, query = stocktakeQuerySchema.parse({})) {
+  const take = publicHeader(await getStocktake(db, id));
+  return publicStocktakeDetailSchema.parse({ ...take, discoveries: await discoveryPage(db, id, query) });
 }
 export async function publicStocktakeLines(db: Database, id: string, query: StocktakeQuery) {
   const take = await getStocktake(db, id);

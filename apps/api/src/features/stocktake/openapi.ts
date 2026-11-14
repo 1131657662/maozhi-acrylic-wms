@@ -13,10 +13,13 @@ import {
   masterItemsSchema,
   revealStocktakeSchema,
   stocktakeExportQuerySchema,
+  publicStocktakeDetailSchema,
 } from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
+import { discoveryOperations } from './discovery-openapi.ts';
 
 export const stocktakeOperations: Operation[] = [
+  ...discoveryOperations,
   ...['/stocktake/{id}/reveal', '/stocktakes/{id}/reveal'].map((path): Operation => ({
     method: 'post',
     path,
@@ -63,8 +66,9 @@ export const stocktakeOperations: Operation[] = [
   {
     method: 'get',
     path: '/stocktakes/{id}',
-    summary: '盘点头及固定快照/实盘摘要',
-    response: stocktakeSchema,
+    summary: '盘点摘要及发现行分页；未揭示盲盘不返回账面',
+    query: stocktakeQuerySchema,
+    response: publicStocktakeDetailSchema,
     channel: 'web',
   },
   {

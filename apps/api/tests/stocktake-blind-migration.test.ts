@@ -18,7 +18,7 @@ test('B6e-1 024 历史盘点默认为明盘，快照不变；无盲盘证据可�
     );
     const before = await c.db.all('SELECT * FROM stocktake_snapshots');
     await assert.rejects(assertStocktakeBlindReady(c.db), /024/);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '024_stocktake_blind');
     await assertStocktakeBlindReady(c.db);
     assert.deepEqual(await c.db.get('SELECT mode,revealed_at FROM stocktakes'), { mode: 'open', revealed_at: null });
     assert.deepEqual(await c.db.all('SELECT * FROM stocktake_snapshots'), before);
@@ -35,6 +35,7 @@ test('B6e-1 024 已有盲盘即拒绝 down 且数据、迁移状态均不变', a
   const c = await fixture();
   try {
     await createStocktake(c.db, { warehouseCode: 'DEMO-WH', mode: 'blind' }, randomUUID(), actor);
+    await migrateDown(c.db); // Remove empty 025 before the nonempty 024 guard.
     const before = await businessFingerprint(c.db);
     await assert.rejects(migrateDown(c.db), /拒绝回退.*盲盘/);
     assert.deepEqual(await businessFingerprint(c.db), before);

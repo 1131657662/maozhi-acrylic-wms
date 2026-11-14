@@ -55,6 +55,7 @@ test('023 正数CHECK、父版本FK、操作号唯一约束与不可变触发器
 test('023 非空 down 在任何DDL及迁移状态改变之前拒绝', async () => {
   const c = await catalogFixture();
   try {
+    await migrateDown(c.db); // Remove empty 025 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 024 before checking the 023 evidence guard.
     const v = (await upload(c.db, '')).version!;
     await abandonCandidate(c.db, { versionId: v.versionId, key: randomUUID(), reason: '保留证据', actor });
