@@ -53,6 +53,7 @@ export const webOutboundRowSchema = z.strictObject({
   matchedLineCount: integer.nonnegative().optional(),
   matchedLines: z.array(webMatchedLineSchema).optional(),
 });
+export const webStockQuantitySchema = z.strictObject({ packages: integer, weightGrams: integer });
 export const webStockRowSchema = z.strictObject({
   id: z.string(),
   source: inventoryScopeResult,
@@ -63,6 +64,9 @@ export const webStockRowSchema = z.strictObject({
   productName: z.string(),
   packages: integer,
   weightGrams: integer,
+  onHand: webStockQuantitySchema,
+  pending: z.strictObject({ packages: integer.nonnegative(), weightGrams: integer.nonnegative() }),
+  available: webStockQuantitySchema,
 });
 export const webAuditRowSchema = auditRowSchema;
 export const webAuditDetailSchema = auditDetailSchema;
@@ -88,6 +92,8 @@ export const webStockListSchema = z.strictObject({
   source: inventoryScopeResult,
   items: z.array(webStockRowSchema),
   subtotal: z.strictObject({ packages: integer, weightGrams: integer }),
+  asOf: z.iso.datetime(),
+  watermark: z.string().regex(/^[a-f0-9]{64}$/),
 });
 export const webAuditListSchema = z.strictObject({
   ...envelope,

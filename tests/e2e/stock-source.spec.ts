@@ -120,6 +120,8 @@ test('商品库存空态与无权限：不出现其他用途入口或占位', as
               pageSize: 50,
               viewToken: 'empty',
               subtotal: { packages: 0, weightGrams: 0 },
+              asOf: '2026-11-14T00:00:00.000Z',
+              watermark: '0'.repeat(64),
             },
       },
     }),

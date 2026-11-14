@@ -59,7 +59,7 @@ export function displayColumn<Row>(kind: ExportKind, column: ProColumns<Row>): P
   const preserve =
     (kind === 'audit' && ['action', 'objectLabel', 'result'].includes(field.key)) ||
     ['receiptNo', 'orderNo', 'status'].includes(field.key) ||
-    (kind === 'stock' && ['packages', 'weightGrams'].includes(field.key));
+    (kind === 'stock' && ['packages', 'weightGrams', 'pending', 'available'].includes(field.key));
   return {
     ...column,
     hideInTable: false,

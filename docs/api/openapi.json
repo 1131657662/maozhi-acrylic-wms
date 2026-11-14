@@ -30159,15 +30159,40 @@
                     "data": {
                       "additionalProperties": false,
                       "properties": {
+                        "asOf": {
+                          "$ref": "#/components/schemas/S_4747412d47680923"
+                        },
                         "items": {
                           "items": {
                             "additionalProperties": false,
                             "properties": {
+                              "available": {
+                                "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+                              },
                               "id": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
+                              "onHand": {
+                                "$ref": "#/components/schemas/S_beea1a5ad5273a50"
+                              },
                               "packages": {
                                 "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
+                              "pending": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "packages": {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  },
+                                  "weightGrams": {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  }
+                                },
+                                "required": [
+                                  "packages",
+                                  "weightGrams"
+                                ],
+                                "type": "object"
                               },
                               "productCode": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
@@ -30200,7 +30225,10 @@
                               "productCode",
                               "productName",
                               "packages",
-                              "weightGrams"
+                              "weightGrams",
+                              "onHand",
+                              "pending",
+                              "available"
                             ],
                             "type": "object"
                           },
@@ -30226,6 +30254,9 @@
                         },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "watermark": {
+                          "$ref": "#/components/schemas/S_2bc7825d922e6db8"
                         }
                       },
                       "required": [
@@ -30235,7 +30266,9 @@
                         "viewToken",
                         "source",
                         "items",
-                        "subtotal"
+                        "subtotal",
+                        "asOf",
+                        "watermark"
                       ],
                       "type": "object"
                     },

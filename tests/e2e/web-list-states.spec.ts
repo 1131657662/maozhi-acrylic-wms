@@ -33,7 +33,14 @@ for (const [kind, path] of [
                   page: 1,
                   pageSize: 20,
                   viewToken: 'empty',
-                  ...(kind === 'stock' ? { source: 'inventory', subtotal: { packages: 0, weightGrams: 0 } } : {}),
+                  ...(kind === 'stock'
+                    ? {
+                        source: 'inventory',
+                        subtotal: { packages: 0, weightGrams: 0 },
+                        asOf: '2026-11-14T00:00:00.000Z',
+                        watermark: '0'.repeat(64),
+                      }
+                    : {}),
                 }
               : null,
         },
