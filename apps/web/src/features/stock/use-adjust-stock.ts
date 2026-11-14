@@ -4,6 +4,7 @@ import { stockAdjustmentSchema, stockAdjustmentResultSchema, type StockAdjustmen
 import { request } from '../../api/client';
 import { stockKeys } from './keys';
 import { webListKeys } from '../web-lists/keys';
+import { movementKeys } from './movement-keys';
 
 export function useAdjustStock() {
   const client = useQueryClient();
@@ -21,6 +22,7 @@ export function useAdjustStock() {
       intent.clear();
       await client.invalidateQueries({ queryKey: stockKeys._def });
       await client.invalidateQueries({ queryKey: webListKeys._def });
+      await client.invalidateQueries({ queryKey: movementKeys._def });
     },
   });
 }

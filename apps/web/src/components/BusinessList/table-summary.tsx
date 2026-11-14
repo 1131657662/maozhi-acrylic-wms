@@ -21,13 +21,15 @@ export function renderTableSummary<Row>(props: {
   columns: ProColumns<Row>[];
   preferences: ColumnStates;
   cells: Readonly<Record<string, ReactNode>>;
+  expandable?: boolean;
 }) {
   return (
     <Table.Summary fixed="bottom">
       <Table.Summary.Row>
         <Table.Summary.Cell index={0} />
+        {props.expandable && <Table.Summary.Cell index={1} />}
         {summaryColumns(props.columns, props.preferences).map((column, index) => (
-          <Table.Summary.Cell key={columnKey(column)} index={index + 1} align={column.align}>
+          <Table.Summary.Cell key={columnKey(column)} index={index + (props.expandable ? 2 : 1)} align={column.align}>
             <span data-summary-field={columnKey(column)}>{props.cells[columnKey(column)] ?? '—'}</span>
           </Table.Summary.Cell>
         ))}

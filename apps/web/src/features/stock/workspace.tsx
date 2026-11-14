@@ -15,11 +15,28 @@ import { stockListColumns } from './list-columns';
 import { StockListSubtotal } from './list-subtotal';
 import { stockPageCopy } from './stock-copy';
 import { stockTableSummary } from './table-summary';
+import { useStockPeek } from './use-stock-peek';
+import { MovementDrawer } from './movement-drawer';
+import { useLocation } from '@umijs/max';
 
 export function StockWorkspace() {
+  const location = useLocation();
   const state = useListState('warehouseCode', { scope: 'inventory' }, {}, ['source']);
   const stockListQuery = useQuery({ ...webListKeys.stock(state.params), placeholderData: keepPreviousData });
   const [selected, setSelected] = useState<WebStockRow | null>(null);
+  const [journalRow, setJournalRow] = useState<WebStockRow | null>(null);
+  const scope = JSON.stringify({
+    params: state.params,
+    watermark: stockListQuery.data?.watermark,
+    refreshedAt: stockListQuery.dataUpdatedAt,
+    rows: stockListQuery.data?.items.map((row) => row.id),
+  });
+  const expandable = useStockPeek({
+    rows: stockListQuery.data?.items ?? [],
+    scope,
+    disabled: stockListQuery.isPlaceholderData ?? false,
+    open: setJournalRow,
+  });
   return (
     <>
       <BusinessList
@@ -29,10 +46,20 @@ export function StockWorkspace() {
         filters={<StockFilters state={state} />}
         summary={<StockListSubtotal subtotal={stockListQuery.data?.subtotal} />}
         tableSummary={stockTableSummary}
+        expandable={expandable}
       >
         <StockJournal />
       </BusinessList>
       {selected && <AdjustmentDrawer row={selected} onClose={() => setSelected(null)} />}
+      {journalRow && (
+        <MovementDrawer
+          row={journalRow}
+          scope={scope}
+          returnTo={location.pathname + location.search}
+          open
+          close={() => setJournalRow(null)}
+        />
+      )}
     </>
   );
 }

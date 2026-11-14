@@ -61,7 +61,12 @@ test('B1a3 调整空原因 422、库存不足 409；错误保留输入且数据�
     await page.getByLabel('调整原因', { exact: true }).fill('核验库存不足时的恢复');
     const response = page.waitForResponse((res) => res.url().endsWith('/stock/adjustments'));
     await page.getByRole('button', { name: '确认调整库存' }).click();
+    await page.getByRole('button', { name: '确认提交', exact: true }).click();
     expect((await response).status()).toBe(409);
+    await page
+      .getByRole('dialog', { name: '确认库存调整' })
+      .getByRole('button', { name: /^取\s*消$/ })
+      .click();
     await expect(page.locator('.ant-alert').filter({ hasText: '库存包数或实重不足，操作未执行' })).toBeVisible();
     await expect(page.getByLabel('调整原因', { exact: true })).toHaveValue('核验库存不足时的恢复');
     expect(await inventorySnapshot(db)).toEqual(before);
@@ -117,9 +122,10 @@ test('B1a3 跨单调整：不改两张单据，调整前后值与 SQL delta 一�
     await screenshotWidths(page, 'b1a3-stock-adjustment');
     const response = page.waitForResponse((res) => res.url().endsWith('/stock/adjustments'));
     await page.getByRole('button', { name: '确认调整库存' }).click();
+    await page.getByRole('button', { name: '确认提交', exact: true }).click();
     const saved = await response;
     expect(saved.status()).toBe(200);
-    await expect(page.getByText('库存调整已入账', { exact: true })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: '库存调整 · 库存商品' })).toBeHidden();
     expect(
       (
         await post(

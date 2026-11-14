@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stockMovementOperations } from './features/stock/movement-openapi.ts';
 import { masterOperations } from './features/master-data/openapi.ts';
 import { shareSchemas, type OpenApiPaths } from './openapi-schemas.ts';
 import { webListOperations } from './features/web-lists/openapi.ts';
@@ -66,6 +67,7 @@ export interface Operation {
   safeEnvelope?: boolean;
 }
 export const operations: Operation[] = [
+  ...stockMovementOperations,
   ...shipmentOperations,
   ...scanWorkbenchOperations,
   {

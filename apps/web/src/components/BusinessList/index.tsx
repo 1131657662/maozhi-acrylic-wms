@@ -18,6 +18,7 @@ import { listFeedback } from './list-feedback';
 import { Card, PageShell } from '../ui';
 import { spacing } from '../../theme/design-tokens';
 import type { ListTableSummary } from './table-summary';
+import type { TableProps } from 'antd';
 
 interface Config<Row> {
   name: ExportKind;
@@ -49,6 +50,7 @@ interface Props<Row> {
   children?: ReactNode;
   summary?: ReactNode;
   tableSummary?: ListTableSummary<Row>;
+  expandable?: TableProps<Row>['expandable'];
   beforeResults?: ReactNode;
   resultView?: ReactNode;
 }
@@ -145,6 +147,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
               reload={query.refetch}
               summary={props.summary}
               tableSummary={props.tableSummary}
+              expandable={props.expandable}
               emptyText={config.emptyText}
             />
           )}

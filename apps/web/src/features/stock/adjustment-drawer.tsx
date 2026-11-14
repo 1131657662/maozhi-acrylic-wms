@@ -5,13 +5,15 @@ import { RequestError } from '../../components/RequestError';
 import { useState } from 'react';
 import { Form, Alert, Button, Drawer, Space } from 'antd';
 import { ProDescriptions, ProForm } from '@ant-design/pro-components';
-import { tonnes, type SourceStockRow } from '@wms/contracts';
+import { tonnes, type SourceStockRow, type WebStockRow } from '@wms/contracts';
 import { tonnesDeltaToGrams } from '../../lib/weight-input';
 import { useSourceStock } from './use-source-stock';
 import { useAdjustStock } from './use-adjust-stock';
 import { AdjustmentFields, type AdjustmentValues } from './adjustment-fields';
+import { useLockedConfirm } from '../../components/form-protection/use-locked-confirm';
+import { movementCopy as copy } from './movement-copy';
 
-export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClose: () => void }) {
+export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow | WebStockRow; onClose: () => void }) {
   const [before, setBefore] = useState({ packages: row.packages, weightGrams: row.weightGrams });
   const [reloadError, setReloadError] = useState('');
   const stock = useSourceStock();
@@ -19,6 +21,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stock-adjust`, `${row.warehouseCode}:${row.productCode}`);
   const lock = useSubmitLock();
+  const confirm = useLockedConfirm();
   useFormErrors(adjust.error, form);
   async function refresh() {
     const result = await stock.refetch();
@@ -33,17 +36,46 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
     setReloadError('');
   }
   async function submit(values: AdjustmentValues) {
+    const packagesDelta = values.packagesDelta;
+    const weightDeltaGrams = tonnesDeltaToGrams(values.weightTonnesDelta);
+    const after = { packages: before.packages + packagesDelta, weightGrams: before.weightGrams + weightDeltaGrams };
     try {
-      await adjust.mutateAsync({
-        warehouseCode: row.warehouseCode,
-        productCode: row.productCode,
-        expected: before,
-        packagesDelta: values.packagesDelta,
-        weightDeltaGrams: tonnesDeltaToGrams(values.weightTonnesDelta),
-        reason: values.reason,
+      const accepted = await confirm.confirm({
+        title: copy.confirmation,
+        content: (
+          <Space orientation="vertical">
+            <span>
+              {copy.before}：{before.packages} 包 / {tonnes(before.weightGrams)} 吨
+            </span>
+            <span>
+              {copy.after}：{after.packages} 包 / {tonnes(after.weightGrams)} 吨
+            </span>
+            <span>
+              {copy.delta}：{packagesDelta > 0 ? '+' : ''}
+              {packagesDelta} 包 / {weightDeltaGrams > 0 ? '+' : ''}
+              {tonnes(weightDeltaGrams)} 吨
+            </span>
+            <span>
+              {copy.reason}：{values.reason}
+            </span>
+          </Space>
+        ),
+        okText: copy.confirm,
+        cancelText: copy.cancel,
+        onOk: async () => {
+          await adjust.mutateAsync({
+            warehouseCode: row.warehouseCode,
+            productCode: row.productCode,
+            expected: before,
+            packagesDelta,
+            weightDeltaGrams,
+            reason: values.reason,
+          });
+          draft.saved();
+        },
       });
-      draft.saved();
-      return true;
+      if (accepted) onClose();
+      return false;
     } catch {
       return false;
     }
@@ -53,10 +85,10 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
       open
       title="库存调整 · 库存商品"
       size={560}
-      onClose={() => void draft.leave(onClose)}
-      closable={{ disabled: adjust.isPending }}
+      onClose={lock.busy || adjust.isPending ? undefined : () => void draft.leave(onClose)}
+      closable={{ disabled: adjust.isPending || lock.busy || confirm.busy }}
       mask={{ closable: false }}
-      keyboard={!adjust.isPending}
+      keyboard={!adjust.isPending && !lock.busy && !confirm.busy}
     >
       <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
         <ProDescriptions
@@ -108,7 +140,7 @@ export function AdjustmentDrawer({ row, onClose }: { row: SourceStockRow; onClos
               form={form}
               onValuesChange={draft.change}
               onFinish={(values) => lock.run(() => submit(values))}
-              disabled={lock.busy || adjust.isPending}
+              disabled={lock.busy || adjust.isPending || confirm.busy}
               initialValues={{ packagesDelta: 0, weightTonnesDelta: 0 }}
               submitter={{
                 submitButtonProps: lock.button,
