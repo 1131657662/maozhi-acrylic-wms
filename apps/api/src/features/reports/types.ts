@@ -1,5 +1,6 @@
 import type { ReportDetailRow, ReportMonthlyRow, ReportQuery, ReportMeta } from '@wms/contracts';
 import type { ReportSnapshot } from './snapshot.ts';
+import type { MonthlyDocuments } from './monthly-documents.ts';
 export interface Period {
   key: string;
   start: string;
@@ -32,6 +33,7 @@ export interface Cell {
   snapshotGrams?: number | null;
 }
 export interface Projection {
+  monthlyDocuments: Map<string, MonthlyDocuments>;
   snapshot: ReportSnapshot;
   cells: Map<string, Cell>;
   periods: Period[];

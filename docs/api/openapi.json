@@ -33235,6 +33235,58 @@
                         "bridge": {
                           "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
                         },
+                        "chart": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "buckets": {
+                              "items": false,
+                              "maxItems": 5,
+                              "minItems": 5,
+                              "prefixItems": [
+                                {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                }
+                              ],
+                              "type": "array"
+                            },
+                            "closingGrams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            },
+                            "empty": {
+                              "$ref": "#/components/schemas/S_7cb541e84f226754"
+                            },
+                            "over90Percent": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "reasons": {
+                              "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                            },
+                            "unagedGrams": {
+                              "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                            }
+                          },
+                          "required": [
+                            "empty",
+                            "reasons",
+                            "buckets",
+                            "unagedGrams",
+                            "closingGrams",
+                            "over90Percent"
+                          ],
+                          "type": "object"
+                        },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
                         },
@@ -33430,7 +33482,8 @@
                         "rowTokens",
                         "report",
                         "items",
-                        "totals"
+                        "totals",
+                        "chart"
                       ],
                       "type": "object"
                     },
@@ -34155,6 +34208,95 @@
                         "bridge": {
                           "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
                         },
+                        "chart": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "empty": {
+                              "$ref": "#/components/schemas/S_7cb541e84f226754"
+                            },
+                            "points": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "inboundDocuments": {
+                                    "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                  },
+                                  "inboundGrams": {
+                                    "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                  },
+                                  "inboundPackages": {
+                                    "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                  },
+                                  "month": {
+                                    "$ref": "#/components/schemas/S_00404e686415370f"
+                                  },
+                                  "netGrams": {
+                                    "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                  },
+                                  "outboundDocuments": {
+                                    "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                  },
+                                  "outboundGrams": {
+                                    "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                  },
+                                  "outboundPackages": {
+                                    "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                  }
+                                },
+                                "required": [
+                                  "month",
+                                  "inboundGrams",
+                                  "outboundGrams",
+                                  "netGrams",
+                                  "inboundPackages",
+                                  "outboundPackages",
+                                  "inboundDocuments",
+                                  "outboundDocuments"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "reasons": {
+                              "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                            },
+                            "totals": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "inboundGrams": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                },
+                                "inboundPackages": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                },
+                                "netGrams": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                },
+                                "outboundGrams": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                },
+                                "outboundPackages": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                }
+                              },
+                              "required": [
+                                "inboundGrams",
+                                "outboundGrams",
+                                "netGrams",
+                                "inboundPackages",
+                                "outboundPackages"
+                              ],
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "empty",
+                            "reasons",
+                            "totals",
+                            "points"
+                          ],
+                          "type": "object"
+                        },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
                         },
@@ -34399,7 +34541,8 @@
                         "viewToken",
                         "rowTokens",
                         "report",
-                        "items"
+                        "items",
+                        "chart"
                       ],
                       "type": "object"
                     },
@@ -34648,6 +34791,103 @@
                         "bridge": {
                           "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
                         },
+                        "chart": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "empty": {
+                              "$ref": "#/components/schemas/S_7cb541e84f226754"
+                            },
+                            "points": {
+                              "items": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "dailyClosingGramsSum": {
+                                    "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                  },
+                                  "days": {
+                                    "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                  },
+                                  "fromDay": {
+                                    "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                                  },
+                                  "month": {
+                                    "$ref": "#/components/schemas/S_00404e686415370f"
+                                  },
+                                  "netOutboundGrams": {
+                                    "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                  },
+                                  "reasons": {
+                                    "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                                  },
+                                  "toDay": {
+                                    "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                                  },
+                                  "turnoverDays": {
+                                    "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                  },
+                                  "turns": {
+                                    "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                  }
+                                },
+                                "required": [
+                                  "days",
+                                  "netOutboundGrams",
+                                  "dailyClosingGramsSum",
+                                  "turns",
+                                  "turnoverDays",
+                                  "reasons",
+                                  "month",
+                                  "fromDay",
+                                  "toDay"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "reasons": {
+                              "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                            },
+                            "totals": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "dailyClosingGramsSum": {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                },
+                                "days": {
+                                  "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                },
+                                "netOutboundGrams": {
+                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                },
+                                "reasons": {
+                                  "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                                },
+                                "turnoverDays": {
+                                  "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                },
+                                "turns": {
+                                  "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                }
+                              },
+                              "required": [
+                                "days",
+                                "netOutboundGrams",
+                                "dailyClosingGramsSum",
+                                "turns",
+                                "turnoverDays",
+                                "reasons"
+                              ],
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "empty",
+                            "reasons",
+                            "totals",
+                            "points"
+                          ],
+                          "type": "object"
+                        },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
                         },
@@ -34807,7 +35047,8 @@
                         "rowTokens",
                         "report",
                         "items",
-                        "totals"
+                        "totals",
+                        "chart"
                       ],
                       "type": "object"
                     },

@@ -9,6 +9,7 @@ import { derivedRows } from './derived-rows.ts';
 import { agingTotals, turnoverTotals } from './derived-totals.ts';
 import { reportSnapshot, rememberReportSnapshot, reportQueryFingerprint } from './snapshot.ts';
 import { buildRestatement, postedView, type Restatement } from './restated.ts';
+import { agingChart, turnoverChart } from './derived-chart.ts';
 
 type DerivedQuery = ReportTurnoverQuery | ReportAgingQuery;
 type DerivedRow = ReportTurnoverRow | ReportAgingRow;
@@ -94,6 +95,7 @@ export function derivedReportReader(
   validateDates(kind, query);
   let projection: Awaited<ReturnType<typeof buildProjection>> | undefined, rows: DerivedRow[] | undefined;
   let restatement: Restatement | undefined;
+  let chart: ReturnType<typeof turnoverChart> | ReturnType<typeof agingChart> | undefined;
   return async (db: Database, batch?: { page: number; size: number }) => {
     projection ??= await buildProjection(db, projectionQuery(query), {
       captureEvents: true,
@@ -101,7 +103,16 @@ export function derivedReportReader(
     });
     if (query.basis === 'restated') restatement ??= await buildRestatement(db, projectionQuery(query), projection);
     rows ??= derivedRows(kind, query, [...projection.cells.values()], projection, restatement?.events);
-    const result = await derivedResult(kind, query, sortRows(rows, query), projection, batch);
+    chart ??=
+      kind === 'report-turnover'
+        ? turnoverChart({
+            query: query as ReportTurnoverQuery,
+            projection,
+            rows: rows as ReportTurnoverRow[],
+            restated: restatement?.events,
+          })
+        : agingChart(rows as ReportAgingRow[]);
+    const result = { ...(await derivedResult(kind, query, sortRows(rows, query), projection, batch)), chart };
     const view = restatement?.view ?? postedView(projection);
     const viewToken = hash(JSON.stringify([result, view, restatement?.digest, projection.snapshot.database]));
     if (!batch) rememberReportSnapshot(viewToken, query, projection.snapshot);

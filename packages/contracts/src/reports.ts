@@ -3,6 +3,8 @@ import { reportBalanceSchema, reportMetaSchema } from './report-metadata.ts';
 export * from './report-metadata.ts';
 export * from './report-derived.ts';
 import { reportViewFields, restatedBalanceSchema } from './report-view.ts';
+import { reportMonthlyChartSchema } from './report-charts.ts';
+export * from './report-charts.ts';
 
 export * from './report-query.ts';
 export * from './report-view.ts';
@@ -97,4 +99,8 @@ const envelope = {
   report: reportMetaSchema,
 };
 export const reportDetailsSchema = z.strictObject({ ...envelope, items: z.array(reportDetailRowSchema) });
-export const reportMonthlySchema = z.strictObject({ ...envelope, items: z.array(reportMonthlyRowSchema) });
+export const reportMonthlySchema = z.strictObject({
+  ...envelope,
+  items: z.array(reportMonthlyRowSchema),
+  chart: reportMonthlyChartSchema,
+});

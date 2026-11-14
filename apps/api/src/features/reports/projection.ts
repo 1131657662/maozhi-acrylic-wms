@@ -11,8 +11,10 @@ import { totalBalance } from './totals.ts';
 import { sourceDiagnostics, hashReferences } from './diagnostics.ts';
 import { documentCounts } from './counts.ts';
 import { reportSnapshot, snapshotLocalTime, REPORT_BATCH_SIZE, type ReportSnapshot } from './snapshot.ts';
+import { recordMonthlyDocument, type MonthlyDocuments } from './monthly-documents.ts';
 
 interface ProjectionState {
+  monthlyDocuments: Map<string, MonthlyDocuments>;
   cells: Map<string, Cell>;
   periods: Period[];
   digest: Hash;
@@ -47,6 +49,12 @@ function consumeRow(state: ProjectionState, row: Row): void {
     state.lastTime = event.localTime;
   }
   const range = state.periods[0]!;
+  if (event.localTime && event.localTime >= range.start && event.localTime < range.end)
+    recordMonthlyDocument(
+      state.monthlyDocuments,
+      { ...event, documentId: row.chartDocumentId == null ? null : String(row.chartDocumentId) },
+      event.localTime,
+    );
   if (
     event.localTime &&
     event.localTime >= range.start &&
@@ -63,7 +71,9 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
   for (;;) {
     // A primary-key batch stays bounded; hash joins otherwise sort the remaining ledger on every batch.
     const rows = await db.all(
-      `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN ${balanceFields} ${balanceFrom}
+      `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN ${balanceFields},
+       COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) AS chartDocumentId
+       ${balanceFrom}
       WHERE s.id>? AND s.id<=? ${filter.sql} ORDER BY s.id LIMIT ?`,
       [state.cursor, state.snapshot.watermarks.journalMaxId, ...filter.values, REPORT_BATCH_SIZE],
     );
@@ -77,6 +87,7 @@ export async function buildProjection(
   options: { captureEvents?: boolean; snapshot?: ReportSnapshot } = {},
 ): Promise<Projection> {
   const state: ProjectionState = {
+    monthlyDocuments: new Map(),
     cells: new Map(),
     periods: reportPeriods(query),
     digest: createHash('sha256'),
@@ -111,6 +122,7 @@ function finishProjection(
     reconciliation.reasons.push('存在无法判定库存来源的流水，未混入有库存资格商品的发生额；需核实基础资料');
   }
   return {
+    monthlyDocuments: state.monthlyDocuments,
     snapshot: state.snapshot,
     cells: state.cells,
     periods: state.periods,
