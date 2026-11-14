@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { stockBalanceSchema } from './inventory-posting.ts';
+import { discoveryMetadataSchema } from './stocktake-discovery.ts';
 
 const code = z.string().min(1).max(80);
 const status = z.enum(['counting', 'completed', 'voided']);
@@ -41,6 +42,7 @@ export const stocktakeSchema = z.object({
   weightDeltaGrams: z.number().int().safe(),
 });
 export const stocktakeLineSchema = z.object({
+  discovery: discoveryMetadataSchema.optional(),
   productCode: code,
   productName: z.string(),
   snapshot: stockBalanceSchema,

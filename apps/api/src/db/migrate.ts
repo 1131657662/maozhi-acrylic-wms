@@ -8,6 +8,7 @@ import { migrateProductEligibility } from './product-eligibility.ts';
 import { guardScanWorkbenchDown } from './scan-workbench-migration.ts';
 import { guardSearchTextDown } from './search-text-migration.ts';
 import { guardStocktakeBlindDown } from './stocktake-blind-migration.ts';
+import { installDiscoveryTriggers } from './stocktake-discovery-migration.ts';
 
 const migrations = [
   {
@@ -130,6 +131,7 @@ const migrations = [
   { id: '022_master_search_text', guardedTables: [] },
   { id: '023_catalog_candidate_abandons', guardedTables: ['catalog_candidate_abandons'] },
   { id: '024_stocktake_blind', guardedTables: [] },
+  { id: '025_stocktake_discoveries', guardedTables: ['stocktake_discovery_lines'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -195,6 +197,9 @@ export async function migrateUp(db: Database, through?: string): Promise<void> {
         await statements(connection, structure!);
         await migrateCatalogData(connection);
         await statements(connection, finalize!);
+      } else if (migration.id === '025_stocktake_discoveries') {
+        await statements(connection, sql.split('-- DISCOVERY_TRIGGER')[0]!);
+        await installDiscoveryTriggers(connection, sql);
       } else await statements(connection, sql);
       if (migration.id === '012_master_data_snapshots') await migrateProductEligibility(connection);
       await connection.run("UPDATE schema_migrations SET state='applied',applied_at=UTC_TIMESTAMP(3) WHERE id=?", [

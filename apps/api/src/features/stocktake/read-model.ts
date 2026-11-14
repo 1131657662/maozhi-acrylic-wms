@@ -3,6 +3,8 @@ import type { Database, Row } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
 import { decimalToGrams } from '../../db/weight.ts';
 import { AppError } from '../../shared/errors.ts';
+import { discoveryMetadata, discoveryTotals } from './discovery-read.ts';
+import { combinedLines } from './combined-lines.ts';
 
 const totals = `SELECT s.stocktake_id,COUNT(*) AS total_lines,COUNT(r.packages) AS recorded,
  SUM(s.packages) AS sp,SUM(s.weight_tonnes) AS sw,COALESCE(SUM(r.packages),0) AS ap,
@@ -10,8 +12,10 @@ const totals = `SELECT s.stocktake_id,COUNT(*) AS total_lines,COUNT(r.packages) 
  COALESCE(SUM(r.packages-s.packages),0) AS dp,COALESCE(SUM(r.weight_tonnes-s.weight_tonnes),0) AS dw,
  SUM(IF(r.packages<>s.packages OR r.weight_tonnes<>s.weight_tonnes,1,0)) AS changed
  FROM stocktake_snapshots s JOIN stocktake_readings r USING(stocktake_id,product_code)`;
-const headerSelect = `SELECT t.*,w.name AS warehouse_name,tot.* FROM stocktakes t
- JOIN master_warehouses w ON w.code=t.warehouse_code`;
+const headerSelect = `SELECT t.*,w.name AS warehouse_name,tot.*,
+ d.discovery_count,d.discovery_packages,d.discovery_grams,d.discovery_changed FROM stocktakes t
+ JOIN master_warehouses w ON w.code=t.warehouse_code
+ LEFT JOIN (${discoveryTotals}) d ON d.stocktake_id=t.id`;
 function header(row: Row) {
   return stocktakeSchema.parse({
     id: row.id,
@@ -25,19 +29,19 @@ function header(row: Row) {
     snapshotAt: isoDate(row.snapshot_at),
     snapshotHash: row.snapshot_hash,
     revision: Number(row.revision),
-    lineCount: Number(row.line_count),
-    recordedCount: Number(row.recorded ?? 0),
-    changedCount: Number(row.changed ?? 0),
+    lineCount: Number(row.line_count) + Number(row.discovery_count ?? 0),
+    recordedCount: Number(row.recorded ?? 0) + Number(row.discovery_count ?? 0),
+    changedCount: Number(row.changed ?? 0) + Number(row.discovery_changed ?? 0),
     createdBy: row.created_by,
     closedAt: row.closed_at ? isoDate(row.closed_at) : null,
     closeReason: row.close_reason,
     operationId: row.operation_id,
     snapshotPackages: Number(row.sp ?? 0),
     snapshotWeightGrams: decimalToGrams(row.sw ?? '0.0000'),
-    actualPackages: Number(row.ap ?? 0),
-    actualWeightGrams: decimalToGrams(row.aw ?? '0.0000'),
-    packagesDelta: Number(row.dp ?? 0),
-    weightDeltaGrams: decimalToGrams(row.dw ?? '0.0000'),
+    actualPackages: Number(row.ap ?? 0) + Number(row.discovery_packages ?? 0),
+    actualWeightGrams: decimalToGrams(row.aw ?? '0.0000') + Number(row.discovery_grams ?? 0),
+    packagesDelta: Number(row.dp ?? 0) + Number(row.discovery_packages ?? 0),
+    weightDeltaGrams: decimalToGrams(row.dw ?? '0.0000') + Number(row.discovery_grams ?? 0),
   });
 }
 export async function getStocktake(db: Database, id: string) {
@@ -80,6 +84,7 @@ export function reading(row: Row) {
       ? null
       : { packages: Number(row.actual_packages), weightGrams: decimalToGrams(row.actual_tonnes) };
   return stocktakeLineSchema.parse({
+    ...(row.discovery_id ? { discovery: discoveryMetadata(row) } : {}),
     productCode: row.product_code,
     productName: row.product_name,
     snapshot,
@@ -93,10 +98,11 @@ export const lineSelect = `SELECT s.*,r.packages AS actual_packages,r.weight_ton
  FROM stocktake_snapshots s JOIN stocktake_readings r USING(stocktake_id,product_code)`;
 export async function stocktakeLines(db: Database, id: string, query: StocktakeQuery) {
   await getStocktake(db, id);
-  const filter = 's.stocktake_id=? AND (s.product_code LIKE ? OR s.product_name LIKE ?)';
-  const values = [id, `%${query.keyword}%`, `%${query.keyword}%`];
-  const count = await db.get(`SELECT COUNT(*) AS n FROM stocktake_snapshots s WHERE ${filter}`, values);
-  const rows = await db.all(`${lineSelect} WHERE ${filter} ORDER BY s.product_code LIMIT ? OFFSET ?`, [
+  const filter = '(s.product_code LIKE ? OR s.product_name LIKE ?)';
+  const values = [id, id, `%${query.keyword}%`, `%${query.keyword}%`];
+  const from = `FROM (${combinedLines}) s WHERE ${filter}`;
+  const count = await db.get(`SELECT COUNT(*) AS n ${from}`, values);
+  const rows = await db.all(`SELECT s.* ${from} ORDER BY s.product_code LIMIT ? OFFSET ?`, [
     ...values,
     query.pageSize,
     (query.page - 1) * query.pageSize,

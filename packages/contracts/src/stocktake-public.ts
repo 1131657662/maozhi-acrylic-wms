@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { stocktakeSchema, stocktakeLineSchema, stocktakePreviewSchema } from './stocktake.ts';
+import { discoveryListSchema } from './stocktake-discovery.ts';
 
 export const hiddenStocktakeSchema = stocktakeSchema
   .pick({
@@ -31,6 +32,7 @@ export const publicStocktakeSchema = z.discriminatedUnion('visibility', [
 export const hiddenStocktakeLineSchema = stocktakeLineSchema
   .pick({
     productCode: true,
+    discovery: true,
     productName: true,
     actual: true,
     revision: true,
@@ -47,6 +49,10 @@ export const publicStocktakeLinesSchema = z.object({
   total: z.number().int(),
 });
 export const publicStocktakePreviewSchema = stocktakePreviewSchema.extend({ stocktake: visibleStocktakeSchema });
+export const publicStocktakeDetailSchema = z.discriminatedUnion('visibility', [
+  hiddenStocktakeSchema.extend({ discoveries: discoveryListSchema }),
+  visibleStocktakeSchema.extend({ discoveries: discoveryListSchema }),
+]);
 export const revealStocktakeSchema = z.strictObject({ expectedRevision: z.number().int().nonnegative() });
 export const stocktakeExportQuerySchema = z.strictObject({ kind: z.enum(['blank', 'result']).default('result') });
 export const STOCKTAKE_EXPORT_PAGE_SIZE = 200;

@@ -60,7 +60,7 @@ export function stocktakeController(db: Database) {
     list: async (req: Request, res: Response) =>
       ok(res, await db.readSnapshot((tx) => publicStocktakeList(tx, stocktakeQuerySchema.parse(req.query)))),
     detail: async (req: Request, res: Response) =>
-      ok(res, await db.readSnapshot((tx) => publicStocktakeDetail(tx, id(req)))),
+      ok(res, await db.readSnapshot((tx) => publicStocktakeDetail(tx, id(req), stocktakeQuerySchema.parse(req.query)))),
     lines: async (req: Request, res: Response) =>
       ok(res, await db.readSnapshot((tx) => publicStocktakeLines(tx, id(req), stocktakeQuerySchema.parse(req.query)))),
     preview: async (req: Request, res: Response) =>

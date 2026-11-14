@@ -13,15 +13,34 @@ WHERE t.status='completed'
 GROUP BY t.id,t.number,s.product_code,s.packages,s.weight_tonnes,r.packages,r.weight_tonnes
 ORDER BY t.id,s.product_code;
 
+-- Discoveries have an independent zero baseline and must also own exactly one journal per nonzero difference.
+SELECT t.id AS stocktake_id,t.number,d.product_code,0 AS snapshot_packages,0 AS snapshot_tonnes,
+ d.packages AS actual_packages,CAST(d.weight_grams/1000000 AS DECIMAL(12,4)) AS actual_tonnes,
+ COUNT(j.id) AS journal_count,
+ (d.packages=COALESCE(SUM(j.packages_delta),0)
+ AND d.weight_grams=COALESCE(SUM(j.tonnes_delta),0)*1000000
+ AND COUNT(j.id)=IF(d.packages=0 AND d.weight_grams=0,0,1)) AS balanced
+FROM stocktakes t JOIN stocktake_discovery_lines d ON d.stocktake_id=t.id
+LEFT JOIN stock_journal j ON j.operation_id=t.operation_id AND j.warehouse_code=t.warehouse_code AND j.product_code=d.product_code
+WHERE t.status='completed'
+GROUP BY t.id,t.number,d.product_code,d.packages,d.weight_grams
+ORDER BY t.id,d.product_code;
+
 -- Every difference journal preserves exact before/after values and operation provenance.
 SELECT COUNT(*) AS mismatches FROM stocktakes t JOIN inventory_operations o ON o.id=t.operation_id
 JOIN stock_journal j ON j.operation_id=o.id
 LEFT JOIN stocktake_snapshots s ON s.stocktake_id=t.id AND s.product_code=j.product_code
 LEFT JOIN stocktake_readings r ON r.stocktake_id=t.id AND r.product_code=j.product_code
+LEFT JOIN stocktake_discovery_lines d ON d.stocktake_id=t.id AND d.product_code=j.product_code
 WHERE o.operation_type<>'stocktake.post' OR o.target_id<>t.id OR CHAR_LENGTH(TRIM(o.reason))=0
- OR s.product_code IS NULL OR j.warehouse_code<>t.warehouse_code OR r.packages IS NULL
- OR j.packages_before<>s.packages OR j.tonnes_before<>s.weight_tonnes
- OR j.packages_after<>r.packages OR j.tonnes_after<>r.weight_tonnes
+ OR (s.product_code IS NULL AND d.id IS NULL) OR (s.product_code IS NOT NULL AND d.id IS NOT NULL)
+ OR j.warehouse_code<>t.warehouse_code
+ OR (s.product_code IS NOT NULL AND (r.packages IS NULL
+   OR j.packages_before<>s.packages OR j.tonnes_before<>s.weight_tonnes
+   OR j.packages_after<>r.packages OR j.tonnes_after<>r.weight_tonnes))
+ OR (d.id IS NOT NULL AND (d.warehouse_code<>t.warehouse_code
+   OR j.packages_before<>0 OR j.tonnes_before<>0
+   OR j.packages_after<>d.packages OR j.tonnes_after*1000000<>d.weight_grams))
  OR j.packages_after-j.packages_before<>j.packages_delta OR j.tonnes_after-j.tonnes_before<>j.tonnes_delta;
 
 -- Only completed stocktakes own an inventory operation; each owns exactly one post/audit.

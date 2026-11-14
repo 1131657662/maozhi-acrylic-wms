@@ -97,6 +97,7 @@ test('NULL 回填可重复执行且有数据时拒绝回退 022', async () => {
     const second = await backfillSearchText(db);
     assert.equal(first.products, 1);
     assert.deepEqual(second, { products: 0, customers: 0, suppliers: 0, vehicles: 0 });
+    await migrateDown(db); // Remove empty 025 before the previous migration boundary.
     await migrateDown(db); // Remove empty 024 before testing the 022 nonempty guard.
     await migrateDown(db); // Remove empty 023 before testing the 022 nonempty guard.
     await assert.rejects(migrateDown(db), /master_.*search_text 已有数据/);
