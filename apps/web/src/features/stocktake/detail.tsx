@@ -16,6 +16,7 @@ import { StocktakePostPanel } from './post-panel';
 import { ObjectAuditTimeline } from '../audit/events';
 import { StocktakeReveal } from './reveal';
 import { StocktakeExports } from './exports';
+import { DiscoveryCreate } from './discovery-create';
 import { spacing } from '../../theme/design-tokens';
 
 export function StocktakeDetail() {
@@ -54,6 +55,7 @@ export function StocktakeDetail() {
               {take.status === 'counting' &&
                 (take.visibility === 'hidden' ? <StocktakeReveal take={take} /> : <StocktakePostPanel id={id} />)}
               <StocktakeExports take={take} />
+              {take.status === 'counting' && <DiscoveryCreate id={id} />}
             </Space>
             {take.visibility === 'hidden' && <Alert type="info" showIcon title={stocktakeCopy.hiddenDescription} />}
             {take.status === 'counting' && (

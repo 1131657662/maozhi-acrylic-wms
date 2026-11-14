@@ -1,12 +1,14 @@
 import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from 'antd';
+import { Button, Tag, Space } from 'antd';
 import { ProTable, type ProColumns } from '@ant-design/pro-components';
-import { tonnes, stocktakeCopy, type PublicStocktakeLine } from '@wms/contracts';
+import { tonnes, stocktakeCopy, discoveryCopy, type PublicStocktakeLine } from '@wms/contracts';
 import { stocktakeKeys } from './keys';
 import { StocktakeQueryState } from './query-state';
 import { ReadingDrawer } from './reading-drawer';
+import { DiscoveryDrawer } from './discovery-drawer';
+import { DiscoveryDelete } from './discovery-delete';
 
 function columns(hidden: boolean): ProColumns<PublicStocktakeLine>[] {
   return [
@@ -21,6 +23,12 @@ function columns(hidden: boolean): ProColumns<PublicStocktakeLine>[] {
           {r.productName}
           <br />
           {r.productCode}
+          {r.discovery && (
+            <>
+              <br />
+              <Tag>{discoveryCopy.label}</Tag>
+            </>
+          )}
         </span>
       ),
     },
@@ -71,7 +79,7 @@ export function StocktakeLines({ id, editable, hidden }: { id: string; editable:
         headerTitle={hidden ? stocktakeCopy.hiddenLines : businessCopy.stocktakeLines2}
         search={false}
         options={false}
-        scroll={{ x: 788 }}
+        scroll={{ x: editable ? 900 : 788 }}
         dataSource={query.data?.items ?? []}
         loading={query.isFetching}
         columns={[
@@ -79,13 +87,16 @@ export function StocktakeLines({ id, editable, hidden }: { id: string; editable:
           {
             key: 'actions',
             title: '操作',
-            width: 88,
+            width: editable ? 200 : 88,
             fixed: 'right',
             render: (_, r) =>
               editable ? (
-                <Button type="link" onClick={() => setEditing(r)}>
-                  录入
-                </Button>
+                <Space wrap>
+                  <Button type="link" onClick={() => setEditing(r)}>
+                    {r.discovery ? discoveryCopy.edit : '录入'}
+                  </Button>
+                  {r.discovery && <DiscoveryDelete id={id} line={r} />}
+                </Space>
               ) : (
                 '已终结'
               ),
@@ -100,7 +111,12 @@ export function StocktakeLines({ id, editable, hidden }: { id: string; editable:
           onChange: (p, s) => setParams({ page: String(p), pageSize: String(s) }),
         }}
       />
-      {editing && <ReadingDrawer id={id} line={editing} onClose={() => setEditing(null)} />}
+      {editing &&
+        (editing.discovery ? (
+          <DiscoveryDrawer id={id} line={editing} onClose={() => setEditing(null)} />
+        ) : (
+          <ReadingDrawer id={id} line={editing} onClose={() => setEditing(null)} />
+        ))}
     </StocktakeQueryState>
   );
 }

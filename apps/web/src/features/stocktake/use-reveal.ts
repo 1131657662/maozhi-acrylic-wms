@@ -18,7 +18,6 @@ export function useReveal(id: string) {
         body: JSON.stringify({ expectedRevision }),
       });
     },
-    onSuccess: (result) => client.setQueryData(stocktakeKeys.detail(id).queryKey, result.stocktake),
     onSettled: () =>
       Promise.all([stocktakeKeys, auditKeys].map((keys) => client.invalidateQueries({ queryKey: keys._def }))),
   });
