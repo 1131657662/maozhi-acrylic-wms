@@ -1,4 +1,4 @@
-import { stocktakePostSchema, stocktakeSchema, type StocktakePreview } from '@wms/contracts';
+import { stocktakePostSchema, stocktakeSchema, stocktakeCopy, type StocktakePreview } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { audit, type Actor } from '../../shared/audit.ts';
 import { ensure } from '../../shared/errors.ts';
@@ -63,11 +63,7 @@ export async function postStocktake(db: Database, command: PostCommand) {
       before.blockers[0]?.code ?? 'STOCKTAKE_BLOCKED',
       before.blockers[0]?.message ?? '盘点无法回写',
     );
-    ensure(
-      before.token === input.expectedToken,
-      'STALE_STOCKTAKE_PREVIEW',
-      '实盘或未入账清单已变化，请刷新预览并重新核对；输入保留',
-    );
+    ensure(before.token === input.expectedToken, 'STALE_STOCKTAKE_PREVIEW', stocktakeCopy.staleChecklist);
     ensure(
       !before.unposted.length || input.acknowledgeSnapshotBasis,
       'UNPOSTED_DOCUMENTS_REQUIRE_ACK',

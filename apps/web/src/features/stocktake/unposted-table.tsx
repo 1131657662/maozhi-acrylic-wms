@@ -1,12 +1,13 @@
 import { businessCopy } from '../../business-copy';
 import { ProTable } from '@ant-design/pro-components';
 import { Link } from '@umijs/max';
-import { tonnes, type StocktakePreview } from '@wms/contracts';
+import { stocktakeCopy, tonnes, type StocktakePreview } from '@wms/contracts';
 
 export function UnpostedTable({ rows }: { rows: StocktakePreview['unposted'] }) {
   return (
     <ProTable<StocktakePreview['unposted'][number]>
-      headerTitle={`盘点开始后未入账收发货 · ${rows.length} 张`}
+      headerTitle={`${stocktakeCopy.unpostedTitle} · ${rows.length} 张`}
+      tooltip={stocktakeCopy.offlineQueueUnknown}
       rowKey={(r) => `${r.kind}/${r.id}`}
       dataSource={rows}
       search={false}
@@ -28,6 +29,14 @@ export function UnpostedTable({ rows }: { rows: StocktakePreview['unposted'] }) 
         },
         { title: '包数', dataIndex: 'packages', width: 80 },
         { title: '吨数', width: 110, render: (_, r) => tonnes(r.weightGrams) },
+        {
+          title: stocktakeCopy.unreceivedRecords,
+          width: 160,
+          render: (_, r) =>
+            r.kind === 'inbound'
+              ? stocktakeCopy.notApplicable
+              : (r.unreceivedRecords ?? stocktakeCopy.handoffNotRegistered),
+        },
         {
           title: '已扫（包 / 吨）',
           width: 160,

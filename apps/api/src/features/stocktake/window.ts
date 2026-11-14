@@ -11,7 +11,7 @@ export async function assertWarehouseOpen(db: Database, warehouse: string): Prom
   ensure(
     !window,
     'WAREHOUSE_STOCKTAKE_PAUSED',
-    `该仓库正在盘点 ${window?.number}，暂停确认、调整与撤销。请从“进行中盘点”进入 /stocktakes/${window?.id} 处理。`,
+    `该仓库正在盘点 ${window?.number}，暂停确认、调整、撤销与更正。请从“进行中盘点”进入 /stocktakes/${window?.id} 处理。`,
   );
 }
 export async function journalWatermark(db: Database, warehouse: string): Promise<number> {

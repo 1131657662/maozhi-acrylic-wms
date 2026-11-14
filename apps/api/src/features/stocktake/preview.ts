@@ -24,6 +24,10 @@ export async function stocktakePreview(db: Database, id: string) {
   const watermark = await journalWatermark(db, take.warehouseCode);
   const original = await db.get('SELECT journal_watermark FROM stocktakes WHERE id=?', [id]);
   const discoveries = await discoveryState(db, id, take.warehouseCode);
+  const readings = await db.all(
+    'SELECT product_code,revision FROM stocktake_readings WHERE stocktake_id=? ORDER BY product_code',
+    [id],
+  );
   const mismatch = await balanceMismatches(db, id, take.warehouseCode),
     blockers: { code: string; message: string }[] = [];
   const extra =
@@ -57,6 +61,6 @@ export async function stocktakePreview(db: Database, id: string) {
   const result = { stocktake: take, unposted, blockers };
   return stocktakePreviewSchema.parse({
     ...result,
-    token: hash(JSON.stringify({ ...result, watermark, mismatch, extra, discoveries })),
+    token: hash(JSON.stringify({ ...result, watermark, mismatch, extra, discoveries, readings })),
   });
 }
