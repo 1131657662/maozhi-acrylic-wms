@@ -3,6 +3,15 @@ import type { ExportKind } from './export-kind.ts';
 import { reportFields } from './report-fields.ts';
 import { businessLabels } from './business-labels.ts';
 import { billTypeText, documentExtraCopy } from './document-types.ts';
+import { webStockQuantitySchema } from './web-list.ts';
+
+export const stockBalanceCopy = {
+  pending: '待发',
+  available: '可发',
+  shortage: '待发超过在库',
+  packages: '包',
+  tonnes: '吨',
+} as const;
 
 export const WEB_LIST_PAGE_SIZES = [20, 50, 100, 200] as const;
 export const WEB_LIST_DEFAULT_PAGE_SIZE = 50;
@@ -105,6 +114,8 @@ export const listFields: Record<ExportKind, ListField[]> = {
     f('productName', '商品名称', 'text', 48),
     f('packages', '库存包数', 'integer', 14),
     f('weightGrams', '库存重量（吨）', 'tonnes', 20),
+    f('pending', stockBalanceCopy.pending, 'text', 32),
+    f('available', stockBalanceCopy.available, 'text', 32),
     f('productCode', '商品编码'),
     f('warehouseCode', '仓库', 'text', 32),
   ],
@@ -129,6 +140,10 @@ export function matchedLineFields(kind: 'inbound' | 'outbound'): ListField[] {
 }
 export function listCellText(kind: ExportKind, field: ListField, row: Record<string, unknown>): string {
   const value = row[field.key];
+  if (kind === 'stock' && ['pending', 'available'].includes(field.key)) {
+    const quantity = webStockQuantitySchema.parse(value);
+    return `${quantity.packages} ${stockBalanceCopy.packages} / ${(quantity.weightGrams / 1_000_000).toFixed(4)} ${stockBalanceCopy.tonnes}`;
+  }
   if (kind.startsWith('report-') && field.key === 'source')
     return ['erp-product', 'inventory-eligible'].includes(String(value)) ? '库存商品' : businessLabels.unknown;
   if (kind.startsWith('report-') && field.key === 'billType')

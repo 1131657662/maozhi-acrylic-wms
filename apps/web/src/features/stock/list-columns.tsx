@@ -1,6 +1,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { tonnes, type WebStockRow } from '@wms/contracts';
+import { stockBalanceCopy, tonnes, type WebStockRow } from '@wms/contracts';
 import { Button } from 'antd';
+import { AvailableStock } from './available-stock';
+
+const BALANCE_COLUMN_WIDTH = 180;
 
 export function stockListColumns(onAdjust: (row: WebStockRow) => void): ProColumns<WebStockRow>[] {
   return [
@@ -28,6 +31,26 @@ export function stockListColumns(onAdjust: (row: WebStockRow) => void): ProColum
       align: 'right',
       sorter: true,
       render: (_, row) => <span data-testid="stock-row-tonnes">{tonnes(row.weightGrams)}</span>,
+    },
+    {
+      title: stockBalanceCopy.pending,
+      dataIndex: 'pending',
+      width: BALANCE_COLUMN_WIDTH,
+      align: 'right',
+      render: (_, row) => (
+        <span data-testid="stock-pending" style={{ whiteSpace: 'nowrap' }}>
+          {row.pending.packages} {stockBalanceCopy.packages}
+          <br />
+          {tonnes(row.pending.weightGrams)} {stockBalanceCopy.tonnes}
+        </span>
+      ),
+    },
+    {
+      title: stockBalanceCopy.available,
+      dataIndex: 'available',
+      width: BALANCE_COLUMN_WIDTH,
+      align: 'right',
+      render: (_, row) => <AvailableStock quantity={row.available} />,
     },
     { title: '商品编码', dataIndex: 'productCode', width: 180, sorter: true },
     {

@@ -1,7 +1,9 @@
-import { webStockListSchema, type WebStockQuery } from '@wms/contracts';
-import type { Database } from '../../db/mysql.ts';
+import { webStockListSchema, type WebStockQuery, type WebStockRow } from '@wms/contracts';
+import type { Database, Row } from '../../db/mysql.ts';
 import { hash } from '../../shared/hash.ts';
+import { isoDate } from '../../db/dates.ts';
 import { reportUnclassifiedStock } from '../stock/source-diagnostics.ts';
+import { pendingStock } from '../stock/pending.ts';
 import { aggregateGrams, pageResult, readPage, textFilter, type ListReadQuery, type Predicate } from './query.ts';
 
 const fields = `s.warehouse_code AS warehouseCode,COALESCE(w.name,s.warehouse_code) AS warehouseName,
@@ -38,19 +40,36 @@ export async function listWebStock(db: Database, query: ListReadQuery<WebStockQu
       query,
     );
     const subtotal = query.exportSnapshot?.subtotal ?? (await stockSubtotal(tx, predicate));
-    const items = page.rows.map(({ weight_tonnes, ...row }) => ({
-      ...row,
-      id: JSON.stringify([row.warehouseCode, row.productCode]),
-      source: query.scope ?? query.source,
-      packages: Number(row.packages),
-      weightGrams: aggregateGrams(weight_tonnes),
-    }));
+    const items = await stockItems(tx, page.rows, query);
     const result = {
       ...pageResult(items, page.total, query),
       source: query.scope ?? query.source,
       subtotal,
     };
-    return webStockListSchema.parse({ ...result, viewToken: hash(JSON.stringify(result)) });
+    const watermark = hash(JSON.stringify(result));
+    const clock = await tx.get('SELECT UTC_TIMESTAMP(3) AS asOf');
+    return webStockListSchema.parse({ ...result, viewToken: watermark, watermark, asOf: isoDate(clock?.asOf) });
+  });
+}
+async function stockItems(db: Database, rows: Row[], query: ListReadQuery<WebStockQuery>) {
+  const keys = rows.map((row) => ({ warehouseCode: String(row.warehouseCode), productCode: String(row.productCode) }));
+  const balances = await pendingStock(db, keys);
+  return rows.map(({ weight_tonnes, ...row }) => {
+    const id = JSON.stringify([row.warehouseCode, row.productCode]);
+    const onHand = { packages: Number(row.packages), weightGrams: aggregateGrams(weight_tonnes) };
+    const pending: WebStockRow['pending'] = balances.get(id) ?? { packages: 0, weightGrams: 0 };
+    return {
+      ...row,
+      id,
+      source: query.scope ?? query.source,
+      ...onHand,
+      onHand,
+      pending,
+      available: {
+        packages: onHand.packages - pending.packages,
+        weightGrams: onHand.weightGrams - pending.weightGrams,
+      },
+    };
   });
 }
 async function stockSubtotal(db: Database, predicate: Predicate) {

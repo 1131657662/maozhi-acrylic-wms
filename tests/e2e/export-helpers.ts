@@ -6,14 +6,21 @@ export async function screenRows(page: Page, kind: string) {
   return page
     .getByTestId(kind + '-list')
     .locator('tbody tr[data-row-key]')
-    .evaluateAll((rows) =>
-      rows.map((row) => ({
-        id: row.getAttribute('data-row-key')!,
-        cells: Array.from(row.querySelectorAll('td[data-export-field]')).map((cell) => ({
-          key: cell.getAttribute('data-export-field')!,
-          text: (cell.textContent ?? '').trim(),
+    .evaluateAll(
+      (rows, pageKind) =>
+        rows.map((row) => ({
+          id: row.getAttribute('data-row-key')!,
+          cells: Array.from(row.querySelectorAll<HTMLElement>('td[data-export-field]')).map((cell) => {
+            const key = cell.getAttribute('data-export-field')!;
+            // These two cells display package/tonne values on separate lines; XLSX uses a slash.
+            const text =
+              pageKind === 'stock' && ['pending', 'available'].includes(key)
+                ? cell.innerText.trim().replace(/\r?\n/g, ' / ')
+                : (cell.textContent ?? '').trim();
+            return { key, text };
+          }),
         })),
-      })),
+      kind,
     );
 }
 function excelText(cell: ExcelJS.Cell): string {
