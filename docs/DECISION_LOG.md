@@ -28,6 +28,15 @@
 
 合并执行记录：功能已非快进合并并推送 `9c788eda06cf3715926743de1fab8deae7e80307`，checkout/merge/push/远端HEAD核对exit均0。B6e-1完成状态通过 `codex/b6e-1-closeout` 更新并非快进合并推送；后续B6e-2不启动，AF-056/B6i和AF-057继续保留。
 
+## B6e-2 独立发现行（2026-11-14）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-14 | 用户授权盘盈方案A：025新增stocktake_discovery_lines，快照外且该仓当前零账面的有效商品可登记；同单商品唯一，独立包克与原因必填，终态不可增改删，非空拒绝down | 生效 | STOCKTAKE_SPEC §15 |
+| 2026-11-14 | Web POST/PATCH/DELETE discoveries，编辑与删除校验version，写审计/幂等并递增盘点revision；详情与合并分页明细返回发现行，盲盘仍隔离账面/差异 | 生效 | STOCKTAKE_SPEC §15 |
+| 2026-11-14 | 发现行基数0，预览令牌绑定id+version集合；回写复验零账面、行集合、窗口/漂移/ACK，与普通差异同事务写库存/流水/审计/终态，不修改固定快照 | 生效 | STOCKTAKE_SPEC §15、DOMAIN_RULES §11 |
+| 2026-11-14 | 四笔提交后停止，不合并推送、不应用开发样本库；锁仓补全/批量/键盘/默认折吨等继续后置。B6e-1停止记录保留为已完成阶段历史 | 生效 | STOCKTAKE_SPEC §15、IMPLEMENTATION_PLAN B6e |
+
 ## 1. 系统与边界
 
 | 日期 | 决定 | 状态 | 落到哪 |

@@ -254,3 +254,18 @@ GET /api/v1/stocktakes/:id/export?kind=blank|result
 已执行 `git checkout master`、`git merge --no-ff codex/b6e-1-blind-stocktake -m "merge: b6e-1 blind stocktake"`、`git push origin master`，exit 均 0；功能 merge hash 为 `9c788eda06cf3715926743de1fab8deae7e80307`。推送后 `git ls-remote origin HEAD refs/heads/master` 两项均为该 hash，核对 exit 0。
 
 按 AGENTS.md「合并后更新批次表与审计发现」及「master只接受非快进合并提交」的规则，在 `codex/b6e-1-closeout` 同步 IMPLEMENTATION_PLAN、AUDIT_FINDINGS 与台账，再以 `--no-ff` 合并推送。最终远端 HEAD 包含该文档收尾合并，交付回复报告最终值。B6e-1完成，B6e其余步骤仍后置；收尾后停止，不开始B6e-2。
+
+## 15. B6e-2 独立发现行（2026-11-14）
+
+用户已授权方案 A，起点 master / d99f373，分支 codex/b6e-2-stocktake-discoveries。本节取代 §10 的暂定表名 stocktake_extra_lines 和 §11 的暂定新增盘盈路由；快照不可变、独立包吨、盲盘隔离与既有回写守卫继续生效。四笔提交：规格、迁移与接口、页面、验收；完成后停止，不合并推送、不应用开发样本库，不启动锁仓补全等后续步骤。
+
+- 025_stocktake_discoveries 新增 stocktake_discovery_lines：id、stocktake_id、warehouse_code、product_code、packages INT、weight_grams BIGINT、reason VARCHAR(500)、actor、created_at、updated_at、version，均必填。沿用项目 UUID、UTC DATETIME(3) 与包数/整数克限制，克数为100的倍数，包吨独立非负，不估算重量。父盘点、仓库、商品、登记人外键 RESTRICT；同单商品唯一。仓库继承盘点头，身份/商品/创建信息不可修改，版本递增；非进行中禁止增改删，数据库触发器防止终态篡改。down 在任何 DDL 与迁移登记变更前检查表非空并拒绝；启动要求025已应用。
+- POST /api/v1/stocktake/:id/discoveries：商品、实盘包克、原因必填。沿用Web登录、同源与幂等键。锁库存写入口和盘点头，验证进行中及窗口，验证商品有效且有库存资格、未在本单快照和发现行内、该仓当前包吨均为零（允许不存在库存格）。非零账面返回422「该商品已有库存，请用调整或重新盘点」；重复/快照内商品返回422。不写库存或固定快照。
+- PATCH 同路径 /:lineId：只改包克和原因，正文携带 version；DELETE 同路径 /:lineId：携带 version，删除前校验进行中与版本，写删除前值审计。所有增改删都递增盘点头 revision、写审计和幂等结果，同事务提交；同键同正文重放，异正文409，过期版本409，操作失败保留输入。删除是用户显式删除未回写发现行，历史审计保留。复数 /stocktakes 路径提供等价别名。
+- 详情响应增加 discoveries 分页集合（沿用page/pageSize，最多200）；明细将快照与发现行合并排序分页，发现行带独立 discovery 元数据（id/version/reason/actor/时间）。发现行在未揭示盲盘中可见，但不返回 snapshot、账面合计或差异字段；商品候选不返回库存数。列表合计、进度与预览计入发现行；固定快照行数和指纹不改。
+- 预览以发现行基数0、差异等于实盘计算，令牌额外绑定按id排序的发现行 id+version 集合。任何新增/修改/删除使旧令牌失效，包括合计未变的改动。禁止同商品同时存在于两类行；发现行当前库存非零或商品失效构成回写阻断，不能用重新预览覆盖真实漂移。
+- 回写保留全局写锁→盘点头→未入账单据→库存锁序，重新核验发现行集合/版本、商品资格、当前零账面、窗口、快照、ACK与令牌。普通差异和发现行差异使用同一个库存操作、同一事务写库存及流水，再写审计、完成状态、释放窗口、保存幂等结果；任一步失败全部回滚，原发现行保留未回写状态。完成或作废后发现行只读。XLSX沿同一明细投影包含发现行，未揭示仍隐藏账面/差异。
+- 页面增加次操作「登记发现商品」；抽屉选商品、独立填包数/吨数/原因；明细标「盘盈（新发现）」。进行中可编辑或二次确认删除；终态只读。每页仍最多一个主操作，保留既有盲盘揭示和回写确认。
+- 验证覆盖用户七项场景，另含并发重复/同键重试/版本冲突/删除后令牌失效/跨单行拒绝/商品失效/零基数漂移/快照指纹不变/审计失败回滚/终态数据库约束/空表down与非空拒绝。完整test/build/E2E，1440/1280截图只存.local/evidence，全部使用隔离测试库；不改既有性能门槛或断言。
+
+不做：锁仓补全（AF-057）、默认正余额过滤、批量录入、键盘流程、默认折吨、PDA/小程序盘点、生产或实体设备验收。B6e-1合并后的停止决定已执行，本节授权仅开启B6e-2。
