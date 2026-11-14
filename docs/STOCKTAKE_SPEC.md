@@ -257,7 +257,7 @@ GET /api/v1/stocktakes/:id/export?kind=blank|result
 
 ## 15. B6e-2 独立发现行（2026-11-14）
 
-用户已授权方案 A，起点 master / d99f373，分支 codex/b6e-2-stocktake-discoveries。本节取代 §10 的暂定表名 stocktake_extra_lines 和 §11 的暂定新增盘盈路由；快照不可变、独立包吨、盲盘隔离与既有回写守卫继续生效。四笔提交：规格、迁移与接口、页面、验收；完成后停止，不合并推送、不应用开发样本库，不启动锁仓补全等后续步骤。
+用户已授权方案 A，起点 master / d99f373，分支 codex/b6e-2-stocktake-discoveries。本节取代 §10 的暂定表名 stocktake_extra_lines 和 §11 的暂定新增盘盈路由；快照不可变、独立包吨、盲盘隔离与既有回写守卫继续生效。实施阶段四笔提交：规格、迁移与接口、页面、验收；完成后停止，不合并推送、不应用开发样本库，不启动锁仓补全等后续步骤。该阶段已执行；用户后续验收与收尾授权见§15.2。
 
 - 025_stocktake_discoveries 新增 stocktake_discovery_lines：id、stocktake_id、warehouse_code、product_code、packages INT、weight_grams BIGINT、reason VARCHAR(500)、actor、created_at、updated_at、version，均必填。沿用项目 UUID、UTC DATETIME(3) 与包数/整数克限制，克数为100的倍数，包吨独立非负，不估算重量。父盘点、仓库、商品、登记人外键 RESTRICT；同单商品唯一。仓库继承盘点头，身份/商品/创建信息不可修改，版本递增；非进行中禁止增改删，数据库触发器防止终态篡改。down 在任何 DDL 与迁移登记变更前检查表非空并拒绝；启动要求025已应用。
 - POST /api/v1/stocktake/:id/discoveries：商品、实盘包克、原因必填。沿用Web登录、同源与幂等键。锁库存写入口和盘点头，验证进行中及窗口，验证商品有效且有库存资格、未在本单快照和发现行内、该仓当前包吨均为零（允许不存在库存格）。非零账面返回422「该商品已有库存，请用调整或重新盘点」；重复/快照内商品返回422。不写库存或固定快照。
@@ -298,3 +298,17 @@ GET /api/v1/stocktakes/:id/export?kind=blank|result
 完整E2E中的入库/出库拖拽观察窗口分别约2824.6ms/2979.0ms，均未观测到超过原50ms门槛的长任务；原门槛与断言未改，本轮无需单独性能复验。此结果不关闭AF-056/B6i历史问题。盘点新旧5项在完整套件中再次通过；扩展后的库存核对SQL所有逐行balanced=1、mismatches=0。497项完整单测包含最终回写锁定读复核实现；最终构建包含窄屏列宽修正。
 
 环境边界：025仅在可销毁测试库验证，未应用开发样本库；运行新API前需另行应用025，启动守卫会拒绝未迁移状态。未合并、未推送、未连接生产或修改warehouse系统；未做实体设备/打印机或生产验收。四笔提交后停止，不启动锁仓补全、批量/键盘/默认折吨等后续工作，整个B6e仍未完成。
+
+### 15.2 B6e-2 用户验收与收尾（2026-11-14）
+
+用户已确认B6e-2验收通过，授权「备份 → 指纹 → 应用025 → 冒烟」，随后按指定命令非快进合并功能分支并推送master，更新完成状态497/172/0，停止且不开始B6e-3。本次仅迁移部署、实际HTTP冒烟与文档收尾，不改产品代码或测试实现；沿用§15.1完整test **497/497**、完整E2E **154+18=172/172**、build exit **0**，本轮不宣称重新运行这三套验证。
+
+目标仅 `127.0.0.1:3307/maozhi_dev_sample`，已核验本地MySQL 8实例目录、数据库身份、001–024全部applied和API4310停止。备份 `.local/backups/b6e2-before-025-1794648186354.sql`，6,782,252字节，SHA-256 `0659f121f5432bc3ab2b2cfd1ef796579ad0f6f35afd5d9c7ef18a5f6f24300f`。恢复至随机临时库后，51张原表数据指纹全部相等；恢复库025演练通过，50张原业务表不变。
+
+首次开发账号应用025时，建表完成后被MySQL二进制日志的SUPER权限要求阻止创建触发器，命令exit 1，迁移保留applying。随后重新恢复备份演练，核对025脚本校验和、新表结构/空表、现有触发器为0及原业务数据未变，使用已核验本地管理员连接在迁移锁内安装原025的3个触发器，逐一比较演练库定义，再将迁移标记applied并复跑迁移校验，恢复命令exit 0。未提升开发账号权限、未修改全局MySQL设置、未删除原表或业务数据。最终50张原业务表指纹与盘点头结构不变，025状态applied、3个触发器齐全；随机恢复库已清理，备份保留。
+
+启动实际API4310进行HTTP冒烟，exit 0。新单 `PD-20261114-49389669CE6B`，仓库WH002；快照仅商品012，按原账面321包/96.6135吨录入，无普通差异。对快照外已有库存商品022登记返回422/`DISCOVERY_STOCK_EXISTS`及指定中文提示。零库存商品002登记3包/0.8123吨成功，同单重复返回422/`DISCOVERY_DUPLICATE`。预览仅1条差异，差异恰为3包/0.8123吨，无阻断、无未入账ACK项；人工回写后商品002库存为3包/0.8123吨，新增恰好1条流水，流水前值0、后值及差额与实盘相同，盘点状态completed，回写审计1条，窗口已释放。完成后PATCH/DELETE均409/`STOCKTAKE_CLOSED`，发现行正文及版本不变。原快照商品及其他库存、所有原流水和40张无关表指纹未变。冒烟单、发现行、库存流水和审计均正常提交并保留，未使用外层回滚替代验证；API随后停止。
+
+本地证据在 `.local/evidence/b6e2-closeout/`：`backup.json`、`before.json`、`rehearsal.json`、`migration.log`/`migration.exit`（首轮失败）、`restore-resume.log`/`restore-resume.exit`、`applied.json`、`smoke.json`、`smoke-responses.json`、`smoke-before.json`/`smoke-after.json`、`smoke.log`/`smoke.exit`。脚本、备份及证据不入Git。未连接生产、未修改warehouse系统、未做实体设备或生产验收。
+
+合并前已核对功能四笔提交及本次迁移记录，master与origin/master均为d99f373且无分歧，用户验收及合并授权已具备。按AGENTS.md，合并后完成状态文档另经codex收尾分支提交和非快进合并推送，master不直接提交；最终回复同时报告功能merge hash与最终远端HEAD。B6e-2收尾后停止，B6e-3及AF-057锁仓补全等不启动。
