@@ -72,7 +72,10 @@ test('Web 登录、详情核对与一次出库确认', async ({ page, request })
   await expect(page.getByTestId('source-stock')).toHaveAttribute('data-source', 'inventory');
   await page.goto('/stock?product=ACR-032');
   await expect(
-    page.getByTestId('stock-list').getByRole('cell', { name: (before - 0.6).toFixed(4), exact: true }),
+    page
+      .getByTestId('stock-list')
+      .locator('tbody tr[data-row-key]')
+      .getByRole('cell', { name: (before - 0.6).toFixed(4), exact: true }),
   ).toBeVisible();
   await page.getByText('操作记录', { exact: true }).click();
   await expect(page.getByTestId('audit-list').getByText('确认出库', { exact: true }).first()).toBeVisible();

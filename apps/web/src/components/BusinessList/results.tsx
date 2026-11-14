@@ -6,6 +6,7 @@ import type { ListState } from './use-list-state';
 import type { ListSelectionRow, SelectionKeys } from './use-list-selection';
 import { SectionTitle } from '../ui';
 import { spacing } from '../../theme/design-tokens';
+import type { ListTableSummary } from './table-summary';
 
 interface ResultsProps<Row extends { id: Key }> {
   config: { name: ExportKind; exportInHeader?: boolean; resultCardTitle?: ReactNode };
@@ -22,6 +23,7 @@ interface ResultsProps<Row extends { id: Key }> {
   placeholder: boolean;
   reload: () => unknown;
   summary?: ReactNode;
+  tableSummary?: ListTableSummary<Row>;
   emptyText?: ReactNode;
 }
 export function ListResults<Row extends { id: Key }>({
@@ -34,6 +36,7 @@ export function ListResults<Row extends { id: Key }>({
   placeholder,
   reload,
   summary,
+  tableSummary,
   emptyText,
 }: ResultsProps<Row>) {
   const table = (
@@ -48,6 +51,7 @@ export function ListResults<Row extends { id: Key }>({
       columnPrefs={columnPrefs}
       emptyText={emptyText}
       exportInHeader={config.exportInHeader}
+      tableSummary={tableSummary}
     />
   );
   return (

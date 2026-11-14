@@ -17,6 +17,7 @@ import { documentNumber, isEligible, exclusionReason, isTextEntry } from './tabl
 import { useRowInteractions } from './use-row-interactions';
 import { tableChange } from './table-change';
 import { listFeedback } from './list-feedback';
+import { renderTableSummary } from './table-summary';
 
 export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
   const { keys: selected, change: setSelected } = props.selection;
@@ -99,6 +100,16 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
             tableLayout="fixed"
             expandable={expansion.expandable}
             dataSource={data.items}
+            summary={
+              props.tableSummary
+                ? (rows) =>
+                    renderTableSummary({
+                      columns: layout.columns,
+                      preferences: columnPrefs.value,
+                      cells: props.tableSummary!(rows),
+                    })
+                : undefined
+            }
             search={false}
             sortDirections={['ascend', 'descend', null]}
             headerTitle={

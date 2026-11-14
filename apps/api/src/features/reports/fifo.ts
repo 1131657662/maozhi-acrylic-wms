@@ -1,4 +1,5 @@
 import type { LedgerEvent } from './types.ts';
+export { ageBuckets } from './fifo-buckets.ts';
 
 interface Layer {
   id: string;
@@ -174,22 +175,4 @@ function validAgeDay(businessDate: string | null, localTime: string | null): str
   return candidate && localTime && /^\d{4}-\d{2}-\d{2}$/.test(candidate) && candidate <= localTime.slice(0, 10)
     ? candidate
     : null;
-}
-export function ageBuckets(state: FifoState, cutoffDay: string, closingGrams: number | null): (number | null)[] {
-  if (closingGrams === null) return [null, null, null, null, null, null];
-  if (closingGrams === 0) return [0, 0, 0, 0, 0, 0];
-  const unknown = () => [null, null, null, null, null, closingGrams];
-  if (state.tainted) return unknown();
-  const bins = [0, 0, 0, 0, 0, 0],
-    cutoff = Date.parse(cutoffDay + 'T00:00:00Z');
-  for (const layer of state.layers) {
-    if (layer.grams <= 0) continue;
-    const age = Math.floor((cutoff - Date.parse(layer.ageDay + 'T00:00:00Z')) / 86400000);
-    if (age < 0) return unknown();
-    const index = age <= 30 ? 0 : age <= 90 ? 1 : age <= 180 ? 2 : age <= 365 ? 3 : 4;
-    bins[index] = (bins[index] ?? 0) + layer.grams;
-  }
-  if (bins.slice(0, 5).reduce((sum, grams) => sum + grams, 0) !== closingGrams) return unknown();
-  bins[5] = 0;
-  return bins;
 }

@@ -99,7 +99,7 @@
 | POST | /api/v1/outbound/{id}/void | web | 仅可证未入账且无现场下发风险单据作废；原号不复用 |
 | GET | /api/v1/web/lists/inbound | web | Web 入库分页；登记时间、原始状态与入账状态独立筛选 |
 | GET | /api/v1/web/lists/outbound | web | Web 出库分页；计划与扫码实绩分别汇总 |
-| GET | /api/v1/web/lists/stock | web | Web ERP 库存分页与同筛选范围小计；拒绝其他来源及总计参数 |
+| GET | /api/v1/web/lists/stock | web | Web 库存分页、全筛选在库小计与本页待发/可发/FIFO 库龄；统一读取快照 |
 | GET | /api/v1/web/lists/audit | web | 近 7 天统一安全记录分页；不读取原始 JSON |
 | GET | /api/v1/web/lists/audit/{id} | web | 服务端结构化变化与关联摘要；原始数据需专用入口 |
 | GET | /api/v1/web/lists/{kind}/statuses | web | 入库/出库原始状态选项，保留未知值和空值 |

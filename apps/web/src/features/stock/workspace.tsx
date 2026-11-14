@@ -14,6 +14,7 @@ import { StockJournal } from './journal';
 import { stockListColumns } from './list-columns';
 import { StockListSubtotal } from './list-subtotal';
 import { stockPageCopy } from './stock-copy';
+import { stockTableSummary } from './table-summary';
 
 export function StockWorkspace() {
   const state = useListState('warehouseCode', { scope: 'inventory' }, {}, ['source']);
@@ -27,6 +28,7 @@ export function StockWorkspace() {
         config={stockListConfig(setSelected)}
         filters={<StockFilters state={state} />}
         summary={<StockListSubtotal subtotal={stockListQuery.data?.subtotal} />}
+        tableSummary={stockTableSummary}
       >
         <StockJournal />
       </BusinessList>

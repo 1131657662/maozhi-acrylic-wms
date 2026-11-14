@@ -32,7 +32,7 @@ export const webListOperations: Operation[] = [
   {
     method: 'get',
     path: '/web/lists/stock',
-    summary: 'Web ERP 库存分页与同筛选范围小计；拒绝其他来源及总计参数',
+    summary: 'Web 库存分页、全筛选在库小计与本页待发/可发/FIFO 库龄；统一读取快照',
     query: webStockQuerySchema,
     response: webStockListSchema,
     channel: 'web',
