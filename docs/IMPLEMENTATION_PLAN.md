@@ -448,7 +448,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | 页面编号 | 实施批次编号 | 具体规格 | 迁移职责/前置 | 建议顺序 |
 |---|---|---|---|---|
 | UI-3 | B7b 工作台/数据看板 | WORKBENCH_SPEC | 新dashboard/analysis聚合；复用B6f库存+B7a报表+B6d目录证据，本身无必需DDL；实时设备/离场不支持 | 8 |
-| UI-4 | B6f 库存概览/流水 | STOCK_PAGE_SPEC | B6a资格、B5c/M-SHIPMENTS剩余量、B3c库龄；新只读投影与实测索引 | 6 |
+| UI-4 | B6f 库存概览/流水 | STOCK_PAGE_SPEC | 已整体完成、用户验收通过；B6f-1/2a/2b/2c 均已合并推送，最终 471/170/0；无新增迁移，性能专项仍归 B6i | 6（已完成） |
 | UI-5 | B7a 报表页面 | REPORTS_PAGE_SPEC + REPORT_SPEC | 先B5d更正分列/日期更正重述（M-DATE-CORRECTIONS）；正式开账证据由B10/M-CUTOVER-ANCHOR提供，未有锚点仍标不可验证 | 7 |
 | UI-6 | B6d 条码目录 | CATALOG_PAGE_SPEC | M-CATALOG-CANDIDATES；保留006/007与既有交接门禁，不在本批加设备实时协议 | 4 |
 | UI-7 | B6c 操作记录 | AUDIT_PAGE_SPEC | 已完成，240/116/0；015、成功/失败安全投影、受控 raw/trace、时间线及页面导出；见 B6C_3_ACCEPTANCE | 3 |
@@ -472,7 +472,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | B6f-1 库存页骨架 | STOCK_PAGE_SPEC §12；B6F_1_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `0c70973`；435/161/0（test/E2E/build），token 既有 22→22、新增 0；1440/1280 改前改后截图已核对。页面归位 stock/page.tsx，顺序为库存概览（现有小计）→在库明细→最近变动；原列表、全局最近 20 条流水与调整抽屉原样迁入，不改接口、查询、排序、分页、保存视图、导出及调整行为，不加二次确认或迁移。收尾后停止，不开始 B6f-2 |
 | B6f-2a 本页待发/可发 | STOCK_PAGE_SPEC §§3、8、12；B6F_2A_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `ae20ebd`；446/446 test、完整 E2E 146+18=164/164 一次全绿、build exit 0。合并前完整 E2E 无失败/跳过/重试，日志 b6f-2a-e2e-premerge-full.log；固定列判定规则已提交 `da741c7`。50 行仅 1 次列表 HTTP/1 条待发 SQL，service 6 读+3 事务；1440/1280 已复核，token 既有 22、新增 0。前置 B6f-1/B5c；本页仓×品批量聚合 open/partially_shipped 逐行有效余额，同事务返回 onHand/pending/available、asOf/watermark；保留 subtotal，负数错误色/tooltip，前端不重算。无迁移；库龄/流水交互/合计行/调整二次确认未做。收尾后停止，不开始 B6f-2b/c |
 | B6f-2b 固定合计行与库龄合并 | STOCK_PAGE_SPEC §12；B6F_2B_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `7f751d8`；468/168/0（test/E2E/build）全绿。规格 `2873cc9`、实现 `9c59f33`、验收 `3df1f01`；完整 E2E 首轮149/150，修正旧断言命中合计行后完整重跑150+18=168/168全绿、exit 0。50 行1次列表 HTTP/1次库龄批量 SQL，service 7读+3事务；1440/1280 已复核，token既有22/新增0。前置 B6f-2a/B3c；可选表底当前页合计、新五档与不可归龄同快照批量 FIFO；无迁移。checkout/merge/push/远端核对 exit 均 0；文档收尾后停止，不开始 B6f-2c |
-| B6f-2c 行内展开与商品流水 | STOCK_PAGE_SPEC §12；B6F_2C_ACCEPTANCE | 代码完成、本地自动化验收通过，待用户验收；规格 `fd3a9ca`、实现 `7dfaac4`；471/170/0（test/E2E/build）全绿，E2E 主套件152+目录18，完整复跑失败/跳过/重试=0/0/0。前置 B6f-2b。Peek 单次最多200组合/1 SQL，分页不改；行内按页缓存、抽屉最近20、最小流水页筛选分页；调整二次确认，原库存事务守卫不变。无迁移，不加导出/图表/保存视图。规格/实现/验收三提交后停止，不合并推送 |
+| B6f-2c 行内展开与商品流水 | STOCK_PAGE_SPEC §12；B6F_2C_ACCEPTANCE | 已完成、用户验收通过，已合并推送 `c56591a`；规格 `fd3a9ca`、实现 `7dfaac4`、验收 `b449c3a`；471/170/0（test/E2E/build）全绿，E2E 主套件152+目录18，完整复跑失败/跳过/重试=0/0/0；本次文档收尾沿用已验收结果。前置 B6f-2b。Peek 单次最多200组合/1 SQL，分页不改；行内按页缓存、抽屉最近20、最小流水页筛选分页并保留返回库存条件；调整二次确认，原库存事务守卫不变。无迁移，不加导出/图表/保存视图。checkout/merge/push/远端核对 exit 均 0；B6f 整体完成，收尾后停止，不开始 B6e |
 | B6a-num 编码补充批 | NUMBERING_SPEC、MASTER_DATA_SPEC | 已完成并通过用户验收；208/86/0；014_master_code_counters 已备份后应用 3307，预期结构差异、旧码保留及浏览器冒烟核验；见 B6A_NUM_ACCEPTANCE；历史重编留 B10 |
 | B6e 盘点增强 | STOCKTAKE_SPEC；C08/C09 | M-STOCKTAKE-EXTENSIONS；保留009快照触发器、窗口/ACK；顺序5 |
 | B5b | DOMAIN §4，短溢装/追加入库/纠错转移 | M-INBOUND-EXCEPTIONS、M-STOCK-TRANSFERS；独立业务批次，入库仍不扫码；B6a之后 |
@@ -509,7 +509,7 @@ B4d 出库手工实发
  → B6f-1 库存页骨架（已完成、用户验收通过，已合并推送 `0c70973`；435/161/0；收尾后停止，不开始 B6f-2）
  → B6f-2a 本页待发/可发（已完成、用户验收通过，已合并推送 `ae20ebd`；446/164/0 全绿，收尾后停止，不开始 b/c）
  → B6f-2b 固定合计行与库龄合并（已完成、用户验收通过，已合并推送 `7f751d8`；468/168/0 全绿；收尾后停止，不开始 c）
- → B6f-2c 流水与剩余交互
+ → B6f-2c 流水与剩余交互（已完成、用户验收通过，已合并推送 `c56591a`；471/170/0 全绿；B6f 整体完成，收尾后停止，不开始 B6e）
  → B6e 盘点增强
  → B7a 报表页
  → B6i 性能专项

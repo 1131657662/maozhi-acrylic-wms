@@ -1,11 +1,11 @@
 # B6f-2c 行内展开、商品流水与调整确认验收
 
-状态（2026-11-14）：代码完成、本地自动化验收通过，待用户验收；未合并、未推送。本地自动化验证不代表用户、实体设备或生产验收。
+状态（2026-11-14）：已完成、用户验收通过，已合并推送 `c56591a`；471/170/0（test/E2E/build）全绿。B6f 整体完成，收尾后停止，不开始 B6e。本地自动化验证与用户验收不代表实体设备或生产验收。
 
 ## 起点与范围
 
 - 起点 `master` / `0e5829a`，工作区干净；分支 `codex/b6f-2c-stock-journal`。最大迁移 `023_catalog_candidate_abandons`，本批没有迁移。
-- 规格提交 `fd3a9ca`，实现提交 `7dfaac4`；严格按规格、实现、验收三笔交付，完成后停止，不合并、不推送。
+- 规格提交 `fd3a9ca`、实现提交 `7dfaac4`、验收提交 `b449c3a`；实现阶段严格按三笔交付后停止，用户验收后另行授权本次合并推送与文档收尾。
 - Peek 支持一次最多 200 个仓库×商品组合，库存分页 20/50/100/200 保留；首个展开批量加载本页各自最近 3 条，同页其他行用缓存。BusinessList 可选 expandable，其他列表保留原有行为；库存固定合计增加展开列占位。
 - 商品流水抽屉显示最近 20 条与列表中的仓库、商品、在库、待发、可发；新增只读 `/stock/journal`，按 warehouseCode/productCode 精确过滤及分页。抽屉与页面共用 `/stock/movements`，前 20 条接口对象和显示行键逐项一致。
 - 抽屉「查看全部」带仓库/商品条件；流水页「返回库存」保存原库存 URL，流水页筛选、翻页仍保留返回状态。没有导出、图表、保存视图或时间范围筛选。
@@ -53,3 +53,11 @@ Peek 的一条 SQL 指业务 service 查询；鉴权读取不计入该业务 SQL
 - `b6f-2c-adjustment-confirm-{1440,1280}.png`：调整前、调整后、变化和原因。
 
 没有写开发样本库、生产库或 warehouse 系统；不引入 UI 库、字体、裸颜色、迁移或扫码库存逻辑。浏览器与合成数据验证不等于实体设备或生产验收；本批完成后停止。
+
+## 用户验收与合并收尾（2026-11-14）
+
+用户明确验收通过，并授权合并推送和完成状态更新。执行 `git checkout master`、`git merge --no-ff codex/b6f-2c-stock-journal -m "merge: b6f-2c stock peek journal and confirm"`、`git push origin master`，退出码均为 0。
+
+功能 merge hash：`c56591a30adc5b3d3145e2f2331fe6b14bfebf22`。功能推送后 `git ls-remote origin refs/heads/master` 与该 hash 一致，核对 exit 0。沿用本批最终完整测试 471/471、完整 E2E 152+18=170/170、构建 exit 0；本次没有产品代码变更，不重复运行完整套件。
+
+按 AGENTS.md 的 master 仅接受 --no-ff 合并提交规则，完成状态与台账更新通过 `codex/b6f-2c-closeout` 提交，再以 --no-ff 合并推送。最终远端 HEAD 包含文档收尾合并；B6f-1/2a/2b/2c 均已完成，B6f 整体结束，停止，不开始 B6e。
