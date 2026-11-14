@@ -1,6 +1,6 @@
 import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { stocktakeSchema, type StocktakePost } from '@wms/contracts';
+import { publicStocktakeSchema, type StocktakePost } from '@wms/contracts';
 import { request } from '../../api/client';
 import { stocktakeKeys } from './keys';
 import { webListKeys } from '../web-lists/keys';
@@ -13,7 +13,7 @@ export function usePostStocktake() {
     mutationFn: ({ id, input }: { id: string; input: StocktakePost }) => {
       const path = `/stocktakes/${id}/post`,
         body = JSON.stringify(input);
-      return request(path, stocktakeSchema, {
+      return request(path, publicStocktakeSchema, {
         method: 'POST',
         body,
         headers: { 'Idempotency-Key': intent.value() },

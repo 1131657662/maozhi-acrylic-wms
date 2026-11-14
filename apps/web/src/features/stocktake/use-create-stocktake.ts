@@ -1,6 +1,6 @@
 import { useSubmissionKey } from '../../components/form-protection/use-submission-key';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { stocktakeSchema, type CreateStocktake } from '@wms/contracts';
+import { publicStocktakeSchema, type CreateStocktake } from '@wms/contracts';
 import { request } from '../../api/client';
 import { stocktakeKeys } from './keys';
 
@@ -10,7 +10,7 @@ export function useCreateStocktake() {
   return useMutation({
     mutationFn: (input: CreateStocktake) => {
       const body = JSON.stringify(input);
-      return request('/stocktakes', stocktakeSchema, {
+      return request('/stocktakes', publicStocktakeSchema, {
         method: 'POST',
         body,
         headers: { 'Idempotency-Key': intent.value() },

@@ -1,3 +1,5 @@
+import { AuditOutlined } from '@ant-design/icons';
+import { fontSize, spacing } from '../../theme/design-tokens';
 import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -11,13 +13,13 @@ import {
   ProFormText,
   type ProColumns,
 } from '@ant-design/pro-components';
-import { listTime, type Stocktake } from '@wms/contracts';
+import { listTime, stocktakeCopy, type PublicStocktake } from '@wms/contracts';
 import { stocktakeKeys } from './keys';
 import { StocktakeQueryState } from './query-state';
 import '../../components/BusinessList/style.css';
 
 export const stocktakeStatus = { counting: '进行中 · 仓库暂停确认', completed: '已回写完成', voided: '已作废' };
-const columns: ProColumns<Stocktake>[] = [
+const columns: ProColumns<PublicStocktake>[] = [
   {
     title: '盘点单号',
     dataIndex: 'number',
@@ -27,12 +29,22 @@ const columns: ProColumns<Stocktake>[] = [
   },
   { title: '仓库', dataIndex: 'warehouseName', width: 160 },
   {
+    title: stocktakeCopy.mode,
+    width: 160,
+    render: (_, r) =>
+      r.mode === 'open'
+        ? stocktakeCopy.open
+        : r.visibility === 'hidden'
+          ? stocktakeCopy.hidden
+          : stocktakeCopy.revealed,
+  },
+  {
     title: '状态',
     width: 200,
     render: (_, r) => <Tag color={r.status === 'counting' ? 'warning' : 'default'}>{stocktakeStatus[r.status]}</Tag>,
   },
   { title: '实盘进度', width: 140, render: (_, r) => `${r.recordedCount} / ${r.lineCount} 行` },
-  { title: '差异行', dataIndex: 'changedCount', width: 90 },
+  { title: '差异行', width: 90, render: (_, r) => (r.visibility === 'visible' ? r.changedCount : '—') },
   { title: businessCopy.stocktakeList1, width: 180, render: (_, r) => listTime(r.snapshotAt) },
   { title: '操作', width: 90, fixed: 'right', render: (_, r) => <Link to={`/stocktakes/${r.id}`}>查看</Link> },
 ];
@@ -46,7 +58,12 @@ export function StocktakeList() {
   const query = useQuery(stocktakeKeys.list(params));
   return (
     <PageContainer
-      title="库存盘点"
+      title={
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: spacing[4] }}>
+          <AuditOutlined style={{ fontSize: fontSize.cardTitle }} />
+          库存盘点
+        </span>
+      }
       className="business-list"
       content={businessCopy.stocktakeList2}
       extra={
@@ -74,7 +91,7 @@ export function StocktakeList() {
         />
       </QueryFilter>
       <StocktakeQueryState query={query}>
-        <ProTable<Stocktake>
+        <ProTable<PublicStocktake>
           rowKey="id"
           columns={columns}
           dataSource={query.data?.items ?? []}

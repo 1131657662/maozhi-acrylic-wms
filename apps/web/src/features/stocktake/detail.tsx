@@ -1,10 +1,12 @@
+import { AuditOutlined } from '@ant-design/icons';
+import { fontSize } from '../../theme/design-tokens';
 import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@umijs/max';
-import { Alert, Button, Tag } from 'antd';
+import { Alert, Button, Space, Tag } from 'antd';
 import { PageContainer, ProDescriptions } from '@ant-design/pro-components';
-import { tonnes, listTime } from '@wms/contracts';
+import { tonnes, listTime, stocktakeCopy } from '@wms/contracts';
 import { stocktakeKeys } from './keys';
 import { StocktakeQueryState } from './query-state';
 import { StocktakeLines } from './lines';
@@ -12,6 +14,9 @@ import { stocktakeStatus } from './list';
 import { VoidStocktakeDrawer } from './void-drawer';
 import { StocktakePostPanel } from './post-panel';
 import { ObjectAuditTimeline } from '../audit/events';
+import { StocktakeReveal } from './reveal';
+import { StocktakeExports } from './exports';
+import { spacing } from '../../theme/design-tokens';
 
 export function StocktakeDetail() {
   const [voiding, setVoiding] = useState(false);
@@ -20,7 +25,12 @@ export function StocktakeDetail() {
     take = query.data;
   return (
     <PageContainer
-      title={take?.number ?? '盘点详情'}
+      title={
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: spacing[4] }}>
+          <AuditOutlined style={{ fontSize: fontSize.cardTitle }} />
+          {take?.number ?? '盘点详情'}
+        </span>
+      }
       className="business-list"
       extra={
         <Link to="/stocktakes">
@@ -33,7 +43,19 @@ export function StocktakeDetail() {
           <>
             <Tag color={take.status === 'counting' ? 'warning' : 'default'}>{stocktakeStatus[take.status]}</Tag>
             <Tag>{businessCopy.stocktakeDetail1}</Tag>
-            {take.status === 'counting' && <StocktakePostPanel id={id} />}
+            <Tag>
+              {take.mode === 'open'
+                ? stocktakeCopy.open
+                : take.visibility === 'hidden'
+                  ? stocktakeCopy.hidden
+                  : stocktakeCopy.revealed}
+            </Tag>
+            <Space wrap size={spacing[8]} style={{ display: 'flex', marginBlock: spacing[16] }}>
+              {take.status === 'counting' &&
+                (take.visibility === 'hidden' ? <StocktakeReveal take={take} /> : <StocktakePostPanel id={id} />)}
+              <StocktakeExports take={take} />
+            </Space>
+            {take.visibility === 'hidden' && <Alert type="info" showIcon title={stocktakeCopy.hiddenDescription} />}
             {take.status === 'counting' && (
               <Alert
                 showIcon
@@ -44,15 +66,19 @@ export function StocktakeDetail() {
             )}
             <ProDescriptions
               column={3}
-              title={businessCopy.stocktakeDetail2}
+              title={take.visibility === 'hidden' ? stocktakeCopy.hiddenSummary : businessCopy.stocktakeDetail2}
               dataSource={take}
               columns={[
                 { title: '仓库', dataIndex: 'warehouseName' },
                 { title: businessCopy.stocktakeDetail3, render: () => listTime(take.snapshotAt) },
                 { title: '实盘进度', render: () => `${take.recordedCount} / ${take.lineCount} 行` },
-                { title: businessCopy.stocktakeDetail4, dataIndex: 'snapshotPackages' },
-                { title: businessCopy.stocktakeDetail5, render: () => tonnes(take.snapshotWeightGrams) },
-                { title: '差异行数', dataIndex: 'changedCount' },
+                ...(take.visibility === 'visible'
+                  ? [
+                      { title: businessCopy.stocktakeDetail4, dataIndex: 'snapshotPackages' },
+                      { title: businessCopy.stocktakeDetail5, render: () => tonnes(take.snapshotWeightGrams) },
+                      { title: '差异行数', dataIndex: 'changedCount' },
+                    ]
+                  : []),
                 ...(take.status === 'counting'
                   ? []
                   : [
@@ -61,7 +87,7 @@ export function StocktakeDetail() {
                     ]),
               ]}
             />
-            <StocktakeLines id={id} editable={take.status === 'counting'} />
+            <StocktakeLines id={id} editable={take.status === 'counting'} hidden={take.visibility === 'hidden'} />
             <ObjectAuditTimeline kind="stocktake" id={id} />
             {take.status === 'counting' && (
               <Button danger onClick={() => setVoiding(true)}>

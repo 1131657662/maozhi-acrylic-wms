@@ -5,10 +5,10 @@ import { businessCopy } from '../../business-copy';
 import { RequestError } from '../../components/RequestError';
 import { Form, Alert, Drawer } from 'antd';
 import { ProForm, ProFormTextArea } from '@ant-design/pro-components';
-import type { Stocktake } from '@wms/contracts';
+import type { PublicStocktake } from '@wms/contracts';
 import { useVoidStocktake } from './use-void-stocktake';
 
-export function VoidStocktakeDrawer({ take, onClose }: { take: Stocktake; onClose: () => void }) {
+export function VoidStocktakeDrawer({ take, onClose }: { take: PublicStocktake; onClose: () => void }) {
   const { mutateAsync: voidTake, isPending: isVoiding, error: voidError } = useVoidStocktake();
   const [form] = Form.useForm();
   const draft = useFormDraft(form, `stocktake-void`, take.id);

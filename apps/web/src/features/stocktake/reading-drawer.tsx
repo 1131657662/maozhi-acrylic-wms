@@ -5,12 +5,12 @@ import { businessCopy } from '../../business-copy';
 import { useState } from 'react';
 import { Form, Alert, Button, Drawer } from 'antd';
 import { ProForm, ProFormDigit } from '@ant-design/pro-components';
-import { tonnes, stocktakeLinesSchema, type StocktakeLine } from '@wms/contracts';
+import { tonnes, publicStocktakeLinesSchema, type PublicStocktakeLine } from '@wms/contracts';
 import { tonnesDeltaToGrams } from '../../lib/weight-input';
 import { useSaveReading } from './use-save-reading';
 import { request } from '../../api/client';
 
-export function ReadingDrawer({ id, line, onClose }: { id: string; line: StocktakeLine; onClose: () => void }) {
+export function ReadingDrawer({ id, line, onClose }: { id: string; line: PublicStocktakeLine; onClose: () => void }) {
   const [current, setCurrent] = useState(line),
     [reloadError, setReloadError] = useState('');
   const { mutateAsync: save, isPending: isSaving, error: saveError } = useSaveReading();
@@ -22,7 +22,7 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
     try {
       const data = await request(
         `/stocktakes/${id}/lines?keyword=${encodeURIComponent(line.productCode)}`,
-        stocktakeLinesSchema,
+        publicStocktakeLinesSchema,
       );
       const found = data.items.find((r) => r.productCode === line.productCode);
       if (found) setCurrent(found);
@@ -57,14 +57,15 @@ export function ReadingDrawer({ id, line, onClose }: { id: string; line: Stockta
       keyboard={!isSaving}
       mask={{ closable: false }}
     >
-      <p>
-        {businessCopy.stocktakeReadingDrawer1}
-        {line.snapshot.packages} 包 / {tonnes(line.snapshot.weightGrams)} 吨
-      </p>
+      {current.visibility === 'visible' && (
+        <p>
+          {businessCopy.stocktakeReadingDrawer1}
+          {current.snapshot.packages} 包 / {tonnes(current.snapshot.weightGrams)} 吨
+        </p>
+      )}
       <p>
         当前已保存：
         {current.actual ? `${current.actual.packages} 包 / ${tonnes(current.actual.weightGrams)} 吨` : '未录入'}
-        ；修改版本 {current.revision}
       </p>
       {(saveError || reloadError) && (
         <Alert
