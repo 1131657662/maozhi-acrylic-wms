@@ -3,8 +3,10 @@ import { stockBalanceSchema } from './inventory-posting.ts';
 
 const code = z.string().min(1).max(80);
 const status = z.enum(['counting', 'completed', 'voided']);
+export const stocktakeModeSchema = z.enum(['open', 'blind']);
 export const createStocktakeSchema = z.strictObject({
   warehouseCode: code,
+  mode: stocktakeModeSchema.default('open'),
   productCodes: z
     .array(code)
     .min(1)
@@ -18,6 +20,8 @@ export const stocktakeSchema = z.object({
   warehouseCode: code,
   warehouseName: z.string(),
   scope: z.enum(['warehouse', 'products']),
+  mode: stocktakeModeSchema.default('open'),
+  revealedAt: z.string().nullable().default(null),
   status,
   snapshotAt: z.string(),
   snapshotHash: z.string(),
@@ -87,7 +91,7 @@ export const voidStocktakeSchema = z.strictObject({
 export type Stocktake = z.infer<typeof stocktakeSchema>;
 export type StocktakeLine = z.infer<typeof stocktakeLineSchema>;
 export type StocktakePreview = z.infer<typeof stocktakePreviewSchema>;
-export type CreateStocktake = z.infer<typeof createStocktakeSchema>;
+export type CreateStocktake = z.input<typeof createStocktakeSchema>;
 export type SaveReading = z.infer<typeof saveReadingSchema>;
 export type StocktakePost = z.infer<typeof stocktakePostSchema>;
 export type StocktakeQuery = z.infer<typeof stocktakeQuerySchema>;

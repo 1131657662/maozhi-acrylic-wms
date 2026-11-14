@@ -19,6 +19,8 @@ function header(row: Row) {
     warehouseCode: row.warehouse_code,
     warehouseName: row.warehouse_name,
     scope: row.scope_kind,
+    mode: row.mode ?? 'open',
+    revealedAt: row.revealed_at ? isoDate(row.revealed_at) : null,
     status: row.status,
     snapshotAt: isoDate(row.snapshot_at),
     snapshotHash: row.snapshot_hash,

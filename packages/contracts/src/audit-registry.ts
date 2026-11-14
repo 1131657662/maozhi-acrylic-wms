@@ -83,6 +83,7 @@ export const auditActions: Record<string, AuditActionDefinition> = {
   'catalog.handoff.confirm': entry('确认条码交接', 'handoff'),
   'stocktake.create': entry('开始盘点', 'stocktake'),
   'stocktake.reading': entry('保存实盘数量', 'stocktake'),
+  'stocktake.reveal': entry('揭示盘点账面', 'stocktake', true, []),
   'stocktake.post': entry('盘点入账', 'stocktake', true),
   'stocktake.void': entry('作废盘点', 'stocktake', true),
   'stocktake.snapshot-basis.acknowledge': entry('核对盘点期间收发货', 'stocktake'),

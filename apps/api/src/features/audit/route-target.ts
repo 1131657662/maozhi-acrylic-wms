@@ -77,7 +77,7 @@ const routes: RouteRule[] = [
   { pattern: /^\/web\/lifecycle\/batch-reverse$/, action: () => 'batch.reverse', kind: 'batch', channel: 'web' },
   { pattern: /^\/stock\/adjustments$/, action: () => 'stock.adjust', kind: 'stock', channel: 'web' },
   {
-    pattern: /^\/stocktakes(?:\/([^/]+))?(?:\/(post|void|lines)(?:\/[^/]+)?)?$/,
+    pattern: /^\/stocktakes?(?:\/([^/]+))?(?:\/(post|void|lines|reveal|preview|export)(?:\/[^/]+)?)?$/,
     action: (m, method) =>
       method === 'GET' ? 'stocktake.read' : `stocktake.${m[2] === 'lines' ? 'reading' : (m[2] ?? 'create')}`,
     kind: 'stocktake',

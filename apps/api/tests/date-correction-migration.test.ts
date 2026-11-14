@@ -9,18 +9,16 @@ test('021 empty up/down/up preserves existing tables and installs date chain ind
   const c = await createTestDatabase('020_correction_shipment_line');
   try {
     const original = await c.db.get('SHOW CREATE TABLE inbound_receipts');
-    await migrateUp(c.db);
+    await migrateUp(c.db, '021_document_date_corrections');
     const schema = await c.db.get('SHOW CREATE TABLE document_date_corrections');
     const cols = await c.db.all(
       "SHOW COLUMNS FROM document_date_corrections WHERE Field IN ('before_date','after_date')",
     );
     assert.ok(cols.length === 2 && cols.every((col) => col.Null === 'NO'));
-    await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db);
-    await migrateDown(c.db); // 022 is down; remove the empty 021 migration next.
     assert.equal(await c.db.get("SHOW TABLES LIKE 'document_date_corrections'"), undefined);
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE inbound_receipts'), original);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '021_document_date_corrections');
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE document_date_corrections'), schema);
     console.log('B5D1_MIGRATION empty=up/down/up original_schema_unchanged=true');
   } finally {
@@ -35,6 +33,7 @@ test('021 records cannot be updated/deleted; nonempty down rejects before any DD
     await assert.rejects(c.db.run('DELETE FROM document_date_corrections'), /immutable/);
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+    await migrateDown(c.db); // 024 is empty; remove it before the 021 guard.
     await migrateDown(c.db); // 023 is empty; restore the pre-candidate state.
     await migrateDown(c.db); // Restore the pre-022 state before testing the 021 guard.
     const before = await businessFingerprint(c.db),

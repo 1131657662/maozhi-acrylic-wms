@@ -11,7 +11,7 @@ test('014 空库up→down→up；未应用014拒绝写服务启动', async () =>
     await assert.rejects(assertMasterReady(c.db), /014/);
     await migrateUp(c.db, '014_master_code_counters');
     await assert.rejects(assertMasterReady(c.db), /022/);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '023_catalog_candidate_abandons');
     await assertMasterReady(c.db);
     assert.ok(await c.db.get("SHOW TABLES LIKE 'master_code_counters'"));
     // Remove empty migrations 015-023 before testing the independent 014 rollback.

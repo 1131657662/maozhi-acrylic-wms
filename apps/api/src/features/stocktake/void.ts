@@ -6,6 +6,7 @@ import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { lockInventoryWriter } from '../inventory/operation.ts';
 import { lockCounting } from './window.ts';
 import { getStocktake } from './read-model.ts';
+import { isBlindHidden, publicHeader } from './visibility.ts';
 
 interface VoidCommand {
   id: string;
@@ -33,7 +34,12 @@ export async function voidStocktake(db: Database, command: VoidCommand) {
       [id],
     );
     const after = await getStocktake(tx, id);
-    await audit(tx, actor, { action: 'stocktake.void', targetId: id, before, after });
+    await audit(tx, actor, {
+      action: 'stocktake.void',
+      targetId: id,
+      before: isBlindHidden(before) ? publicHeader(before) : before,
+      after: isBlindHidden(after) ? publicHeader(after) : after,
+    });
     await saveCommand(tx, 'stocktake.void', key, payload, actor, after);
     return after;
   });

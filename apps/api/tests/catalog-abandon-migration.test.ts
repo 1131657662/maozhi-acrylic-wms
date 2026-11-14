@@ -10,13 +10,13 @@ test('023 空表 up/down/up 保持父表及外键类型不变', async () => {
   const c = await createTestDatabase('022_master_search_text');
   try {
     const parent = await c.db.get('SHOW CREATE TABLE catalog_versions');
-    await migrateUp(c.db);
+    await migrateUp(c.db, '023_catalog_candidate_abandons');
     const table = await c.db.get('SHOW CREATE TABLE catalog_candidate_abandons');
     assert.equal((await c.db.get("SHOW COLUMNS FROM catalog_candidate_abandons LIKE 'version_id'"))?.Type, 'int');
     await migrateDown(c.db);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'catalog_candidate_abandons'"), undefined);
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE catalog_versions'), parent);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '023_catalog_candidate_abandons');
     assert.deepEqual(await c.db.get('SHOW CREATE TABLE catalog_candidate_abandons'), table);
   } finally {
     await c.dispose();
@@ -55,6 +55,7 @@ test('023 正数CHECK、父版本FK、操作号唯一约束与不可变触发器
 test('023 非空 down 在任何DDL及迁移状态改变之前拒绝', async () => {
   const c = await catalogFixture();
   try {
+    await migrateDown(c.db); // Remove empty 024 before checking the 023 evidence guard.
     const v = (await upload(c.db, '')).version!;
     await abandonCandidate(c.db, { versionId: v.versionId, key: randomUUID(), reason: '保留证据', actor });
     const before = await c.db.all('SELECT * FROM catalog_candidate_abandons'),

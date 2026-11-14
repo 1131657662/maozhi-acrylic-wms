@@ -7,6 +7,7 @@ import { assertCatalogReady } from './db/catalog-readiness.ts';
 import { assertHandoffReady } from './db/handoff-readiness.ts';
 import { assertLifecycleReady } from './db/lifecycle-readiness.ts';
 import { assertStocktakeReady } from './db/stocktake-readiness.ts';
+import { assertStocktakeBlindReady } from './db/stocktake-blind-migration.ts';
 import { assertBoundaryReady } from './db/boundary-readiness.ts';
 import { assertCorrectionsReady } from './db/correction-migration.ts';
 import { assertMasterReady } from './db/master-readiness.ts';
@@ -32,6 +33,7 @@ try {
   await assertHandoffReady(db);
   await assertLifecycleReady(db);
   await assertStocktakeReady(db);
+  await assertStocktakeBlindReady(db);
   await assertBoundaryReady(db);
   await assertCorrectionsReady(db);
   await assertMasterReady(db);
