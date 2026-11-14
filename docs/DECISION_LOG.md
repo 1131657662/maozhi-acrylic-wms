@@ -436,3 +436,13 @@
 | 2026-11-14 | 用户验收 B6f-2c 通过；按指定命令以 --no-ff 合并推送，更新完成状态 471/170/0；B6f 整体完成，收尾后停止，不开始 B6e | 生效 | STOCK_PAGE_SPEC §12、B6F_2C_ACCEPTANCE、IMPLEMENTATION_PLAN B6f |
 
 合并执行记录（2026-11-14，非新增业务决定）：规格/实现/验收三提交已以 --no-ff 合并为 `c56591a30adc5b3d3145e2f2331fe6b14bfebf22`（`merge: b6f-2c stock peek journal and confirm`），推送 origin/master 成功；功能推送后远端 refs/heads/master 与该 hash 一致，checkout/merge/push/核对 exit 均 0。471/170/0 全绿记录沿用，本次仅合并与文档收尾。收尾文档通过 `codex/b6f-2c-closeout` 提交后以 --no-ff 合并推送；B6f 整体完成，不开始 B6e。
+
+## B7a-1 报表外壳与口径控制（2026-11-14）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-14 | B7a-1 在四个独立报表页复用 ReportShell；不合并路由，不改既有查询或报表语义 | 生效 | REPORTS_PAGE_SPEC §§2、4–7、9 |
+| 2026-11-14 | 入账/重述选择由 ReportFilters 写入 URL 并参与查询键；重置其他筛选保留 basis，切换 basis 保留其他筛选 | 生效 | REPORTS_PAGE_SPEC §2 |
+| 2026-11-14 | 报表口径条显示 basis、asOf、journalMaxId 与 dateCorrectionMaxId；仅此报表快照元数据区显示水位标识。重述余额不可验证时显示原因，不以零代替未知 | 生效 | REPORTS_PAGE_SPEC §§2、11、16 |
+| 2026-11-14 | 报表图表依赖锁定 `echarts@6.1.0`，许可证 Apache-2.0；按需注册、自封组件、不引入 wrapper | 生效 | REPORTS_PAGE_SPEC §9 |
+| 2026-11-14 | 报表收藏按报表类型保存在当前浏览器，不保存筛选条件；保存视图仍保留查询条件。B7a-1 将现有三范围导出入口放入页头，打印保持禁用占位 | 生效 | REPORTS_PAGE_SPEC §2 |
