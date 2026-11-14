@@ -2,6 +2,8 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { stockBalanceCopy, tonnes, type WebStockRow } from '@wms/contracts';
 import { Button } from 'antd';
 import { AvailableStock } from './available-stock';
+import { StockAgingCell } from './aging-cell';
+import { stockPageCopy } from './stock-copy';
 
 const BALANCE_COLUMN_WIDTH = 180;
 
@@ -53,6 +55,12 @@ export function stockListColumns(onAdjust: (row: WebStockRow) => void): ProColum
       render: (_, row) => <AvailableStock quantity={row.available} />,
     },
     { title: '商品编码', dataIndex: 'productCode', width: 180, sorter: true },
+    {
+      title: stockPageCopy.aging,
+      dataIndex: 'agingBuckets',
+      width: 240,
+      render: (_, row) => <StockAgingCell {...row} />,
+    },
     {
       title: '仓库',
       dataIndex: 'warehouseCode',

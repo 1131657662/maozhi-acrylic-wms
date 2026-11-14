@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { inventoryScopeResult } from './inventory-scope.ts';
 import { inboundReceiptSchema } from './inbound.ts';
 import { auditRowSchema, auditDetailSchema, auditStatisticsSchema } from './audit.ts';
+import { stockAgingSchema } from './stock-aging.ts';
 
 const integer = z.number().int().safe();
 export const webMatchedLineSchema = z.strictObject({
@@ -55,6 +56,7 @@ export const webOutboundRowSchema = z.strictObject({
 });
 export const webStockQuantitySchema = z.strictObject({ packages: integer, weightGrams: integer });
 export const webStockRowSchema = z.strictObject({
+  ...stockAgingSchema.shape,
   id: z.string(),
   source: inventoryScopeResult,
   sourceKind: z.string(),

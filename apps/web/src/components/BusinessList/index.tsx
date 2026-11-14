@@ -17,6 +17,7 @@ import './style.css';
 import { listFeedback } from './list-feedback';
 import { Card, PageShell } from '../ui';
 import { spacing } from '../../theme/design-tokens';
+import type { ListTableSummary } from './table-summary';
 
 interface Config<Row> {
   name: ExportKind;
@@ -47,6 +48,7 @@ interface Props<Row> {
   filters: ReactNode;
   children?: ReactNode;
   summary?: ReactNode;
+  tableSummary?: ListTableSummary<Row>;
   beforeResults?: ReactNode;
   resultView?: ReactNode;
 }
@@ -142,6 +144,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
               placeholder={query.isPlaceholderData ?? false}
               reload={query.refetch}
               summary={props.summary}
+              tableSummary={props.tableSummary}
               emptyText={config.emptyText}
             />
           )}

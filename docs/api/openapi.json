@@ -30166,6 +30166,29 @@
                           "items": {
                             "additionalProperties": false,
                             "properties": {
+                              "agingBuckets": {
+                                "items": false,
+                                "maxItems": 5,
+                                "minItems": 5,
+                                "prefixItems": [
+                                  {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  },
+                                  {
+                                    "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                  }
+                                ],
+                                "type": "array"
+                              },
                               "available": {
                                 "$ref": "#/components/schemas/S_beea1a5ad5273a50"
                               },
@@ -30206,6 +30229,9 @@
                               "sourceKind": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
+                              "unagingGrams": {
+                                "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                              },
                               "warehouseCode": {
                                 "$ref": "#/components/schemas/S_00404e686415370f"
                               },
@@ -30217,6 +30243,8 @@
                               }
                             },
                             "required": [
+                              "agingBuckets",
+                              "unagingGrams",
                               "id",
                               "source",
                               "sourceKind",
@@ -30390,7 +30418,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Web ERP 库存分页与同筛选范围小计；拒绝其他来源及总计参数",
+        "summary": "Web 库存分页、全筛选在库小计与本页待发/可发/FIFO 库龄；统一读取快照",
         "x-client-channel": "web"
       }
     },

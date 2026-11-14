@@ -3,6 +3,7 @@ import type { ExportKind, WebMatchedTotals } from '@wms/contracts';
 import type { ListColumnPreferences } from './use-list-columns';
 import type { ListState } from './use-list-state';
 import type { ListSelectionRow, SelectionKeys } from './use-list-selection';
+import type { ListTableSummary } from './table-summary';
 
 export interface ListData<Row> {
   items: Row[];
@@ -29,4 +30,5 @@ export interface ListTableProps<Row> {
   columnPrefs: ListColumnPreferences<Row>;
   emptyText?: ReactNode;
   exportInHeader?: boolean;
+  tableSummary?: ListTableSummary<Row>;
 }

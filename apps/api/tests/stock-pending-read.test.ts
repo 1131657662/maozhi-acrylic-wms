@@ -7,7 +7,7 @@ import { numberingFixture } from './numbering-fixture.ts';
 import { seedListEvidence } from '../../../scripts/e2e-list-fixtures.ts';
 import { pendingPlan, readStock } from './stock-pending-fixture.ts';
 
-test('50 行库存只执行一次待发批量 SQL，查询条数不随行数增加', async (t) => {
+test('50 行库存只执行一次待发和一次库龄批量 SQL，查询条数不随行数增加', async (t) => {
   const c = await numberingFixture();
   try {
     await seedListEvidence(c.db, 60);
@@ -32,9 +32,10 @@ test('50 行库存只执行一次待发批量 SQL，查询条数不随行数增�
       );
       assert.equal(page.items.length, pageSize);
       assert.equal(reads.filter((sql) => sql.startsWith('WITH selected_lines')).length, 1);
-      assert.equal(reads.length, 6);
+      assert.equal(reads.filter((sql) => sql.includes('/* stock-aging-batch */')).length, 1);
+      assert.equal(reads.length, 7);
       assert.equal(controls.length, 3);
-      console.log(`B6F2A_SQL rows=${pageSize} select=6 pending_batch=1 transaction=3 total=9`);
+      console.log(`B6F2B_SQL rows=${pageSize} select=7 pending_batch=1 aging_batch=1 transaction=3 total=10`);
     }
   } finally {
     t.mock.restoreAll();

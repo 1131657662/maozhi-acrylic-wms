@@ -4,10 +4,11 @@ import { hash } from '../../shared/hash.ts';
 import { isoDate } from '../../db/dates.ts';
 import { reportUnclassifiedStock } from '../stock/source-diagnostics.ts';
 import { pendingStock } from '../stock/pending.ts';
+import { agingStock } from '../stock/aging.ts';
 import { aggregateGrams, pageResult, readPage, textFilter, type ListReadQuery, type Predicate } from './query.ts';
 
 const fields = `s.warehouse_code AS warehouseCode,COALESCE(w.name,s.warehouse_code) AS warehouseName,
-  s.product_code AS productCode,p.name AS productName,p.source_kind AS sourceKind,s.packages,s.weight_tonnes`;
+  s.product_code AS productCode,p.name AS productName,p.source_kind AS sourceKind,s.packages,s.weight_tonnes,s.source_row_json`;
 const sortColumns = {
   warehouseCode: 's.warehouse_code',
   productCode: 's.product_code',
@@ -40,21 +41,27 @@ export async function listWebStock(db: Database, query: ListReadQuery<WebStockQu
       query,
     );
     const subtotal = query.exportSnapshot?.subtotal ?? (await stockSubtotal(tx, predicate));
-    const items = await stockItems(tx, page.rows, query);
+    const clock = await tx.get('SELECT UTC_TIMESTAMP(3) AS asOf');
+    const asOf = isoDate(clock?.asOf);
+    const items = await stockItems(tx, page.rows, { query, asOf });
     const result = {
       ...pageResult(items, page.total, query),
       source: query.scope ?? query.source,
       subtotal,
     };
     const watermark = hash(JSON.stringify(result));
-    const clock = await tx.get('SELECT UTC_TIMESTAMP(3) AS asOf');
-    return webStockListSchema.parse({ ...result, viewToken: watermark, watermark, asOf: isoDate(clock?.asOf) });
+    return webStockListSchema.parse({ ...result, viewToken: watermark, watermark, asOf });
   });
 }
-async function stockItems(db: Database, rows: Row[], query: ListReadQuery<WebStockQuery>) {
+async function stockItems(
+  db: Database,
+  rows: Row[],
+  { query, asOf }: { query: ListReadQuery<WebStockQuery>; asOf: string },
+) {
   const keys = rows.map((row) => ({ warehouseCode: String(row.warehouseCode), productCode: String(row.productCode) }));
   const balances = await pendingStock(db, keys);
-  return rows.map(({ weight_tonnes, ...row }) => {
+  const ages = await agingStock(db, rows, asOf);
+  return rows.map(({ weight_tonnes, source_row_json: _source, ...row }) => {
     const id = JSON.stringify([row.warehouseCode, row.productCode]);
     const onHand = { packages: Number(row.packages), weightGrams: aggregateGrams(weight_tonnes) };
     const pending: WebStockRow['pending'] = balances.get(id) ?? { packages: 0, weightGrams: 0 };
@@ -63,6 +70,7 @@ async function stockItems(db: Database, rows: Row[], query: ListReadQuery<WebSto
       id,
       source: query.scope ?? query.source,
       ...onHand,
+      ...ages.get(id),
       onHand,
       pending,
       available: {

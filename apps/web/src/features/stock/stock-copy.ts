@@ -7,4 +7,11 @@ export const stockPageCopy = {
   recentSection: '最近变动',
   emptyList: '没有符合条件的记录，可调整筛选条件或重置后重试',
   emptyJournal: '暂无库存流水',
+  pageTotal: '当前页合计',
+  missing: '—',
+  aging: '库龄',
+  agingBands: ['0–30 天', '31–60 天', '61–90 天', '91–180 天', '>180 天'],
+  unaging: '不可归龄',
+  tonnes: '吨',
+  agingBasis: '按入账日起算的账面先进先出估算',
 } as const;
