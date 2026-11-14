@@ -174,6 +174,8 @@ B3b 范围为月度汇总、出入库明细及既有 XLSX 通道；未新增迁�
 
 ## 6. 周转率：单位、平均库存与零分母
 
+B7a-2 页面默认日期预设修订：原「本月 1 日至昨日」默认值已废弃，由 2026-11-14 用户确认的「近 6 个月」取代（含当前月，从前第 5 个月月初至上海昨日）；本月仍可选，下文完整日、公式、边界和水位规则继续生效。月报页面默认「近 12 个月」；二者均可修改，图表随当前范围，见 REPORTS_PAGE_SPEC §9。
+
 ### 旧系统
 
 分子取区间已审核/完成出库单吨数，分母却是查询时**当前库存吨数**，公式 `outWeight / currentWeight`，分母不大于 0 则返回 0；仅遍历当前有库存的商品：[reportTurnoverService.js:19](D:/wms-new/wms-backend/services/reportTurnoverService.js#L19)（19–75 行）。未计算期初期末平均、日均库存、天数或年化。页面标签只有“周转率”：[Turnover.vue:92](D:/wms-new/wms-frontend-pure/src/views/wms/report/Turnover.vue#L92)，不能将旧值解释成次/年。
