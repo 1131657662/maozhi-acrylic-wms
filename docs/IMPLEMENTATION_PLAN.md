@@ -712,3 +712,12 @@ B4d 出库手工实发
 - 验证：`npm run test` **406/406**；最终 `npm run build` exit 0；完整 `npm run test:e2e` **153/153**（主 142/142、目录 11/11）；设计 token 新增违规 0；1440 候选/Spin/空态已检查，截图不进 Git。首次主套件 140/142 的出库选择失败已修复，原断言未放宽，详见 B6G_ACCEPTANCE。
 - 用户验收通过；实现 `dd2b1d3` 与 AGENTS.md 提交 `be4eae9` 已按授权以 `--no-ff` 合并为 `51aad21`（`merge: b6g-2 web autocomplete`），推送 origin/master 成功，checkout/merge/push exit code 均为 0。合并后通过 codex 文档分支更新本表与 AUDIT_FINDINGS，继续以 `--no-ff` 收尾。
 - 验证结果为 **406/153/0**（test/E2E/build exit code），沿用本次已验收实现的完整验证；本轮只合并及更新文档，未重复运行测试。无实体设备或生产验收。收尾推送后停止，不开始 B6d-2。
+
+## B7a-1：报表共享外壳与口径控制（2026-11-14，代码/构建/浏览器验证完成，待用户验收）
+
+- 起点 `366fdcb`，分支 `codex/b7a-1-report-shell`；本批无迁移、API 或数据库变更。四个报表仍为独立页面，既有查询字段与报表语义保持不变。
+- 已按 `REPORTS_PAGE_SPEC` 修正更正与调整口径；四页接入 `ReportShell`、报表收藏、禁用打印占位、页头现有三范围导出、口径/水位提示及 URL basis 控制。basis 进入查询参数与 query key，切换保留其他条件，重置筛选保留 basis。图表、汇总卡、视觉筛选、下钻、表底对账行和导出文件名均未在本子批实施。
+- ECharts 可安装性通过：npm registry 元数据可读，锁定 `echarts@6.1.0`（Apache-2.0），官方 tarball HEAD 为 200，`npm pack --dry-run` 成功（12,178,508 字节）；`npm ls echarts --workspace=@wms/web` 与 Web 构建通过。依赖与许可证记录于 DECISION_LOG。
+- 验证：`npm run typecheck` exit 0；最终 `npm run build` exit 0；报表专项 Playwright **13/13**，覆盖四页 basis URL/请求、posted 默认结果与省略 basis 的接口默认结果相等、筛选重置、重述水位、加载期间口径常驻及不可验证原因；四页 1440/1280 共 8 张截图存 `.local/evidence/`。`npm run check:design-tokens` 扫描 334 个 Web 文件，现有 22、新增 0、待清理 0；全部改动 TS/TSX Prettier 检查通过，三个 Markdown 文件在 HEAD 基线及当前版本均未通过 Prettier 检查，未整篇重排；`git diff --check` 通过。
+- 全量 `npm run test:e2e` 与 `npm run test` 未完成：前者在 167 项串行套件中完成 11 项且无失败后停止；后者运行至 B5c 场景且未见失败后停止。报表专项、既有 posted 报表快照基线及周转/库龄 API 回归已通过；不将中断的全量运行记作通过。
+- 浏览器验证不等于模拟器、实体设备或生产验收；本批未做这些验收，也未写入开发样本库。当前仅完成 B7a-1，后续子批次未开始。
