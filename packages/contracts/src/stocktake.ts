@@ -73,6 +73,9 @@ export const unpostedDocumentSchema = z.object({
   weightGrams: z.number().int(),
   scannedPackages: z.number().int().nullable(),
   scannedWeightGrams: z.number().int().nullable(),
+  receivedRecords: z.number().int().nonnegative().nullable().default(null),
+  lastReceivedAt: z.iso.datetime().nullable().default(null),
+  unreceivedRecords: z.number().int().nonnegative().nullable().default(null),
   revision: z.number().int(),
 });
 export const stocktakePreviewSchema = z.object({

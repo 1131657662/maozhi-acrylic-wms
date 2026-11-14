@@ -11,6 +11,7 @@ import { audit, type Actor } from '../../shared/audit.ts';
 import { AppError, ensure } from '../../shared/errors.ts';
 import { replayCommand, saveCommand } from '../../shared/idempotency.ts';
 import { lockInventoryWriter } from '../inventory/operation.ts';
+import { assertWarehouseOpen } from '../stocktake/window.ts';
 import { validateBusinessDate } from '../business-date/policy.ts';
 import { dateCorrectionDocument, readDateCorrections } from './read.ts';
 
@@ -41,6 +42,7 @@ async function append(db: Database, record: DateCorrection) {
 }
 async function correct(db: Database, command: Command) {
   const row = await dateCorrectionDocument(db, command, true);
+  await assertWarehouseOpen(db, String(row.warehouse_code));
   const current = await readDateCorrections(db, command);
   if (!current.allowed) throw new AppError('DATE_CORRECTION_FORBIDDEN', current.blockedReason!, 422);
   const input = dateCorrectionInputSchema.parse(command.input);

@@ -399,6 +399,7 @@ Q2 的 COALESCE 仅用于这条“把缺行视作零再比较”的诊断假设�
 - 021 新建 `document_date_corrections`：UUID id、document_kind（inbound/outbound）、document_id VARCHAR(80)、可空 previous_correction_id、before_date/after_date DATE NOT NULL、reason VARCHAR(500)、actor VARCHAR(80)、唯一 operation_id UUID、created_at DATETIME(3)、revision INT UNSIGNED。按种类/原单/时间索引，原单/版本唯一，前序外键防悬空。原单归属在事务中按 kind/id 锁定校验；operation_id 为日期更正操作标识，不引用库存操作。下迁移在任何 DDL 与迁移状态变化前拒绝非空表。
 - POST `/{inbound|outbound}/:id/date-corrections`：afterDate、reason、expectedRevision、backdateConfirmed；使用既有 Idempotency-Key。锁原单后读取当前日期链，初始版本 0，每次追加递增，before_date 自动取最新 after_date（首次取头表 business_date）。版本不符 409，同键同正文返回原结果，不重复审计；更正、审计及幂等结果同事务提交，不写库存表/流水/操作，不改头表。
 - 入库须已确认入账；出库须有真实入账证据（部分发货/已出库/已短关均可）。历史来源、作废/撤销拒绝 422；未入账 422 提示使用未入账业务日期修改。原日期 NULL 优先返回 422「该单无原始业务日期（历史单据），不支持日期更正」，保留已有 NULL 与头表结构，不补录、不猜日期。日期不晚于上海今天；早于今天减三个日历月（月底截断）需显式确认。
+- B6e-3 补充：日期更正与数量更正一样受盘点暂停窗口约束。全局库存写锁、原单锁后校验 assertWarehouseOpen，该仓进行中盘点返回409；同键同正文已成功重放优先，窗口外沿用原规则。
 - GET 同路径返回全部日期更正记录、当前有效日期、原日期、独立日期更正 revision 与可操作状态。详情保留 businessDate 原值，增加 effectiveBusinessDate；列表与详情展示有效日期，详情可展开原始日期与历史（前值→后值、原因、操作人、时间）。详情「更多」提供符合资格的「更正业务日期」，抽屉显示当前日期、新日期、原因与提交，超期二次确认；失败保留输入，重试沿用同键同正文。
 - 验证覆盖两方向成功且头表/库存不变、未入账/未来/超期未确认/作废/撤销/历史/NULL audited 拒绝、超期确认成功、版本冲突、幂等重放、两次链式更正；补并发、审计失败回滚及 021 空库往返/非空拒绝测试。复用隔离 E2E 数据，1440/1280 界面证据仅存 `.local/evidence/`，不代表实体设备或生产验收。
 
