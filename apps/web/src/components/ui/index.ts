@@ -1,4 +1,5 @@
 export { Card } from './Card';
+export { Chart } from './Chart';
 export { EmptyState } from './EmptyState';
 export { PageShell } from './PageShell';
 export { SectionTitle } from './SectionTitle';

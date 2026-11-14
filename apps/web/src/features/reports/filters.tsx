@@ -4,48 +4,17 @@ import {
   ProFormDatePicker,
   ProFormText,
   ProFormSelect,
+  type ProFormInstance,
 } from '@ant-design/pro-components';
+import { useRef } from 'react';
 import { Segmented } from 'antd';
 import type { ListState } from '../../components/BusinessList/use-list-state';
 import { businessCopy } from '../../business-copy';
 
-export function reportDefaults() {
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' });
-  return { basis: 'posted', fromDay: today.slice(0, 7) + '-01', toDay: today };
-}
-export function derivedReportDefaults(): { scope: string; basis: string; fromDay: string; toDay: string };
-export function derivedReportDefaults(aging: true): {
-  scope: string;
-  basis: string;
-  fromDay: string;
-  toDay: string;
-  cutoffDay: string;
-};
-export function derivedReportDefaults(aging = false) {
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }),
-    yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10),
-    monthStart = today.slice(0, 7) + '-01';
-  return {
-    scope: 'inventory',
-    basis: 'posted',
-    fromDay: monthStart,
-    toDay: yesterday < monthStart ? today : yesterday,
-    ...(aging ? { cutoffDay: today } : {}),
-  };
-}
-function dateRangeFor(preset: string, custom: unknown): [string, string] | null {
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Shanghai' }),
-    yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10),
-    monthStart = today.slice(0, 7) + '-01';
-  if (preset === 'current') return [monthStart, yesterday < monthStart ? today : yesterday];
-  if (preset === 'previous') {
-    const lastDay = new Date(Date.parse(monthStart + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
-    return [lastDay.slice(0, 7) + '-01', lastDay];
-  }
-  if (preset === '30days')
-    return [new Date(Date.parse(yesterday + 'T00:00:00Z') - 29 * 86400000).toISOString().slice(0, 10), yesterday];
-  return Array.isArray(custom) && custom.length === 2 ? [String(custom[0]), String(custom[1])] : null;
-}
+import { reportDefaults, derivedReportDefaults, dateRangeFor } from './date-presets';
+export { reportDefaults, derivedReportDefaults } from './date-presets';
+import { chartCopy } from './chart-copy';
+
 interface FilterOptions {
   state: ListState;
   detail: boolean;
@@ -53,15 +22,18 @@ interface FilterOptions {
   derived: boolean;
 }
 
-function reportFilterDefaults({ derived, aging }: FilterOptions) {
+function reportFilterDefaults({ derived, aging, detail }: FilterOptions) {
   if (derived) return aging ? derivedReportDefaults(true) : derivedReportDefaults();
-  return reportDefaults();
+  return reportDefaults(detail ? undefined : 'monthly');
 }
 
-function reportFilterInitial({ state, aging }: FilterOptions) {
+function reportFilterInitial(options: FilterOptions) {
+  const { state, aging, detail, derived } = options;
+  const defaults = reportFilterDefaults(options);
+  const isDefault = state.params.fromDay === defaults.fromDay && state.params.toDay === defaults.toDay;
   return {
     dateRange: [state.params.fromDay, state.params.toDay],
-    periodPreset: 'custom',
+    periodPreset: !detail && !aging && isDefault ? (derived ? 'recent6' : 'recent12') : 'custom',
     ...(aging ? { cutoffDay: state.params.cutoffDay } : {}),
     warehouse: state.params.warehouse,
     product: state.params.product,
@@ -87,7 +59,7 @@ function ReportBasisToggle({ state }: { state: ListState }) {
 
 async function submitReportFilters(values: Record<string, unknown>, options: FilterOptions): Promise<boolean> {
   const { state, detail, aging, derived } = options,
-    range = dateRangeFor(derived ? String(values.periodPreset ?? 'custom') : 'custom', values.dateRange);
+    range = dateRangeFor(!detail ? String(values.periodPreset ?? 'custom') : 'custom', values.dateRange);
   if (!range) return false;
   state.searchFor({
     fromDay: range[0],
@@ -95,7 +67,7 @@ async function submitReportFilters(values: Record<string, unknown>, options: Fil
     ...(aging ? { cutoffDay: String(values.cutoffDay ?? range[1]) } : {}),
     warehouse: String(values.warehouse ?? ''),
     product: String(values.product ?? ''),
-    movement: detail ? String(values.movement ?? 'all') : 'all',
+    ...(!derived ? { movement: detail ? String(values.movement ?? 'all') : 'all' } : {}),
     basis: state.params.basis === 'restated' ? 'restated' : 'posted',
   });
   return true;
@@ -104,11 +76,14 @@ async function submitReportFilters(values: Record<string, unknown>, options: Fil
 function ReportFilterFields({ detail, aging, derived }: Omit<FilterOptions, 'state'>) {
   return (
     <>
-      {derived && (
+      {!detail && (
         <ProFormSelect
           name="periodPreset"
           label={businessCopy.reportsPeriodPreset}
           options={[
+            ...(!aging
+              ? [{ value: derived ? 'recent6' : 'recent12', label: derived ? chartCopy.recent6 : chartCopy.recent12 }]
+              : []),
             { value: 'current', label: businessCopy.reportsPeriodCurrent },
             { value: 'previous', label: businessCopy.reportsPeriodPrevious },
             { value: '30days', label: businessCopy.reportsPeriodRecent30 },
@@ -119,9 +94,9 @@ function ReportFilterFields({ detail, aging, derived }: Omit<FilterOptions, 'sta
       )}
       <ProFormDateRangePicker
         name="dateRange"
-        label={businessCopy.reportsPostedDateRange}
+        label={chartCopy.dateRange}
         colProps={{ xs: 24, sm: 24, lg: 12 }}
-        rules={[{ required: true, message: businessCopy.reportsDateRangeRequired }]}
+        rules={[{ required: true, message: chartCopy.dateRequired }]}
         fieldProps={{ allowClear: false }}
       />
       {aging && (
@@ -161,11 +136,16 @@ function ReportFilterFields({ detail, aging, derived }: Omit<FilterOptions, 'sta
 }
 
 function ReportFilterForm({ state, detail, aging, derived }: FilterOptions) {
+  const form = useRef<ProFormInstance | undefined>(undefined);
   const initial = reportFilterInitial({ state, detail, aging, derived }),
     defaults = reportFilterDefaults({ state, detail, aging, derived }),
     basis = state.params.basis === 'restated' ? 'restated' : 'posted';
   return (
     <QueryFilter<Record<string, unknown>>
+      formRef={form}
+      onValuesChange={(changed) => {
+        if ('dateRange' in changed) form.current?.setFieldsValue({ periodPreset: 'custom' });
+      }}
       key={JSON.stringify(initial)}
       initialValues={initial}
       labelWidth="auto"
@@ -173,7 +153,7 @@ function ReportFilterForm({ state, detail, aging, derived }: FilterOptions) {
       defaultCollapsed={false}
       dateFormatter="string"
       searchText={businessCopy.reportsFilterSubmit}
-      resetText={businessCopy.reportsFilterReset}
+      resetText={chartCopy.reset}
       onReset={() => state.searchFor({ ...defaults, basis })}
       submitter={{ submitButtonProps: { type: 'default' } }}
       onFinish={(values) => submitReportFilters(values, { state, detail, aging, derived })}
