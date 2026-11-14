@@ -190,6 +190,8 @@
 | 2026-11-11 | 文档冻结：不再新增大文档，新规则写进现有文档，新增文件必须先在 README 登记 | 生效 | README §1.2 |
 | 2026-11-11 | **B4e 单据字段扩展**：柜号、合同号、行备注、收货地址快照、送货联系人、单据类型落库，排在 B4d 之后 | 生效 | README §7.1 |
 | 2026-11-11 | **B4f PDA 文案改口**：只改文案不改功能，B4d 合并后立即做 | 生效 | PDA_SCAN_SPEC §8.1 |
+| 2026-11-14 | **B7c 全站界面走查与优化**：放在 Web 功能全部完成（B8a-c）之后，小程序/PDA/打印之前；三小步：走查 → 修复 → 复验 | 生效 | IMPLEMENTATION_PLAN 主链 |
+| 2026-11-14 | 小程序、PDA、打印顺延到 B7c 之后；打印按积木集成处理，不自行排版 | 生效 | IMPLEMENTATION_PLAN 主链 |
 | 2026-11-11 | **B8d 小程序补页**：补入库、库存、流水三个只读页 | 生效 | README §7.1 |
 | 2026-11-11 | **B4g Web 清点工作台**：扫码/手输/批量粘贴、实时进度、撤销、带入实发，排在 B4e 之后 | 生效 | README §7.1、OUTBOUND_FACT_SPEC §5.1 |
 | 2026-11-11 | **B6j 改为设计系统**：token、共享组件、裸值 lint；不审“好不好看”，只定“怎么统一” | 生效 | IMPLEMENTATION_PLAN 主链 |
@@ -436,3 +438,13 @@
 | 2026-11-14 | 用户验收 B6f-2c 通过；按指定命令以 --no-ff 合并推送，更新完成状态 471/170/0；B6f 整体完成，收尾后停止，不开始 B6e | 生效 | STOCK_PAGE_SPEC §12、B6F_2C_ACCEPTANCE、IMPLEMENTATION_PLAN B6f |
 
 合并执行记录（2026-11-14，非新增业务决定）：规格/实现/验收三提交已以 --no-ff 合并为 `c56591a30adc5b3d3145e2f2331fe6b14bfebf22`（`merge: b6f-2c stock peek journal and confirm`），推送 origin/master 成功；功能推送后远端 refs/heads/master 与该 hash 一致，checkout/merge/push/核对 exit 均 0。471/170/0 全绿记录沿用，本次仅合并与文档收尾。收尾文档通过 `codex/b6f-2c-closeout` 提交后以 --no-ff 合并推送；B6f 整体完成，不开始 B6e。
+
+## B7a-1 报表外壳与口径控制（2026-11-14）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-14 | B7a-1 在四个独立报表页复用 ReportShell；不合并路由，不改既有查询或报表语义 | 生效 | REPORTS_PAGE_SPEC §§2、4–7、9 |
+| 2026-11-14 | 入账/重述选择由 ReportFilters 写入 URL 并参与查询键；重置其他筛选保留 basis，切换 basis 保留其他筛选 | 生效 | REPORTS_PAGE_SPEC §2 |
+| 2026-11-14 | 报表口径条显示 basis、asOf、journalMaxId 与 dateCorrectionMaxId；仅此报表快照元数据区显示水位标识。重述余额不可验证时显示原因，不以零代替未知 | 生效 | REPORTS_PAGE_SPEC §§2、11、16 |
+| 2026-11-14 | 报表图表依赖锁定 `echarts@6.1.0`，许可证 Apache-2.0；按需注册、自封组件、不引入 wrapper | 生效 | REPORTS_PAGE_SPEC §9 |
+| 2026-11-14 | 报表收藏按报表类型保存在当前浏览器，不保存筛选条件；保存视图仍保留查询条件。B7a-1 将现有三范围导出入口放入页头，打印保持禁用占位 | 生效 | REPORTS_PAGE_SPEC §2 |
