@@ -99,8 +99,9 @@ test('库龄明细五档与未知单列，调整后库龄和本页合计同步�
   await page.getByLabel('调整原因', { exact: true }).fill('库龄与本页合计刷新验收');
   const response = page.waitForResponse((res) => new URL(res.url()).pathname === '/api/v1/web/lists/stock');
   await page.getByRole('button', { name: '确认调整库存' }).click();
+  await page.getByRole('button', { name: '确认提交', exact: true }).click();
   const data = webStockListSchema.parse((await (await response).json()).data);
-  await expect(page.getByText('库存调整已入账', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: '库存调整 · 库存商品' })).toBeHidden();
   expect(data.items[0]!.agingBuckets).toEqual([0, 0, 0, 0, 0]);
   expect(data.items[0]!.unagingGrams).toBe(5_000_100);
   await assertTotals(page, data.items);

@@ -16,6 +16,7 @@ export * from './handoff.ts';
 export * from './inventory-posting.ts';
 export * from './document-numbering.ts';
 export * from './stock-journal.ts';
+export * from './stock-movements.ts';
 export * from './stock-source.ts';
 export * from './master-data.ts';
 export * from './party-contacts.ts';

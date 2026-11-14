@@ -8,6 +8,7 @@ import { businessRouter } from './routes.ts';
 import { trace, errors, ok } from './middleware/http.ts';
 import { AppError } from './shared/errors.ts';
 import { beginAuditRequest, retainRequestFailure } from './features/audit/http.ts';
+import { STOCK_PEEK_BODY_LIMIT_BYTES } from '@wms/contracts';
 
 export const localOrigins = [
   'http://localhost:5173',
@@ -20,7 +21,11 @@ export const localOrigins = [
   'http://127.0.0.1:4311',
 ];
 
-export function createApp(db: Database, origins: string[] = localOrigins, catalogPublishEnabled=process.env.CATALOG_PUBLISH_ENABLED==='true'): express.Express {
+export function createApp(
+  db: Database,
+  origins: string[] = localOrigins,
+  catalogPublishEnabled = process.env.CATALOG_PUBLISH_ENABLED === 'true',
+): express.Express {
   const app = express();
   app.disable('x-powered-by');
   app.use(
@@ -28,10 +33,15 @@ export function createApp(db: Database, origins: string[] = localOrigins, catalo
     beginAuditRequest,
     helmet(),
     cors({ origin: origins, credentials: true }),
-    (req, res, next) =>
-      req.path === '/api/v1/web/exports'
-        ? express.json({ limit: '6mb' })(req, res, next)
-        : express.json({ limit: '10kb' })(req, res, next),
+    (req, res, next) => {
+      const limit =
+        req.path === '/api/v1/web/exports'
+          ? '6mb'
+          : req.path === '/api/v1/stock/peek'
+            ? STOCK_PEEK_BODY_LIMIT_BYTES
+            : '10kb';
+      express.json({ limit })(req, res, next);
+    },
     cookieParser(),
   );
   app.use((req, _res, next) => {
@@ -41,7 +51,7 @@ export function createApp(db: Database, origins: string[] = localOrigins, catalo
   });
   app.get('/api/v1/health', (_req, res) => ok(res, { status: 'ok', mode: 'local-development', database: 'mysql8' }));
   app.use('/api/v1/auth', authRouter(db));
-  app.use('/api/v1', businessRouter(db, origins,catalogPublishEnabled));
+  app.use('/api/v1', businessRouter(db, origins, catalogPublishEnabled));
   app.use(() => {
     throw new AppError('NOT_FOUND', '接口不存在', 404);
   });

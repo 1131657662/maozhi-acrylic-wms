@@ -7,6 +7,7 @@ import type { ListSelectionRow, SelectionKeys } from './use-list-selection';
 import { SectionTitle } from '../ui';
 import { spacing } from '../../theme/design-tokens';
 import type { ListTableSummary } from './table-summary';
+import type { TableProps } from 'antd';
 
 interface ResultsProps<Row extends { id: Key }> {
   config: { name: ExportKind; exportInHeader?: boolean; resultCardTitle?: ReactNode };
@@ -24,6 +25,7 @@ interface ResultsProps<Row extends { id: Key }> {
   reload: () => unknown;
   summary?: ReactNode;
   tableSummary?: ListTableSummary<Row>;
+  expandable?: TableProps<Row>['expandable'];
   emptyText?: ReactNode;
 }
 export function ListResults<Row extends { id: Key }>({
@@ -37,6 +39,7 @@ export function ListResults<Row extends { id: Key }>({
   reload,
   summary,
   tableSummary,
+  expandable,
   emptyText,
 }: ResultsProps<Row>) {
   const table = (
@@ -52,6 +55,7 @@ export function ListResults<Row extends { id: Key }>({
       emptyText={emptyText}
       exportInHeader={config.exportInHeader}
       tableSummary={tableSummary}
+      expandable={expandable}
     />
   );
   return (

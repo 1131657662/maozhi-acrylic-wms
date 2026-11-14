@@ -1,4 +1,5 @@
 import type { Key, ReactNode } from 'react';
+import type { TableProps } from 'antd';
 import type { ExportKind, WebMatchedTotals } from '@wms/contracts';
 import type { ListColumnPreferences } from './use-list-columns';
 import type { ListState } from './use-list-state';
@@ -31,4 +32,5 @@ export interface ListTableProps<Row> {
   emptyText?: ReactNode;
   exportInHeader?: boolean;
   tableSummary?: ListTableSummary<Row>;
+  expandable?: TableProps<Row>['expandable'];
 }

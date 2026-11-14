@@ -98,7 +98,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
             columns={layout.columns}
             components={{ header: { cell: ResizeHeader } }}
             tableLayout="fixed"
-            expandable={expansion.expandable}
+            expandable={props.expandable ?? expansion.expandable}
             dataSource={data.items}
             summary={
               props.tableSummary
@@ -107,6 +107,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                       columns: layout.columns,
                       preferences: columnPrefs.value,
                       cells: props.tableSummary!(rows),
+                      expandable: props.expandable !== undefined,
                     })
                 : undefined
             }

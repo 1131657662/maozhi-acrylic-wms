@@ -12,6 +12,7 @@ import { numberingController } from './features/document-numbering/controller.ts
 import { journalRows } from './features/stock/journal.ts';
 import { stockSourceController } from './features/stock/source-controller.ts';
 import { stockAdjustmentController } from './features/stock/adjust-controller.ts';
+import { stockMovementRouter } from './features/stock/movement-router.ts';
 import { catalogRouter } from './features/catalog/router.ts';
 import { handoffRouter } from './features/handoff/router.ts';
 import { webListRouter } from './features/web-lists/router.ts';
@@ -35,6 +36,7 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   const numbering = numberingController(db);
   const stockSource = stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(stockMovementRouter(db, origins));
   router.use(dateCorrectionRouter(db, origins));
   router.use(shipmentRouter(db, origins));
   router.use(scanWorkbenchRouter(db, origins));

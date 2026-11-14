@@ -5,7 +5,7 @@ import { ProDescriptions } from '@ant-design/pro-components';
 import { tonnes, type SourceJournalRow } from '@wms/contracts';
 import { JournalTypeTag } from '../../components/JournalTypeTag';
 
-export function JournalDetail({ row }: { row: SourceJournalRow }) {
+export function JournalDetail({ row }: { row: Omit<SourceJournalRow, 'source'> }) {
   const [open, setOpen] = useState(false);
   return (
     <>

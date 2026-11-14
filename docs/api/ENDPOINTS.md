@@ -4,6 +4,8 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| POST | /api/v1/stock/peek | web | 本页最多200个仓品，一条只读SQL取各自最近3条有效库存流水 |
+| GET | /api/v1/stock/movements | web | 库存流水只读分页；仓库/商品精确过滤，排除软删和非库存商品 |
 | GET | /api/v1/outbound/{id}/shipments | web | 本单全部发货记录、待发与结单信息 |
 | POST | /api/v1/outbound/{id}/shipments | web | 确认本次实发；发满自动结单，否则部分发货；库存、发货记录和审计同事务 |
 | POST | /api/v1/outbound/{id}/complete | web | 所有明细待发为零时完成发货 |

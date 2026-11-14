@@ -62,6 +62,7 @@ export default [
     icon: 'database',
     component: './stock',
   },
+  { path: '/stock/journal', name: '库存流水', hideInMenu: true, component: './stock-journal' },
   {
     path: '/audit',
     name: '操作记录',
