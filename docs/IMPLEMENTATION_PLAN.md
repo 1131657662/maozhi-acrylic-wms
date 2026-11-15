@@ -721,6 +721,12 @@ B4d 出库手工实发
 - 用户验收通过；实现 `dd2b1d3` 与 AGENTS.md 提交 `be4eae9` 已按授权以 `--no-ff` 合并为 `51aad21`（`merge: b6g-2 web autocomplete`），推送 origin/master 成功，checkout/merge/push exit code 均为 0。合并后通过 codex 文档分支更新本表与 AUDIT_FINDINGS，继续以 `--no-ff` 收尾。
 - 验证结果为 **406/153/0**（test/E2E/build exit code），沿用本次已验收实现的完整验证；本轮只合并及更新文档，未重复运行测试。无实体设备或生产验收。收尾推送后停止，不开始 B6d-2。
 
+## B7a-3：视觉筛选、六条下钻、表底对账与导出（2026-11-15，实施中）
+
+- 起点 `342f59b`，分支 `codex/b7a-3-report-interactions`；前置 B7a-2 已完成，515/199/0，最大迁移025，本批无迁移。六条路径及新增边界已用户确认。
+- 范围按 REPORTS_PAGE_SPEC §10 B7a-3 与 DECISION_LOG：服务端同响应chips计数/URL多选/抽屉联动、六条新页下钻、band与历史截止日保护、周转分子说明、四页固定可加合计/全范围对账、XLSX原快照元数据与附页及文件名。
+- 不做图表类型、新指标、报表合并、B6i性能优化、CSV、打印实现、生产/设备验收；不改库存写入。四笔：规格、chips与下钻、对账行与导出、验收。完整test/build/E2E、token无新增、四页1440/1280；完成后停下，不合并。
+
 ## B7a-2：图表与汇总卡（2026-11-15，已完成并合并）
 
 - 起点 `76ea74c`，分支 `codex/b7a-2-report-charts`；前置 B7a-1 已完成（509/186/0），迁移最大 025，本批无迁移。
