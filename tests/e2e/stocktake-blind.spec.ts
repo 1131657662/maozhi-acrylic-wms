@@ -18,6 +18,9 @@ test('B6e-1 Web盲盘创建、录入、打印隔离、导出、取消揭示及�
     await page.getByTitle(`${cell.name} · ${cell.warehouseCode}`, { exact: true }).click();
     await page.getByLabel('盘点模式', { exact: true }).click();
     await page.getByTitle('盲盘', { exact: true }).click();
+    await expect(
+      page.locator('.ant-select-dropdown').filter({ has: page.getByTitle('盲盘', { exact: true }) }),
+    ).toBeHidden();
     await screenshotWidths(page, 'b6e-1-create');
     const creation = page.waitForResponse((r) => r.url().endsWith('/stocktakes') && r.request().method() === 'POST');
     await page.getByRole('button', { name: '开始盘点', exact: true }).click();
