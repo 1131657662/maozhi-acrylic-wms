@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { type ExportJob, type ExportRequest } from '@wms/contracts';
+import { reportKindSchema, type ExportJob, type ExportRequest } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { AppError } from '../../shared/errors.ts';
 import { hash } from '../../shared/hash.ts';
@@ -123,7 +123,7 @@ export class WebExports {
     const extension = job.format;
     return {
       path: this.files.file(id, extension),
-      name: `${names[job.kind]}-${job.scope}-${job.createdAt.slice(0, 10)}.${extension}`,
+      name: job.reportFilename ?? `${names[job.kind]}-${job.scope}-${job.createdAt.slice(0, 10)}.${extension}`,
     };
   }
   private ensureNotCancelled(job: ExportJob): void {
@@ -132,11 +132,22 @@ export class WebExports {
   private async run(request: ExportRequest, job: ExportJob, actor: Actor): Promise<void> {
     let writer: ExportWriter | undefined;
     try {
+      const reportKind = reportKindSchema.safeParse(request.kind);
       const config = {
         filename: this.files.file(job.id, 'part'),
         kind: request.kind,
         fields: requestedFields(request),
         rowUnit: job.schema === 'matched_lines' ? ('行' as const) : ('条' as const),
+        ...(reportKind.success
+          ? {
+              reportContext: {
+                kind: reportKind.data,
+                query: request.query,
+                actor: actor.username,
+                generatedAt: job.createdAt,
+              },
+            }
+          : {}),
       };
       writer = (request.format ?? 'xlsx') === 'csv' ? new CsvWriter(config) : new XlsxWriter(config);
       await generateSnapshot(this.db, {

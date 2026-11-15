@@ -57,6 +57,7 @@ export function displayColumn<Row>(kind: ExportKind, column: ProColumns<Row>): P
   const field = listFields[kind].find((f) => f.key === column.dataIndex);
   if (!field) return column;
   const preserve =
+    (kind.startsWith('report-') && ['period', 'productName'].includes(field.key)) ||
     (kind === 'audit' && ['action', 'objectLabel', 'result'].includes(field.key)) ||
     ['receiptNo', 'orderNo', 'status'].includes(field.key) ||
     (kind === 'stock' && ['packages', 'weightGrams', 'pending', 'available'].includes(field.key));

@@ -7,13 +7,17 @@ export const exportSchemaSchema = z.enum(['document_summary', 'matched_lines']);
 export const exportFormatSchema = z.enum(['xlsx', 'csv']);
 export const WEB_EXPORT_MAX_ROWS = 100_000;
 export const WEB_EXPORT_SELECTED_MAX = 5000;
+export const WEB_EXPORT_QUERY_MAX_FIELDS = 24;
+export const WEB_EXPORT_QUERY_VALUE_MAX = 4000;
 export const exportRequestSchema = z.strictObject({
   requestId: z.uuid(),
   kind: exportKindSchema,
   scope: exportScopeSchema,
   schema: exportSchemaSchema.default('document_summary'),
   format: exportFormatSchema.default('xlsx'),
-  query: z.record(z.string().max(64), z.string().max(500)).refine((query) => Object.keys(query).length <= 16),
+  query: z
+    .record(z.string().max(64), z.string().max(WEB_EXPORT_QUERY_VALUE_MAX))
+    .refine((query) => Object.keys(query).length <= WEB_EXPORT_QUERY_MAX_FIELDS),
   columns: z.array(z.string().max(64)).min(1).max(64),
   viewToken: z.string().regex(/^[a-f0-9]{64}$/),
   selected: z
@@ -41,6 +45,7 @@ export const exportJobSchema = z.strictObject({
   bytes: z.number(),
   elapsedMs: z.number(),
   requestHash: z.string(),
+  reportFilename: z.string().optional(),
 });
 export type ExportRequest = Omit<z.infer<typeof exportRequestSchema>, 'schema' | 'format'> & {
   schema?: z.infer<typeof exportSchemaSchema>;

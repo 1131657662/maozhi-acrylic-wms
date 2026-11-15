@@ -740,31 +740,6 @@
         "const": "visible",
         "type": "string"
       },
-      "S_1dcaad65d119f5f8": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
-          },
-          "data": {
-            "$ref": "#/components/schemas/S_b0545f082fd43d7e"
-          },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
-      },
       "S_1ddbc62aaa480a2b": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "enum": [
@@ -3131,6 +3106,111 @@
         ],
         "type": "string"
       },
+      "S_82d283215a8be0c7": {
+        "additionalProperties": false,
+        "properties": {
+          "balanceMode": {
+            "$ref": "#/components/schemas/S_823a1e69548c6845"
+          },
+          "basis": {
+            "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+          },
+          "bridge": {
+            "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+          },
+          "bytes": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "columns": {
+            "$ref": "#/components/schemas/S_f36b924a373c642e"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "elapsedMs": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "error": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "errorCode": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "format": {
+            "$ref": "#/components/schemas/S_081c4797b6f407b0"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "inventoryBasis": {
+            "$ref": "#/components/schemas/S_be4035c3d5395183"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_3c9135158f98d651"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/S_373c422304eb28d8"
+          },
+          "processed": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "reportFilename": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "requestHash": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "restatedBalance": {
+            "$ref": "#/components/schemas/S_1388f2901bc9df24"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/S_ae946eb878ef6041"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/S_051114523dc3c550"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "state": {
+            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/S_78a1736e4c355538"
+          },
+          "watermarks": {
+            "$ref": "#/components/schemas/S_6aa1b04a60b61072"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scope",
+          "schema",
+          "format",
+          "state",
+          "createdAt",
+          "expiresAt",
+          "processed",
+          "total",
+          "columns",
+          "totals",
+          "preview",
+          "error",
+          "errorCode",
+          "sha256",
+          "bytes",
+          "elapsedMs",
+          "requestHash"
+        ],
+        "type": "object"
+      },
       "S_836195ac4b977fb0": {
         "default": 50,
         "maximum": 9007199254740991,
@@ -4145,108 +4225,6 @@
         ],
         "type": "object"
       },
-      "S_b0545f082fd43d7e": {
-        "additionalProperties": false,
-        "properties": {
-          "balanceMode": {
-            "$ref": "#/components/schemas/S_823a1e69548c6845"
-          },
-          "basis": {
-            "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
-          },
-          "bridge": {
-            "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
-          },
-          "bytes": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "columns": {
-            "$ref": "#/components/schemas/S_f36b924a373c642e"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "elapsedMs": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "error": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "errorCode": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "expiresAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "format": {
-            "$ref": "#/components/schemas/S_081c4797b6f407b0"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "inventoryBasis": {
-            "$ref": "#/components/schemas/S_be4035c3d5395183"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_3c9135158f98d651"
-          },
-          "preview": {
-            "$ref": "#/components/schemas/S_373c422304eb28d8"
-          },
-          "processed": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "requestHash": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "restatedBalance": {
-            "$ref": "#/components/schemas/S_1388f2901bc9df24"
-          },
-          "schema": {
-            "$ref": "#/components/schemas/S_ae946eb878ef6041"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/S_051114523dc3c550"
-          },
-          "sha256": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "state": {
-            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "totals": {
-            "$ref": "#/components/schemas/S_78a1736e4c355538"
-          },
-          "watermarks": {
-            "$ref": "#/components/schemas/S_6aa1b04a60b61072"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "scope",
-          "schema",
-          "format",
-          "state",
-          "createdAt",
-          "expiresAt",
-          "processed",
-          "total",
-          "columns",
-          "totals",
-          "preview",
-          "error",
-          "errorCode",
-          "sha256",
-          "bytes",
-          "elapsedMs",
-          "requestHash"
-        ],
-        "type": "object"
-      },
       "S_b05fc5f300b2c70a": {
         "additionalProperties": false,
         "properties": {
@@ -4500,6 +4478,10 @@
           "$ref": "#/components/schemas/S_f152047539781de8"
         },
         "type": "array"
+      },
+      "S_b72f183dff88fdb8": {
+        "maxLength": 4000,
+        "type": "string"
       },
       "S_b7818949210d0753": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -4986,6 +4968,12 @@
         ],
         "type": "object"
       },
+      "S_d2204cdc24e3d82d": {
+        "items": {
+          "$ref": "#/components/schemas/S_f228c9f75964c1f2"
+        },
+        "type": "array"
+      },
       "S_d2cd2a8974b40380": {
         "additionalProperties": false,
         "properties": {
@@ -5249,6 +5237,26 @@
         "minItems": 1,
         "type": "array"
       },
+      "S_e01e1cd8499796b2": {
+        "additionalProperties": false,
+        "properties": {
+          "movements": {
+            "$ref": "#/components/schemas/S_d2204cdc24e3d82d"
+          },
+          "types": {
+            "$ref": "#/components/schemas/S_d2204cdc24e3d82d"
+          },
+          "warehouses": {
+            "$ref": "#/components/schemas/S_d2204cdc24e3d82d"
+          }
+        },
+        "required": [
+          "warehouses",
+          "movements",
+          "types"
+        ],
+        "type": "object"
+      },
       "S_e1efc8f670e619e3": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -5260,6 +5268,15 @@
         "required": [
           "version"
         ],
+        "type": "object"
+      },
+      "S_e4044a36c5b92436": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/S_e48bc3464562b65b"
+        },
+        "propertyNames": {
+          "$ref": "#/components/schemas/S_00404e686415370f"
+        },
         "type": "object"
       },
       "S_e48bc3464562b65b": {
@@ -5317,6 +5334,31 @@
           "其他"
         ],
         "type": "string"
+      },
+      "S_e67cf7a026ba817b": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_82d283215a8be0c7"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
       },
       "S_e73abb9662f17ed6": {
         "maxLength": 100,
@@ -5489,6 +5531,26 @@
           "operationId",
           "createdAt",
           "revision"
+        ],
+        "type": "object"
+      },
+      "S_f228c9f75964c1f2": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "label": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "value": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "value",
+          "label",
+          "count"
         ],
         "type": "object"
       },
@@ -29553,7 +29615,7 @@
                   },
                   "query": {
                     "additionalProperties": {
-                      "$ref": "#/components/schemas/S_9ae5ec65647cb279"
+                      "$ref": "#/components/schemas/S_b72f183dff88fdb8"
                     },
                     "propertyNames": {
                       "$ref": "#/components/schemas/S_7d6df1e8aee7d1c5"
@@ -29614,7 +29676,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_1dcaad65d119f5f8"
+                  "$ref": "#/components/schemas/S_e67cf7a026ba817b"
                 }
               }
             },
@@ -29740,7 +29802,7 @@
                     "data": {
                       "anyOf": [
                         {
-                          "$ref": "#/components/schemas/S_b0545f082fd43d7e"
+                          "$ref": "#/components/schemas/S_82d283215a8be0c7"
                         },
                         {
                           "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -29886,7 +29948,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_1dcaad65d119f5f8"
+                  "$ref": "#/components/schemas/S_e67cf7a026ba817b"
                 }
               }
             },
@@ -30012,7 +30074,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_1dcaad65d119f5f8"
+                  "$ref": "#/components/schemas/S_e67cf7a026ba817b"
                 }
               }
             },
@@ -32649,6 +32711,22 @@
           },
           {
             "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "product",
             "required": false,
             "schema": {
@@ -33145,6 +33223,22 @@
           },
           {
             "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "warehouse",
             "required": false,
             "schema": {
@@ -33213,6 +33307,24 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "band",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "age0To30Grams",
+                "age31To90Grams",
+                "age91To180Grams",
+                "age181To365Grams",
+                "ageOver365Grams",
+                "over90",
+                "unagedGrams"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -33290,6 +33402,9 @@
                             "over90Percent"
                           ],
                           "type": "object"
+                        },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
                         },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
@@ -33475,6 +33590,7 @@
                         }
                       },
                       "required": [
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",
@@ -33650,6 +33766,38 @@
           },
           {
             "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
+            "name": "movements",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "types",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
             "name": "fromDay",
             "required": false,
             "schema": {
@@ -33743,6 +33891,9 @@
                         },
                         "bridge": {
                           "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+                        },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
                         },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
@@ -33937,6 +34088,9 @@
                         "total": {
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
+                        "totals": {
+                          "$ref": "#/components/schemas/S_e4044a36c5b92436"
+                        },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
                         },
@@ -33945,6 +34099,8 @@
                         }
                       },
                       "required": [
+                        "totals",
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",
@@ -34114,6 +34270,38 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_c6b5eba0874323e5"
+            }
+          },
+          {
+            "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
+            "name": "movements",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "types",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
             }
           },
           {
@@ -34300,6 +34488,9 @@
                             "points"
                           ],
                           "type": "object"
+                        },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
                         },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
@@ -34527,6 +34718,9 @@
                         "total": {
                           "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
                         },
+                        "totals": {
+                          "$ref": "#/components/schemas/S_e4044a36c5b92436"
+                        },
                         "viewToken": {
                           "$ref": "#/components/schemas/S_00404e686415370f"
                         },
@@ -34535,6 +34729,8 @@
                         }
                       },
                       "required": [
+                        "totals",
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",
@@ -34705,6 +34901,22 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_c6b5eba0874323e5"
+            }
+          },
+          {
+            "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
             }
           },
           {
@@ -34892,6 +35104,9 @@
                           ],
                           "type": "object"
                         },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
+                        },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
                         },
@@ -35040,6 +35255,7 @@
                         }
                       },
                       "required": [
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",

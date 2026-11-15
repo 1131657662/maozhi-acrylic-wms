@@ -5,7 +5,7 @@ import { listFields, listCellText, type ExportRequest, type ReportKind } from '@
 import { reportFixture, reportParams } from './report-fixture.ts';
 import { waitExport, workbook } from './export-fixture.ts';
 import { actor } from './fixture.ts';
-import { AppError } from '../src/shared/errors.ts';
+import { REPORT_HEADER_ROW } from '../src/features/web-exports/report-header.ts';
 
 test('B3b: both XLSX reports match every field in all/page/selected scopes and never sum balances', async () => {
   const f = await reportFixture();
@@ -38,11 +38,11 @@ test('B3b: both XLSX reports match every field in all/page/selected scopes and n
         const { sheet, book } = await workbook(f, job.id);
         const expected: Record<string, unknown>[] =
           scope === 'all' ? all.items : scope === 'page' ? current.items : [current.items[0]];
-        assert.equal(sheet.rowCount, expected.length + 2);
+        assert.equal(sheet.rowCount, expected.length + REPORT_HEADER_ROW + 1);
         for (let r = 0; r < expected.length; r++)
           for (let c = 0; c < input.columns.length; c++) {
             const field = listFields[kind][c]!,
-              cell = sheet.getCell(r + 2, c + 1),
+              cell = sheet.getCell(r + REPORT_HEADER_ROW + 1, c + 1),
               value = cell.value;
             const actual =
               value instanceof Date
@@ -92,16 +92,17 @@ test('B3b: both XLSX reports match every field in all/page/selected scopes and n
     );
     assert.equal((await waitExport(f, job.id)).state, 'ready');
     const { sheet } = await workbook(f, job.id);
-    assert.equal(sheet.rowCount, 26);
+    assert.equal(sheet.rowCount, 24 + REPORT_HEADER_ROW + 1);
     const directionColumn = listFields['report-details'].findIndex((field) => field.key === 'directionLabel') + 1;
-    for (let row = 2; row <= 25; row++) assert.equal(sheet.getCell(row, directionColumn).value, '入库');
+    for (let row = REPORT_HEADER_ROW + 1; row <= REPORT_HEADER_ROW + 24; row++)
+      assert.equal(sheet.getCell(row, directionColumn).value, '入库');
     console.log('B3B_DIRECTION_EXPORT direction=inbound rows=24 mismatches=0 reconciliation=full-range');
   } finally {
     await f.dispose();
   }
 });
 
-test('B3b: missing balances stay text in XLSX, and stale snapshot rejects before publishing', async () => {
+test('B7a-3: missing balances stay text and later balance changes preserve the original export snapshot', async () => {
   const f = await reportFixture();
   try {
     const query = { ...reportParams, fromDay: '2025-12-01', toDay: '2025-12-31' };
@@ -119,16 +120,18 @@ test('B3b: missing balances stay text in XLSX, and stale snapshot rejects before
     const first = await f.service.create(input, actor);
     assert.equal((await waitExport(f, first.id)).state, 'ready');
     const { sheet, book } = await workbook(f, first.id);
-    assert.equal(sheet.getCell(2, 2).value, '-');
-    assert.equal(sheet.getCell(2, 4).value, '-');
+    assert.equal(sheet.getCell(REPORT_HEADER_ROW + 1, 2).value, '-');
+    assert.equal(sheet.getCell(REPORT_HEADER_ROW + 1, 4).value, '-');
     assert.equal(book.getWorksheet('收发存对账')!.getCell(3, 2).value, '—（不可验证）');
     await f.db.run("UPDATE stock SET packages=packages+1 WHERE warehouse_code='RPT-W1' AND product_code='RPT-P1'");
-    await assert.rejects(
-      f.service.create({ ...input, requestId: randomUUID() }, actor),
-      (error: unknown) => error instanceof AppError && error.code === 'EXPORT_VIEW_CHANGED' && error.status === 409,
+    const original = await f.service.create({ ...input, requestId: randomUUID() }, actor);
+    assert.equal((await waitExport(f, original.id)).state, 'ready');
+    const replay = await workbook(f, original.id);
+    assert.deepEqual(replay.sheet.getRow(REPORT_HEADER_ROW + 1).values, sheet.getRow(REPORT_HEADER_ROW + 1).values);
+    assert.deepEqual(
+      replay.book.getWorksheet('收发存对账')!.getRow(3).values,
+      book.getWorksheet('收发存对账')!.getRow(3).values,
     );
-    assert.equal(await f.service.current(), null);
-    console.log('B3B_EXPORT_GUARD missing=null/text stale=EXPORT_VIEW_CHANGED file=none');
   } finally {
     await f.dispose();
   }

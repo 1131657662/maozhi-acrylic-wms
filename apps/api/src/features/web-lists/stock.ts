@@ -1,4 +1,4 @@
-import { webStockListSchema, type WebStockQuery, type WebStockRow } from '@wms/contracts';
+import { webStockListSchema, reportSelections, type WebStockQuery, type WebStockRow } from '@wms/contracts';
 import type { Database, Row } from '../../db/mysql.ts';
 import { hash } from '../../shared/hash.ts';
 import { isoDate } from '../../db/dates.ts';
@@ -25,6 +25,15 @@ export function stockPredicate(query: Omit<WebStockQuery, 'pageSize'> & { pageSi
   };
   textFilter(parts, ['s.product_code', 'p.name'], query.product);
   textFilter(parts, ['s.warehouse_code', 'w.name'], query.warehouse);
+  const warehouses = reportSelections(query.warehouseCodes);
+  if (warehouses.length) {
+    parts.sql += ` AND s.warehouse_code IN (${warehouses.map(() => '?').join(',')})`;
+    parts.values.push(...warehouses);
+  }
+  if (query.productCode) {
+    parts.sql += ' AND s.product_code=?';
+    parts.values.push(query.productCode);
+  }
   return parts;
 }
 export async function listWebStock(db: Database, query: ListReadQuery<WebStockQuery>) {

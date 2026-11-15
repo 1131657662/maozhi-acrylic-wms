@@ -13,6 +13,7 @@ import { listFeedback } from './list-feedback';
 
 interface Props<Row extends { id: Key }> {
   name: ExportKind;
+  rowHref?: (row: Row) => string | undefined;
   exportInHeader?: boolean;
   resultCardTitle?: ReactNode;
   skeleton?: boolean;
@@ -61,6 +62,7 @@ export function BusinessListResults<Row extends { id: Key }>(props: Props<Row>) 
           tableSummary={props.tableSummary}
           expandable={props.expandable}
           emptyText={props.emptyText}
+          rowHref={props.rowHref}
         />
       )}
       {props.children}

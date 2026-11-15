@@ -8,4 +8,5 @@ export type XlsxConfig = ({ filename: string; stream?: never } | { stream: Writa
   kind?: ExportKind;
   fields: XlsxField[];
   rowUnit?: '条' | '行';
+  reportContext?: import('./report-header.ts').ReportHeaderContext;
 };

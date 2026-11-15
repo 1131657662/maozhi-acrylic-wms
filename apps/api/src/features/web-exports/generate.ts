@@ -78,6 +78,12 @@ export async function generateSnapshot(db: Database, g: Generation): Promise<voi
     if (current.viewToken !== g.request.viewToken)
       throw new AppError('EXPORT_VIEW_CHANGED', '列表已变化，请刷新核对后重新导出', 409);
     setExportTotal(g, current, selected.size);
+    if (current.report)
+      g.writer.startReport?.(
+        reportViewSchema.parse(
+          Object.fromEntries(Object.keys(reportViewSchema.shape).map((key) => [key, current[key as keyof ExportPage]])),
+        ),
+      );
     if (g.request.scope === 'page') {
       appendPage(g, current, selected);
       await g.hooks.afterBatch?.(g.job.processed);

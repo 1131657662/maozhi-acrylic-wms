@@ -6,6 +6,7 @@ import { reportFixture, reportParams } from './report-fixture.ts';
 import { seedReportPerformance } from '../../../scripts/report-performance-fixture.ts';
 import { waitExport, workbook } from './export-fixture.ts';
 import { actor } from './fixture.ts';
+import { REPORT_HEADER_ROW } from '../src/features/web-exports/report-header.ts';
 
 test('B3b: monotone ledger keyset preserves ascending/descending export order across three batches', async () => {
   const f = await reportFixture();
@@ -32,7 +33,7 @@ test('B3b: monotone ledger keyset preserves ascending/descending export order ac
       const job = await f.service.create(input, actor);
       assert.equal((await waitExport(f, job.id)).state, 'ready');
       const { sheet } = await workbook(f, job.id),
-        actual = Array.from({ length: 2105 }, (_, i) => String(sheet.getCell(i + 2, 2).value));
+        actual = Array.from({ length: 2105 }, (_, i) => String(sheet.getCell(i + REPORT_HEADER_ROW + 1, 2).value));
       assert.deepEqual(actual, direction === 'asc' ? balances : [...balances].reverse());
       console.log('B3B_KEYSET', JSON.stringify({ direction, rows: actual.length, duplicates: 0, last: actual.at(-1) }));
     }

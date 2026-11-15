@@ -10,6 +10,7 @@ export interface BusinessListConfig<Row> {
   description: string;
   extra?: ReactNode;
   columns: ProColumns<Row>[];
+  rowHref?: (row: Row) => string | undefined;
   emptyText?: ReactNode;
   exportInHeader?: boolean;
   onExportOpen?: () => void;

@@ -37,7 +37,7 @@ function BalanceNotice({ report }: { report: ReportMeta }) {
         description={`排除软删 ${report.excludedDeleted} 条；缺有效时间 ${report.missingTime} 条；来源未识别 ${report.unassignedRows} 条。期初/期末显示已观察边界，缺证据用“—”，不补零、不补调整。`}
       />
       {balance.reasons.length > 0 && (
-        <details style={{ marginTop: token.marginSM }}>
+        <details id="report-reconciliation-reasons" style={{ marginTop: token.marginSM }}>
           <summary>查看不可验证与差额原因（{balance.reasons.length} 项）</summary>
           <ul>
             {balance.reasons.map((reason) => (

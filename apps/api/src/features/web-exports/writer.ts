@@ -7,10 +7,12 @@ import { AppError } from '../../shared/errors.ts';
 import { writeReconciliation } from './report-sheet.ts';
 import { writeReportView } from './report-view-sheet.ts';
 import type { XlsxConfig, XlsxField } from './xlsx-config.ts';
+import { writeReportHeader, REPORT_HEADER_ROW } from './report-header.ts';
 
 const formats = { text: '@', integer: '0', tonnes: '0.0000', kilograms: '0.000', date: 'yyyy-mm-dd hh:mm:ss' };
 const maxExcelInteger = 999_999_999_999_999;
 export interface ExportWriter {
+  startReport?(view: ReportView): void;
   append(row: Record<string, unknown>): string[];
   totals(): Record<string, string>;
   drain(): Promise<void>;
@@ -25,6 +27,7 @@ export class XlsxWriter implements ExportWriter {
   private failure: Error | undefined;
   private sums = new Map<string, bigint>();
   private incompleteSums = new Set<string>();
+  private headerRow = 1;
   constructor(readonly config: XlsxConfig) {
     this.output = config.stream ?? createWriteStream(config.filename!, { flags: 'wx' });
     this.output.on('error', (e: Error) => {
@@ -41,11 +44,10 @@ export class XlsxWriter implements ExportWriter {
     });
     this.book.creator = '茂智腈纶仓';
     this.sheet = this.book.addWorksheet('导出记录', {
-      views: [{ state: 'frozen', ySplit: 1 }],
+      views: [{ state: 'frozen', ySplit: config.reportContext ? REPORT_HEADER_ROW : 1 }],
       properties: { defaultRowHeight: 24 },
     });
     this.sheet.columns = config.fields.map((f) => ({
-      header: f.label,
       key: f.key,
       width: f.width,
       style: {
@@ -54,10 +56,20 @@ export class XlsxWriter implements ExportWriter {
         alignment: { vertical: 'middle', wrapText: true },
       },
     }));
-    this.sheet.getRow(1).font = { name: 'Microsoft YaHei', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-    this.sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-    this.sheet.getRow(1).height = 30;
-    this.sheet.getRow(1).commit();
+    if (!config.reportContext) this.writeColumnHeader();
+  }
+  private writeColumnHeader(): void {
+    const row = this.sheet.addRow(this.config.fields.map((field) => field.label));
+    row.font = { name: 'Microsoft YaHei', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+    row.height = 30;
+    row.commit();
+  }
+  startReport(view: ReportView): void {
+    if (!this.config.reportContext) return;
+    writeReportHeader(this.sheet, this.config.reportContext, view, this.config.fields.length);
+    this.headerRow = REPORT_HEADER_ROW;
+    this.writeColumnHeader();
   }
   append(row: Record<string, unknown>): string[] {
     const display = this.config.fields.map((f) =>
@@ -143,13 +155,18 @@ export class XlsxWriter implements ExportWriter {
         i === 0
           ? `合计（${count} ${this.config.rowUnit ?? '条'}）`
           : totals[f.key] === undefined
-            ? ''
+            ? this.config.reportContext
+              ? '—'
+              : ''
             : Number(totals[f.key]),
       ),
     );
     row.font = { name: 'Microsoft YaHei', size: 11, bold: true };
     row.commit();
-    this.sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: count + 1, column: this.config.fields.length } };
+    this.sheet.autoFilter = {
+      from: { row: this.headerRow, column: 1 },
+      to: { row: count + this.headerRow, column: this.config.fields.length },
+    };
     if (report) writeReconciliation(this.book, report);
     if (view) writeReportView(this.book, view);
     await Promise.race([this.book.commit(), this.completion]);

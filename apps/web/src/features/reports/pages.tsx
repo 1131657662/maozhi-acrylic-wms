@@ -1,5 +1,5 @@
 import { businessCopy } from '../../business-copy';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
 import { businessLabels, type ReportDetailRow, type ReportMonthlyRow } from '@wms/contracts';
 import { BusinessList } from '../../components/BusinessList';
@@ -13,12 +13,19 @@ import { ReportContextBar } from './context-bar';
 import { ReportShell } from './report-shell';
 import { ReportChartPanel } from './chart-panel';
 import { reportDisplayQuery } from './display-query';
+import { useSearchParams } from '@umijs/max';
+import { reportInteractionCopy as copy } from './interaction-copy';
+import { rowDrilldown } from './drilldown';
+import { reportTableSummary } from './table-summary';
 
-const detailColumns = reportColumns<ReportDetailRow>('report-details');
-const monthlyColumns = reportColumns<ReportMonthlyRow>('report-monthly');
 export function ReportDetails() {
-  const state = useListState('postedAt', { scope: 'inventory' }, reportDefaults(), ['source']);
-  const query = useQuery({ ...reportKeys.details(state.params), placeholderData: keepPreviousData });
+  const [search] = useSearchParams();
+  const state = useListState('postedAt', { scope: 'inventory' }, reportDefaults(), [
+    'source',
+    'drilldown',
+    'sourceMovement',
+  ]);
+  const query = reportDisplayQuery(useQuery(reportKeys.details(state.params)));
   return (
     <BusinessList
       state={state}
@@ -29,7 +36,7 @@ export function ReportDetails() {
         icon: <FileSearchOutlined />,
         layout: ReportShell,
         exportInHeader: true,
-        columns: detailColumns,
+        columns: reportColumns<ReportDetailRow>('report-details', state.params),
         description: businessCopy.reportsDetailsBasis,
         extra: (
           <Link
@@ -42,7 +49,8 @@ export function ReportDetails() {
           </Link>
         ),
       }}
-      filters={<ReportFilters state={state} detail />}
+      filters={<ReportFilters state={state} detail facets={query.data?.facets} />}
+      tableSummary={reportTableSummary('report-details', query.data)}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}
@@ -53,6 +61,10 @@ export function ReportDetails() {
       }
       summary={
         <>
+          {search.get('drilldown') === 'turnover' && <p>{copy.turnover}</p>}
+          {(state.params.types ||
+            state.params.movements ||
+            (state.params.movement && state.params.movement !== 'all')) && <p>{copy.filteredReconciliation}</p>}
           <strong>{businessLabels.reportDates}</strong>
           <p>{businessLabels.reportExplanation}</p>
           {query.data && <Reconciliation report={query.data.report} />}
@@ -62,7 +74,11 @@ export function ReportDetails() {
   );
 }
 export function ReportMonthly() {
-  const state = useListState('period', { scope: 'inventory' }, reportDefaults('monthly'), ['source']);
+  const state = useListState('period', { scope: 'inventory' }, reportDefaults('monthly'), [
+    'source',
+    'drilldown',
+    'sourceMovement',
+  ]);
   const query = reportDisplayQuery(useQuery(reportKeys.monthly(state.params)));
   return (
     <BusinessList
@@ -74,8 +90,9 @@ export function ReportMonthly() {
         icon: <CalendarOutlined />,
         layout: ReportShell,
         exportInHeader: true,
-        columns: monthlyColumns,
-        chart: <ReportChartPanel kind="monthly" query={query} />,
+        columns: reportColumns<ReportMonthlyRow>('report-monthly', state.params),
+        rowHref: (row) => rowDrilldown('report-monthly', state.params, row),
+        chart: <ReportChartPanel kind="monthly" query={query} params={state.params} />,
         description: businessCopy.reportsMonthlyBasis,
         extra: (
           <Link to={'/reports/details?' + new URLSearchParams({ ...state.params, page: '1', sortBy: 'postedAt' })}>
@@ -83,7 +100,8 @@ export function ReportMonthly() {
           </Link>
         ),
       }}
-      filters={<ReportFilters state={state} />}
+      filters={<ReportFilters state={state} facets={query.data?.facets} />}
+      tableSummary={reportTableSummary('report-monthly', query.data)}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}

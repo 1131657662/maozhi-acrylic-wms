@@ -30,6 +30,7 @@ export interface ListTableProps<Row> {
   };
   columnPrefs: ListColumnPreferences<Row>;
   emptyText?: ReactNode;
+  rowHref?: (row: Row) => string | undefined;
   exportInHeader?: boolean;
   tableSummary?: ListTableSummary<Row>;
   expandable?: TableProps<Row>['expandable'];

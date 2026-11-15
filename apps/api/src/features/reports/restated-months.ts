@@ -20,7 +20,7 @@ function countDocument(row: ReportMonthlyRow, event: DatedEvent, counts: Map<str
   counts.set(key, ids);
   if (row[field] !== null) row[field] = ids.size;
 }
-function restatedMonth(posted: ReportMonthlyRow, balance: RestatedBalance): ReportMonthlyRow {
+function restatedMonth(posted: ReportMonthlyRow, balance?: RestatedBalance): ReportMonthlyRow {
   const identity = {
     warehouseCode: posted.warehouseCode,
     warehouseName: posted.warehouseName,
@@ -50,7 +50,7 @@ function restatedMonth(posted: ReportMonthlyRow, balance: RestatedBalance): Repo
 export function restatedMonths(
   events: DatedEvent[],
   projection: Projection,
-  balance: RestatedBalance,
+  balance?: RestatedBalance,
 ): ReportMonthlyRow[] {
   const rows = new Map(projection.monthly.map((row) => [row.id, restatedMonth(row, balance)]));
   const counts = new Map<string, Set<string>>(),

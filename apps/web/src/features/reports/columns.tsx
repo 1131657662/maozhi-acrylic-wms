@@ -1,13 +1,16 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { listFields, listCellText, type ReportKind } from '@wms/contracts';
 import { Link } from '@umijs/max';
+import type { ListParams } from '../web-lists/keys';
+import { rowDrilldown } from './drilldown';
+import { reportInteractionCopy as copy } from './interaction-copy';
 
 function fixedSide(kind: ReportKind, key: string, index: number): 'left' | 'right' | undefined {
   if (index === 0) return 'left';
   const measures = kind === 'report-details' ? ['packages', 'weightGrams'] : ['inboundGrams', 'outboundGrams'];
   return key === 'checkState' || measures.includes(key) ? 'right' : undefined;
 }
-export function reportColumns<Row>(kind: ReportKind): ProColumns<Row>[] {
+export function reportColumns<Row>(kind: ReportKind, params: ListParams = {}): ProColumns<Row>[] {
   return listFields[kind].map((f, i) => ({
     title: f.label,
     dataIndex: f.key,
@@ -34,9 +37,21 @@ export function reportColumns<Row>(kind: ReportKind): ProColumns<Row>[] {
     render: (_, row) => {
       const record = row as Record<string, unknown>,
         text = listCellText(kind, f, record);
-      if (kind === 'report-details' && f.key === 'orderNo' && record.documentId && text !== '-') {
-        const route = String(record.operationType).startsWith('inbound') ? 'inbound' : 'outbound';
-        return <Link to={`/${route}/${encodeURIComponent(String(record.documentId))}`}>{text}</Link>;
+      const drillColumn = kind === 'report-details' ? 'orderNo' : kind === 'report-monthly' ? 'period' : 'productName';
+      if (f.key === drillColumn) {
+        const href = rowDrilldown(kind, params, record);
+        if (href)
+          return (
+            <Link to={href} target="_blank" rel="noopener noreferrer">
+              {text}
+            </Link>
+          );
+        if (kind === 'report-aging')
+          return (
+            <span aria-disabled="true" title={copy.historicalStock}>
+              {text}
+            </span>
+          );
       }
       return text;
     },

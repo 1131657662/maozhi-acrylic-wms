@@ -10,7 +10,10 @@ function movementTotal(rows: ReportMonthlyRow[]) {
     for (const key of Object.keys(result) as (keyof typeof result)[]) result[key] = addExact(result[key], row[key]);
   return result;
 }
-export function monthlyChart(projection: Projection, restated?: Restatement): ReportMonthlyChart {
+export function monthlyChart(
+  projection: Projection,
+  restated?: Pick<Restatement, 'events' | 'monthly'>,
+): ReportMonthlyChart {
   const rows = restated?.monthly ?? projection.monthly;
   const counts = restated ? new Map<string, MonthlyDocuments>() : projection.monthlyDocuments;
   if (restated)

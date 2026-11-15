@@ -1,5 +1,7 @@
 import { listFields, matchedLineFields, type ExportJob, type ExportRequest } from '@wms/contracts';
 import { hash } from '../../shared/hash.ts';
+import { reportNames } from './report-header.ts';
+import { reportKindSchema } from '@wms/contracts';
 
 export function exportFields(request: ExportRequest) {
   if (request.schema === 'matched_lines' && (request.kind === 'inbound' || request.kind === 'outbound'))
@@ -11,6 +13,7 @@ export function newExportJob(request: ExportRequest): ExportJob {
   const now = Date.now();
   const schema = request.schema ?? 'document_summary';
   const format = request.format ?? 'xlsx';
+  const reportKind = reportKindSchema.safeParse(request.kind);
   return {
     id: request.requestId,
     kind: request.kind,
@@ -31,5 +34,8 @@ export function newExportJob(request: ExportRequest): ExportJob {
     bytes: 0,
     elapsedMs: 0,
     requestHash: hash(JSON.stringify(request)),
+    ...(reportKind.success
+      ? { reportFilename: `${reportNames[reportKind.data]}_${request.query.fromDay}_${request.query.toDay}.xlsx` }
+      : {}),
   };
 }

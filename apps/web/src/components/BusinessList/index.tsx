@@ -88,6 +88,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
       results={
         <BusinessListResults
           name={config.name}
+          rowHref={config.rowHref}
           exportInHeader={config.exportInHeader}
           resultCardTitle={config.resultCardTitle}
           skeleton={config.skeleton}

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { businessErrorText, listTime } from '@wms/contracts';
+import { businessErrorText, listTime, REPORT_EXPORT_EXPIRED } from '@wms/contracts';
 import { errorCopy, errorUi } from '../text';
 
 export type ErrorKind = keyof typeof errorCopy;
@@ -35,7 +35,11 @@ export class ApiError extends Error {
     public path = '',
   ) {
     const fallback = errorCopy[kind][0];
-    const detail = kind === 'VALIDATION' || (kind === 'CONFLICT' && /^库存(?:不足|包数或实重不足)/.test(message));
+    const detail =
+      kind === 'VALIDATION' ||
+      (kind === 'CONFLICT' &&
+        (/^库存(?:不足|包数或实重不足)/.test(message) ||
+          (path === '/web/exports' && message === REPORT_EXPORT_EXPIRED)));
     super(detail ? safeBusinessMessage(message, fallback) : fallback);
     this.name = 'ApiError';
     const parsed = fieldsSchema.safeParse(data);

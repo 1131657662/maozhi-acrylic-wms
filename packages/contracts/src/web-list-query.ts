@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { inventoryScopeFields, validInventoryScope } from './inventory-scope.ts';
 import { WEB_LIST_DEFAULT_PAGE_SIZE, WEB_LIST_PAGE_SIZES } from './list-display.ts';
 import { inboundBillTypeSchema, outboundBillTypeSchema } from './document-types.ts';
+import { reportDimensionFields } from './report-interactions.ts';
 
 export const webListKindSchema = z.enum(['inbound', 'outbound', 'stock', 'audit']);
 export type WebListKind = z.infer<typeof webListKindSchema>;
@@ -92,6 +93,7 @@ export const webStockQuerySchema = z
   .strictObject({
     ...paging,
     ...inventoryScopeFields,
+    ...reportDimensionFields,
     product: text,
     warehouse: text,
     sortBy: z.enum(['warehouseCode', 'productCode', 'productName', 'packages', 'weightGrams']).default('warehouseCode'),

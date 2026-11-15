@@ -19,6 +19,8 @@ import { listWebAudit } from '../web-lists/audit.ts';
 import type { ExportSnapshot } from '../web-lists/query.ts';
 import { reportReader } from '../reports/read.ts';
 import { derivedReportReader } from '../reports/derived-read.ts';
+import { reportExportReplay } from './report-replay.ts';
+import { reportKindSchema } from '@wms/contracts';
 
 export interface ExportPage extends Partial<ReportView> {
   items: Record<string, unknown>[];
@@ -39,6 +41,8 @@ export function exportReader(
   input: Record<string, string>,
   viewToken?: string,
 ): (db: Database, batch?: ExportBatch) => Promise<ExportPage> {
+  const reportKind = reportKindSchema.safeParse(kind);
+  if (viewToken && reportKind.success) return reportExportReplay(reportKind.data, input, viewToken);
   switch (kind) {
     case 'report-monthly':
     case 'report-details':

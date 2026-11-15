@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { inventoryScopeFields, validInventoryScope } from './inventory-scope.ts';
 import { reportViewQueryFields } from './report-view.ts';
+import { reportDimensionFields, reportMovementFields, agingBandSchema } from './report-interactions.ts';
 
 export const reportKindSchema = z.enum(['report-details', 'report-monthly', 'report-turnover', 'report-aging']);
 export type ReportKind = z.infer<typeof reportKindSchema>;
@@ -10,6 +11,8 @@ export const reportQuerySchema = z
   .strictObject({
     ...inventoryScopeFields,
     ...reportViewQueryFields,
+    ...reportDimensionFields,
+    ...reportMovementFields,
     fromDay: day,
     toDay: day,
     warehouse: z.string().trim().max(200).default(''),
@@ -32,6 +35,7 @@ export type ReportQuery = z.infer<typeof reportQuerySchema>;
 const derivedEnvelope = {
   ...inventoryScopeFields,
   ...reportViewQueryFields,
+  ...reportDimensionFields,
   warehouse: z.string().trim().max(200).default(''),
   product: z.string().trim().max(200).default(''),
   page: z.coerce.number().int().min(1).max(100000).default(1),
@@ -59,6 +63,7 @@ export const reportAgingQuerySchema = z
     fromDay: day,
     toDay: day,
     cutoffDay: day,
+    band: agingBandSchema.optional(),
   })
   .refine(validInventoryScope, 'source与scope必须且只能提供一个')
   .refine(validReportRange, '请选择不超过 367 天的有效日期范围');

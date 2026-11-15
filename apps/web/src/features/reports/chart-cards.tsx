@@ -9,17 +9,25 @@ export interface ReportStat {
   value: string;
   formula: string;
 }
-export function ReportStatCards({ stats }: { stats: ReportStat[] }) {
+export function ReportStatCards({ stats, hrefs }: { stats: ReportStat[]; hrefs?: string[] }) {
   return (
     <section
       aria-label={copy.cards}
       data-testid="report-stat-cards"
       style={{ display: 'grid', gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))`, gap: spacing[16] }}
     >
-      {stats.map((stat) => (
+      {stats.map((stat, index) => (
         <StatCard
           key={stat.label}
-          value={stat.value}
+          value={
+            hrefs?.[index] ? (
+              <a href={hrefs[index]} target="_blank" rel="noopener noreferrer">
+                {stat.value}
+              </a>
+            ) : (
+              stat.value
+            )
+          }
           label={
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: spacing[4] }}>
               {stat.label}

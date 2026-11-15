@@ -4,6 +4,8 @@ export * from './report-metadata.ts';
 export * from './report-derived.ts';
 import { reportViewFields, restatedBalanceSchema } from './report-view.ts';
 import { reportMonthlyChartSchema } from './report-charts.ts';
+import { reportFacetsSchema } from './report-interactions.ts';
+export * from './report-interactions.ts';
 export * from './report-charts.ts';
 
 export * from './report-query.ts';
@@ -90,6 +92,8 @@ export const reportDetailRowSchema = z.strictObject({
 });
 export type ReportDetailRow = z.infer<typeof reportDetailRowSchema>;
 const envelope = {
+  totals: z.record(z.string(), integer.nullable()),
+  facets: reportFacetsSchema,
   ...reportViewFields,
   total: integer,
   page: integer,
