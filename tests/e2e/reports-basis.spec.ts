@@ -146,7 +146,12 @@ test('B7a-1 restated context shows snapshot watermarks', async ({ page }) => {
   const result = await response.json(),
     text = await watermarks.innerText();
   expect(text).toContain(String(result.data.watermarks.journalMaxId));
-  expect(text).toContain(result.data.watermarks.dateCorrectionMaxId ?? '无日期更正记录');
+  expect(text).toContain(
+    result.data.watermarks.dateCorrectionCount === 0
+      ? '无日期更正'
+      : `日期更正：${result.data.watermarks.dateCorrectionCount} 条`,
+  );
+  expect(text).not.toMatch(/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}/i);
 });
 
 test('B7a-1 context keeps the selected basis visible while loading', async ({ page }) => {

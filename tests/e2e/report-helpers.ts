@@ -28,6 +28,14 @@ export async function compareReportDownload(
   await book.xlsx.readFile(file);
   const sheet = book.worksheets[0]!;
   expect(sheet.rowCount).toBe(expected.length + 2);
+  const keys = await recordRows(page, kind)
+    .first()
+    .locator('td[data-export-field]')
+    .evaluateAll((cells) => cells.map((cell) => cell.getAttribute('data-export-field')!));
+  for (const [index, key] of keys.entries()) {
+    const header = page.getByTestId('report-' + kind + '-list').locator(`thead th[data-column-key="${key}"]`);
+    expect(sheet.getCell(1, index + 1).text).toBe(await header.getAttribute('aria-label'));
+  }
   const actual = expected.map((r, i) =>
     r.cells.map((_, j) => {
       const cell = sheet.getCell(i + 2, j + 1),

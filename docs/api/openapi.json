@@ -740,6 +740,31 @@
         "const": "visible",
         "type": "string"
       },
+      "S_1dcaad65d119f5f8": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_b0545f082fd43d7e"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
+      },
       "S_1ddbc62aaa480a2b": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "enum": [
@@ -2400,130 +2425,27 @@
         },
         "type": "object"
       },
-      "S_6a33ac1dc500db12": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "S_6aa1b04a60b61072": {
         "additionalProperties": false,
         "properties": {
-          "code": {
-            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          "asOf": {
+            "$ref": "#/components/schemas/S_4747412d47680923"
           },
-          "data": {
-            "$ref": "#/components/schemas/S_6ad4885f9e7d47ba"
+          "dateCorrectionCount": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
           },
-          "message": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+          "dateCorrectionMaxId": {
+            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
           },
-          "traceId": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
+          "journalMaxId": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
           }
         },
         "required": [
-          "code",
-          "message",
-          "data",
-          "traceId"
-        ],
-        "type": "object"
-      },
-      "S_6ad4885f9e7d47ba": {
-        "additionalProperties": false,
-        "properties": {
-          "balanceMode": {
-            "$ref": "#/components/schemas/S_823a1e69548c6845"
-          },
-          "basis": {
-            "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
-          },
-          "bridge": {
-            "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
-          },
-          "bytes": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "columns": {
-            "$ref": "#/components/schemas/S_f36b924a373c642e"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "elapsedMs": {
-            "$ref": "#/components/schemas/S_cddf8275afa15408"
-          },
-          "error": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "errorCode": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "expiresAt": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "format": {
-            "$ref": "#/components/schemas/S_081c4797b6f407b0"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "inventoryBasis": {
-            "$ref": "#/components/schemas/S_be4035c3d5395183"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/S_3c9135158f98d651"
-          },
-          "preview": {
-            "$ref": "#/components/schemas/S_373c422304eb28d8"
-          },
-          "processed": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "requestHash": {
-            "$ref": "#/components/schemas/S_00404e686415370f"
-          },
-          "restatedBalance": {
-            "$ref": "#/components/schemas/S_1388f2901bc9df24"
-          },
-          "schema": {
-            "$ref": "#/components/schemas/S_ae946eb878ef6041"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/S_051114523dc3c550"
-          },
-          "sha256": {
-            "$ref": "#/components/schemas/S_174e29b899b9ef91"
-          },
-          "state": {
-            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
-          },
-          "total": {
-            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
-          },
-          "totals": {
-            "$ref": "#/components/schemas/S_78a1736e4c355538"
-          },
-          "watermarks": {
-            "$ref": "#/components/schemas/S_d7599046fe48d8bd"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "scope",
-          "schema",
-          "format",
-          "state",
-          "createdAt",
-          "expiresAt",
-          "processed",
-          "total",
-          "columns",
-          "totals",
-          "preview",
-          "error",
-          "errorCode",
-          "sha256",
-          "bytes",
-          "elapsedMs",
-          "requestHash"
+          "journalMaxId",
+          "dateCorrectionMaxId",
+          "dateCorrectionCount",
+          "asOf"
         ],
         "type": "object"
       },
@@ -4223,6 +4145,108 @@
         ],
         "type": "object"
       },
+      "S_b0545f082fd43d7e": {
+        "additionalProperties": false,
+        "properties": {
+          "balanceMode": {
+            "$ref": "#/components/schemas/S_823a1e69548c6845"
+          },
+          "basis": {
+            "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+          },
+          "bridge": {
+            "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+          },
+          "bytes": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "columns": {
+            "$ref": "#/components/schemas/S_f36b924a373c642e"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "elapsedMs": {
+            "$ref": "#/components/schemas/S_cddf8275afa15408"
+          },
+          "error": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "errorCode": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "format": {
+            "$ref": "#/components/schemas/S_081c4797b6f407b0"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "inventoryBasis": {
+            "$ref": "#/components/schemas/S_be4035c3d5395183"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/S_3c9135158f98d651"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/S_373c422304eb28d8"
+          },
+          "processed": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "requestHash": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "restatedBalance": {
+            "$ref": "#/components/schemas/S_1388f2901bc9df24"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/S_ae946eb878ef6041"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/S_051114523dc3c550"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "state": {
+            "$ref": "#/components/schemas/S_42ad1d719d2f17b3"
+          },
+          "total": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/S_78a1736e4c355538"
+          },
+          "watermarks": {
+            "$ref": "#/components/schemas/S_6aa1b04a60b61072"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scope",
+          "schema",
+          "format",
+          "state",
+          "createdAt",
+          "expiresAt",
+          "processed",
+          "total",
+          "columns",
+          "totals",
+          "preview",
+          "error",
+          "errorCode",
+          "sha256",
+          "bytes",
+          "elapsedMs",
+          "requestHash"
+        ],
+        "type": "object"
+      },
       "S_b05fc5f300b2c70a": {
         "additionalProperties": false,
         "properties": {
@@ -5080,26 +5104,6 @@
         "minimum": 0,
         "multipleOf": 100,
         "type": "integer"
-      },
-      "S_d7599046fe48d8bd": {
-        "additionalProperties": false,
-        "properties": {
-          "asOf": {
-            "$ref": "#/components/schemas/S_4747412d47680923"
-          },
-          "dateCorrectionMaxId": {
-            "$ref": "#/components/schemas/S_7b5bbd1112a78d1c"
-          },
-          "journalMaxId": {
-            "$ref": "#/components/schemas/S_83f6485d0d169a84"
-          }
-        },
-        "required": [
-          "journalMaxId",
-          "dateCorrectionMaxId",
-          "asOf"
-        ],
-        "type": "object"
       },
       "S_dce143aa75224178": {
         "additionalProperties": false,
@@ -29610,7 +29614,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_6a33ac1dc500db12"
+                  "$ref": "#/components/schemas/S_1dcaad65d119f5f8"
                 }
               }
             },
@@ -29736,7 +29740,7 @@
                     "data": {
                       "anyOf": [
                         {
-                          "$ref": "#/components/schemas/S_6ad4885f9e7d47ba"
+                          "$ref": "#/components/schemas/S_b0545f082fd43d7e"
                         },
                         {
                           "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -29882,7 +29886,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_6a33ac1dc500db12"
+                  "$ref": "#/components/schemas/S_1dcaad65d119f5f8"
                 }
               }
             },
@@ -30008,7 +30012,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S_6a33ac1dc500db12"
+                  "$ref": "#/components/schemas/S_1dcaad65d119f5f8"
                 }
               }
             },
@@ -33467,7 +33471,7 @@
                           "$ref": "#/components/schemas/S_00404e686415370f"
                         },
                         "watermarks": {
-                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
+                          "$ref": "#/components/schemas/S_6aa1b04a60b61072"
                         }
                       },
                       "required": [
@@ -33937,7 +33941,7 @@
                           "$ref": "#/components/schemas/S_00404e686415370f"
                         },
                         "watermarks": {
-                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
+                          "$ref": "#/components/schemas/S_6aa1b04a60b61072"
                         }
                       },
                       "required": [
@@ -34527,7 +34531,7 @@
                           "$ref": "#/components/schemas/S_00404e686415370f"
                         },
                         "watermarks": {
-                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
+                          "$ref": "#/components/schemas/S_6aa1b04a60b61072"
                         }
                       },
                       "required": [
@@ -35032,7 +35036,7 @@
                           "$ref": "#/components/schemas/S_00404e686415370f"
                         },
                         "watermarks": {
-                          "$ref": "#/components/schemas/S_d7599046fe48d8bd"
+                          "$ref": "#/components/schemas/S_6aa1b04a60b61072"
                         }
                       },
                       "required": [

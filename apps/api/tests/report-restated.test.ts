@@ -132,11 +132,15 @@ test('B5d-2 asOf selects date revisions, not UUID order, and caps committed even
     await appendDateCorrection(f.db, 2);
     const early = await f.read({ basis: 'restated', asOf: '2026-02-01T00:00:00+08:00' });
     assert.equal(early.watermarks.dateCorrectionMaxId, null);
+    assert.equal(early.watermarks.dateCorrectionCount, 0);
     assert.equal(early.items[0]!.inboundPackages, 10);
     const middle = await f.read({ basis: 'restated', asOf: '2026-03-15T00:00:00Z' });
+    assert.equal(middle.watermarks.dateCorrectionCount, 1);
     assert.equal(middle.items[1]!.inboundPackages, 10);
     const latest = await f.read({ basis: 'restated', toDay: '2026-03-31' });
     assert.equal(latest.watermarks.dateCorrectionMaxId, firstCorrectionId);
+    assert.equal(latest.watermarks.dateCorrectionCount, 2);
+    assert.equal((await f.details()).watermarks.dateCorrectionCount, 2);
     assert.equal(latest.items[2]!.inboundPackages, 10);
     assert.equal(latest.items[1]!.inboundPackages, 0);
     const beforePosting = await f.read({ asOf: '2026-01-01T00:00:00Z' });
