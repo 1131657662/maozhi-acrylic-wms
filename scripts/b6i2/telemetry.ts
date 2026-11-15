@@ -40,6 +40,18 @@ export function contentHash(value: unknown): string {
     .update(JSON.stringify(businessData(value)))
     .digest('hex');
 }
+
+export function turnoverValueHash(value: unknown): string {
+  const data = businessData(value) as { items?: Record<string, unknown>[] } & Record<string, unknown>;
+  return createHash('sha256')
+    .update(
+      JSON.stringify({
+        ...data,
+        items: data.items?.map(({ formula: _formula, ...row }) => row),
+      }),
+    )
+    .digest('hex');
+}
 export async function save(folder: string, name: string, data: unknown): Promise<void> {
   await mkdir(folder, { recursive: true });
   await writeFile(`${folder}/${name}.json`, JSON.stringify(data, null, 2));

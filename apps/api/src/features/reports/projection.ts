@@ -27,6 +27,8 @@ interface ProjectionState {
   movement: ReportQuery['movement'];
   captureEvents: boolean;
   snapshot: ReportSnapshot;
+  cutoffTime: string;
+  turnoverOnly: boolean;
 }
 function consumeRow(state: ProjectionState, row: Row): void {
   state.digest.update(JSON.stringify(row));
@@ -38,7 +40,7 @@ function consumeRow(state: ProjectionState, row: Row): void {
   state.cells.set(key, cell);
   cell.auditTail = event;
   if (event.historical) cell.auditHistoricalTail = event;
-  if (event.localTime && event.localTime > snapshotLocalTime(state.snapshot)) {
+  if (event.localTime && event.localTime > state.cutoffTime) {
     cell.hasLaterEvents = true;
     return;
   }
@@ -73,7 +75,7 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
     const rows = await db.all(
       `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN ${balanceFields},
        COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) AS chartDocumentId
-       ${balanceFrom}
+       ${state.turnoverOnly ? balanceFrom.replace('FROM stock_journal s', 'FROM stock_journal s FORCE INDEX(PRIMARY)') : balanceFrom}
       WHERE s.id>? AND s.id<=? ${filter.sql} ORDER BY s.id LIMIT ?`,
       [state.cursor, state.snapshot.watermarks.journalMaxId, ...filter.values, REPORT_BATCH_SIZE],
     );
@@ -84,8 +86,9 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
 export async function buildProjection(
   db: Database,
   query: ReportQuery,
-  options: { captureEvents?: boolean; snapshot?: ReportSnapshot } = {},
+  options: { captureEvents?: boolean; snapshot?: ReportSnapshot; turnoverOnly?: boolean } = {},
 ): Promise<Projection> {
+  const snapshot = options.snapshot ?? (await reportSnapshot(db, query));
   const state: ProjectionState = {
     monthlyDocuments: new Map(),
     cells: new Map(),
@@ -99,12 +102,14 @@ export async function buildProjection(
     lastTime: '',
     movement: query.movement,
     captureEvents: options.captureEvents ?? false,
-    snapshot: options.snapshot ?? (await reportSnapshot(db, query)),
+    snapshot,
+    cutoffTime: snapshotLocalTime(snapshot),
+    turnoverOnly: options.turnoverOnly ?? false,
   };
   await readEvents(db, state, query);
-  await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
+  if (!options.turnoverOnly) await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
   await validateAnchors(db, { ...state, query });
-  await hashReferences(db, state.digest);
+  if (!options.turnoverOnly) await hashReferences(db, state.digest);
   const diagnostics = await sourceDiagnostics(db, query, state.snapshot);
   state.digest.update(JSON.stringify(diagnostics));
   for (const cell of state.cells.values()) for (const row of cell.periods.values()) finishRow(row);

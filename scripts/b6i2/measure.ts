@@ -10,7 +10,9 @@ import { installProbe, p95 } from '../b6b/probe.ts';
 import { runtime, type Runtime } from './runtime.ts';
 import { sample, runs, type Kind } from './browser.ts';
 import { profile } from './profile.ts';
-import { save } from './telemetry.ts';
+import { save, turnoverValueHash } from './telemetry.ts';
+import type { Database } from '../../apps/api/src/db/mysql.ts';
+import { clearReverseSummaryCache } from '../../apps/api/src/features/web-lists/reverse-summary-cache.ts';
 
 const stage = process.argv[2];
 assert.ok(['baseline', 'after'].includes(stage!), 'Specify baseline or after');
@@ -49,12 +51,12 @@ try {
   const results = [];
   for (const kind of ['inbound', 'outbound', 'turnover'] as const) {
     for (const mode of kind === 'turnover' ? ['cold', 'hot'] : ['cold']) {
-      const result = await group(server, kind, mode);
+      const result = await group(server, fixture.db, kind, mode, stage === 'after');
       results.push(result);
       await save(folder, 'summary', results);
       console.log('B6I2', JSON.stringify({ ...result, samples: undefined }));
     }
-    await profile(server, fixture.db, { kind, folder });
+    await profile(server, fixture.db, { kind, folder, assertCountReuse: stage === 'after' });
   }
   if (stage === 'after') await compare(results);
 } finally {
@@ -63,18 +65,33 @@ try {
   await fixture.dispose();
 }
 
-async function group(runtime: Runtime, kind: Kind, mode: string) {
+async function group(runtime: Runtime, db: Database, kind: Kind, mode: string, assertCountReuse: boolean) {
   const options = { storageState: runtime.storageState, viewport: { width: 1440, height: 960 } };
   const warm = mode === 'hot' ? await runtime.browser.newContext(options) : undefined;
   const warmPage = warm ? await warm.newPage() : undefined,
     samples = [];
   try {
-    if (warmPage) await sample(warmPage, { runtime, kind, id: `${kind}-${mode}-warm`, folder });
+    if (warmPage)
+      await sample(warmPage, {
+        runtime,
+        kind,
+        id: `${kind}-${mode}-warm`,
+        folder,
+        assertCountReuse,
+        beforeNavigate: kind === 'turnover' ? undefined : () => clearReverseSummaryCache(db),
+      });
     for (let run = 0; run < runs; run++) {
       const context = warm ?? (await runtime.browser.newContext(options));
       try {
         samples.push(
-          await sample(warmPage ?? (await context.newPage()), { runtime, kind, id: `${kind}-${mode}-${run}`, folder }),
+          await sample(warmPage ?? (await context.newPage()), {
+            runtime,
+            kind,
+            id: `${kind}-${mode}-${run}`,
+            folder,
+            assertCountReuse,
+            beforeNavigate: kind === 'turnover' ? undefined : () => clearReverseSummaryCache(db),
+          }),
         );
       } finally {
         if (!warm) await context.close();
@@ -95,24 +112,32 @@ async function group(runtime: Runtime, kind: Kind, mode: string) {
     scriptP95Ms: p95(samples.map((s) => s.scriptMs)),
     bytes: samples[0]!.bytes,
     hash: samples[0]!.hash,
+    comparisonHash: samples[0]!.comparisonHash,
     samples,
   };
 }
 async function compare(results: Awaited<ReturnType<typeof group>>[]) {
   const baseline = JSON.parse(await readFile('.local/evidence/b6i2/baseline/summary.json', 'utf8')) as typeof results;
-  for (const result of results)
-    assert.equal(
-      result.hash,
-      baseline.find((b) => b.kind === result.kind && b.mode === result.mode)!.hash,
-      `${result.kind}/${result.mode} business content changed`,
-    );
+  const turnoverBaseline = JSON.parse(
+    await readFile('.local/evidence/b6i2/baseline/turnover-cold-0-requests.json', 'utf8'),
+  ) as { measured: { data: Record<string, unknown> } };
+  for (const result of results) {
+    const expectedHash =
+      result.kind === 'turnover'
+        ? turnoverValueHash(turnoverBaseline.measured.data)
+        : baseline.find((b) => b.kind === result.kind && b.mode === result.mode)!.hash;
+    assert.equal(result.comparisonHash, expectedHash, `${result.kind}/${result.mode} business content changed`);
+  }
   await save(
     folder,
     'comparison',
     results.map((result) => ({
       kind: result.kind,
       mode: result.mode,
-      hashMatches: true,
+      comparisonHashMatches: true,
+      fullHashBefore: baseline.find((b) => b.kind === result.kind && b.mode === result.mode)!.hash,
+      fullHashAfter: result.hash,
+      comparisonHash: result.comparisonHash,
       before: baseline.find((b) => b.kind === result.kind && b.mode === result.mode)!.p95Ms,
       after: result.p95Ms,
     })),

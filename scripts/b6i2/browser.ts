@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { freemem, loadavg } from 'node:os';
 import type { CDPSession, Page } from '@playwright/test';
-import { requests, contentHash, save } from './telemetry.ts';
+import { requests, contentHash, turnoverValueHash, save } from './telemetry.ts';
 import type { Runtime } from './runtime.ts';
 
 export type Kind = 'inbound' | 'outbound' | 'turnover';
 export const runs = 30,
   pageSize = 50;
+export const countQueryCount = (queries: { sql: string }[]) =>
+  queries.filter((query) => /^\s*SELECT\s+(?:\/\*.*?\*\/\s*)?COUNT\s*\(/i.test(query.sql)).length;
 const turnoverParams = new URLSearchParams({
   scope: 'inventory',
   fromDay: '2026-06-01',
@@ -42,7 +44,12 @@ async function metrics(cdp: CDPSession) {
   const result = await cdp.send('Performance.getMetrics');
   return Object.fromEntries(result.metrics.map((m: { name: string; value: number }) => [m.name, m.value]));
 }
-async function navigate(page: Page, cdp: CDPSession, input: { runtime: Runtime; kind: Kind; id: string }) {
+async function navigate(
+  page: Page,
+  cdp: CDPSession,
+  input: { runtime: Runtime; kind: Kind; id: string; beforeNavigate?: () => void },
+) {
+  input.beforeNavigate?.();
   await page.setExtraHTTPHeaders({ 'x-b6i2-probe': input.id + '-first' });
   const start = performance.now();
   await page.goto(input.runtime.origin + url(input.kind), { waitUntil: 'domcontentloaded' });
@@ -71,12 +78,26 @@ async function flip(page: Page, cdp: CDPSession, input: { kind: Kind; id: string
     request: requests.get(input.id + '-page')!,
   };
 }
-export async function sample(page: Page, input: { runtime: Runtime; kind: Kind; id: string; folder: string }) {
+export async function sample(
+  page: Page,
+  input: {
+    runtime: Runtime;
+    kind: Kind;
+    id: string;
+    folder: string;
+    beforeNavigate?: () => void;
+    assertCountReuse?: boolean;
+  },
+) {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Performance.enable');
   const first = await navigate(page, cdp, input),
     result = input.kind === 'turnover' ? first : await flip(page, cdp, input);
   assert.ok(result.request?.data, 'Missing request telemetry');
+  if (input.assertCountReuse && input.kind !== 'turnover') {
+    assert.equal(countQueryCount(first.request.queries), 1);
+    assert.equal(countQueryCount(result.request.queries), 0);
+  }
   assert.equal(result.request.data.total, input.kind === 'turnover' ? 50 : 10_000);
   await save(input.folder, input.id + '-requests', { first: first.request, measured: result.request });
   await cdp.detach();
@@ -89,12 +110,13 @@ export async function sample(page: Page, input: { runtime: Runtime; kind: Kind; 
     apiMs: r.apiMs,
     sqlMs: r.sqlMs,
     queries: r.queries.length,
-    counts: r.queries.filter((q) => /COUNT\s*\(/i.test(q.sql)).length,
+    counts: countQueryCount(r.queries),
     scriptMs: m.ScriptDuration * 1000,
     layoutMs: m.LayoutDuration * 1000,
     styleMs: m.RecalcStyleDuration * 1000,
     bytes: r.bytes,
     hash: contentHash(r.data),
+    comparisonHash: input.kind === 'turnover' ? turnoverValueHash(r.data) : contentHash(r.data),
     freeMemory: freemem(),
     loadAverage: loadavg(),
   };

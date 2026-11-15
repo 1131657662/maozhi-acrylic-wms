@@ -12,6 +12,8 @@ import {
   textFilter,
   type ListReadQuery,
 } from './query.ts';
+import { inboundMatchedTotals } from './inbound-matched-totals.ts';
+import { reverseSummaryCache } from './reverse-summary-cache.ts';
 
 const fields = `r.id,r.receipt_no AS receiptNo,r.status,r.posting_state AS postingState,
   r.business_date AS businessDate,${effectiveBusinessDateSql('inbound', 'r')} AS effectiveBusinessDate,
@@ -54,9 +56,11 @@ export function inboundPredicate(query: Omit<WebInboundQuery, 'pageSize'> & { pa
   if (query.productCodes?.length) {
     const placeholders = query.productCodes.map(() => '?').join(',');
     if (query.productMode === 'all') {
-      parts.sql += ` AND (SELECT COUNT(DISTINCT ml.product_code) FROM inbound_lines ml
-        WHERE ml.receipt_id=r.id AND ml.source_del_flag=0 AND ml.product_code IN (${placeholders}))=?`;
-      parts.values.push(...query.productCodes, query.productCodes.length);
+      for (const code of query.productCodes) {
+        parts.sql += ` AND EXISTS (SELECT 1 FROM inbound_lines ml
+          WHERE ml.receipt_id=r.id AND ml.source_del_flag=0 AND ml.product_code=?)`;
+        parts.values.push(code);
+      }
     } else {
       parts.sql += ` AND EXISTS (SELECT 1 FROM inbound_lines ml
         WHERE ml.receipt_id=r.id AND ml.source_del_flag=0 AND ml.product_code IN (${placeholders}))`;
@@ -130,6 +134,18 @@ async function matchedLineMap(db: Database, ids: string[], productCodes?: string
 export async function listWebInbound(db: Database, query: ListReadQuery<WebInboundQuery>) {
   return db.transaction(async (tx) => {
     const predicate = inboundPredicate(query);
+    const cache =
+      query.reuseSummary && query.productCodes?.length ? await reverseSummaryCache(tx, predicate) : undefined;
+    const cachedTotals = cache?.get();
+    const matchedTotals = query.productCodes?.length
+      ? (cachedTotals ??
+        (await inboundMatchedTotals(
+          tx,
+          query,
+          query.productMode === 'all' ? predicate : inboundPredicate({ ...query, productCodes: undefined }),
+        )))
+      : undefined;
+    if (!cachedTotals && matchedTotals) cache?.put(matchedTotals);
     const page = await readPage(
       tx,
       {
@@ -145,7 +161,7 @@ export async function listWebInbound(db: Database, query: ListReadQuery<WebInbou
         ],
         order: `${sortColumns[query.sortBy]} ${query.direction},r.id ${query.direction}`,
       },
-      query,
+      { ...query, knownTotal: matchedTotals?.documentCount },
     );
     const summaries = await lineSummaries(
       tx,
@@ -157,9 +173,6 @@ export async function listWebInbound(db: Database, query: ListReadQuery<WebInbou
           page.rows.map((row) => String(row.id)),
           query.productCodes,
         )
-      : undefined;
-    const matchedTotals = query.productCodes?.length
-      ? await inboundMatchedTotals(tx, query.productCodes, predicate, page.total)
       : undefined;
     const items = page.rows.map((row) => ({
       ...row,
@@ -174,25 +187,4 @@ export async function listWebInbound(db: Database, query: ListReadQuery<WebInbou
       ...(matchedTotals ? { matchedTotals } : {}),
     });
   });
-}
-
-async function inboundMatchedTotals(
-  db: Database,
-  productCodes: string[],
-  predicate: ReturnType<typeof inboundPredicate>,
-  documentCount: number,
-) {
-  const rows = await db.all(
-    `SELECT COUNT(*) AS lineCount,SUM(l.packages) AS packages,SUM(l.weight_tonnes) AS tonnes
-     FROM inbound_lines l WHERE l.source_del_flag=0 AND l.product_code IN (${productCodes.map(() => '?').join(',')})
-       AND EXISTS (SELECT 1 ${predicate.sql} AND r.id=l.receipt_id)`,
-    [...productCodes, ...predicate.values],
-  );
-  const row = rows[0];
-  return {
-    documentCount,
-    lineCount: Number(row?.lineCount ?? 0),
-    packages: Number(row?.packages ?? 0),
-    weightGrams: aggregateGrams(row?.tonnes ?? '0.0000'),
-  };
 }

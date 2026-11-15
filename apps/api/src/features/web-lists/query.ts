@@ -13,6 +13,7 @@ export interface PageQuery {
   direction: 'asc' | 'desc';
   exportSnapshot?: ExportSnapshot;
   exportKeyset?: KeysetRead;
+  knownTotal?: number;
 }
 export interface ExportSnapshot {
   total: number;
@@ -22,6 +23,7 @@ export type ListReadQuery<Q> = Omit<Q, 'pageSize'> & {
   pageSize: number;
   exportSnapshot?: ExportSnapshot;
   exportKeyset?: KeysetRead;
+  reuseSummary?: boolean;
 };
 export function contains(value: string): string {
   return `%${value.replace(/[!%_]/g, '!$&')}%`;
@@ -56,6 +58,7 @@ export async function readPage(db: Database, input: KeysetSource, query: PageQue
   const { predicate } = input;
   const total =
     query.exportSnapshot?.total ??
+    query.knownTotal ??
     Number((await db.get(`SELECT COUNT(*) AS total ${predicate.sql}`, predicate.values))?.total ?? 0);
   const rows = query.exportKeyset
     ? await readKeysetPage(db, input, { ...query, exportKeyset: query.exportKeyset })

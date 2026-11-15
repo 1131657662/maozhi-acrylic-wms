@@ -6,7 +6,9 @@ export type Row = Record<string, unknown>;
 type Values = readonly (string | number | null | Buffer)[];
 
 export class Database {
-  constructor(private readonly executor: Pool | PoolConnection, private readonly pool?: Pool) {}
+  private wrote = false;
+  constructor(private readonly executor: Pool | PoolConnection, private readonly pool?: Pool,
+    readonly readCacheClock = { version: 0 }) {}
   async all(sql: string, values: Values = []): Promise<Row[]> {
     const [rows] = await this.executor.query<RowDataPacket[]>(sql, [...values]);
     return rows;
@@ -15,14 +17,24 @@ export class Database {
     return (await this.all(sql, values))[0];
   }
   async run(sql: string, values: Values = []): Promise<{ changes: number }> {
-    const [result] = await this.executor.query<ResultSetHeader>(sql, [...values]);
-    return { changes: result.affectedRows };
+    const mutation = /^\s*(INSERT|UPDATE|DELETE|REPLACE|ALTER|DROP|CREATE|TRUNCATE|RENAME|LOAD|CALL)\b/i.test(sql);
+    const end = /^\s*(COMMIT|ROLLBACK)\b/i.test(sql),
+      invalidate = mutation || (end && this.wrote);
+    if (mutation) this.wrote = true;
+    if (invalidate) this.readCacheClock.version++;
+    try {
+      const [result] = await this.executor.query<ResultSetHeader>(sql, [...values]);
+      return { changes: result.affectedRows };
+    } finally {
+      if (invalidate) this.readCacheClock.version++;
+      if (end || /^\s*START TRANSACTION\b/i.test(sql)) this.wrote = false;
+    }
   }
   async withConnection<T>(work: (db: Database) => Promise<T>): Promise<T> {
     if (!this.pool) return work(this);
     const connection = await this.pool.getConnection();
     let reusable = true;
-    try { return await work(new Database(connection)); }
+    try { return await work(new Database(connection, undefined, this.readCacheClock)); }
     catch (error) {
       if (error instanceof TransactionOutcomeUnknown) { reusable = false; connection.destroy(); }
       throw error;

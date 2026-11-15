@@ -3,8 +3,13 @@ import type { Database } from '../../apps/api/src/db/mysql.ts';
 import type { Runtime } from './runtime.ts';
 import { sample, type Kind } from './browser.ts';
 import { requests, save } from './telemetry.ts';
+import { clearReverseSummaryCache } from '../../apps/api/src/features/web-lists/reverse-summary-cache.ts';
 
-export async function profile(runtime: Runtime, db: Database, options: { kind: Kind; folder: string }) {
+export async function profile(
+  runtime: Runtime,
+  db: Database,
+  options: { kind: Kind; folder: string; assertCountReuse?: boolean },
+) {
   const context = await runtime.browser.newContext({
     storageState: runtime.storageState,
     viewport: { width: 1440, height: 960 },
@@ -25,7 +30,12 @@ export async function profile(runtime: Runtime, db: Database, options: { kind: K
   });
   try {
     const id = options.kind + '-profile';
-    await sample(page, { runtime, ...options, id });
+    await sample(page, {
+      runtime,
+      ...options,
+      id,
+      beforeNavigate: options.kind === 'turnover' ? undefined : () => clearReverseSummaryCache(db),
+    });
     await save(options.folder, id + '-server-cpu', (await server.post('Profiler.stop')).profile);
     await save(options.folder, id + '-browser-cpu', (await cdp.send('Profiler.stop')).profile);
     const completed = new Promise<void>((resolve) => cdp.once('Tracing.tracingComplete', () => resolve()));

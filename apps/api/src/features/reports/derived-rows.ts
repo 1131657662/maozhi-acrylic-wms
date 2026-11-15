@@ -72,7 +72,7 @@ export function turnoverRow(
           : null
         : turns.toFixed(4),
     turnoverDays: turnoverDays === null ? null : turnoverDays.toFixed(1),
-    formula: `${turnoverFormula}${restated ? reportCopy.restatedTurnoverBasis : ''}；D=${period.days}；M=${averageGrams === null ? '不可验证' : (averageGrams / 1_000_000).toFixed(4) + ' 吨'}`,
+    formula: `${turnoverFormula}${restated ? reportCopy.restatedTurnoverBasis : ''}；D=${period.days.length}；M=${averageGrams === null ? '不可验证' : (averageGrams / 1_000_000).toFixed(4) + ' 吨'}`,
     checkState: reasons.length ? '不可验证' : common.checkState,
     reasons: reasons.slice(0, 12),
   };

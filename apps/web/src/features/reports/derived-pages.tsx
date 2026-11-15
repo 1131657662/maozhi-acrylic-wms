@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { ReportAgingRow, ReportTurnoverRow } from '@wms/contracts';
 import { BusinessList } from '../../components/BusinessList';
@@ -22,6 +23,8 @@ export function ReportTurnover() {
       'drilldown',
     ]),
     query = reportDisplayQuery(useQuery(reportKeys.turnover(state.params))),
+    paramsKey = JSON.stringify(state.params),
+    columns = useMemo(() => reportColumns<ReportTurnoverRow>('report-turnover', state.params), [paramsKey]),
     report = query.data?.report;
   return (
     <BusinessList
@@ -33,7 +36,7 @@ export function ReportTurnover() {
         icon: <LineChartOutlined />,
         layout: ReportShell,
         exportInHeader: true,
-        columns: reportColumns<ReportTurnoverRow>('report-turnover', state.params),
+        columns,
         rowHref: (row) => rowDrilldown('report-turnover', state.params, row),
         chart: <ReportChartPanel kind="turnover" query={query} params={state.params} />,
         description:
