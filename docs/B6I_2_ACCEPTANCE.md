@@ -74,3 +74,9 @@
 月报/周转1440与1280截图已复核，图表、汇总、对账和表格稳态布局正常，文件为`.local/evidence/b7a3-{monthly,turnover}-{1440,1280}.png`，不入Git。最终生产构建日志`build-final.log`，性能重采期间没有并行构建/E2E。
 
 代码审查覆盖全部差异，核对参数化SQL、事务失效、单据任一/全部条件、原快照回放、memo依赖及图表tooltip的confine约束；未发现功能/安全阻断问题，`git diff --check`通过。基线提交 `6c416ba`，实现 `c296e5c`，第3笔为本验收及验收中发现的容器/绘制同步修复；前两笔未改写。代码和本地自动化验证完成，反查目标达成、周转冷目标未达成，待用户验收。本批未合并/推送，未做实体设备或生产验收；第三笔后停止。
+
+## 用户确认与合并收尾
+
+上述三笔后停止为阶段记录。2026-11-15用户确认B6i-2部分达标，授权先合并已改善部分；功能分支以`merge: b6i-2 reverse lookup and turnover`非快进合并为`e815de5da1372ea4da5c72d0e404d5626ce0e07d`并推送origin/master。checkout、merge、push、远端核对exit均0，首次推送后远端HEAD/master均为该hash。分支包含已完成的B6i-1三笔前置提交，它们一并进入master，本轮未重做导出。
+
+合并树与验收提交`e7f144e`完全一致（`git diff --exit-code codex/b6i-2-reverse-turnover HEAD` exit0）；沿用test531/531、build exit0、完整E2E209/209，不将文档收尾称为新一轮性能测试。反查p95 724/752→390/397ms达标；周转冷1523→1184ms未达800ms，标为部分完成。收尾只更新文档，经`codex/b6i-2-closeout`提交并非快进合并推送，AF-024/AF-056保留；停止，不开始B6i-2b。未做实体设备或生产验收。
