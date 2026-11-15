@@ -14,6 +14,8 @@ import { businessCopy } from '../../business-copy';
 import { reportDefaults, derivedReportDefaults, dateRangeFor } from './date-presets';
 export { reportDefaults, derivedReportDefaults } from './date-presets';
 import { chartCopy } from './chart-copy';
+import type { ReportFacets } from '@wms/contracts';
+import { VisualFilters } from './visual-filters';
 
 interface FilterOptions {
   state: ListState;
@@ -62,12 +64,22 @@ async function submitReportFilters(values: Record<string, unknown>, options: Fil
     range = dateRangeFor(!detail ? String(values.periodPreset ?? 'custom') : 'custom', values.dateRange);
   if (!range) return false;
   state.searchFor({
+    ...Object.fromEntries(
+      ['warehouseCodes', 'productCode', 'movements', 'types', 'band']
+        .filter((key) => state.params[key] !== undefined)
+        .map((key) => [key, state.params[key]!]),
+    ),
     fromDay: range[0],
     toDay: range[1],
     ...(aging ? { cutoffDay: String(values.cutoffDay ?? range[1]) } : {}),
     warehouse: String(values.warehouse ?? ''),
     product: String(values.product ?? ''),
-    ...(!derived ? { movement: detail ? String(values.movement ?? 'all') : 'all' } : {}),
+    ...(!derived
+      ? {
+          movement: detail ? String(values.movement ?? 'all') : 'all',
+          ...(detail && values.movement !== state.params.movement ? { movements: '' } : {}),
+        }
+      : {}),
     basis: state.params.basis === 'restated' ? 'restated' : 'posted',
   });
   return true;
@@ -168,17 +180,20 @@ export function ReportFilters({
   detail = false,
   aging = false,
   derived = false,
+  facets,
 }: {
   state: ListState;
   detail?: boolean;
   aging?: boolean;
   derived?: boolean;
+  facets?: ReportFacets;
 }) {
   const options = { state, detail, aging, derived };
   return (
     <>
       <ReportBasisToggle state={state} />
       <ReportFilterForm {...options} />
+      <VisualFilters state={state} facets={facets} aging={aging} derived={derived} />
     </>
   );
 }

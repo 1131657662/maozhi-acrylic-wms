@@ -187,7 +187,21 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                 清空选择
               </Button>
             )}
-            onRow={onRow}
+            onRow={
+              props.rowHref
+                ? (row) => ({
+                    onClick: (event) => {
+                      if (
+                        props.placeholder ||
+                        (event.target as HTMLElement).closest('a,button,input,[role="checkbox"]')
+                      )
+                        return;
+                      const href = props.rowHref?.(row);
+                      if (href) window.open(href, '_blank', 'noopener,noreferrer');
+                    },
+                  })
+                : onRow
+            }
             pagination={{
               current: Number(state.params.page),
               pageSize: Number(state.params.pageSize),

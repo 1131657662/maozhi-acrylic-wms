@@ -27,6 +27,7 @@ interface ResultsProps<Row extends { id: Key }> {
   tableSummary?: ListTableSummary<Row>;
   expandable?: TableProps<Row>['expandable'];
   emptyText?: ReactNode;
+  rowHref?: (row: Row) => string | undefined;
 }
 export function ListResults<Row extends { id: Key }>({
   config,
@@ -41,6 +42,7 @@ export function ListResults<Row extends { id: Key }>({
   tableSummary,
   expandable,
   emptyText,
+  rowHref,
 }: ResultsProps<Row>) {
   const table = (
     <ListTable
@@ -53,6 +55,7 @@ export function ListResults<Row extends { id: Key }>({
       selection={selection}
       columnPrefs={columnPrefs}
       emptyText={emptyText}
+      rowHref={rowHref}
       exportInHeader={config.exportInHeader}
       tableSummary={tableSummary}
       expandable={expandable}

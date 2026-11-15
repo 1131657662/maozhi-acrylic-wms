@@ -1,4 +1,4 @@
-import type { ReportQuery } from '@wms/contracts';
+import { reportSelections, type ReportQuery } from '@wms/contracts';
 import { contains } from '../web-lists/query.ts';
 
 const json = (alias: string, field: string) =>
@@ -42,10 +42,21 @@ export const ledgerFrom = `${balanceFrom}
   LEFT JOIN outbound_orders b ON b.id=COALESCE(s.order_id,sc.outbound_order_id)
   LEFT JOIN outbound_orders hb ON hb.order_no=s.source_order_no AND s.source_id IS NOT NULL AND s.source_business_type='outbound'
   LEFT JOIN master_suppliers su ON su.code=COALESCE(i.supplier_code,hi.supplier_code)`;
-export function dimensionFilter(query: Pick<ReportQuery, 'warehouse' | 'product'> & { source?: string }) {
+export function dimensionFilter(
+  query: Pick<ReportQuery, 'warehouse' | 'product' | 'warehouseCodes' | 'productCode'> & { source?: string },
+) {
   const clauses: string[] = [],
     values: string[] = [];
   if (query.source === 'erp-product') clauses.push("p.source_kind='erp-product'");
+  const warehouses = reportSelections(query.warehouseCodes);
+  if (warehouses.length) {
+    clauses.push(`s.warehouse_code IN (${warehouses.map(() => '?').join(',')})`);
+    values.push(...warehouses);
+  }
+  if (query.productCode) {
+    clauses.push('s.product_code=?');
+    values.push(query.productCode);
+  }
   if (query.warehouse) {
     clauses.push("(s.warehouse_code LIKE ? ESCAPE '!' OR w.name LIKE ? ESCAPE '!')");
     values.push(contains(query.warehouse), contains(query.warehouse));

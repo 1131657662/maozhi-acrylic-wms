@@ -18,10 +18,21 @@ import { stockTableSummary } from './table-summary';
 import { useStockPeek } from './use-stock-peek';
 import { MovementDrawer } from './movement-drawer';
 import { useLocation } from '@umijs/max';
+import { reportInteractionCopy } from '../reports/interaction-copy';
 
 export function StockWorkspace() {
   const location = useLocation();
-  const state = useListState('warehouseCode', { scope: 'inventory' }, {}, ['source']);
+  const state = useListState('warehouseCode', { scope: 'inventory' }, {}, [
+    'source',
+    'drilldown',
+    'fromDay',
+    'toDay',
+    'cutoffDay',
+    'basis',
+    'movement',
+    'movements',
+    'types',
+  ]);
   const stockListQuery = useQuery({ ...webListKeys.stock(state.params), placeholderData: keepPreviousData });
   const [selected, setSelected] = useState<WebStockRow | null>(null);
   const [journalRow, setJournalRow] = useState<WebStockRow | null>(null);
@@ -44,7 +55,14 @@ export function StockWorkspace() {
         query={stockListQuery}
         config={stockListConfig(setSelected)}
         filters={<StockFilters state={state} />}
-        summary={<StockListSubtotal subtotal={stockListQuery.data?.subtotal} />}
+        summary={
+          <>
+            {new URLSearchParams(location.search).get('drilldown') === 'aging' && (
+              <p>{reportInteractionCopy.currentStock}</p>
+            )}
+            <StockListSubtotal subtotal={stockListQuery.data?.subtotal} />
+          </>
+        }
         tableSummary={stockTableSummary}
         expandable={expandable}
       >

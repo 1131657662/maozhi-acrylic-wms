@@ -3,10 +3,12 @@ import { inventoryScopeResult } from './inventory-scope.ts';
 import { derivedReportMetaSchema } from './report-metadata.ts';
 import { reportViewFields } from './report-view.ts';
 import { reportAgingChartSchema, reportTurnoverChartSchema } from './report-charts.ts';
+import { reportFacetsSchema } from './report-interactions.ts';
 const integer = z.number().int().safe();
 const day = z.iso.date();
 
 const derivedEnvelopeSchema = {
+  facets: reportFacetsSchema,
   ...reportViewFields,
   total: integer,
   page: integer,

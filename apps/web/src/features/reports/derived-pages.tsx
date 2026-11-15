@@ -12,12 +12,14 @@ import { ReportContextBar } from './context-bar';
 import { ReportShell } from './report-shell';
 import { ReportChartPanel } from './chart-panel';
 import { reportDisplayQuery } from './display-query';
-
-const turnoverColumns = reportColumns<ReportTurnoverRow>('report-turnover');
-const agingColumns = reportColumns<ReportAgingRow>('report-aging');
+import { rowDrilldown } from './drilldown';
 
 export function ReportTurnover() {
-  const state = useListState('warehouseCode', { scope: 'inventory' }, derivedReportDefaults(), ['source']),
+  const state = useListState('warehouseCode', { scope: 'inventory' }, derivedReportDefaults(), [
+      'source',
+      'sourceMovement',
+      'drilldown',
+    ]),
     query = reportDisplayQuery(useQuery(reportKeys.turnover(state.params))),
     report = query.data?.report;
   return (
@@ -30,12 +32,13 @@ export function ReportTurnover() {
         icon: <LineChartOutlined />,
         layout: ReportShell,
         exportInHeader: true,
-        columns: turnoverColumns,
-        chart: <ReportChartPanel kind="turnover" query={query} />,
+        columns: reportColumns<ReportTurnoverRow>('report-turnover', state.params),
+        rowHref: (row) => rowDrilldown('report-turnover', state.params, row),
+        chart: <ReportChartPanel kind="turnover" query={query} params={state.params} />,
         description:
           '按净出库吨数 ÷ 完整日逐日日终平均库存计算；无流水日沿用前日日终余额。调减与盘亏计入余额但不计入出库分子。',
       }}
-      filters={<ReportFilters state={state} derived />}
+      filters={<ReportFilters state={state} derived facets={query.data?.facets} />}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}
@@ -67,7 +70,7 @@ export function ReportTurnover() {
 
 export function ReportAging() {
   const defaults = derivedReportDefaults(true),
-    state = useListState('warehouseCode', { scope: 'inventory' }, defaults, ['source']),
+    state = useListState('warehouseCode', { scope: 'inventory' }, defaults, ['source', 'sourceMovement', 'drilldown']),
     query = reportDisplayQuery(useQuery(reportKeys.aging(state.params))),
     report = query.data?.report;
   return (
@@ -80,11 +83,12 @@ export function ReportAging() {
         icon: <DatabaseOutlined />,
         layout: ReportShell,
         exportInHeader: true,
-        columns: agingColumns,
-        chart: <ReportChartPanel kind="aging" query={query} />,
+        columns: reportColumns<ReportAgingRow>('report-aging', state.params),
+        rowHref: (row) => rowDrilldown('report-aging', state.params, row),
+        chart: <ReportChartPanel kind="aging" query={query} params={state.params} />,
         description: '截至所选日期，按先进先出计算剩余库存的存放天数；分五档展示，无法确定存放天数的数量单独列示。',
       }}
-      filters={<ReportFilters state={state} aging derived />}
+      filters={<ReportFilters state={state} aging derived facets={query.data?.facets} />}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}

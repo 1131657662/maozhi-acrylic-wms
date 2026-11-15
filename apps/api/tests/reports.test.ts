@@ -71,7 +71,7 @@ test('B3b: three months per warehouse/product reconcile and detail cells match m
       .get('/api/v1/web/reports/monthly')
       .query({ ...reportParams, movement: 'inbound' })
       .set('Cookie', f.cookie)
-      .expect(422);
+      .expect(200);
     console.log(
       'B3B_RECONCILIATION',
       JSON.stringify({

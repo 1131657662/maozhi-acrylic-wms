@@ -4501,6 +4501,10 @@
         },
         "type": "array"
       },
+      "S_b72f183dff88fdb8": {
+        "maxLength": 4000,
+        "type": "string"
+      },
       "S_b7818949210d0753": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -4986,6 +4990,12 @@
         ],
         "type": "object"
       },
+      "S_d2204cdc24e3d82d": {
+        "items": {
+          "$ref": "#/components/schemas/S_f228c9f75964c1f2"
+        },
+        "type": "array"
+      },
       "S_d2cd2a8974b40380": {
         "additionalProperties": false,
         "properties": {
@@ -5249,6 +5259,26 @@
         "minItems": 1,
         "type": "array"
       },
+      "S_e01e1cd8499796b2": {
+        "additionalProperties": false,
+        "properties": {
+          "movements": {
+            "$ref": "#/components/schemas/S_d2204cdc24e3d82d"
+          },
+          "types": {
+            "$ref": "#/components/schemas/S_d2204cdc24e3d82d"
+          },
+          "warehouses": {
+            "$ref": "#/components/schemas/S_d2204cdc24e3d82d"
+          }
+        },
+        "required": [
+          "warehouses",
+          "movements",
+          "types"
+        ],
+        "type": "object"
+      },
       "S_e1efc8f670e619e3": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -5489,6 +5519,26 @@
           "operationId",
           "createdAt",
           "revision"
+        ],
+        "type": "object"
+      },
+      "S_f228c9f75964c1f2": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+          },
+          "label": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "value": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "value",
+          "label",
+          "count"
         ],
         "type": "object"
       },
@@ -32649,6 +32699,22 @@
           },
           {
             "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "product",
             "required": false,
             "schema": {
@@ -33145,6 +33211,22 @@
           },
           {
             "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
             "name": "warehouse",
             "required": false,
             "schema": {
@@ -33213,6 +33295,24 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "band",
+            "required": false,
+            "schema": {
+              "enum": [
+                "all",
+                "age0To30Grams",
+                "age31To90Grams",
+                "age91To180Grams",
+                "age181To365Grams",
+                "ageOver365Grams",
+                "over90",
+                "unagedGrams"
+              ],
+              "type": "string"
             }
           }
         ],
@@ -33290,6 +33390,9 @@
                             "over90Percent"
                           ],
                           "type": "object"
+                        },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
                         },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
@@ -33475,6 +33578,7 @@
                         }
                       },
                       "required": [
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",
@@ -33650,6 +33754,38 @@
           },
           {
             "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
+            "name": "movements",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "types",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
             "name": "fromDay",
             "required": false,
             "schema": {
@@ -33743,6 +33879,9 @@
                         },
                         "bridge": {
                           "$ref": "#/components/schemas/S_a9d487ad2c1c0dba"
+                        },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
                         },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
@@ -33945,6 +34084,7 @@
                         }
                       },
                       "required": [
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",
@@ -34114,6 +34254,38 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_c6b5eba0874323e5"
+            }
+          },
+          {
+            "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
+            }
+          },
+          {
+            "in": "query",
+            "name": "movements",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "types",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
             }
           },
           {
@@ -34300,6 +34472,9 @@
                             "points"
                           ],
                           "type": "object"
+                        },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
                         },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
@@ -34535,6 +34710,7 @@
                         }
                       },
                       "required": [
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",
@@ -34705,6 +34881,22 @@
             "required": false,
             "schema": {
               "$ref": "#/components/schemas/S_c6b5eba0874323e5"
+            }
+          },
+          {
+            "in": "query",
+            "name": "warehouseCodes",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b72f183dff88fdb8"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productCode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_064886354adeb1d4"
             }
           },
           {
@@ -34892,6 +35084,9 @@
                           ],
                           "type": "object"
                         },
+                        "facets": {
+                          "$ref": "#/components/schemas/S_e01e1cd8499796b2"
+                        },
                         "inventoryBasis": {
                           "$ref": "#/components/schemas/S_be4035c3d5395183"
                         },
@@ -35040,6 +35235,7 @@
                         }
                       },
                       "required": [
+                        "facets",
                         "basis",
                         "watermarks",
                         "balanceMode",

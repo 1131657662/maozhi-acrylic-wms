@@ -9,9 +9,10 @@ interface ChartProps {
   state: 'ready' | 'loading' | 'empty' | 'error' | 'unverifiable';
   message: string;
   description: string;
+  onPointClick?: (event: { name: string; seriesIndex?: number }) => void;
 }
 
-function useChart(option: ChartOption | null) {
+function useChart(option: ChartOption | null, onPointClick?: ChartProps['onPointClick']) {
   const container = useRef<HTMLDivElement>(null);
   const instance = useRef<ReturnType<typeof init> | null>(null);
   useLayoutEffect(() => {
@@ -22,7 +23,12 @@ function useChart(option: ChartOption | null) {
     instance.current ??= init(container.current, undefined, { renderer: 'canvas' });
     instance.current.setOption(option, { notMerge: true, lazyUpdate: false });
     instance.current.resize();
-  }, [option]);
+    instance.current.off('click');
+    if (onPointClick)
+      instance.current.on('click', (event) =>
+        onPointClick({ name: String(event.name ?? ''), seriesIndex: event.seriesIndex }),
+      );
+  }, [option, onPointClick]);
   useEffect(() => {
     const observer = new ResizeObserver(() => {
       if (container.current?.clientWidth) instance.current?.resize();
@@ -37,8 +43,8 @@ function useChart(option: ChartOption | null) {
   return container;
 }
 
-export function Chart({ option, state, message, description }: ChartProps) {
-  const container = useChart(state === 'ready' ? option : null);
+export function Chart({ option, state, message, description, onPointClick }: ChartProps) {
+  const container = useChart(state === 'ready' ? option : null, onPointClick);
   return (
     <div
       data-testid="chart"
