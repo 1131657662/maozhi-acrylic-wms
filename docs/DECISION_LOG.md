@@ -10,6 +10,7 @@
 | 2026-11-15 | B6i-2验收复现图表切宽时画布保留旧宽度；尝试窗口resize同步缩放 | 已废弃（未消除失败，由下行容器裁切取代） | B6I_2_PERFORMANCE_SPEC 实现决定 |
 | 2026-11-15 | B6i-2图表容器裁切异步缩放前的旧画布，保留原ResizeObserver与tooltip的confine约束，不改高度/稳态布局/阈值；撤回memo的对照仍复现，因此保留渲染复用 | 生效（验收修复） | B6I_2_PERFORMANCE_SPEC 实现决定 |
 | 2026-11-15 | 报表对齐E2E在脚本设置scrollLeft后等待两帧再读取坐标，原<2px断言与所有性能阈值不变；不改通用截图helper | 生效（验证同步） | B6I_2_PERFORMANCE_SPEC 实现决定 |
+| 2026-11-16 | B6i-2b测量后放弃A/B/C改动：冷首屏p95 1184ms未达800ms；主要耗时为脚本执行，SQL合并估计仅省10–16ms，缓存不能改善冷启动，chunk预加载对应网络34ms/主线程解析编译3ms；B6i-3前端渲染优化纳入周转冷首屏复测，若仍高于800ms接受1184ms并记录「目标未达，成本集中在框架初始化」 | 生效 | B6I_2_PERFORMANCE_SPEC §B6i-2b评估结论；B6I_2B_ACCEPTANCE；IMPLEMENTATION_PLAN |
 
 ## B6i-1 通用导出键集分页（2026-11-15）
 
