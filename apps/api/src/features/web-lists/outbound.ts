@@ -138,6 +138,12 @@ export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutb
       {
         fields,
         predicate,
+        keys: [
+          query.sortBy === 'warehouseName'
+            ? `COALESCE(NULLIF(o.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}')`
+            : sortColumns[query.sortBy],
+          'o.id',
+        ],
         order: `${sortColumns[query.sortBy]} ${query.direction},o.id ${query.direction}`,
       },
       query,

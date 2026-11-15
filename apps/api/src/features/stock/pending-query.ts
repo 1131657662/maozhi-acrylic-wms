@@ -1,12 +1,16 @@
 import { legacyConfirmationFrom } from '../outbound/original-actual.ts';
 
 // Every quantity source is reduced to one row per order line before the final join.
-export function pendingStockSql(pairCount: number): string {
+export function pendingStockSql(pairCount: number, productCount = 0): string {
   const pairs = Array.from({ length: pairCount }, () => '(?,?)').join(',');
+  const productRange = productCount
+    ? `AND l.product_code IN (${Array.from({ length: productCount }, () => '?').join(',')})`
+    : '';
   return `WITH selected_lines AS (
     SELECT l.id,l.order_id,l.product_code,o.warehouse_code,l.planned_packages,l.planned_weight_tonnes
     FROM outbound_orders o JOIN outbound_lines l ON l.order_id=o.id AND l.source_del_flag=0
     WHERE o.source_del_flag=0 AND o.status IN ('open','partially_shipped')
+    ${productRange}
     AND (o.warehouse_code,l.product_code) IN (${pairs})
   ), shipped AS (
     SELECT sl.order_line_id,SUM(sl.packages) AS packages,SUM(sl.weight_grams) AS grams

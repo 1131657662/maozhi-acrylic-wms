@@ -135,6 +135,14 @@ export async function listWebInbound(db: Database, query: ListReadQuery<WebInbou
       {
         fields,
         predicate,
+        keys: [
+          query.sortBy === 'supplierName'
+            ? `COALESCE(NULLIF(r.supplier_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}')`
+            : query.sortBy === 'warehouseName'
+              ? `COALESCE(NULLIF(r.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}')`
+              : sortColumns[query.sortBy],
+          'r.id',
+        ],
         order: `${sortColumns[query.sortBy]} ${query.direction},r.id ${query.direction}`,
       },
       query,

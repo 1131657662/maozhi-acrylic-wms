@@ -11,9 +11,10 @@ import { newExportJob } from '../../apps/api/src/features/web-exports/job.ts';
 import { XlsxWriter } from '../../apps/api/src/features/web-exports/writer.ts';
 import { measurement, probe, installProbe } from '../b6b/probe.ts';
 import { contentHash } from './content-hash.ts';
+import { verifyCapacity } from './capacity.ts';
 
 const phase = process.argv[2] ?? 'baseline';
-assert.match(phase, /^(baseline|after)$/);
+assert.match(phase, /^(baseline|trial|after|audit-final)$/);
 const root = '.local/evidence/b6i-1';
 const count = 100_000;
 const cases: { kind: WebListKind; query: Record<string, string> }[] = [
@@ -53,7 +54,7 @@ async function measure(item: (typeof cases)[number], run: number) {
   const content = await contentHash(filename, count);
   assert.equal(job.processed, count);
   assert.equal(content.rows, count);
-  if (phase === 'after') {
+  if (phase !== 'baseline') {
     const baseline = JSON.parse(await readFile(`${root}/baseline-${item.kind}-0.json`, 'utf8'));
     assert.deepEqual(content, baseline.content);
     assert.equal(
@@ -100,7 +101,10 @@ try {
   await context.db.all(
     'ANALYZE TABLE stock,master_products,inbound_receipts,inbound_lines,outbound_orders,outbound_lines,operation_log,operation_attempts',
   );
-  for (let run = 0; run < (phase === 'baseline' ? 1 : 3); run++) for (const item of cases) await measure(item, run);
+  for (let run = 0; run < (['after', 'audit-final'].includes(phase) ? 3 : 1); run++)
+    for (const item of cases.filter((item) => phase !== 'audit-final' || item.kind === 'audit'))
+      await measure(item, run);
+  if (phase === 'audit-final') await verifyCapacity(context.db);
 } finally {
   restore();
   await context.dispose();
