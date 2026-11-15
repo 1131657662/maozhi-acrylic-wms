@@ -8,6 +8,7 @@ export const reportViewQueryFields = {
 export const reportWatermarksSchema = z.strictObject({
   journalMaxId: integer.nonnegative(),
   dateCorrectionMaxId: z.uuid().nullable(),
+  dateCorrectionCount: integer.nonnegative(),
   asOf: z.iso.datetime(),
 });
 export type ReportWatermarks = z.infer<typeof reportWatermarksSchema>;

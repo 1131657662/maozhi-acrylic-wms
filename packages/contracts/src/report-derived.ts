@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { inventoryScopeResult } from './inventory-scope.ts';
 import { derivedReportMetaSchema } from './report-metadata.ts';
 import { reportViewFields } from './report-view.ts';
+import { reportAgingChartSchema, reportTurnoverChartSchema } from './report-charts.ts';
 const integer = z.number().int().safe();
 const day = z.iso.date();
 
@@ -80,9 +81,11 @@ export const reportTurnoverSchema = z.strictObject({
   ...derivedEnvelopeSchema,
   items: z.array(reportTurnoverRowSchema),
   totals: turnoverTotalsSchema,
+  chart: reportTurnoverChartSchema,
 });
 export const reportAgingSchema = z.strictObject({
   ...derivedEnvelopeSchema,
   items: z.array(reportAgingRowSchema),
   totals: agingTotalsSchema,
+  chart: reportAgingChartSchema,
 });

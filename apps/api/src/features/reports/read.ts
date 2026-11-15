@@ -8,6 +8,7 @@ import type { Projection, ReportReadQuery } from './types.ts';
 import { detailPage, naturalOrder } from './detail-page.ts';
 import { reportSnapshot, rememberReportSnapshot, reportQueryFingerprint } from './snapshot.ts';
 import { buildRestatement, postedView, restatedDetails, type Restatement } from './restated.ts';
+import { monthlyChart } from './monthly-chart.ts';
 
 function monthlyPage(projection: Pick<Projection, 'monthly'>, query: ReportReadQuery) {
   const key = query.sortBy === 'postedAt' ? 'period' : query.sortBy,
@@ -27,6 +28,7 @@ function validateQuery(kind: ReportKind, query: ReportQuery): void {
 export function reportReader(kind: ReportKind, query: ReportQuery, exportViewToken?: string) {
   validateQuery(kind, query);
   let projection: Projection | undefined, cursor: number | undefined, restatement: Restatement | undefined;
+  let chart: ReturnType<typeof monthlyChart> | undefined;
   return async (db: Database, batch?: { page: number; size: number }) => {
     projection ??= await buildProjection(db, query, { snapshot: await reportSnapshot(db, query, exportViewToken) });
     if (query.basis === 'restated') restatement ??= await buildRestatement(db, query, projection);
@@ -34,7 +36,10 @@ export function reportReader(kind: ReportKind, query: ReportQuery, exportViewTok
     const paging = { ...query, page: batch?.page ?? query.page, pageSize: batch?.size ?? query.pageSize };
     const result =
       kind === 'report-monthly'
-        ? monthlyPage(restatement ?? projection, paging)
+        ? {
+            ...monthlyPage(restatement ?? projection, paging),
+            chart: (chart ??= monthlyChart(projection, restatement)),
+          }
         : restatement
           ? restatedDetails(restatement, paging, projection)
           : await detailPage(db, { projection, query: paging, cursor: batch ? cursor : undefined });

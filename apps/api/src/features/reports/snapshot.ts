@@ -74,6 +74,7 @@ export async function reportSnapshot(
     corrections,
     watermarks: {
       journalMaxId: Number(head!.maximum ?? 0),
+      dateCorrectionCount: corrections.length,
       dateCorrectionMaxId:
         corrections
           .map((row) => row.id)

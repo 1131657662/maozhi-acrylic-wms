@@ -174,6 +174,8 @@ B3b 范围为月度汇总、出入库明细及既有 XLSX 通道；未新增迁�
 
 ## 6. 周转率：单位、平均库存与零分母
 
+B7a-2 页面默认日期预设修订：原「本月 1 日至昨日」默认值已废弃，由 2026-11-14 用户确认的「近 6 个月」取代（含当前月，从前第 5 个月月初至上海昨日）；本月仍可选，下文完整日、公式、边界和水位规则继续生效。月报页面默认「近 12 个月」；二者均可修改，图表随当前范围，见 REPORTS_PAGE_SPEC §9。
+
 ### 旧系统
 
 分子取区间已审核/完成出库单吨数，分母却是查询时**当前库存吨数**，公式 `outWeight / currentWeight`，分母不大于 0 则返回 0；仅遍历当前有库存的商品：[reportTurnoverService.js:19](D:/wms-new/wms-backend/services/reportTurnoverService.js#L19)（19–75 行）。未计算期初期末平均、日均库存、天数或年化。页面标签只有“周转率”：[Turnover.vue:92](D:/wms-new/wms-frontend-pure/src/views/wms/report/Turnover.vue#L92)，不能将旧值解释成次/年。
@@ -364,8 +366,9 @@ Q2 的 COALESCE 仅用于这条“把缺行视作零再比较”的诊断假设�
 
 本批在 B5d-1 与 021 已完成的基础上实现报表重述读模型，默认入账口径不变。仅扩展查询、契约、现有导出与验证；页面重做留 B7a，不改日期更正写入或库存链路，不建立 T0 锚点，不新增迁移。
 
-- 查询与导出 query 增加 `basis: posted | restated`（默认 posted）、`asOf`（可选，带时区的 ISO 时间，缺省为本次查询时刻；未来截止拒绝）。响应顶层增加 `basis`、`watermarks: { journalMaxId, dateCorrectionMaxId, asOf }`、`balanceMode: posted | restated | unverifiable`。
+- 查询与导出 query 增加 `basis: posted | restated`（默认 posted）、`asOf`（可选，带时区的 ISO 时间，缺省为本次查询时刻；未来截止拒绝）。响应顶层增加 `basis`、`watermarks: { journalMaxId, dateCorrectionMaxId, dateCorrectionCount, asOf }`、`balanceMode: posted | restated | unverifiable`。
 - `journalMaxId` 是本次只读快照可见流水的最大编号；`dateCorrectionMaxId` 是截止点内可见日期更正 UUID 的字典序最大值，无记录为 null。UUID 不是递增序号，不能仅用 UUID 大小判断是否属于快照；实际重放固定该次可见更正集合并按原单 revision 选择最新有效日期。水位与 asOf 在同一只读快照确定。
+- `dateCorrectionCount` 是同一快照截至 asOf 的日期更正集合条数，非负整数，包含同单各次修订，不按报表日期/仓库/商品筛选缩小，不通过 UUID 范围计数；历史 asOf 和导出快照复用各自捕获的集合与计数。业务界面只显示此数量（「日期更正：N 条」/「无日期更正」）、数值流水水位与 asOf，不展示 UUID；UUID 仅保留审计原始数据展示例外。
 - posted 继续使用入账日；restated 将原单、数量更正、反向补偿按原单截至快照的有效业务日期归期，各自类型不变。无原单日期的盘点/调整/转移沿用自身入账日并附中文例外说明；原单日期未知进入未归期，不能借导入日或制单日补齐。
 - restated 响应增加 `bridge`，每个分类（入库、出库、更正、盘点、期初、其他）每月一行：`month, category, inRange, postedPackages, postedGrams, restatedPackages, restatedGrams, deltaPackages, deltaGrams`；`delta = restated - posted`。分类互斥，数量更正仅在“更正”桥接分类中出现，撤销采用完整流水数，不再次叠加 correctionOffset。桥接数量采用库存 signed delta，出库扣减为负，包数和克数独立。
 - 桥接事件集取同一仓品/来源范围内、入账日或有效业务日期命中查询区间的事件并集；日期缺失而无法排除的事件也保留。为同一事件同时保留入账月与重述月，因此可包含查询区间外月份；`inRange` 表示该月份是否与查询区间相交，`month=null` 时为 false。未归期按分类合并为 `month=null` 行，附去重后的中文 `reason`；已知数量原样保留，未知日期不是数量零。

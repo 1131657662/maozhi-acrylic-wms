@@ -34,9 +34,11 @@ function BalanceWarning({ view }: { view?: ReportSnapshot }) {
 function ReportWatermarks({ view, status, gap }: { view?: ReportSnapshot; status: string; gap: number }) {
   const asOf = view ? localTimestamp(view.watermarks.asOf) : status,
     journalMaxId = view?.watermarks.journalMaxId ?? status,
-    dateCorrectionMaxId = view
-      ? (view.watermarks.dateCorrectionMaxId ?? businessCopy.reportsNoDateCorrections)
-      : status;
+    dateCorrections = view
+      ? view.watermarks.dateCorrectionCount === 0
+        ? businessCopy.reportsNoDateCorrections
+        : businessCopy.reportsDateCorrectionCount(view.watermarks.dateCorrectionCount)
+      : `${businessCopy.reportsDateCorrectionLabel}${status}`;
   return (
     <div data-testid="report-watermarks" style={{ display: 'flex', flexWrap: 'wrap', gap }}>
       <span>
@@ -45,9 +47,7 @@ function ReportWatermarks({ view, status, gap }: { view?: ReportSnapshot; status
       <span>
         {businessCopy.reportsJournalWatermark} {journalMaxId}
       </span>
-      <span>
-        {businessCopy.reportsDateCorrectionWatermark} {dateCorrectionMaxId}
-      </span>
+      <span>{dateCorrections}</span>
     </div>
   );
 }

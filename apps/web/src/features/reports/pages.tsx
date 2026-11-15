@@ -11,6 +11,8 @@ import { Reconciliation } from './reconciliation';
 import { FileSearchOutlined, CalendarOutlined } from '@ant-design/icons';
 import { ReportContextBar } from './context-bar';
 import { ReportShell } from './report-shell';
+import { ReportChartPanel } from './chart-panel';
+import { reportDisplayQuery } from './display-query';
 
 const detailColumns = reportColumns<ReportDetailRow>('report-details');
 const monthlyColumns = reportColumns<ReportMonthlyRow>('report-monthly');
@@ -60,8 +62,8 @@ export function ReportDetails() {
   );
 }
 export function ReportMonthly() {
-  const state = useListState('period', { scope: 'inventory' }, reportDefaults(), ['source']);
-  const query = useQuery({ ...reportKeys.monthly(state.params), placeholderData: keepPreviousData });
+  const state = useListState('period', { scope: 'inventory' }, reportDefaults('monthly'), ['source']);
+  const query = reportDisplayQuery(useQuery(reportKeys.monthly(state.params)));
   return (
     <BusinessList
       state={state}
@@ -73,6 +75,7 @@ export function ReportMonthly() {
         layout: ReportShell,
         exportInHeader: true,
         columns: monthlyColumns,
+        chart: <ReportChartPanel kind="monthly" query={query} />,
         description: businessCopy.reportsMonthlyBasis,
         extra: (
           <Link to={'/reports/details?' + new URLSearchParams({ ...state.params, page: '1', sortBy: 'postedAt' })}>
