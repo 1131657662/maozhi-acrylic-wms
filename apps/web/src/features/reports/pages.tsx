@@ -16,6 +16,7 @@ import { reportDisplayQuery } from './display-query';
 import { useSearchParams } from '@umijs/max';
 import { reportInteractionCopy as copy } from './interaction-copy';
 import { rowDrilldown } from './drilldown';
+import { reportTableSummary } from './table-summary';
 
 export function ReportDetails() {
   const [search] = useSearchParams();
@@ -49,6 +50,7 @@ export function ReportDetails() {
         ),
       }}
       filters={<ReportFilters state={state} detail facets={query.data?.facets} />}
+      tableSummary={reportTableSummary('report-details', query.data)}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}
@@ -60,6 +62,9 @@ export function ReportDetails() {
       summary={
         <>
           {search.get('drilldown') === 'turnover' && <p>{copy.turnover}</p>}
+          {(state.params.types ||
+            state.params.movements ||
+            (state.params.movement && state.params.movement !== 'all')) && <p>{copy.filteredReconciliation}</p>}
           <strong>{businessLabels.reportDates}</strong>
           <p>{businessLabels.reportExplanation}</p>
           {query.data && <Reconciliation report={query.data.report} />}
@@ -96,6 +101,7 @@ export function ReportMonthly() {
         ),
       }}
       filters={<ReportFilters state={state} facets={query.data?.facets} />}
+      tableSummary={reportTableSummary('report-monthly', query.data)}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}

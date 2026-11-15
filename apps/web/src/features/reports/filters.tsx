@@ -67,6 +67,7 @@ async function submitReportFilters(values: Record<string, unknown>, options: Fil
     ...Object.fromEntries(
       ['warehouseCodes', 'productCode', 'movements', 'types', 'band']
         .filter((key) => state.params[key] !== undefined)
+        .filter((key) => key !== 'movements' || !detail || values.movement === state.params.movement)
         .map((key) => [key, state.params[key]!]),
     ),
     fromDay: range[0],
@@ -77,7 +78,6 @@ async function submitReportFilters(values: Record<string, unknown>, options: Fil
     ...(!derived
       ? {
           movement: detail ? String(values.movement ?? 'all') : 'all',
-          ...(detail && values.movement !== state.params.movement ? { movements: '' } : {}),
         }
       : {}),
     basis: state.params.basis === 'restated' ? 'restated' : 'posted',

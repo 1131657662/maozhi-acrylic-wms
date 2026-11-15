@@ -9,7 +9,9 @@ import { restatedBalance } from './restated-balance.ts';
 import { restatedMonths } from './restated-months.ts';
 
 export async function buildRestatement(db: Database, query: ReportQuery, projection: Projection) {
-  const events = await readDatedEvents(db, query, projection),
+  const events = (await readDatedEvents(db, query, projection)).filter((e) =>
+      projection.cells.has(JSON.stringify([e.warehouseCode, e.productCode])),
+    ),
     balance = restatedBalance(events);
   const view: ReportView = {
     basis: 'restated',

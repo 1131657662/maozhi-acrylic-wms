@@ -4,6 +4,7 @@ import { reportFields } from './report-fields.ts';
 import { businessLabels } from './business-labels.ts';
 import { billTypeText, documentExtraCopy } from './document-types.ts';
 import { webStockQuantitySchema } from './web-list.ts';
+import { publicReportText } from './report-interactions.ts';
 
 export const stockBalanceCopy = {
   pending: '待发',
@@ -168,12 +169,12 @@ export function listCellText(kind: ExportKind, field: ListField, row: Record<str
   )
     return snapshotText(value == null ? null : String(value));
   if (value == null || value === '') return '-';
-  if (field.key === 'reasons') return Array.isArray(value) ? value.join('；') || '-' : String(value);
+  if (field.key === 'reasons') return publicReportText(Array.isArray(value) ? value.join('；') || '-' : String(value));
   if (field.key === 'postingState') return postingText[value as keyof typeof postingText] ?? '未识别';
   if (['products', 'productModels'].includes(field.key))
     return Array.isArray(value) ? value.join('；') || '无有效明细' : '';
   if (kind === 'stock' && field.key === 'warehouseCode') return `${row.warehouseName}（${value}）`;
   if (field.type === 'date') return listTime(String(value));
   if (field.type === 'tonnes') return (Number(value) / 1_000_000).toFixed(4);
-  return value == null || value === '' ? '-' : String(value);
+  return kind.startsWith('report-') ? publicReportText(String(value)) : String(value);
 }

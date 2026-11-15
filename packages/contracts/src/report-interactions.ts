@@ -1,4 +1,10 @@
 import { z } from 'zod';
+export const REPORT_EXPORT_EXPIRED = '数据已变化，请刷新后重新导出';
+export function publicReportText(value: string): string {
+  return value
+    .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '（追踪信息已隐藏）')
+    .replace(/\b[0-9a-f]{64}\b/gi, '（快照信息已隐藏）');
+}
 
 export const reportTypeLabels = { inbound: '入库', outbound: '出库', reversal: '撤销', correction: '更正' } as const;
 export const reportMovementLabels = { inbound: '入库', outbound: '出库' } as const;

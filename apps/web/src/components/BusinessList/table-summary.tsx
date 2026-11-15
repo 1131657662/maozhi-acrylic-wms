@@ -3,6 +3,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { Table } from 'antd';
 import { columnKey } from './column-config';
 import type { ColumnStates } from './column-settings';
+import { spacing } from '../../theme/design-tokens';
 
 export type ListTableSummary<Row> = (rows: readonly Row[]) => Readonly<Record<string, ReactNode>>;
 
@@ -22,9 +23,29 @@ export function renderTableSummary<Row>(props: {
   preferences: ColumnStates;
   cells: Readonly<Record<string, ReactNode>>;
   expandable?: boolean;
+  containerWidth?: number;
 }) {
   return (
     <Table.Summary fixed="bottom">
+      {props.cells.__reconciliation && (
+        <Table.Summary.Row>
+          <Table.Summary.Cell
+            index={0}
+            colSpan={summaryColumns(props.columns, props.preferences).length + (props.expandable ? 2 : 1)}
+          >
+            <div
+              style={{
+                width: Math.max(0, (props.containerWidth ?? 0) - spacing[16] * 2),
+                position: 'sticky',
+                left: spacing[16],
+                whiteSpace: 'normal',
+              }}
+            >
+              {props.cells.__reconciliation}
+            </div>
+          </Table.Summary.Cell>
+        </Table.Summary.Row>
+      )}
       <Table.Summary.Row>
         <Table.Summary.Cell index={0} />
         {props.expandable && <Table.Summary.Cell index={1} />}

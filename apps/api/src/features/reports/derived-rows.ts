@@ -8,7 +8,7 @@ import { reportCopy } from './copy.ts';
 
 const turnoverFormula = 'R = O / M；T = D × M / O；M = ΣQ(d) / D；O 为完整日内有效出库（含更正与撤销，吨）';
 const agingBasis =
-  '按 stock_journal 入账 ID 顺序重放；可信业务日优先、否则上海入账日；吨数 FIFO；已耗用入库撤销后剩余余额无法归龄';
+  '按库存流水入账顺序重放；可信业务日优先、否则上海入账日；吨数先进先出；已耗用入库撤销后剩余余额无法归龄';
 
 function commonFields(kind: string, query: { fromDay: string; toDay: string }, cell: Cell, projection: Projection) {
   const period = snapshotPeriod(query, projection),

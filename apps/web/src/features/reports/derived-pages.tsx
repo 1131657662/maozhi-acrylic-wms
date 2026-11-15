@@ -13,6 +13,7 @@ import { ReportShell } from './report-shell';
 import { ReportChartPanel } from './chart-panel';
 import { reportDisplayQuery } from './display-query';
 import { rowDrilldown } from './drilldown';
+import { reportTableSummary } from './table-summary';
 
 export function ReportTurnover() {
   const state = useListState('warehouseCode', { scope: 'inventory' }, derivedReportDefaults(), [
@@ -39,6 +40,7 @@ export function ReportTurnover() {
           '按净出库吨数 ÷ 完整日逐日日终平均库存计算；无流水日沿用前日日终余额。调减与盘亏计入余额但不计入出库分子。',
       }}
       filters={<ReportFilters state={state} derived facets={query.data?.facets} />}
+      tableSummary={reportTableSummary('report-turnover', query.data)}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}
@@ -89,6 +91,7 @@ export function ReportAging() {
         description: '截至所选日期，按先进先出计算剩余库存的存放天数；分五档展示，无法确定存放天数的数量单独列示。',
       }}
       filters={<ReportFilters state={state} aging derived facets={query.data?.facets} />}
+      tableSummary={reportTableSummary('report-aging', query.data)}
       beforeResults={
         <ReportContextBar
           view={query.isPlaceholderData ? undefined : query.data}

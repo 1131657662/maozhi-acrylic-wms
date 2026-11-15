@@ -92,6 +92,7 @@ export const reportDetailRowSchema = z.strictObject({
 });
 export type ReportDetailRow = z.infer<typeof reportDetailRowSchema>;
 const envelope = {
+  totals: z.record(z.string(), integer.nullable()),
   facets: reportFacetsSchema,
   ...reportViewFields,
   total: integer,

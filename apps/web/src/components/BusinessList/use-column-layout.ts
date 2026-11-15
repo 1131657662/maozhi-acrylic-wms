@@ -16,7 +16,9 @@ export function useColumnLayout<Row>(
   useEffect(() => {
     const element = root.current;
     if (!element) return;
-    const observer = new ResizeObserver(() => setContainerWidth(element.clientWidth));
+    const observer = new ResizeObserver(() =>
+      setContainerWidth(element.querySelector('.ant-table-container')?.clientWidth ?? element.clientWidth),
+    );
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
@@ -51,5 +53,5 @@ export function useColumnLayout<Row>(
   const width = configured
     .filter((column) => !column.hideInTable && preferences.value[columnKey(column)]?.show !== false)
     .reduce<number>((total, column) => total + column.width, COLUMN_WIDTH.selection);
-  return { root, width, columns: configured, canResize: containerWidth > 0 };
+  return { root, width, containerWidth, columns: configured, canResize: containerWidth > 0 };
 }

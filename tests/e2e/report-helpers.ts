@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import ExcelJS from 'exceljs';
 import { writeFile } from 'node:fs/promises';
+import { REPORT_HEADER_ROW } from '../../apps/api/src/features/web-exports/report-header';
 
 export const reportQuery =
   'source=erp-product&fromDay=2026-01-01&toDay=2026-03-31&product=RPT-P&direction=asc&pageSize=20';
@@ -27,18 +28,18 @@ export async function compareReportDownload(
   const book = new ExcelJS.Workbook();
   await book.xlsx.readFile(file);
   const sheet = book.worksheets[0]!;
-  expect(sheet.rowCount).toBe(expected.length + 2);
+  expect(sheet.rowCount).toBe(expected.length + REPORT_HEADER_ROW + 1);
   const keys = await recordRows(page, kind)
     .first()
     .locator('td[data-export-field]')
     .evaluateAll((cells) => cells.map((cell) => cell.getAttribute('data-export-field')!));
   for (const [index, key] of keys.entries()) {
     const header = page.getByTestId('report-' + kind + '-list').locator(`thead th[data-column-key="${key}"]`);
-    expect(sheet.getCell(1, index + 1).text).toBe(await header.getAttribute('aria-label'));
+    expect(sheet.getCell(REPORT_HEADER_ROW, index + 1).text).toBe(await header.getAttribute('aria-label'));
   }
   const actual = expected.map((r, i) =>
     r.cells.map((_, j) => {
-      const cell = sheet.getCell(i + 2, j + 1),
+      const cell = sheet.getCell(i + REPORT_HEADER_ROW + 1, j + 1),
         value = cell.value;
       return value instanceof Date
         ? value.toISOString().slice(0, 19).replace('T', ' ')

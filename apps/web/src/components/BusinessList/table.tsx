@@ -108,6 +108,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                       preferences: columnPrefs.value,
                       cells: props.tableSummary!(rows),
                       expandable: props.expandable !== undefined,
+                      containerWidth: layout.containerWidth,
                     })
                 : undefined
             }

@@ -12,6 +12,7 @@ import { buildRestatement, postedView, type Restatement } from './restated.ts';
 import { agingChart, turnoverChart } from './derived-chart.ts';
 import { warehouseFacets } from './facets.ts';
 import { matchesBand } from './aging-band.ts';
+import { bandProjection } from './band-projection.ts';
 
 type DerivedQuery = ReportTurnoverQuery | ReportAgingQuery;
 type DerivedRow = ReportTurnoverRow | ReportAgingRow;
@@ -131,10 +132,23 @@ export function derivedReportReader(
             restated: restatement?.events,
           })
         : agingChart(rows as ReportAgingRow[]);
-    const result = { ...(await derivedResult(kind, query, sortRows(rows, query), projection, batch)), chart, facets };
-    const view = restatement?.view ?? postedView(projection);
+    const scoped =
+      kind === 'report-aging' && (query as ReportAgingQuery).band
+        ? bandProjection(projection, rows as ReportAgingRow[])
+        : projection;
+    const result = { ...(await derivedResult(kind, query, sortRows(rows, query), scoped, batch)), chart, facets };
+    const view =
+      restatement && scoped !== projection
+        ? (await buildRestatement(db, projectionQuery(query), scoped)).view
+        : (restatement?.view ?? postedView(projection));
     const viewToken = hash(JSON.stringify([result, view, restatement?.digest, projection.snapshot.database]));
-    if (!batch) rememberReportSnapshot(viewToken, query, projection.snapshot);
+    if (!batch)
+      rememberReportSnapshot(viewToken, query, projection.snapshot, {
+        kind,
+        rows: sortRows(rows, query),
+        report: result.report,
+        view,
+      });
     return { ...result, ...view, viewToken };
   };
 }

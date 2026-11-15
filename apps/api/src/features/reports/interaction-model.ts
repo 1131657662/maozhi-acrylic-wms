@@ -7,6 +7,7 @@ import { restatedMonths } from './restated-months.ts';
 import { baseFacets, matchesEvent, movementFiltered, visibleEvents } from './facets.ts';
 import { monthlyChart } from './monthly-chart.ts';
 import type { ReportSnapshot } from './snapshot.ts';
+import { displayTotals } from './display-totals.ts';
 
 function detailRows(events: DatedEvent[], projection: Awaited<ReturnType<typeof buildProjection>>, query: ReportQuery) {
   const sign = query.direction === 'asc' ? 1 : -1;
@@ -77,6 +78,7 @@ export async function interactionModel(
         })
       : undefined;
   return {
+    totals: displayTotals(kind, rows),
     rows,
     report: projection.metadata,
     view: restated?.view ?? postedView(projection),

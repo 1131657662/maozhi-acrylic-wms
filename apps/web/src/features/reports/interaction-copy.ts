@@ -11,6 +11,7 @@ export const reportInteractionCopy = {
   currentStock: '来自库龄报表 · 此页显示当前库存，非历史截止日重建',
   filteredReconciliation: '对账含未显示类型',
   pageTotal: '本页合计',
+  filteredTotal: '筛选合计',
   fullReconciliation: '全范围入账对账',
   reasons: '查看原因',
   unknown: '—',

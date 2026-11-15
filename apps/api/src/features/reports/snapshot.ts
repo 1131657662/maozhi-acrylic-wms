@@ -19,11 +19,15 @@ export interface ReportSnapshot {
   corrections: DateCorrectionEvidence[];
 }
 interface CachedSnapshot {
+  model?: import('./export-model.ts').ReportExportModel;
+  bytes: number;
   snapshot: ReportSnapshot;
   signature: string;
   expiresAt: number;
 }
 const snapshots = new Map<string, CachedSnapshot>();
+const SNAPSHOT_MAX_BYTES = 256 * 1024 * 1024;
+import { REPORT_EXPORT_EXPIRED as REPORT_SNAPSHOT_EXPIRED } from '@wms/contracts';
 export function reportQueryFingerprint(query: object, snapshot: ReportSnapshot): string {
   return hash(
     JSON.stringify(
@@ -33,28 +37,46 @@ export function reportQueryFingerprint(query: object, snapshot: ReportSnapshot):
     ),
   );
 }
-export function rememberReportSnapshot(token: string, query: object, snapshot: ReportSnapshot): void {
+export function rememberReportSnapshot(
+  token: string,
+  query: object,
+  snapshot: ReportSnapshot,
+  model?: import('./export-model.ts').ReportExportModel,
+): void {
   const now = Date.now();
   for (const [key, value] of snapshots) if (value.expiresAt <= now) snapshots.delete(key);
   snapshots.set(token, {
+    model: model ? structuredClone(model) : undefined,
+    bytes: model ? Buffer.byteLength(JSON.stringify(model)) : 0,
     snapshot,
     signature: reportQueryFingerprint(query, snapshot),
     expiresAt: now + SNAPSHOT_TTL_MS,
   });
   while (snapshots.size > SNAPSHOT_MAX_ENTRIES) snapshots.delete(snapshots.keys().next().value!);
+  while ([...snapshots.values()].reduce((sum, entry) => sum + entry.bytes, 0) > SNAPSHOT_MAX_BYTES && snapshots.size)
+    snapshots.delete(snapshots.keys().next().value!);
 }
 async function replaySnapshot(db: Database, query: { asOf?: string }, token: string): Promise<ReportSnapshot> {
   const cached = snapshots.get(token);
   const database = String((await db.get('SELECT DATABASE() AS name'))?.name);
   if (!cached || cached.expiresAt <= Date.now() || cached.snapshot.database !== database)
-    throw new AppError('EXPORT_VIEW_CHANGED', '报表快照已过期，请刷新查询后重新导出', 409);
+    throw new AppError('EXPORT_VIEW_CHANGED', REPORT_SNAPSHOT_EXPIRED, 409);
   const { snapshot } = cached;
   if (
     reportQueryFingerprint(query, snapshot) !== cached.signature ||
     (query.asOf && new Date(query.asOf).toISOString() !== snapshot.watermarks.asOf)
   )
-    throw new AppError('EXPORT_VIEW_CHANGED', '报表条件与查询快照不一致，请刷新后重新导出', 409);
+    throw new AppError('EXPORT_VIEW_CHANGED', REPORT_SNAPSHOT_EXPIRED, 409);
   return snapshot;
+}
+export async function replayReportModel(
+  db: Database,
+  options: { query: { asOf?: string }; token: string; kind: string },
+) {
+  await replaySnapshot(db, options.query, options.token);
+  const model = snapshots.get(options.token)?.model;
+  if (!model || model.kind !== options.kind) throw new AppError('EXPORT_VIEW_CHANGED', REPORT_SNAPSHOT_EXPIRED, 409);
+  return model;
 }
 export async function reportSnapshot(
   db: Database,

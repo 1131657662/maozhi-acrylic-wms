@@ -30,7 +30,7 @@ export function reportReader(kind: ReportKind, query: ReportQuery, exportViewTok
       ...view,
     };
     const viewToken = hash(JSON.stringify([kind, reportQueryFingerprint(query, snapshot), snapshot.database, model]));
-    if (!batch) rememberReportSnapshot(viewToken, query, snapshot);
+    if (!batch) rememberReportSnapshot(viewToken, query, snapshot, { kind, rows, report: model.report, view });
     return { ...result, viewToken };
   };
 }
