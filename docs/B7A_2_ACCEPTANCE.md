@@ -53,3 +53,8 @@
 - 仅在 `tests/e2e/stocktake-blind.spec.ts` 选择「盲盘」后增加对应下拉层 `toBeHidden()` 条件等待；没有固定 sleep，不改产品代码、共享截图帮助函数、其他用例、原流程步骤、断言或门槛。用户授权取代上一阶段等待范围确认的状态。
 - 完整 `npm run test:e2e` 重跑全绿：主套件 **181/181**、目录套件 **18/18**，共 **199/199**，失败 0，exit **0**；日志 `.local/evidence/b7a-2-closeout/e2e-hidden-wait.log`。盲盘用例及两项拖拽性能断言均通过，拖拽无长任务。测试文件 Prettier 检查与 `git diff --check` 通过，WMS 提交前审查无阻断问题。
 - 本次仅变更该测试与记录，沿用同一产品代码已完成的 test **515/515**、build exit **0**、token 新增 **0** 和双宽度截图证据；没有重复执行已通过的产品检查。用户已授权合并推送包含 `a59fb1e` 的 B7a-2；B7a-3 不开始。
+
+## 合并记录
+
+- 报表修复 `a59fb1e`、盲盘测试等待 `506685b` 已以 `--no-ff` 合并为 **`49b4ab42ad8087bc61ebcbba65268ff30d3e7f94`**，消息 `merge: b7a-2 report charts`；checkout/merge exit 均 **0**。合并代码树与完整 E2E 全绿的分支一致，包含性检查 exit **0**。
+- 合并后在 `codex/b7a-2-closeout` 更新 IMPLEMENTATION_PLAN、AUDIT_FINDINGS 与本记录，文档经 `--no-ff` 收尾后推送 master。测试仅在隔离合成环境执行，没有开发样本库、实体设备或生产写入；完成后停止，不开始 B7a-3。
