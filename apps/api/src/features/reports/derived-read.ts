@@ -105,6 +105,7 @@ export function derivedReportReader(
   return async (db: Database, batch?: { page: number; size: number }) => {
     projection ??= await buildProjection(db, projectionQuery(query), {
       captureEvents: true,
+      turnoverOnly: kind === 'report-turnover',
       snapshot: await reportSnapshot(db, query, exportViewToken),
     });
     if (query.basis === 'restated') restatement ??= await buildRestatement(db, projectionQuery(query), projection);
@@ -114,9 +115,14 @@ export function derivedReportReader(
     if (!facets) {
       const broadQuery = { ...query, warehouseCodes: undefined };
       const broad = query.warehouseCodes
-        ? await buildProjection(db, projectionQuery(broadQuery), { captureEvents: true, snapshot: projection.snapshot })
+        ? await buildProjection(db, projectionQuery(broadQuery), {
+            captureEvents: true,
+            snapshot: projection.snapshot,
+            turnoverOnly: kind === 'report-turnover',
+          })
         : projection;
-      const allRows = derivedRows(kind, broadQuery, [...broad.cells.values()], broad);
+      const allRows =
+        !query.warehouseCodes && !restatement ? rows : derivedRows(kind, broadQuery, [...broad.cells.values()], broad);
       facets = warehouseFacets(
         kind === 'report-aging'
           ? (allRows as ReportAgingRow[]).filter((row) => matchesBand(row, (query as ReportAgingQuery).band))

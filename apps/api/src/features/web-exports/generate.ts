@@ -12,6 +12,7 @@ import { AppError } from '../../shared/errors.ts';
 import { rowToken } from '../web-lists/query.ts';
 import { exportReader, type ExportPage } from './read.ts';
 import type { ExportWriter } from './writer.ts';
+import { AUDIT_EXPORT_BATCH_SIZE, EXPORT_BATCH_SIZE, type ExportCursor } from './keyset.ts';
 
 export interface ExportHooks {
   afterBatch?: (processed: number) => Promise<void>;
@@ -103,9 +104,16 @@ async function appendBatches(
   g: Generation,
   context: { read: ReturnType<typeof exportReader>; selected: Map<string, string>; current: ExportPage },
 ): Promise<void> {
-  for (let offset = 0; offset < context.current.total; offset += 1000) {
+  let after: ExportCursor | undefined;
+  let readCount = 0;
+  const size = g.request.kind === 'audit' ? AUDIT_EXPORT_BATCH_SIZE : EXPORT_BATCH_SIZE;
+  while (readCount < context.current.total) {
     check(g);
-    const page = await context.read(db, { page: offset / 1000 + 1, size: 1000, snapshot: context.current });
+    const page = await context.read(db, { after, size, snapshot: context.current });
+    if (!page.items.length || !page.nextCursor)
+      throw new AppError('EXPORT_VIEW_CHANGED', '导出记录不完整，请刷新后重试', 409);
+    after = page.nextCursor;
+    readCount += page.items.length;
     appendPage(g, page, context.selected);
     await g.writer.drain();
     await g.hooks.afterBatch?.(g.job.processed);

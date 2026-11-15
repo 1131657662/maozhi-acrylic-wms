@@ -4,6 +4,7 @@ import { hash } from '../../shared/hash.ts';
 import { isoDate } from '../../db/dates.ts';
 import { reportUnclassifiedStock } from '../stock/source-diagnostics.ts';
 import { pendingStock } from '../stock/pending.ts';
+import { pendingExportStock } from '../web-exports/pending-stock.ts';
 import { agingStock } from '../stock/aging.ts';
 import { aggregateGrams, pageResult, readPage, textFilter, type ListReadQuery, type Predicate } from './query.ts';
 
@@ -40,11 +41,18 @@ export async function listWebStock(db: Database, query: ListReadQuery<WebStockQu
   if (!query.exportSnapshot) await reportUnclassifiedStock(db);
   return db.transaction(async (tx) => {
     const predicate = stockPredicate(query);
+    const orderedIndex =
+      query.exportKeyset &&
+      (query.sortBy === 'productCode' ? 'stock_product_fk' : query.sortBy === 'warehouseCode' ? 'PRIMARY' : undefined);
     const page = await readPage(
       tx,
       {
         fields,
-        predicate,
+        predicate: orderedIndex
+          ? { ...predicate, sql: predicate.sql.replace('FROM stock s', `FROM stock s FORCE INDEX(${orderedIndex})`) }
+          : predicate,
+        hint: orderedIndex ? '/*+ JOIN_ORDER(s,p,w) NO_BNL(w) */' : undefined,
+        keys: [sortColumns[query.sortBy], 's.warehouse_code', 's.product_code'],
         order: `${sortColumns[query.sortBy]} ${query.direction},s.warehouse_code ${query.direction},s.product_code ${query.direction}`,
       },
       query,
@@ -68,7 +76,7 @@ async function stockItems(
   { query, asOf }: { query: ListReadQuery<WebStockQuery>; asOf: string },
 ) {
   const keys = rows.map((row) => ({ warehouseCode: String(row.warehouseCode), productCode: String(row.productCode) }));
-  const balances = await pendingStock(db, keys);
+  const balances = await (query.exportKeyset ? pendingExportStock(db, keys) : pendingStock(db, keys));
   const ages = await agingStock(db, rows, asOf);
   return rows.map(({ weight_tonnes, source_row_json: _source, ...row }) => {
     const id = JSON.stringify([row.warehouseCode, row.productCode]);

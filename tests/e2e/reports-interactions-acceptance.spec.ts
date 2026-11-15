@@ -35,8 +35,9 @@ for (const report of reports)
     expect(container).not.toBeNull();
     expect(reconciliation).not.toBeNull();
     expect(reconciliation!.x + reconciliation!.width).toBeLessThanOrEqual(container!.x + container!.width);
-    await table.locator('.ant-table-body').evaluate((el) => {
+    await table.locator('.ant-table-body').evaluate(async (el) => {
       el.scrollLeft = el.scrollWidth;
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
     for (const key of fields) {
       const header = table.locator(`th[data-column-key="${key}"]`),

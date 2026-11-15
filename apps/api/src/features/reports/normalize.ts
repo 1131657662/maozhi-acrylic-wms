@@ -5,6 +5,19 @@ import type { LedgerEvent } from './types.ts';
 import { objectJson, localIso, nullableInt, optionalGrams } from './source-values.ts';
 export { objectJson, localIso } from './source-values.ts';
 
+const labels = new Map<string, [LedgerEvent['family'], string]>([
+  ['inbound', ['inbound', '历史入库']],
+  ['outbound', ['outbound', '历史出库']],
+  ['check', ['count', '历史盘点']],
+  ['import', ['import', '历史导入']],
+  ['inbound.confirm', ['inbound', '入库确认']],
+  ['inbound.reverse', ['inbound', '入库撤销']],
+  ['outbound.confirm', ['outbound', '出库确认']],
+  ['outbound.reverse', ['outbound', '出库撤销']],
+  ['stock.adjust', ['manual', '人工调整']],
+  ['stock.correct', ['correction', '数量更正']],
+  ['stocktake.post', ['count', '盘点回写']],
+]);
 function classification(
   type: string,
   row: Row,
@@ -18,19 +31,6 @@ function classification(
       directionLabel: inbound ? '入库' : '出库',
     };
   }
-  const labels = new Map<string, [LedgerEvent['family'], string]>([
-    ['inbound', ['inbound', '历史入库']],
-    ['outbound', ['outbound', '历史出库']],
-    ['check', ['count', '历史盘点']],
-    ['import', ['import', '历史导入']],
-    ['inbound.confirm', ['inbound', '入库确认']],
-    ['inbound.reverse', ['inbound', '入库撤销']],
-    ['outbound.confirm', ['outbound', '出库确认']],
-    ['outbound.reverse', ['outbound', '出库撤销']],
-    ['stock.adjust', ['manual', '人工调整']],
-    ['stock.correct', ['correction', '数量更正']],
-    ['stocktake.post', ['count', '盘点回写']],
-  ]);
   const [family, operationLabel] = labels.get(type) ?? ['unknown', '未分类库存变动'];
   return {
     family,
@@ -58,7 +58,12 @@ function quantities(row: Row, source: Record<string, unknown>, cls: ReturnType<t
     afterGrams: optionalGrams(historical ? source.after_weight : row.tonnes_after),
   };
 }
-function documentFields(row: Row, source: Record<string, unknown>, cls: ReturnType<typeof classification>) {
+function documentFields(
+  row: Row,
+  source: Record<string, unknown>,
+  context: { cls: ReturnType<typeof classification>; postedAt: string | null },
+) {
+  const { cls, postedAt } = context;
   const document = objectJson(row.documentSource),
     historical = row.source_id != null;
   return {
@@ -68,7 +73,7 @@ function documentFields(row: Row, source: Record<string, unknown>, cls: ReturnTy
       : row.documentCreated
         ? new Date(String(row.documentCreated).replace(' ', 'T') + 'Z').toISOString()
         : null,
-    confirmedAt: historical ? localIso(document.audit_time) : localIso(row.reportLocalTime),
+    confirmedAt: historical ? localIso(document.audit_time) : postedAt,
     orderNo: String(row.orderNo ?? ''),
     documentId: row.documentId == null ? null : String(row.documentId),
     partner: String(document.customer_name ?? row.partner ?? document.supplier_code ?? ''),
@@ -100,7 +105,8 @@ export function normalizeEvent(row: Row): LedgerEvent {
   const source = objectJson(row.source_row_json),
     type = String(row.operation_type ?? row.source_business_type ?? ''),
     cls = classification(type, row);
-  const localTime = localIso(row.reportLocalTime)
+  const postedAt = localIso(row.reportLocalTime);
+  const localTime = postedAt
     ? String(row.reportLocalTime).slice(0, 19) +
       '.' +
       (String(row.reportLocalTime).split('.')[1] ?? '').padEnd(6, '0').slice(0, 6)
@@ -109,13 +115,13 @@ export function normalizeEvent(row: Row): LedgerEvent {
     ...cls,
     ...identityFields(row, source),
     ...quantities(row, source, cls),
-    ...documentFields(row, source, cls),
+    ...documentFields(row, source, { cls, postedAt }),
     sequence: Number(row.id),
     id: String(row.id),
     localTime,
     historical: row.source_id != null,
     deleted: row.source_del_flag === 1,
-    postedAt: localIso(row.reportLocalTime),
+    postedAt,
     operationType: type,
     timeStatus: row.source_id != null ? '时间未核实' : 'UTC → 上海时间',
     checkState: '待核对',

@@ -17,8 +17,17 @@ export function completePeriod(fromDay: string, toDay: string, today = shanghaiT
   for (let day = fromDay; day <= throughDay; day = shiftDay(day, 1)) days.push(day);
   return { days, throughDay, incomplete: toDay >= today };
 }
+const snapshotPeriods = new WeakMap<Projection, Map<string, CompletePeriod>>();
 export function snapshotPeriod(query: { fromDay: string; toDay: string }, projection: Projection): CompletePeriod {
-  return completePeriod(query.fromDay, query.toDay, shanghaiToday(Date.parse(projection.snapshot.watermarks.asOf)));
+  const periods = snapshotPeriods.get(projection) ?? new Map<string, CompletePeriod>();
+  snapshotPeriods.set(projection, periods);
+  const key = `${query.fromDay}/${query.toDay}`;
+  let period = periods.get(key);
+  if (!period) {
+    period = completePeriod(query.fromDay, query.toDay, shanghaiToday(Date.parse(projection.snapshot.watermarks.asOf)));
+    periods.set(key, period);
+  }
+  return period;
 }
 
 export function shiftDay(day: string, offset: number): string {

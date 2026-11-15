@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { theme } from 'antd';
 import type { ReportMonthlyChart, ReportTurnoverChart, ReportAgingChart } from '@wms/contracts';
 import { Card, Chart } from '../../components/ui';
@@ -20,12 +21,22 @@ type Props =
 
 export function ReportChartPanel(props: Props & { params: ListParams }) {
   const { token } = theme.useToken();
-  const presentation =
-    props.kind === 'monthly'
-      ? monthlyPresentation(props.query.data?.chart, token)
-      : props.kind === 'turnover'
-        ? turnoverPresentation(props.query.data?.chart, token)
-        : agingPresentation(props.query.data?.chart, token);
+  const chart = props.query.data?.chart,
+    paramsKey = JSON.stringify(props.params),
+    presentation = useMemo(
+      () =>
+        props.kind === 'monthly'
+          ? monthlyPresentation(chart as ReportMonthlyChart | undefined, token)
+          : props.kind === 'turnover'
+            ? turnoverPresentation(chart as ReportTurnoverChart | undefined, token)
+            : agingPresentation(chart as ReportAgingChart | undefined, token),
+      [props.kind, chart, token],
+    ),
+    onPointClick = useMemo(
+      () => (event: { name: string; seriesIndex?: number }) =>
+        openReport(chartDrilldown(props.kind, props.params, event)),
+      [props.kind, paramsKey],
+    );
   const { query } = props;
   const state = query.error
     ? 'error'
@@ -55,7 +66,7 @@ export function ReportChartPanel(props: Props & { params: ListParams }) {
           state={state}
           message={message}
           description={presentation.description}
-          onPointClick={(event) => openReport(chartDrilldown(props.kind, props.params, event))}
+          onPointClick={onPointClick}
         />
         {!!query.data?.chart.reasons.length && (
           <details data-testid="chart-reasons">

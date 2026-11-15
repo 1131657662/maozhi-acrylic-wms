@@ -1,6 +1,7 @@
 import type { Database } from '../../db/mysql.ts';
 import { sqlDate } from '../../db/dates.ts';
 import { hash } from '../../shared/hash.ts';
+import { readKeysetPage, type KeysetRead, type KeysetSource } from '../web-exports/keyset.ts';
 
 export interface Predicate {
   sql: string;
@@ -11,12 +12,19 @@ export interface PageQuery {
   pageSize: number;
   direction: 'asc' | 'desc';
   exportSnapshot?: ExportSnapshot;
+  exportKeyset?: KeysetRead;
+  knownTotal?: number;
 }
 export interface ExportSnapshot {
   total: number;
   subtotal?: { packages: number; weightGrams: number };
 }
-export type ListReadQuery<Q> = Omit<Q, 'pageSize'> & { pageSize: number; exportSnapshot?: ExportSnapshot };
+export type ListReadQuery<Q> = Omit<Q, 'pageSize'> & {
+  pageSize: number;
+  exportSnapshot?: ExportSnapshot;
+  exportKeyset?: KeysetRead;
+  reuseSummary?: boolean;
+};
 export function contains(value: string): string {
   return `%${value.replace(/[!%_]/g, '!$&')}%`;
 }
@@ -46,20 +54,19 @@ export function statusFilter(
   }
   if (query.statusMissing) parts.sql += ` AND ${column} IS NULL`;
 }
-export async function readPage(
-  db: Database,
-  input: { fields: string; predicate: Predicate; order: string },
-  query: PageQuery,
-) {
+export async function readPage(db: Database, input: KeysetSource, query: PageQuery) {
   const { predicate } = input;
   const total =
     query.exportSnapshot?.total ??
+    query.knownTotal ??
     Number((await db.get(`SELECT COUNT(*) AS total ${predicate.sql}`, predicate.values))?.total ?? 0);
-  const rows = await db.all(`SELECT ${input.fields} ${predicate.sql} ORDER BY ${input.order} LIMIT ? OFFSET ?`, [
-    ...predicate.values,
-    query.pageSize,
-    (query.page - 1) * query.pageSize,
-  ]);
+  const rows = query.exportKeyset
+    ? await readKeysetPage(db, input, { ...query, exportKeyset: query.exportKeyset })
+    : await db.all(`SELECT ${input.fields} ${predicate.sql} ORDER BY ${input.order} LIMIT ? OFFSET ?`, [
+        ...predicate.values,
+        query.pageSize,
+        (query.page - 1) * query.pageSize,
+      ]);
   return { rows, total };
 }
 export function rowToken(row: Record<string, unknown>): string {

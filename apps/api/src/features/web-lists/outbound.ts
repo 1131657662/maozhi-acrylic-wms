@@ -13,6 +13,8 @@ import {
   textFilter,
   type ListReadQuery,
 } from './query.ts';
+import { outboundMatchedTotals } from './outbound-matched-totals.ts';
+import { reverseSummaryCache } from './reverse-summary-cache.ts';
 
 const fields = `o.id,o.order_no AS orderNo,o.customer_name AS customerName,o.warehouse_code AS warehouseCode,
   o.business_date AS businessDate,${effectiveBusinessDateSql('outbound', 'o')} AS effectiveBusinessDate,
@@ -52,9 +54,11 @@ export function outboundPredicate(query: Omit<WebOutboundQuery, 'pageSize'> & { 
   if (query.productCodes?.length) {
     const placeholders = query.productCodes.map(() => '?').join(',');
     if (query.productMode === 'all') {
-      parts.sql += ` AND (SELECT COUNT(DISTINCT ml.product_code) FROM outbound_lines ml
-        WHERE ml.order_id=o.id AND ml.source_del_flag=0 AND ml.product_code IN (${placeholders}))=?`;
-      parts.values.push(...query.productCodes, query.productCodes.length);
+      for (const code of query.productCodes) {
+        parts.sql += ` AND EXISTS (SELECT 1 FROM outbound_lines ml
+          WHERE ml.order_id=o.id AND ml.source_del_flag=0 AND ml.product_code=?)`;
+        parts.values.push(code);
+      }
     } else {
       parts.sql += ` AND EXISTS (SELECT 1 FROM outbound_lines ml
         WHERE ml.order_id=o.id AND ml.source_del_flag=0 AND ml.product_code IN (${placeholders}))`;
@@ -133,14 +137,32 @@ async function matchedLineMap(db: Database, ids: string[], productCodes?: string
 export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutboundQuery>) {
   return db.transaction(async (tx) => {
     const predicate = outboundPredicate(query);
+    const cache =
+      query.reuseSummary && query.productCodes?.length ? await reverseSummaryCache(tx, predicate) : undefined;
+    const cachedTotals = cache?.get();
+    const matchedTotals = query.productCodes?.length
+      ? (cachedTotals ??
+        (await outboundMatchedTotals(
+          tx,
+          query,
+          query.productMode === 'all' ? predicate : outboundPredicate({ ...query, productCodes: undefined }),
+        )))
+      : undefined;
+    if (!cachedTotals && matchedTotals) cache?.put(matchedTotals);
     const page = await readPage(
       tx,
       {
         fields,
         predicate,
+        keys: [
+          query.sortBy === 'warehouseName'
+            ? `COALESCE(NULLIF(o.warehouse_name_snapshot,''),'${SNAPSHOT_MISSING_TEXT}')`
+            : sortColumns[query.sortBy],
+          'o.id',
+        ],
         order: `${sortColumns[query.sortBy]} ${query.direction},o.id ${query.direction}`,
       },
-      query,
+      { ...query, knownTotal: matchedTotals?.documentCount },
     );
     const sums = await summaries(
       tx,
@@ -152,9 +174,6 @@ export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutb
           page.rows.map((row) => String(row.id)),
           query.productCodes,
         )
-      : undefined;
-    const matchedTotals = query.productCodes?.length
-      ? await outboundMatchedTotals(tx, query.productCodes, predicate, page.total)
       : undefined;
     const items = page.rows.map((row) => ({
       ...row,
@@ -174,25 +193,4 @@ export async function listWebOutbound(db: Database, query: ListReadQuery<WebOutb
       ...(matchedTotals ? { matchedTotals } : {}),
     });
   });
-}
-
-async function outboundMatchedTotals(
-  db: Database,
-  productCodes: string[],
-  predicate: ReturnType<typeof outboundPredicate>,
-  documentCount: number,
-) {
-  const rows = await db.all(
-    `SELECT COUNT(*) AS lineCount,SUM(l.planned_packages) AS packages,SUM(l.planned_weight_tonnes) AS tonnes
-     FROM outbound_lines l WHERE l.source_del_flag=0 AND l.product_code IN (${productCodes.map(() => '?').join(',')})
-       AND EXISTS (SELECT 1 ${predicate.sql} AND o.id=l.order_id)`,
-    [...productCodes, ...predicate.values],
-  );
-  const row = rows[0];
-  return {
-    documentCount,
-    lineCount: Number(row?.lineCount ?? 0),
-    packages: Number(row?.packages ?? 0),
-    weightGrams: aggregateGrams(row?.tonnes ?? '0.0000'),
-  };
 }

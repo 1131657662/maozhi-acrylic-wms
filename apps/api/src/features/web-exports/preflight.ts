@@ -2,6 +2,7 @@ import { WEB_EXPORT_MAX_ROWS, type ExportRequest } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { AppError } from '../../shared/errors.ts';
 import { exportReader, type ExportPage } from './read.ts';
+import { EXPORT_BATCH_SIZE, type ExportCursor } from './keyset.ts';
 
 export async function assertExportLimit(db: Database, request: ExportRequest): Promise<void> {
   const count = await db.readSnapshot((tx) => countExportRows(tx, request));
@@ -35,12 +36,16 @@ function assertCurrentView(current: ExportPage, request: ExportRequest): void {
 async function countSelectedLines(db: Database, request: ExportRequest, current: ExportPage): Promise<number> {
   const selected = new Set(request.selected.map((row) => row.id));
   let matched = 0;
-  for (let offset = 0; offset < current.total && selected.size; offset += 200) {
-    const page = await exportReader(request.kind, request.query)(db, {
-      page: offset / 200 + 1,
-      size: 200,
+  let after: ExportCursor | undefined;
+  const read = exportReader(request.kind, request.query);
+  while ((after?.position ?? 0) < current.total && selected.size) {
+    const page = await read(db, {
+      after,
+      size: EXPORT_BATCH_SIZE,
       snapshot: current,
     });
+    if (!page.nextCursor) throw new AppError('EXPORT_VIEW_CHANGED', '导出记录不完整，请刷新后重试', 409);
+    after = page.nextCursor;
     matched += selectedLineCount(page.items, selected);
   }
   return matched;

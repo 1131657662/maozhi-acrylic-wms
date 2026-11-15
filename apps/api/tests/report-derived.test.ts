@@ -48,6 +48,7 @@ test('B3c: daily carry-forward turnover agrees with an independent recursive SQL
     assert.equal(row.averageInventory, '9.5000');
     assert.equal(row.turns, '0.4211');
     assert.equal(row.turnoverDays, '14.3');
+    assert.match(row.formula, /；D=6；/);
     assert.equal(row.adjustmentSummary, '本期含调整 1 笔、含盘点回写 1 次');
     console.log('B3C_TURNOVER_SQL', JSON.stringify({ days: sqlDays[0], flows: sqlFlow, checks: 'all equal', differences: 0 }));
   } finally {

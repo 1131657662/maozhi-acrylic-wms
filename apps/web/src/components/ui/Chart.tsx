@@ -49,7 +49,7 @@ export function Chart({ option, state, message, description, onPointClick }: Cha
     <div
       data-testid="chart"
       data-state={state}
-      style={{ height: componentSize.reportChart, minWidth: 0, position: 'relative' }}
+      style={{ height: componentSize.reportChart, minWidth: 0, position: 'relative', overflow: 'hidden' }}
     >
       <div
         ref={container}
