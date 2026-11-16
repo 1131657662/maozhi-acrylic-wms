@@ -1,0 +1,62 @@
+# B6i-3 兼容性停止报告（未通过）
+
+日期：2026-11-16。起点 `ff0bd0c`，分支 `codex/b6i-3-virtual-compat`。
+
+## 结论
+
+现有 BusinessList 列宽拖拽预览与 antd 6.7.0 虚拟表体不兼容；另有排序回顶回归。按用户「任一项不支持即停止」的要求，停止正式实现，不手写虚拟滚动、不叠加 A/B/C 优化、不继续调参。候选代码和测试适配已保存到本地证据并撤回；最终 Git 产品代码、测试、测量脚本与起点一致。
+
+最初测试页在松手后检查列宽，曾记录「五项均通过」，这不足以证明拖动过程兼容。该结论已在规格中更正；本报告以完整交互断言和后续直接测量为准。问题是项目自定义交互的接入不兼容，不能外推为 antd 不支持固定列、展开、summary 或所有列宽拖拽。
+
+## 五项兼容性
+
+| 项目 | 实际证据 | 结果 |
+|---|---|---|
+| 左固定商品、右固定操作 | 初始测试页通过；实际接入的拖宽/横滚组合未完成验收 | 组合验收未完成 |
+| 库存行内最近流水展开 | E2E 的 50/100/200 行均通过：首次展开一次全页批量请求，第二次展开复用，抽屉/流水页结果一致，返回保留筛选 | 通过已执行场景 |
+| tableSummary | 本页合计、缺值、分页、列显隐/重排/松手后的宽度对齐断言通过 | 通过已执行场景；横滚仍受虚拟滚动测试辅助代码差异限制 |
+| 列宽拖拽 | 生产构建直接测量：拖动前 240/240px，拖动中 280/240px，松手后 280/280px（表头/数据单元格） | **不通过：拖动中相差 40px** |
+| 行选择/全选 | 50 行虚拟窗口只挂载部分行，表头全选显示已选 50 条，取消后为 0；断言通过 | 通过已执行场景 |
+
+另一次直接测量在纵滚到 300px 后点击库存包数排序，排序完成后仍为 300px。原行为应回到顶部；入库与出库的原交互 E2E 同时失败。没有修改回顶、拖拽、导出或分页的交互预期来使其通过。
+
+## 瓶颈与已尝试方案
+
+- 候选产品改动仅为 `table.tsx` 新增内部阈值 30，并设置 `virtual={data.items.length > VIRTUAL_ROW_THRESHOLD}`，保留现有数值型 scroll.x/y；未更改业务页面或 API。
+- 原 `resize-preview.ts` 只查普通表格 table/colgroup/th/td，拖动帧不会同步虚拟 div 单元格或其固定列偏移。松手后受控 columns 更新才恢复对齐。保持现有拖动过程需要另行适配预览与滚动联动，不能把「松手后正确」视为通过。
+- `table-change.ts` 与 `use-column-layout.ts` 两个回顶入口只查 `.ant-table-body`。虚拟模式使用 `.ant-table-tbody-virtual-holder`，所以现有回顶失效。
+- 测试先把原生 tr/td 定位等价换为 `.ant-table-row/.ant-table-cell`，把旧滚动容器查询适配为虚拟/普通容器；保留原交互断言。横向滚动由虚拟列表内部状态管理，仅赋 DOM scrollLeft 不能证明真实横滚结果，因此这些失败不单独作为产品不支持的证据。最终停止依据是直接拖动尺寸与排序回顶测量。
+- 未实施第二轮产品修复；未尝试手写虚拟器、改阈值、memo 或拆分选择状态。代码候选和所有测试改动已撤回。
+
+## 官方方案核查
+
+来源：[antd Table 官方文档](https://ant.design/components/table/)、项目安装的 antd 6.7.0 / `@rc-component/table`，以及 `antd doc Table --version 6.7.0 --format json`、`antd demo Table virtual-list --version 6.7.0 --format json`。
+
+官方内置 `virtual` 要求数值型 scroll.x/y。官方提供 `components`、`onHeaderCell`、列 `width` 用于表头及列宽定制；滚动可通过 Table ref `scrollTo({ top: 0 })` 或 `scroll.scrollToFirstRowOnChange` 控制。本次官方 v6 文档/示例未提供现成的「现有 DOM 拖宽预览 + 虚拟表格」兼容替代实现，不能声称更换一个官方开关即可满足全部不变量。继续接入需要单独评估定制交互适配；本次没有实施。停止后恢复普通表格是项目处理方式，并非引用官方建议。
+
+## 性能与验证范围
+
+改前生产 Web 构建，Chromium 1440×960，隔离随机合成数据库，每组 30 次，nearest-rank p95：
+
+| 当前页行数 | 排序到绘制 p95 | API p95 |
+|---|---:|---:|
+| 10 | 152.3ms | 9.3ms |
+| 50 | 406.1ms | 9.9ms |
+| 200 | 1007.0ms | 19.3ms |
+
+排序绘制目标仍为 ≤150ms。兼容性失败后没有运行改后 10/50/200 行性能验收或完整排序 hash/ID 前后比较，因此没有性能改善/排序一致性验收结论。开发 E2E 中记录的排序耗时不充当生产 p95。
+
+周转冷首屏本轮未复测，原因是兼容性失败触发停止；B6i-2b 的 1184.47ms 是历史结果，不能计为本轮测量。
+
+候选 `npm run build` 曾通过、antd lint 为 0 问题，只说明候选可构建。定向 E2E：前序首轮 5/14；数据行定位适配后 12/21；继续修正滚动节点/行角色定位后最终 9/15，6 个失败（4 个列宽测试、2 个排序保留旧行/回顶测试）。最后直接生产构建取证确认上述两个真实交互问题。未运行完整 test/E2E；最终只提交文档，无实体设备或生产验收。
+
+## 留存证据
+
+- `.local/evidence/b6i3/baseline/`：有效改前 10/50/200 行原始样本、hash、完整排序 ID 顺序及构建 hash。
+- `.local/evidence/b6i3/preflight-driver-timing/`：早期驱动计时废弃输出，禁止用于前后比较。
+- `.local/evidence/b6i3/integration-failure.json`、`resize-during.png`、`verify-integration.ts`：拖宽与回顶的直接测量及只作用于隔离测试库的取证脚本。
+- `.local/evidence/b6i3/integration-test-results/`：最终 9/15 定向测试失败上下文与 trace。
+- `.local/evidence/b6i3/candidate-and-test-adaptations.patch`、`candidate-scripts/`：已撤回的候选产品代码、定位适配及未提交辅助脚本，保留诊断过程。
+- `.local/evidence/b6i3/antd-table-doc.json`、`antd-virtual-demo-current.json`：官方 CLI 查询输出。
+
+所有截图和原始证据仅在 `.local/evidence/`，不进 Git。三笔提交均为文档：规格/基线、停止报告、批次状态。未合并、未推送，AF-024/AF-027/AF-056 不关闭。
