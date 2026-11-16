@@ -16,6 +16,7 @@ import type { ListSelectionRow } from './use-list-selection';
 import { documentNumber, isEligible, exclusionReason, isTextEntry } from './table-helpers';
 import { useRowInteractions } from './use-row-interactions';
 import { tableChange } from './table-change';
+import { internalDestination } from '../../features/outbound/list-route';
 import { listFeedback } from './list-feedback';
 import { renderTableSummary } from './table-summary';
 
@@ -58,7 +59,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
     .map((row) => ({ id: String(row.id), number: row.number ?? String(row.id) }));
   const openDetail = (row: Row) => {
     if (!reverseLookup) return;
-    navigate(`/${name}/${String(row.id)}`, { state: { listReturn: location.pathname + location.search } });
+    navigate(`/${name}/${String(row.id)}`, { state: { listReturn: internalDestination(location.pathname + location.search + location.hash) } });
   };
   const handleEnter = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Enter' || !selectedRows.length || isTextEntry(event.target)) return;

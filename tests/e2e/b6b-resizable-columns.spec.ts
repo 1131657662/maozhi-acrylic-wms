@@ -106,7 +106,7 @@ for (const kind of ['inbound', 'outbound'])
       await list.getByRole('img', { name: 'setting', exact: true }).click();
       await page.getByRole('checkbox', { name: '列展示', exact: true }).check();
       await page.getByRole('checkbox', { name: '列展示', exact: true }).uncheck();
-      await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
+      await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库列表', exact: true }).click();
       await expect(list.getByRole('separator')).toHaveCount(2);
       const narrow = await list
         .locator('.ant-table-body')

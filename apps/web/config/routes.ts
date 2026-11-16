@@ -1,4 +1,5 @@
 export default [
+  { path: '/', name: '工作台', icon: 'appstore', component: './workbench/index' },
   { path: '/reports/details', name: '出入库明细', icon: 'profile', component: './reports/details' },
   { path: '/reports/monthly', name: '月度汇总', icon: 'barChart', component: './reports/monthly' },
   { path: '/reports/turnover', name: '周转率', icon: 'dashboard', component: './reports/turnover' },
@@ -35,8 +36,8 @@ export default [
     component: './inbound/detail',
   },
   {
-    path: '/',
-    name: '出库工作台',
+    path: '/outbound',
+    name: '出库列表',
     icon: 'export',
     component: './outbound/list',
   },

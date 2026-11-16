@@ -40,6 +40,9 @@ async function send<T>(path: string, schema: z.ZodType<T>, init: RequestInit): P
       ? AbortSignal.any([init.signal, AbortSignal.timeout(WEB_REQUEST_TIMEOUT_MS)])
       : AbortSignal.timeout(WEB_REQUEST_TIMEOUT_MS),
   });
+  return parseResponse(path, schema, response);
+}
+export async function parseResponse<T>(path: string, schema: z.ZodType<T>, response: Response): Promise<T> {
   const body = envelope.safeParse(await response.json().catch(() => null));
   const trace = body.success ? body.data.traceId : (response.headers.get('x-request-id') ?? '');
   const route = diagnosticPath(path);

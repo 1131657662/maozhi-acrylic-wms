@@ -3,7 +3,7 @@ import { test } from './list-test';
 
 for (const [kind, path] of [
   ['inbound', '/inbound'],
-  ['outbound', '/'],
+  ['outbound', '/outbound'],
   ['stock', '/stock'],
   ['audit', '/audit'],
 ]) {

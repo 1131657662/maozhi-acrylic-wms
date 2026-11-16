@@ -5,7 +5,7 @@ async function login(page: Page) {
   await page.getByLabel('用户名', { exact: true }).fill('owner');
   await page.getByLabel('密码', { exact: true }).fill('e2e-only-password');
   await page.getByRole('button', { name: /登\s*录/ }).click();
-  await expect(page.getByRole('heading', { name: '出库工作台' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '工作台' })).toBeVisible();
 }
 async function fillReceipt(page: Page) {
   await page.goto('/inbound/new');

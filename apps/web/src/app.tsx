@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StrictMode } from 'react';
 import { App as AntApp, ConfigProvider, Result, Button } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import { QueryClient, QueryCache, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryCache, MutationCache, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { RunTimeLayoutConfig } from '@umijs/max';
 import { Link } from '@umijs/max';
@@ -15,8 +15,15 @@ import { ErrorNotifications } from './components/ErrorNotifications';
 import { ERROR_MAX_VISIBLE } from './text';
 import { UnsavedNavigation } from './components/form-protection/UnsavedNavigation';
 import { RepeatKeyGuard } from './components/form-protection/RepeatKeyGuard';
+import { workbenchKeys } from './features/workbench/keys';
 
 const client = new QueryClient({
+  mutationCache: new MutationCache({
+    onSettled: (_data, _error, _variables, _result, mutation) => {
+      if (mutation.options.meta?.skipWorkbenchRefresh) return;
+      void client.invalidateQueries({ queryKey: workbenchKeys._def });
+    },
+  }),
   defaultOptions: { queries: { retry: 1 }, mutations: { networkMode: 'always', retry: false } },
   queryCache: new QueryCache({
     onError: (error) => {

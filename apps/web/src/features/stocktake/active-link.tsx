@@ -1,22 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
 import { theme } from 'antd';
-import { stocktakeKeys } from './keys';
+import { workbenchCopy as copy } from '@wms/contracts';
+import { useWorkbench } from '../workbench/use-workbench';
 import { useSession } from '../auth/use-session';
 
 export function ActiveStocktakeLink() {
   const { token } = theme.useToken();
   const { data: session } = useSession();
-  const { data: active, error } = useQuery({ ...stocktakeKeys.active, enabled: !!session, refetchInterval: 10000 });
+  const { data, error } = useWorkbench(true);
+  const active = data?.pending.data?.stocktake;
   if (!session) return null;
-  const target = active?.total === 1 ? `/stocktakes/${active.items[0]!.id}` : '/stocktakes?status=counting';
+  const target = active?.count.value === 1 ? active.items[0]!.href : '/stocktakes?status=counting';
   return (
     <Link
       to={target}
       data-testid="active-stocktakes"
       style={{ display: 'block', padding: token.paddingSM, fontWeight: token.fontWeightStrong, whiteSpace: 'normal' }}
     >
-      {error ? '盘点暂停状态待核查' : `进行中盘点（${active?.total ?? '…'}）`}
+      {error || (data && !active) ? copy.stocktakeUnknown : `${copy.stocktake}（${active?.count.value ?? '…'}）`}
     </Link>
   );
 }

@@ -26,6 +26,7 @@ import { auditRouter, auditOk } from './features/audit/router.ts';
 import { scanWorkbenchRouter } from './features/scan-workbench/router.ts';
 import { shipmentRouter } from './features/shipments/router.ts';
 import { dateCorrectionRouter } from './features/date-corrections/router.ts';
+import { dashboardRouter } from './features/workbench/router.ts';
 
 export function businessRouter(db: Database, origins: string[], catalogPublishEnabled = false): Router {
   const router = Router();
@@ -36,6 +37,7 @@ export function businessRouter(db: Database, origins: string[], catalogPublishEn
   const numbering = numberingController(db);
   const stockSource = stockSourceController(db);
   router.use(requireAuth(db));
+  router.use(dashboardRouter(db, origins));
   router.use(stockMovementRouter(db, origins));
   router.use(dateCorrectionRouter(db, origins));
   router.use(shipmentRouter(db, origins));

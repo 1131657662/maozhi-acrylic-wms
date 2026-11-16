@@ -38,7 +38,7 @@ for (const kind of ['inbound', 'outbound'] as const)
     const detail = (await (await page.request.get(`/api/v1${target.path}`)).json()).data;
     expect(detail.businessDate).toBe(shanghaiToday());
     expect(detail.effectiveBusinessDate).toBe(old);
-    await page.goto(kind === 'inbound' ? '/inbound' : '/');
+    await page.goto(kind === 'inbound' ? '/inbound' : '/outbound');
     await page.getByRole('searchbox', { name: kind === 'inbound' ? '搜索入库单' : '搜索出库单' }).fill(target.number);
     await page.getByRole('button', { name: /查\s*询/, exact: true }).click();
     await expect(

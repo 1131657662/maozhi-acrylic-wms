@@ -9,6 +9,7 @@ import { request } from '../../api/client';
 import { authKeys } from './keys';
 import { LoginShell } from './login-shell';
 import { loginCopy as t } from './copy';
+import { internalDestination } from '../outbound/list-route';
 
 interface LoginValues {
   username?: string;
@@ -20,7 +21,7 @@ export function Login() {
   const lock = useSubmitLock();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
-  const redirect = new URLSearchParams(location.search).get('redirect') || '/';
+  const redirect = internalDestination(new URLSearchParams(location.search).get('redirect'));
 
   async function submit(values: LoginValues): Promise<boolean> {
     setError(null);
@@ -29,6 +30,7 @@ export function Login() {
         method: 'POST',
         body: JSON.stringify({ username: values.username, password: values.password, channel: 'web' }),
       });
+      delete window.__wmsWorkbenchRequest;
       client.setQueryData(authKeys.session.queryKey, session);
       history.replace(redirect);
       return true;
