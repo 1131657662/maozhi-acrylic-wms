@@ -30016,6 +30016,36 @@
                                 {
                                   "additionalProperties": false,
                                   "properties": {
+                                    "exclusions": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "count": {
+                                            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                          },
+                                          "kind": {
+                                            "$ref": "#/components/schemas/S_ec263776b1517059"
+                                          },
+                                          "reason": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                          },
+                                          "undatedCount": {
+                                            "$ref": "#/components/schemas/S_83f6485d0d169a84"
+                                          }
+                                        },
+                                        "required": [
+                                          "kind",
+                                          "reason",
+                                          "count",
+                                          "undatedCount"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "maxItems": 5,
+                                      "minItems": 5,
+                                      "type": "array"
+                                    },
                                     "inboundAverageHours": {
                                       "$ref": "#/components/schemas/S_a2fef0ca16ae81b8"
                                     },
@@ -30061,6 +30091,7 @@
                                     }
                                   },
                                   "required": [
+                                    "exclusions",
                                     "inboundAverageHours",
                                     "inboundCompleted",
                                     "outboundAverageHours",

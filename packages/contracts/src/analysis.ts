@@ -103,6 +103,16 @@ const heatmap = z.strictObject({
     .length(ANALYSIS.heatmapDays),
 });
 const duration = z.strictObject({
+  exclusions: z
+    .array(
+      z.strictObject({
+        kind: z.enum(['inbound', 'outbound']),
+        reason: z.string().min(1),
+        count: integer.nonnegative(),
+        undatedCount: integer.nonnegative(),
+      }),
+    )
+    .length(5),
   inboundAverageHours: z.number().finite().nullable(),
   inboundCompleted: integer,
   outboundAverageHours: z.number().finite().nullable(),

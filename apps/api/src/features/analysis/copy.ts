@@ -5,6 +5,12 @@ export const analysisCopy = {
   missingDurationEvidence: '部分已完成单据缺少确认或发货时间证据',
   noInboundDuration: '期间内没有可计算确认时长的入库单',
   noOutboundDuration: '期间内没有可计算确认时长的出库单',
+  excludedInboundReversed: '入库单已撤销，不计入确认时长',
+  excludedInboundVoided: '入库单已作废，不计入确认时长',
+  excludedOutboundReversed: '出库单已撤销，不计入确认时长',
+  excludedOutboundVoided: '出库单已作废，不计入确认时长',
+  excludedOutboundUnshipped: '出库单短关但没有发货，不计入确认时长',
+  undatedDurationExclusions: '部分排除单据缺少有效终态时间，已另计无法归期数量',
   agingUnknown: '截止库存或库龄层证据不足，未知数不填零',
   turnoverUnknown: '至少一个月的日终库存或有效出库证据不足',
 } as const;

@@ -47,14 +47,17 @@ export function analysisResponse({
     agingReason = derived.aging.reasons.length ? derived.aging.reasons.join('；') : null,
     turnoverReasons = [...new Set(derived.turnover.flatMap((point) => point.reasons))],
     turnoverReason = turnoverReasons.length ? turnoverReasons.join('；') : null,
-    durationReason = duration.missingEvidence
-      ? copy.missingDurationEvidence
-      : [
-          !duration.inboundCompleted ? copy.noInboundDuration : '',
-          !duration.outboundCompleted ? copy.noOutboundDuration : '',
-        ]
-          .filter(Boolean)
-          .join('；') || null,
+    durationUndated = duration.exclusions.some((item) => item.undatedCount > 0),
+    durationReason = durationUndated
+      ? copy.undatedDurationExclusions
+      : duration.missingEvidence
+        ? copy.missingDurationEvidence
+        : [
+            !duration.inboundCompleted ? copy.noInboundDuration : '',
+            !duration.outboundCompleted ? copy.noOutboundDuration : '',
+          ]
+            .filter(Boolean)
+            .join('；') || null,
     asOf = snapshot.watermarks.asOf;
   movement.missingMovementDay ||= Boolean(projection.metadata.unassignedRows);
   const response = {
@@ -143,12 +146,13 @@ export function analysisResponse({
         outboundAverageHours: duration.outboundAverageHours,
         outboundCompleted: duration.outboundCompleted,
         longestPending: duration.longestPending,
+        exclusions: duration.exclusions,
       },
       '小时',
       query.fromDay,
       query.toDay,
       'posted',
-      duration.missingEvidence ? 'unverifiable' : 'verified',
+      duration.missingEvidence || durationUndated ? 'unverifiable' : 'verified',
       durationReason,
     ),
   };
