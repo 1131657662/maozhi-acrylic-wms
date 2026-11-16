@@ -49,7 +49,7 @@ export function BusinessList<Row extends { id: Key }>(props: Props<Row>) {
     scopeKey = listScopeKey(state),
     selection = useListSelection(scopeKey, query.data?.rowTokens),
     columns = useListColumns(config.name, config.columns, identity),
-    views = useListViews({ kind: config.name, identity, state, columns: columns.value, applyColumns: columns.apply }),
+    views = useListViews({ kind: config.name, identity, state, columns: columns.read, applyColumns: columns.apply }),
     exportAction = config.exportInHeader ? (
       <ListExportPanel
         name={config.name}

@@ -22,7 +22,7 @@ interface Options {
   kind: string;
   identity: string;
   state: ListState;
-  columns: Record<string, ColumnsState>;
+  columns: () => Record<string, ColumnsState>;
   applyColumns: (next: Record<string, ColumnsState>) => void;
 }
 
@@ -62,7 +62,7 @@ export function useListViews({ kind, identity, state, columns, applyColumns }: O
       schemaVersion: WEB_LIST_VIEW_SCHEMA_VERSION,
       name: name.trim(),
       params: viewParams(state.params),
-      columns,
+      columns: columns(),
       ...(state.params.unit ? { unit: state.params.unit } : {}),
     };
     persist([...views.filter((item) => item.name !== view.name), view].slice(-20));

@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useRef, type ThHTMLAttributes, type PointerEvent } from 'react';
+import { createContext, useContext, type ThHTMLAttributes } from 'react';
 import { theme } from 'antd';
 import { COLUMN_WIDTH, columnText } from './column-settings';
-import { createResizePreview } from './resize-preview';
+import { useColumnResize } from './use-column-resize';
 import { useSortFeedback, type SortOrder } from './use-sort-feedback';
 
 export const ResizeEnabled = createContext(false);
@@ -9,6 +9,7 @@ export interface ResizeHeaderProps extends ThHTMLAttributes<HTMLTableCellElement
   columnKey?: string;
   columnLabel?: string;
   columnWidth?: number;
+  columnMinWidth?: number;
   resize?: (width: number) => void;
   resetWidth?: () => void;
   sort?: (order: SortOrder) => void;
@@ -18,6 +19,7 @@ export function ResizeHeader({
   columnKey,
   columnLabel,
   columnWidth,
+  columnMinWidth,
   resize,
   resetWidth,
   sort,
@@ -28,27 +30,7 @@ export function ResizeHeader({
   const enabled = useContext(ResizeEnabled);
   const { token } = theme.useToken();
   const sortFeedback = useSortFeedback(rest, sort);
-  const drag = useRef<{ x: number; width: number; preview: ReturnType<typeof createResizePreview> } | null>(null);
-  const finish = () => {
-    const width = drag.current?.preview.finish();
-    drag.current = null;
-    return width;
-  };
-  useEffect(
-    () => () => {
-      finish();
-    },
-    [],
-  );
-  const down = (event: PointerEvent<HTMLSpanElement>) => {
-    if (event.button !== 0) return;
-    event.stopPropagation();
-    event.preventDefault();
-    finish();
-    const header = event.currentTarget.closest('th')!;
-    drag.current = { x: event.clientX, width: columnWidth!, preview: createResizePreview(header, columnWidth!) };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
+  const resizeEvents = useColumnResize({ resize, resetWidth });
   return (
     <th
       {...rest}
@@ -68,7 +50,7 @@ export function ResizeHeader({
           role="separator"
           aria-orientation="vertical"
           aria-label={`${columnText.resize}：${columnLabel ?? columnText.resize}`}
-          aria-valuemin={COLUMN_WIDTH.min}
+          aria-valuemin={columnMinWidth ?? COLUMN_WIDTH.min}
           aria-valuemax={COLUMN_WIDTH.max}
           aria-valuenow={columnWidth}
           tabIndex={0}
@@ -86,36 +68,11 @@ export function ResizeHeader({
             zIndex: 1,
             borderRight: `1px solid ${token.colorBorderSecondary}`,
           }}
-          onPointerDown={down}
-          onPointerMove={(event) => {
-            if (drag.current) drag.current.preview.move(drag.current.width + event.clientX - drag.current.x);
-          }}
-          onPointerUp={(event) => {
-            event.stopPropagation();
-            if (drag.current) drag.current.preview.move(drag.current.width + event.clientX - drag.current.x);
-            const width = finish();
-            if (width !== undefined && width !== columnWidth) resize(width);
-            event.currentTarget.releasePointerCapture(event.pointerId);
-          }}
-          onPointerCancel={finish}
-          onLostPointerCapture={finish}
+          {...resizeEvents}
           onClick={(event) => event.stopPropagation()}
           onDoubleClick={(event) => {
             event.stopPropagation();
             resetWidth?.();
-          }}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            if (event.key === 'Home') {
-              event.preventDefault();
-              resetWidth?.();
-            }
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-              event.preventDefault();
-              resize(
-                columnWidth! + (event.key === 'ArrowRight' ? COLUMN_WIDTH.keyboardStep : -COLUMN_WIDTH.keyboardStep),
-              );
-            }
           }}
         />
       )}

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setImmediate } from 'node:timers/promises';
-import type { ListPreferenceColumns, ListPreferences } from '@wms/contracts';
+import { listPreferencesSchema, type ListPreferenceColumns, type ListPreferences } from '@wms/contracts';
 import { PreferenceStore } from '../../web/src/features/list-preferences/store.ts';
 
 const record = (columns: ListPreferenceColumns): ListPreferences => ({
@@ -65,7 +65,7 @@ test('列偏好离线失败保留缓存，下次进入续传；重置成功清�
     throw new Error('offline');
   });
   first.received(undefined, 0);
-  first.change({ receiptNo: { width: 380 } });
+  first.resize({ receiptNo: { width: 380 } });
   t.mock.timers.tick(500);
   await setImmediate();
   leave();
@@ -104,4 +104,50 @@ test('列偏好未完成读取不会覆盖已编辑设置，离开时取消待�
   assert.equal(count, 0);
   assert.equal(store.getSnapshot().columns.orderNo?.width, 400);
   assert.equal(JSON.parse(data.get(store.key)!).dirty, true);
+});
+
+test('DOM列宽提交和保存确认不通知表格，普通列设置仍通知且保留最新宽度', async (t) => {
+  const data = storage();
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const store = new PreferenceStore('resize', 'inbound');
+  let renders = 0;
+  store.subscribe(() => renders++);
+  const { requests, save } = pendingWrites();
+  const disconnect = store.connect(save);
+  store.received({ ...record({}), updatedAt: null }, 0);
+  store.resize({ receiptNo: { width: 320, fixed: 'left', show: true, order: 0 } });
+  store.resize({ ...store.getSnapshot().columns, packages: { width: 140 } });
+  assert.equal(renders, 0);
+  assert.equal(JSON.parse(data.get(store.key)!).columns.receiptNo.width, 320);
+  t.mock.timers.tick(500);
+  assert.equal(requests.length, 1);
+  requests[0]!.resolve(listPreferencesSchema.parse(record(requests[0]!.columns)));
+  await setImmediate();
+  assert.equal(renders, 0);
+  assert.equal(store.getSnapshot().dirty, false);
+  store.change({ ...store.getSnapshot().columns, productModels: { show: true } });
+  assert.equal(renders, 1);
+  assert.equal(store.getSnapshot().columns.packages?.width, 140);
+  disconnect();
+});
+
+test('连续DOM列宽提交不会被迟到保存或读取覆盖，待保存宽度留在缓存', async (t) => {
+  const data = storage();
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const store = new PreferenceStore('resize-race', 'outbound');
+  const { requests, save } = pendingWrites();
+  const disconnect = store.connect(save);
+  store.received(undefined, 0);
+  store.resize({ orderNo: { width: 320 } });
+  t.mock.timers.tick(500);
+  store.resize({ orderNo: { width: 360 } });
+  requests[0]!.resolve(record(requests[0]!.columns));
+  await setImmediate();
+  store.received(record({ orderNo: { width: 220 } }), 0);
+  assert.equal(store.getSnapshot().columns.orderNo?.width, 360);
+  assert.equal(JSON.parse(data.get(store.key)!).columns.orderNo.width, 360);
+  assert.equal(store.getSnapshot().dirty, true);
+  t.mock.timers.tick(500);
+  assert.equal(requests[1]!.columns.orderNo?.width, 360);
+  disconnect();
 });

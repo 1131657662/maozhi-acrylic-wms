@@ -1,7 +1,9 @@
-import { clampWidth } from './column-settings';
+import { clampWidth, COLUMN_WIDTH } from './column-settings';
+import { beginResizeSession } from './resize-session';
 
 type StyleChange = { node: HTMLElement; property: string; original: string; base: number };
-const tablesSelector = '.ant-table-header > table,.ant-table-body > table,.ant-table-content > table';
+const tablesSelector =
+  '.ant-table-header > table,.ant-table-body > table,.ant-table-content > table,.ant-table-summary > table';
 
 function change(node: HTMLElement, property: string, base: number): StyleChange {
   return { node, property, original: node.style.getPropertyValue(property), base };
@@ -24,23 +26,9 @@ function tableChanges(table: HTMLTableElement, index: number): StyleChange[] {
   return changes;
 }
 
-function suspendMeasurements(root: Element) {
-  // rc-table measures every column via ResizeObserver. Suspend its hidden measuring
-  // row during the DOM preview so pointer moves cannot trigger React table renders.
-  const rows = Array.from(root.querySelectorAll<HTMLElement>('.ant-table-measure-row'));
-  const previous = rows.map((row) => row.style.display);
-  rows.forEach((row) => {
-    row.style.display = 'none';
-  });
-  return () =>
-    rows.forEach((row, index) => {
-      row.style.display = previous[index]!;
-    });
-}
-
 function lockScroll(root: Element) {
   const releases = Array.from(
-    root.querySelectorAll<HTMLElement>('.ant-table-body,.ant-table-content,.ant-table-header'),
+    root.querySelectorAll<HTMLElement>('.ant-table-body,.ant-table-content,.ant-table-header,div.ant-table-summary'),
   ).map((node) => {
     const left = node.scrollLeft;
     const hold = () => {
@@ -57,12 +45,12 @@ function lockScroll(root: Element) {
   };
 }
 
-export function createResizePreview(header: HTMLTableCellElement, width: number) {
+export function createResizePreview(header: HTMLTableCellElement, width: number, minimum: number = COLUMN_WIDTH.min) {
   const root = header.closest('[data-table-resize-root]')!;
   const changes = Array.from(root.querySelectorAll<HTMLTableElement>(tablesSelector)).flatMap((table) =>
     tableChanges(table, header.cellIndex),
   );
-  const resume = suspendMeasurements(root);
+  const session = beginResizeSession(root);
   const unlock = lockScroll(root);
   let frame = 0;
   let next = width;
@@ -70,15 +58,26 @@ export function createResizePreview(header: HTMLTableCellElement, width: number)
     frame = 0;
     changes.forEach(({ node, property, base }) => node.style.setProperty(property, `${base + next - width}px`));
   };
+  const rollback = () => {
+    changes.forEach(({ node, property, original }) => node.style.setProperty(property, original));
+    header.querySelector('[role="separator"]')?.setAttribute('aria-valuenow', String(width));
+  };
   return {
     move(value: number) {
-      next = clampWidth(value);
+      next = Math.max(minimum, clampWidth(value));
       if (!frame) frame = requestAnimationFrame(paint);
     },
     finish() {
       cancelAnimationFrame(frame);
-      changes.forEach(({ node, property, original }) => node.style.setProperty(property, original));
-      resume();
+      rollback();
+      session.cancel();
+      unlock();
+      return next;
+    },
+    commit() {
+      cancelAnimationFrame(frame);
+      paint();
+      session.commit(rollback);
       unlock();
       return next;
     },
