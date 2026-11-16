@@ -3,6 +3,18 @@ import { clearCache, preferenceCache, preferenceKey, readCache, writeCache, type
 
 type Save = (columns: ListPreferenceColumns) => Promise<ListPreferences>;
 
+function sameColumns(left: ListPreferenceColumns, right: ListPreferenceColumns): boolean {
+  const keys = Object.keys(left);
+  return (
+    keys.length === Object.keys(right).length &&
+    keys.every(
+      (key) =>
+        right[key] !== undefined &&
+        (['show', 'order', 'fixed', 'width'] as const).every((field) => left[key]![field] === right[key]![field]),
+    )
+  );
+}
+
 // A single writer per identity/list survives route changes while an earlier PUT is in flight.
 export class PreferenceStore {
   private snapshot: PreferenceCache;
@@ -35,14 +47,25 @@ export class PreferenceStore {
       this.save = undefined;
     };
   }
-  private publish(value: PreferenceCache) {
+  private cache(value: PreferenceCache) {
     this.snapshot = value;
     if (!value.dirty && value.reset) clearCache(this.identity, this.kind);
     else writeCache(this.key, value);
-    this.listeners.forEach((notify) => notify());
   }
+  private publish(value: PreferenceCache) {
+    const changed = !sameColumns(value.columns, this.snapshot.columns);
+    this.cache(value);
+    if (changed) this.listeners.forEach((notify) => notify());
+  }
+  // The table has already committed these widths to DOM. Saving them is not a render event.
+  resize = (columns: ListPreferenceColumns) => {
+    if (sameColumns(columns, this.snapshot.columns)) return;
+    this.revision += 1;
+    this.cache(preferenceCache(columns, true));
+    this.schedule();
+  };
   change = (columns: ListPreferenceColumns, reset = false) => {
-    if (JSON.stringify(columns) === JSON.stringify(this.snapshot.columns) && reset === this.snapshot.reset) return;
+    if (sameColumns(columns, this.snapshot.columns) && reset === this.snapshot.reset) return;
     this.revision += 1;
     this.publish(preferenceCache(columns, true, reset));
     this.schedule();
@@ -70,7 +93,7 @@ export class PreferenceStore {
       const record = await this.save(pending.columns);
       if (this.revision === revision) {
         this.revision += 1; // Fence GET requests that started before this successful PUT.
-        this.publish(preferenceCache(record.columns, false, pending.reset && !Object.keys(record.columns).length));
+        this.cache(preferenceCache(record.columns, false, pending.reset && !Object.keys(record.columns).length));
       }
     } catch {
       // Keep the latest dirty cache. Retry on the next entry, not in an endless network loop.

@@ -9,6 +9,8 @@ export interface ListColumnPreferences<Row> {
   configured: ProColumns<Row>[];
   visible: string[];
   value: ColumnStates;
+  read: () => ColumnStates;
+  subscribe: (notify: () => void) => () => void;
   state: { value: ColumnStates; onChange: (next: Record<string, ColumnsState>) => void };
   apply: (next: ColumnStates) => void;
   resize: (key: string, width: number) => void;
@@ -21,9 +23,10 @@ export function useListColumns<Row extends { id: React.Key }>(
   columns: ProColumns<Row>[],
   identity: string,
 ): ListColumnPreferences<Row> {
-  const { saved, change, reset } = usePreferences(identity, kind);
+  const { saved, read, subscribe, resize: saveWidth, change, reset } = usePreferences(identity, kind);
   const all = useMemo(() => completeColumns(kind, columns), [kind, columns]);
   const value = useMemo(() => mergeColumns(kind, all, saved), [kind, all, saved]);
+  const current = () => mergeColumns(kind, all, read());
   const configured = useMemo(
     () =>
       all.map((column) => ({
@@ -51,30 +54,38 @@ export function useListColumns<Row extends { id: React.Key }>(
     })
     .map((c) => String(c.dataIndex));
   const defaultWidth = (key: string) => Number(all.find((column) => columnKey(column) === key)!.width);
-  const resize = (key: string, width: number) =>
-    change({ ...value, [key]: { ...value[key], width: clampWidth(width) } });
+  const resize = (key: string, width: number) => {
+    const latest = current();
+    saveWidth({ ...latest, [key]: { ...latest[key], width: clampWidth(width) } });
+  };
   const onChange = (next: Record<string, ColumnsState>) => {
+    const latest = current();
     const merged = mergeColumns(
       kind,
       all,
       Object.fromEntries(
-        Object.entries(next).map(([key, settings]) => [key, { width: value[key]?.width, ...settings }]),
+        Object.entries(next).map(([key, settings]) => [key, { ...settings, width: latest[key]?.width }]),
       ),
     );
-    if (JSON.stringify(merged) !== JSON.stringify(value)) change(merged);
+    if (JSON.stringify(merged) !== JSON.stringify(latest)) change(merged);
   };
   return {
     configured,
     visible,
     value,
+    read: current,
+    subscribe,
     state: { value, onChange },
     apply: change,
     resize,
-    resetWidth: (key) => resize(key, defaultWidth(key)),
+    resetWidth: (key) => {
+      const latest = current();
+      change({ ...latest, [key]: { ...latest[key], width: defaultWidth(key) } });
+    },
     resetWidths: () =>
       change(
         Object.fromEntries(
-          Object.entries(value).map(([key, settings]) => [key, { ...settings, width: defaultWidth(key) }]),
+          Object.entries(current()).map(([key, settings]) => [key, { ...settings, width: defaultWidth(key) }]),
         ),
       ),
     resetAll: reset,

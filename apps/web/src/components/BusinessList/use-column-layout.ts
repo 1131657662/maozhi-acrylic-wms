@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ProColumns } from '@ant-design/pro-components';
 import type { ListColumnPreferences } from './use-list-columns';
 import { columnKey } from './column-config';
 import { COLUMN_WIDTH } from './column-settings';
 import type { ResizeHeaderProps } from './resize-header';
 import type { ListState } from './use-list-state';
+import { completeResizeRender, rollbackResizeSession } from './resize-session';
 
 export function useColumnLayout<Row>(
   columns: ProColumns<Row>[],
@@ -13,6 +14,18 @@ export function useColumnLayout<Row>(
 ) {
   const root = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  useLayoutEffect(() => {
+    if (root.current) completeResizeRender(root.current);
+  });
+  useEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    const unsubscribe = preferences.subscribe(() => rollbackResizeSession(element));
+    return () => {
+      unsubscribe();
+      rollbackResizeSession(element);
+    };
+  }, [preferences.subscribe]);
   useEffect(() => {
     const element = root.current;
     if (!element) return;
@@ -22,10 +35,11 @@ export function useColumnLayout<Row>(
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
+  const current = preferences.read();
   const configured = columns.map((column) => {
     const key = columnKey(column);
     const label = typeof column.title === 'string' ? column.title : undefined;
-    const columnWidth = Math.max(column.minWidth ?? COLUMN_WIDTH.min, Number(column.width));
+    const columnWidth = Math.max(column.minWidth ?? COLUMN_WIDTH.min, current[key]?.width ?? Number(column.width));
     return {
       ...column,
       width: columnWidth,
@@ -34,6 +48,7 @@ export function useColumnLayout<Row>(
         columnLabel: label,
         columnKey: key,
         columnWidth,
+        columnMinWidth: column.minWidth ?? COLUMN_WIDTH.min,
         resize: (next) => preferences.resize(key, next),
         resetWidth: () => preferences.resetWidth(key),
         sort: column.sorter

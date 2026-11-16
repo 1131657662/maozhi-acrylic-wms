@@ -8,7 +8,7 @@ export function usePreferences(identity: string, kind: ExportKind) {
   const store = useMemo(() => getPreferenceStore(identity, kind), [identity, kind]);
   const { columns } = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const { data: preferences, isFetchedAfterMount: fetched, isError: failed } = useReadPreferences(identity, kind);
-  const { mutateAsync: savePreferences } = useSavePreferences(kind);
+  const savePreferences = useSavePreferences(kind);
   useEffect(
     () => (identity === 'anonymous' ? undefined : store.connect(savePreferences)),
     [store, savePreferences, identity],
@@ -16,5 +16,12 @@ export function usePreferences(identity: string, kind: ExportKind) {
   useEffect(() => {
     if (fetched) store.received(failed ? undefined : preferences?.record, preferences?.revision ?? store.revision);
   }, [store, preferences, fetched, failed]);
-  return { saved: columns, change: store.change, reset: () => store.change({}, true) };
+  return {
+    saved: columns,
+    read: () => store.getSnapshot().columns,
+    subscribe: store.subscribe,
+    resize: store.resize,
+    change: store.change,
+    reset: () => store.change({}, true),
+  };
 }
