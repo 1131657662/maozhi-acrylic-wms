@@ -760,6 +760,14 @@
         },
         "type": "array"
       },
+      "S_1ed7494fd196c4eb": {
+        "enum": [
+          "verified",
+          "unverifiable",
+          "failed"
+        ],
+        "type": "string"
+      },
       "S_1f4c6467e73c8edd": {
         "additionalProperties": false,
         "properties": {
@@ -1496,6 +1504,16 @@
           "closure"
         ],
         "type": "object"
+      },
+      "S_46593edc54aacf8b": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/S_d562458dea270026"
+          },
+          {
+            "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+          }
+        ]
       },
       "S_466c886c65b38106": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -3741,6 +3759,42 @@
         ],
         "type": "string"
       },
+      "S_9cddc6e880362212": {
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "elapsedHours": {
+            "$ref": "#/components/schemas/S_46593edc54aacf8b"
+          },
+          "href": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "label": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "number": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "overdue": {
+            "$ref": "#/components/schemas/S_7cb541e84f226754"
+          },
+          "warehouse": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "href",
+          "number",
+          "label",
+          "at",
+          "warehouse",
+          "elapsedHours",
+          "overdue"
+        ],
+        "type": "object"
+      },
       "S_9e23fafdf9b8cf8e": {
         "additionalProperties": false,
         "properties": {
@@ -4099,6 +4153,38 @@
         },
         "type": "array"
       },
+      "S_ab83fb1523bdf09d": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "$ref": "#/components/schemas/S_be4035c3d5395183"
+          },
+          "period": {
+            "$ref": "#/components/schemas/S_fde0242a9424a4f0"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/S_d2a11c77456ea864"
+          },
+          "value": {
+            "$ref": "#/components/schemas/S_a2fef0ca16ae81b8"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+          }
+        },
+        "required": [
+          "value",
+          "unit",
+          "period",
+          "basis",
+          "verification",
+          "reason"
+        ],
+        "type": "object"
+      },
       "S_ab9861cbc3717542": {
         "additionalProperties": false,
         "properties": {
@@ -4195,6 +4281,22 @@
           "message",
           "data",
           "traceId"
+        ],
+        "type": "object"
+      },
+      "S_af1e840b14414b10": {
+        "additionalProperties": false,
+        "properties": {
+          "grams": {
+            "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+          },
+          "packages": {
+            "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+          }
+        },
+        "required": [
+          "packages",
+          "grams"
         ],
         "type": "object"
       },
@@ -4927,6 +5029,28 @@
         ],
         "type": "object"
       },
+      "S_cf7988589b974362": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+          },
+          "items": {
+            "$ref": "#/components/schemas/S_cfe0aff25f4f6e91"
+          }
+        },
+        "required": [
+          "count",
+          "items"
+        ],
+        "type": "object"
+      },
+      "S_cfe0aff25f4f6e91": {
+        "items": {
+          "$ref": "#/components/schemas/S_9cddc6e880362212"
+        },
+        "type": "array"
+      },
       "S_d0663adb8c2e52cb": {
         "items": {
           "$ref": "#/components/schemas/S_162824374f23f071"
@@ -4973,6 +5097,16 @@
           "$ref": "#/components/schemas/S_f228c9f75964c1f2"
         },
         "type": "array"
+      },
+      "S_d2a11c77456ea864": {
+        "enum": [
+          "单",
+          "包",
+          "克",
+          "条",
+          "%"
+        ],
+        "type": "string"
       },
       "S_d2cd2a8974b40380": {
         "additionalProperties": false,
@@ -5072,6 +5206,10 @@
           "manual"
         ],
         "type": "string"
+      },
+      "S_d562458dea270026": {
+        "minimum": 0,
+        "type": "number"
       },
       "S_d58bde7b8137677c": {
         "enum": [
@@ -5843,6 +5981,22 @@
       "S_fc8e894ba12ab9e1": {
         "const": "true",
         "type": "string"
+      },
+      "S_fde0242a9424a4f0": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "to": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -29586,6 +29740,579 @@
           }
         ],
         "summary": "作废进行中盘点并释放窗口；不改库存不写流水",
+        "x-client-channel": "web"
+      }
+    },
+    "/web/dashboard": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asOf": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        },
+                        "basis": {
+                          "$ref": "#/components/schemas/S_be4035c3d5395183"
+                        },
+                        "catalogHealth": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "added": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "entries": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "expired": {
+                                      "$ref": "#/components/schemas/S_7cb541e84f226754"
+                                    },
+                                    "publishedAt": {
+                                      "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                    },
+                                    "removed": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "version": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
+                                    "weight": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    }
+                                  },
+                                  "required": [
+                                    "version",
+                                    "publishedAt",
+                                    "expired",
+                                    "entries",
+                                    "added",
+                                    "removed",
+                                    "weight"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "handoffEvidence": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "conflictAt": {
+                                      "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                    },
+                                    "conflicts": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "orders": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "registeredAt": {
+                                      "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                    },
+                                    "unresolved": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    }
+                                  },
+                                  "required": [
+                                    "unresolved",
+                                    "orders",
+                                    "conflicts",
+                                    "registeredAt",
+                                    "conflictAt"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "pending": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "historyReason": {
+                                      "$ref": "#/components/schemas/S_00404e686415370f"
+                                    },
+                                    "inbound": {
+                                      "$ref": "#/components/schemas/S_cf7988589b974362"
+                                    },
+                                    "missingScanTime": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "outbound": {
+                                      "$ref": "#/components/schemas/S_cf7988589b974362"
+                                    },
+                                    "stale": {
+                                      "$ref": "#/components/schemas/S_cf7988589b974362"
+                                    },
+                                    "stocktake": {
+                                      "$ref": "#/components/schemas/S_cf7988589b974362"
+                                    },
+                                    "total": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    }
+                                  },
+                                  "required": [
+                                    "total",
+                                    "inbound",
+                                    "outbound",
+                                    "stocktake",
+                                    "stale",
+                                    "historyReason",
+                                    "missingScanTime"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "recent": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "$ref": "#/components/schemas/S_d1b35ad93c478dee"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "shortcuts": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "href": {
+                                        "$ref": "#/components/schemas/S_00404e686415370f"
+                                      },
+                                      "label": {
+                                        "$ref": "#/components/schemas/S_00404e686415370f"
+                                      }
+                                    },
+                                    "required": [
+                                      "label",
+                                      "href"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "today": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "inbound": {
+                                      "$ref": "#/components/schemas/S_af1e840b14414b10"
+                                    },
+                                    "inboundChange": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    },
+                                    "outbound": {
+                                      "$ref": "#/components/schemas/S_af1e840b14414b10"
+                                    },
+                                    "outboundChange": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    }
+                                  },
+                                  "required": [
+                                    "inbound",
+                                    "outbound",
+                                    "inboundChange",
+                                    "outboundChange"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "trend14d": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "day": {
+                                        "$ref": "#/components/schemas/S_00404e686415370f"
+                                      },
+                                      "inbound": {
+                                        "$ref": "#/components/schemas/S_af1e840b14414b10"
+                                      },
+                                      "outbound": {
+                                        "$ref": "#/components/schemas/S_af1e840b14414b10"
+                                      }
+                                    },
+                                    "required": [
+                                      "day",
+                                      "inbound",
+                                      "outbound"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "vehicleOrders": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "items": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "count": {
+                                            "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                          },
+                                          "href": {
+                                            "$ref": "#/components/schemas/S_00404e686415370f"
+                                          },
+                                          "label": {
+                                            "$ref": "#/components/schemas/S_00404e686415370f"
+                                          },
+                                          "number": {
+                                            "$ref": "#/components/schemas/S_00404e686415370f"
+                                          },
+                                          "vehicle": {
+                                            "$ref": "#/components/schemas/S_00404e686415370f"
+                                          }
+                                        },
+                                        "required": [
+                                          "vehicle",
+                                          "number",
+                                          "label",
+                                          "href",
+                                          "count"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    },
+                                    "total": {
+                                      "$ref": "#/components/schemas/S_ab83fb1523bdf09d"
+                                    }
+                                  },
+                                  "required": [
+                                    "total",
+                                    "items"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "verification",
+                            "reason",
+                            "data"
+                          ],
+                          "type": "object"
+                        },
+                        "verification": {
+                          "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                        },
+                        "watermark": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        }
+                      },
+                      "required": [
+                        "asOf",
+                        "watermark",
+                        "basis",
+                        "verification",
+                        "today",
+                        "pending",
+                        "catalogHealth",
+                        "handoffEvidence",
+                        "vehicleOrders",
+                        "recent",
+                        "shortcuts",
+                        "trend14d"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "工作台八区块；只读一致性快照、报表收发口径、30秒缓存及写后失效",
         "x-client-channel": "web"
       }
     },

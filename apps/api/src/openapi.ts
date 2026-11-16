@@ -66,7 +66,9 @@ export interface Operation {
   successStatus?: number;
   safeEnvelope?: boolean;
 }
+import { dashboardOperations } from './features/workbench/openapi.ts';
 export const operations: Operation[] = [
+  ...dashboardOperations,
   ...stockMovementOperations,
   ...shipmentOperations,
   ...scanWorkbenchOperations,

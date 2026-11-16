@@ -4,6 +4,7 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/web/dashboard | web | 工作台八区块；只读一致性快照、报表收发口径、30秒缓存及写后失效 |
 | POST | /api/v1/stock/peek | web | 本页最多200个仓品，一条只读SQL取各自最近3条有效库存流水 |
 | GET | /api/v1/stock/movements | web | 库存流水只读分页；仓库/商品精确过滤，排除软删和非库存商品 |
 | GET | /api/v1/outbound/{id}/shipments | web | 本单全部发货记录、待发与结单信息 |

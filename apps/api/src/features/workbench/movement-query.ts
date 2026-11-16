@@ -15,7 +15,9 @@ export async function movementGroups(db: Database, period: WorkbenchPeriod) {
     IF(s.source_id IS NULL,NULL,'historical') AS source_id,
     IF(sc.inbound_receipt_id IS NULL,NULL,'inbound') AS correctionInboundId,
     IF(sc.outbound_order_id IS NULL,NULL,'outbound') AS correctionOutboundId,
-    SUM(s.packages_delta) AS packages_delta,SUM(s.tonnes_delta) AS tonnes_delta
+    SUM(s.packages_delta) AS packages_delta,SUM(s.tonnes_delta) AS tonnes_delta,
+    SUM(COALESCE(co.packages,0)) AS correctionOffsetPackages,
+    CAST(SUM(COALESCE(co.tonnes,0)) AS DECIMAL(18,4)) AS correctionOffsetTonnes
     ${balanceFrom} WHERE s.source_del_flag=0 AND ${validPosted}
     AND ${postedLocal}>=? AND ${postedLocal}<=?
     GROUP BY day,previousWindow,o.operation_type,s.source_business_type,
