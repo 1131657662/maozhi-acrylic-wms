@@ -448,6 +448,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | 页面编号 | 实施批次编号 | 具体规格 | 迁移职责/前置 | 建议顺序 |
 |---|---|---|---|---|
 | UI-3 | B7b 工作台/数据看板 | WORKBENCH_SPEC | 新dashboard/analysis聚合；复用B6f库存+B7a报表+B6d目录证据，本身无必需DDL；实时设备/离场不支持 | 8 |
+| B7b-1 | 工作台与出库路由迁移；WORKBENCH_SPEC §10 | 2026-11-16用户已确认实施；起点3e4b31b，codex/b7b-1-workbench-routing；只做dashboard与/，看板/analysis后置。六笔提交后停止，不合并推送；无必需DDL | 进行中 |
 | UI-4 | B6f 库存概览/流水 | STOCK_PAGE_SPEC | 已整体完成、用户验收通过；B6f-1/2a/2b/2c 均已合并推送，最终 471/170/0；无新增迁移，性能专项仍归 B6i | 6（已完成） |
 | UI-5 | B7a 报表页面 | REPORTS_PAGE_SPEC + REPORT_SPEC | 先B5d更正分列/日期更正重述（M-DATE-CORRECTIONS）；正式开账证据由B10/M-CUTOVER-ANCHOR提供，未有锚点仍标不可验证 | 7 |
 | UI-6 | B6d 条码目录 | CATALOG_PAGE_SPEC | M-CATALOG-CANDIDATES；保留006/007与既有交接门禁，不在本批加设备实时协议 | 4 |
