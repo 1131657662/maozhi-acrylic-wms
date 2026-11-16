@@ -4,7 +4,7 @@ import { normalizeEvent } from '../reports/normalize.ts';
 import { addMovement } from '../reports/accumulate.ts';
 import { emptyMonth } from '../reports/periods.ts';
 import { metric, unknownMetric, localTime } from './metrics.ts';
-import { movementGroups, movementUnknowns } from './movement-query.ts';
+import { movementGroups } from './movement-query.ts';
 
 const empty = () => emptyMonth({ warehouseCode: '', warehouseName: '', productCode: '', productName: '' }, 'range');
 function dailyTotals(rows: Row[], period: WorkbenchPeriod) {
@@ -40,13 +40,16 @@ function change(now: number, previous: number, context: { period: WorkbenchPerio
 }
 export async function dashboardMovements(db: Database, period: WorkbenchPeriod) {
   const rows = await movementGroups(db, period),
-    unknown = await movementUnknowns(db);
+    unknown = rows.find((row) => !row.day);
   const reason = Number(unknown?.missingTime)
     ? copy.missingTime
     : Number(unknown?.missingSource)
       ? copy.missingSource
       : null;
-  const totals = dailyTotals(rows, period),
+  const totals = dailyTotals(
+      rows.filter((row) => row.day),
+      period,
+    ),
     context = { period, reason };
   return {
     inbound: quantity(totals.today, 'inbound', context),

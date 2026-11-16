@@ -16,7 +16,7 @@ test('B 草稿：离开确认、恢复全部选择及商品数量、提交清除
   await expect(page).toHaveURL(/\/inbound\/new$/);
   await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
   await page.getByRole('button', { name: '放弃修改', exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/outbound$/);
   await page.goto('/inbound/new');
   await page.getByRole('button', { name: /^恢\s*复$/ }).click();
   await expect(page.getByLabel('备注', { exact: true })).toHaveValue('本机草稿验收');
@@ -44,7 +44,7 @@ test('B 草稿：刷新原生提示，恢复日期；丢弃草稿不再提示', 
   await page.getByRole('button', { name: /^丢\s*弃$/ }).click();
   expect(await page.evaluate(() => localStorage.getItem('wms-form-draft:owner:inbound:new'))).toBeNull();
   await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/outbound$/);
 });
 test('B 草稿：还原到初始值不拦截，身份及单据隔离', async ({ page }) => {
   await page.goto('/inbound/new');
@@ -57,7 +57,7 @@ test('B 草稿：还原到初始值不拦截，身份及单据隔离', async ({ 
     ),
   );
   await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/outbound$/);
   await page.goto('/outbound/new');
   await expect(page.getByText(/发现未提交的草稿/)).toHaveCount(0);
 });

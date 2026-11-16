@@ -34,20 +34,7 @@ export function Activity({ data }: { data: Workbench }) {
     <Row gutter={[spacing[16], spacing[16]]}>
       <Col xs={24} lg={16}>
         <Section title={copy.recent} block={data.recent} href="/audit" action={copy.viewAudit}>
-          {(rows) =>
-            rows.length ? (
-              rows.map((row) => (
-                <div key={row.id} style={{ paddingBlock: spacing[4], overflowWrap: 'anywhere' }}>
-                  <Typography.Text type="secondary">{timeText(row.createdAt)} · </Typography.Text>
-                  {row.action} ·{' '}
-                  {row.href ? <Link to={row.href}>{row.objectLabel}</Link> : row.objectLabel} · {row.summary} ·{' '}
-                  {row.result}
-                </div>
-              ))
-            ) : (
-              <Typography.Text type="secondary">{copy.noRecent}</Typography.Text>
-            )
-          }
+          {(rows) => <RecentRows rows={rows} />}
         </Section>
       </Col>
       <Col xs={24} lg={8}>
@@ -64,5 +51,20 @@ export function Activity({ data }: { data: Workbench }) {
         </Section>
       </Col>
     </Row>
+  );
+}
+
+function RecentRows({ rows }: { rows: NonNullable<Workbench['recent']['data']> }) {
+  if (!rows.length) return <Typography.Text type="secondary">{copy.noRecent}</Typography.Text>;
+  return (
+    <>
+      {rows.map((row) => (
+        <div key={row.id} style={{ paddingBlock: spacing[4], overflowWrap: 'anywhere' }}>
+          <Typography.Text type="secondary">{timeText(row.createdAt)} · </Typography.Text>
+          {row.action} · {row.href ? <Link to={row.href}>{row.objectLabel}</Link> : row.objectLabel} · {row.summary} ·{' '}
+          {row.result}
+        </div>
+      ))}
+    </>
   );
 }

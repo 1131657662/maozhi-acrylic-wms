@@ -19,7 +19,8 @@ import { workbenchKeys } from './features/workbench/keys';
 
 const client = new QueryClient({
   mutationCache: new MutationCache({
-    onSettled: () => {
+    onSettled: (_data, _error, _variables, _result, mutation) => {
+      if (mutation.options.meta?.skipWorkbenchRefresh) return;
       void client.invalidateQueries({ queryKey: workbenchKeys._def });
     },
   }),

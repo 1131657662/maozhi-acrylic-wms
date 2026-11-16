@@ -30,6 +30,7 @@ export function Login() {
         method: 'POST',
         body: JSON.stringify({ username: values.username, password: values.password, channel: 'web' }),
       });
+      delete window.__wmsWorkbenchRequest;
       client.setQueryData(authKeys.session.queryKey, session);
       history.replace(redirect);
       return true;

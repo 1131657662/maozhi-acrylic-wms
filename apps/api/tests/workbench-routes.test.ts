@@ -19,6 +19,9 @@ test('B7b safe login redirects and listReturn migration', () => {
     '/\\outside.invalid',
     '/\n/outside.invalid',
     '/user/login',
+    '/..//outside.invalid',
+    '/%2e%2e//outside.invalid',
+    '/a/..//outside.invalid',
   ])
     assert.equal(internalDestination(value), '/');
   assert.equal(listDestination('/?status=open&page=2#rows', '/outbound'), '/outbound?status=open&page=2#rows');

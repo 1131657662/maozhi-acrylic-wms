@@ -53,17 +53,21 @@ export function WorkbenchView() {
           <Content data={query.data} />
         </>
       )}
-      {query.isPending && !query.error && (
-        <Row gutter={[spacing[16], spacing[16]]}>
-          {Array.from({ length: 4 }, (_, i) => (
-            <Col xs={24} sm={12} lg={6} key={i}>
-              <Card>
-                <Skeleton active paragraph={{ rows: 2 }} />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      )}
+      {query.isPending && !query.error && <LoadingKpis />}
     </PageShell>
+  );
+}
+
+function LoadingKpis() {
+  return (
+    <Row gutter={[spacing[16], spacing[16]]}>
+      {Array.from({ length: 4 }, (_, i) => (
+        <Col xs={24} sm={12} lg={6} key={i}>
+          <Card>
+            <Skeleton active paragraph={{ rows: 2 }} />
+          </Card>
+        </Col>
+      ))}
+    </Row>
   );
 }

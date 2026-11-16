@@ -1,4 +1,10 @@
-import { workbenchSchema, workbenchCopy as copy, workbenchLinks, type WorkbenchBlock } from '@wms/contracts';
+import {
+  workbenchSchema,
+  workbenchCopy as copy,
+  workbenchLinks,
+  type WorkbenchPeriod,
+  type WorkbenchBlock,
+} from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
 import { hash } from '../../shared/hash.ts';
@@ -31,6 +37,22 @@ export async function readDashboard(tx: Database) {
     (SELECT COUNT(*) FROM document_date_corrections) AS corrections`);
   const asOf = isoDate(head!.time),
     period = dashboardPeriod(asOf);
+  const sections = await readSections(tx, period);
+  const verification = Object.values(sections).some((b) => b.verification === 'failed')
+    ? 'failed'
+    : Object.values(sections).some((b) => b.verification === 'unverifiable')
+      ? 'unverifiable'
+      : 'verified';
+  return workbenchSchema.parse({
+    asOf,
+    watermark: hash(JSON.stringify([head, sections])),
+    basis: 'posted',
+    verification,
+    ...sections,
+  });
+}
+
+async function readSections(tx: Database, period: WorkbenchPeriod) {
   const movements = await block(() => dashboardMovements(tx, period));
   if (movements.data?.inbound.grams.verification === 'unverifiable') {
     movements.verification = 'unverifiable';
@@ -42,7 +64,7 @@ export async function readDashboard(tx: Database) {
   const vehicleOrders = await block(() => dashboardVehicles(tx, period));
   const recent = await block(() => dashboardRecent(tx));
   const { points, ...today } = movements.data ?? { points: null };
-  const sections = {
+  return {
     today: { ...movements, data: movements.data ? today : null },
     pending,
     catalogHealth,
@@ -52,18 +74,4 @@ export async function readDashboard(tx: Database) {
     shortcuts: { data: workbenchLinks, verification: 'verified', reason: null },
     trend14d: { ...movements, data: points },
   };
-  const verification = [movements, pending, catalogHealth, handoffEvidence, vehicleOrders, recent].some(
-    (b) => b.verification === 'failed',
-  )
-    ? 'failed'
-    : movements.data?.inbound.grams.verification === 'unverifiable' || catalogHealth.verification === 'unverifiable'
-      ? 'unverifiable'
-      : 'verified';
-  return workbenchSchema.parse({
-    asOf,
-    watermark: hash(JSON.stringify([head, sections])),
-    basis: 'posted',
-    verification,
-    ...sections,
-  });
 }

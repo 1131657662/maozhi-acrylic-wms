@@ -15,6 +15,7 @@ export function useSavePreferences(kind: ExportKind) {
       client
         .getMutationCache()
         .build(client, {
+          meta: { skipWorkbenchRefresh: true },
           mutationFn: (pending: ListPreferenceColumns) =>
             request(`/me/list-preferences/${kind}`, listPreferencesSchema, {
               method: 'PUT',

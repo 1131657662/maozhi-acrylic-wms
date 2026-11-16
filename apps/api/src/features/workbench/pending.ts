@@ -1,6 +1,7 @@
 import { WORKBENCH, workbenchCopy as copy, statusText, type WorkbenchPeriod, type WorkbenchTodo } from '@wms/contracts';
 import type { Database, Row } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
+import { businessText } from '../audit/projection.ts';
 import { metric } from './metrics.ts';
 import { pendingRows } from './pending-query.ts';
 
@@ -15,9 +16,9 @@ function todo(row: Row, asOf: string): WorkbenchTodo {
   const elapsedHours = start ? Math.max(0, (Date.parse(asOf) - Date.parse(isoDate(start))) / 3_600_000) : null;
   return {
     href: `/${stocktake ? 'stocktakes' : row.kind === 'inbound' ? 'inbound' : 'outbound'}/${encodeURIComponent(String(row.id))}`,
-    number: String(row.number),
+    number: businessText(row.number, copy.numberMissing),
     at: row.at ? isoDate(row.at) : null,
-    warehouse: String(row.warehouse || copy.warehouseMissing),
+    warehouse: businessText(row.warehouse, copy.warehouseMissing),
     elapsedHours,
     overdue: stale || (stocktake && elapsedHours !== null && elapsedHours >= WORKBENCH.lockHours),
     label: stocktake

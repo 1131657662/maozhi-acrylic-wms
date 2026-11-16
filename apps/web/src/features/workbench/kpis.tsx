@@ -7,7 +7,7 @@ import { fontSize, fontWeight, spacing } from '../../theme/design-tokens';
 import { Metric, metricText } from './metric';
 import { AfterPaint } from './after-paint';
 
-const Sparkline = lazy(() => import('./trend').then((module) => ({ default: module.Sparkline })));
+const Sparkline = lazy(() => import('./sparkline').then((module) => ({ default: module.Sparkline })));
 function MovementKpi({ data, kind }: { data: Workbench; kind: 'inbound' | 'outbound' }) {
   const movement = data.today.data;
   return (

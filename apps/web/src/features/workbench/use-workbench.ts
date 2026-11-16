@@ -10,6 +10,7 @@ export function useWorkbench(poll = false) {
     enabled: !!session,
     staleTime: WORKBENCH.ttlMs,
     retry: false,
+    retryOnMount: false,
     refetchInterval: poll ? WORKBENCH.ttlMs : false,
     refetchOnWindowFocus: false,
   });

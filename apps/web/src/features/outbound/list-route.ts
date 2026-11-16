@@ -5,7 +5,7 @@ const localOrigin = 'http://wms.invalid';
 export function internalDestination(value: string | null | undefined): string {
   if (!value?.startsWith('/') || value.startsWith('//') || /[\\\u0000-\u0020]/.test(value)) return '/';
   const url = new URL(value, localOrigin);
-  if (url.origin !== localOrigin || url.pathname === '/user/login') return '/';
+  if (url.origin !== localOrigin || url.pathname.startsWith('//') || url.pathname === '/user/login') return '/';
   const path =
     url.pathname === '/' && [...url.searchParams.keys()].some((key) => listKeys.has(key)) ? '/outbound' : url.pathname;
   return path + url.search + url.hash;

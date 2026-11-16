@@ -11,6 +11,10 @@ test('B7b eight blocks, one shared request, responsive first screen and deferred
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page.getByTestId('workbench-content')).toBeVisible();
+  await expect(page.getByTestId('workbench-content')).not.toContainText(
+    /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i,
+  );
+  await expect(page.getByRole('main')).not.toContainText(/口径|快照|幂等|事务|回滚|落库|校验|枚举|接口/);
   await expect(page.getByTestId('workbench-trend')).toBeVisible();
   for (const title of ['待我处理', '目录健康', '交接证据', '今日车号关联单据', '最近操作', '快捷入口'])
     await expect(page.getByText(title, { exact: true })).toBeVisible();
@@ -52,4 +56,19 @@ test('B7b missing and failed data retain reasons; refresh recovers', async ({ pa
   failed = false;
   await page.getByRole('button', { name: /刷\s*新/, exact: true }).click();
   await expect(page.getByText('部分数据加载失败', { exact: true })).toHaveCount(0);
+});
+
+test('B7b early request network failure shows retry without a duplicate automatic request', async ({ page }) => {
+  let calls = 0;
+  await page.route('**/api/v1/web/dashboard', async (route) => {
+    calls++;
+    if (calls === 1) await route.abort('failed');
+    else await route.continue();
+  });
+  await page.goto('/');
+  await expect(page.getByText('该区块加载失败，请刷新重试', { exact: true })).toBeVisible();
+  expect(calls).toBe(1);
+  await page.getByRole('button', { name: /刷\s*新/, exact: true }).click();
+  await expect(page.getByTestId('workbench-content')).toBeVisible();
+  expect(calls).toBe(2);
 });

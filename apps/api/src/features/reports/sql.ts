@@ -1,12 +1,15 @@
 import { reportSelections, type ReportQuery } from '@wms/contracts';
 import { contains } from '../web-lists/query.ts';
 
-const json = (alias: string, field: string) =>
-  `CASE WHEN JSON_VALID(${alias}.source_row_json) THEN NULLIF(JSON_UNQUOTE(JSON_EXTRACT(${alias}.source_row_json,'$.${field}')),'null') ELSE NULL END`;
-export const postedLocal = `CASE WHEN s.source_id IS NOT NULL THEN ${json('s', 'create_time')}
+// Dates are at most 26 characters; malformed JSON and overlong values have no verifiable posting time.
+export const historicalPostedLocal = `JSON_VALUE(s.source_row_json,'$.create_time' RETURNING CHAR(32) NULL ON EMPTY NULL ON ERROR)`;
+export const postedLocal = `CASE WHEN s.source_id IS NOT NULL THEN ${historicalPostedLocal}
   ELSE DATE_FORMAT(DATE_ADD(COALESCE(o.created_at,s.created_at),INTERVAL 8 HOUR),'%Y-%m-%d %H:%i:%s.%f') END`;
-export const validPosted = `(${postedLocal} REGEXP '^[1-9][0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]{1,6})?$'
-  AND CAST(SUBSTRING(${postedLocal},9,2) AS UNSIGNED)<=DAY(LAST_DAY(CONCAT(LEFT(${postedLocal},7),'-01'))))`;
+export function validReportTime(time: string): string {
+  return `(${time} REGEXP '^[1-9][0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]([.][0-9]{1,6})?$'
+    AND CAST(SUBSTRING(${time},9,2) AS UNSIGNED)<=DAY(LAST_DAY(CONCAT(LEFT(${time},7),'-01'))))`;
+}
+export const validPosted = validReportTime(postedLocal);
 export const balanceFields = `s.id,s.warehouse_code AS warehouseCode,w.name AS warehouseName,
   s.product_code AS productCode,p.name AS productName,p.source_model AS productModel,
   s.source_id,s.source_del_flag,s.source_business_type,s.source_row_json,
