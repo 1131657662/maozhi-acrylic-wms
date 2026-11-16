@@ -450,6 +450,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | UI-3 | B7b 工作台/数据看板 | WORKBENCH_SPEC | **B7b-1/2全部完成，用户验收通过，561/221/0**。时效按验收修正后功能合并推送 `19b88faaa2db8e2152f3b8abd51ff2d494114e87`；追加完整test565/565、看板E2E3/3、build exit0。无DDL；完成后停止，不开始B7d | 已完成 |
 | B7b-1 | 工作台与出库路由迁移；WORKBENCH_SPEC §10 | **已完成并通过用户验收，非快进合并推送 `0217a573e4a6573f126c46867e6f64fba5464566`**。工作台八区块、单次聚合、同报表口径及出库路由兼容完成，看板/analysis后置；test/E2E/build=`546/218/0`。冷热并发1/5各30次：接口p95≤623.35ms，首屏p95≤991.20ms。原始样本、SQL、环境和数据截图存档于本机 `.local/evidence/b7b1/`。无DDL；详见 [B7B_1_ACCEPTANCE.md](B7B_1_ACCEPTANCE.md) | 已完成 |
 | B7b-2 | 数据看板聚合与只读页面；WORKBENCH_SPEC §11 | **已完成并通过用户验收，561/221/0**。前置B7b-1、B7a、B6f；单快照固定8次SQL、日期/basis缓存、共享月聚合、Top/库龄/周转/183日热力/时效，无DDL。有发货短关进入均值，撤销/作废/零发货短关分原因计数排除，修复 `1abb264`。修正后完整test565/565、看板E2E3/3、build exit0；冷热并发1/5各30次，首屏p95最高1909.70ms，样本全部有效。功能合并推送 `19b88faaa2db8e2152f3b8abd51ff2d494114e87`，checkout/merge/push/远端核对exit均0。证据在 `.local/evidence/b7b-2/`，详见 [B7B_2_ACCEPTANCE.md](B7B_2_ACCEPTANCE.md)；B7b全部完成，收尾后停止，不开始B7d | 已完成并合并推送 |
+| B7d | 导航与行点击交互修复；WEB_UX_SPEC §4/5、REPORTS_PAGE_SPEC §8 | **交互修复，不含视觉改版**。前置B7b已完成，位置在B7b之后/B8之前；内部页面同标签路由，Link原生Ctrl/Cmd开新标签，导出下载保持新标签；删除250ms行点击延迟，单击立即切换，双击打开详情并显式选中，空格行为不变。起点2f92d56，分支codex/b7d-navigation-row-click，无DDL、不改业务计算与写链；完整test/build/E2E及相关target断言；两笔提交后停止，不合并 | 已登记，实施中 |
 | UI-4 | B6f 库存概览/流水 | STOCK_PAGE_SPEC | 已整体完成、用户验收通过；B6f-1/2a/2b/2c 均已合并推送，最终 471/170/0；无新增迁移，性能专项仍归 B6i | 6（已完成） |
 | UI-5 | B7a 报表页面 | REPORTS_PAGE_SPEC + REPORT_SPEC | 先B5d更正分列/日期更正重述（M-DATE-CORRECTIONS）；正式开账证据由B10/M-CUTOVER-ANCHOR提供，未有锚点仍标不可验证 | 7 |
 | UI-6 | B6d 条码目录 | CATALOG_PAGE_SPEC | M-CATALOG-CANDIDATES；保留006/007与既有交接门禁，不在本批加设备实时协议 | 4 |
@@ -524,6 +525,7 @@ B4d 出库手工实发
  → B7a 报表页
  → B6i 性能专项
  → B7b 工作台/看板
+ → B7d 导航与行点击交互修复（不含视觉改版）
  → B8a/B8b/B8c 运维
  → B7c 全站界面走查与优化（三小步，见下）
  → B8d 小程序补页
