@@ -56,9 +56,9 @@ const topItem = z.strictObject({
   rankedGrams: integer,
 });
 const tops = z.strictObject({
-  products: z.array(topItem).max(10),
-  customers: z.array(topItem).max(10),
-  suppliers: z.array(topItem).max(10),
+  products: z.array(topItem).max(ANALYSIS.topLimit),
+  customers: z.array(topItem).max(ANALYSIS.topLimit),
+  suppliers: z.array(topItem).max(ANALYSIS.topLimit),
 });
 const aging = z.strictObject({
   buckets: z.tuple([

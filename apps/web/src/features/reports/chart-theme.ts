@@ -9,6 +9,7 @@ export function chartTheme(token: GlobalToken) {
     net: token.colorWarning,
     ages: [token.colorSuccess, token.colorPrimary, token.colorWarning, token.colorErrorBorderHover, token.colorError],
     unaged: token.colorTextQuaternary,
+    heatmap: [token.colorFillSecondary, token.colorInfoBg, token.colorInfo, token.colorSuccess, token.colorError],
   };
 }
 export function chartBase(token: GlobalToken): ChartOption {

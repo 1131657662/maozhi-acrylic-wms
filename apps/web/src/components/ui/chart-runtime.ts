@@ -1,17 +1,45 @@
 import { init, use, type ComposeOption } from 'echarts/core';
-import { LineChart, BarChart, type LineSeriesOption, type BarSeriesOption } from 'echarts/charts';
+import {
+  LineChart,
+  BarChart,
+  HeatmapChart,
+  type LineSeriesOption,
+  type BarSeriesOption,
+  type HeatmapSeriesOption,
+} from 'echarts/charts';
 import {
   GridComponent,
   TooltipComponent,
   LegendComponent,
+  CalendarComponent,
+  VisualMapComponent,
   type GridComponentOption,
   type TooltipComponentOption,
   type LegendComponentOption,
+  type CalendarComponentOption,
+  type VisualMapComponentOption,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
-use([LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
+use([
+  LineChart,
+  BarChart,
+  HeatmapChart,
+  GridComponent,
+  TooltipComponent,
+  LegendComponent,
+  CalendarComponent,
+  VisualMapComponent,
+  CanvasRenderer,
+]);
 export { init };
 export type ChartOption = ComposeOption<
-  LineSeriesOption | BarSeriesOption | GridComponentOption | TooltipComponentOption | LegendComponentOption
+  | LineSeriesOption
+  | BarSeriesOption
+  | HeatmapSeriesOption
+  | GridComponentOption
+  | TooltipComponentOption
+  | LegendComponentOption
+  | CalendarComponentOption
+  | VisualMapComponentOption
 >;
