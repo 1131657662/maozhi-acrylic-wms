@@ -8,13 +8,13 @@ test('B 草稿：离开确认、恢复全部选择及商品数量、提交清除
   await expect
     .poll(() => page.evaluate(() => localStorage.getItem('wms-form-draft:owner:inbound:new')))
     .toContain('本机草稿验收');
-  await page.getByRole('menuitem').filter({ hasText: '出库工作台' }).click();
+  await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
   await expect(page.locator('.ant-modal-confirm-title')).toHaveText('有未保存的修改');
   await expect.poll(() => page.locator('.ant-modal').evaluate(el => el.getBoundingClientRect().width)).toBeGreaterThan(410);
   await page.screenshot({ path: '.local/evidence/web-ux-b/leave-confirm-1440.png', fullPage: true });
   await page.getByRole('button', { name: '继续编辑', exact: true }).click();
   await expect(page).toHaveURL(/\/inbound\/new$/);
-  await page.getByRole('menuitem').filter({ hasText: '出库工作台' }).click();
+  await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
   await page.getByRole('button', { name: '放弃修改', exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await page.goto('/inbound/new');
@@ -38,12 +38,12 @@ test('B 草稿：刷新原生提示，恢复日期；丢弃草稿不再提示', 
   expect(seen).toBeTruthy();
   await page.getByRole('button', { name: /^恢\s*复$/ }).click();
   await expect(page.getByLabel('业务日期')).not.toHaveValue('');
-  await page.getByRole('menuitem').filter({ hasText: '出库工作台' }).click();
+  await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
   await page.getByRole('button', { name: '放弃修改', exact: true }).click();
   await page.goto('/inbound/new');
   await page.getByRole('button', { name: /^丢\s*弃$/ }).click();
   expect(await page.evaluate(() => localStorage.getItem('wms-form-draft:owner:inbound:new'))).toBeNull();
-  await page.getByRole('menuitem').filter({ hasText: '出库工作台' }).click();
+  await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
   await expect(page).toHaveURL(/\/$/);
 });
 test('B 草稿：还原到初始值不拦截，身份及单据隔离', async ({ page }) => {
@@ -56,7 +56,7 @@ test('B 草稿：还原到初始值不拦截，身份及单据隔离', async ({ 
       JSON.stringify({ values: '{"memo":"其他人"}', time: '10:00' }),
     ),
   );
-  await page.getByRole('menuitem').filter({ hasText: '出库工作台' }).click();
+  await page.getByRole('menuitem').filter({ hasText: '出库列表' }).click();
   await expect(page).toHaveURL(/\/$/);
   await page.goto('/outbound/new');
   await expect(page.getByText(/发现未提交的草稿/)).toHaveCount(0);

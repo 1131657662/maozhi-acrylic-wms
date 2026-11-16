@@ -3,12 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { e2eDatabase } from './inventory-helpers';
 
 async function login(page: Page): Promise<void> {
-  await page.goto('/user/login?redirect=%2F');
+  await page.goto('/user/login?redirect=%2Foutbound');
   await expect(page.getByRole('heading', { name: '登录工作台' })).toBeVisible({ timeout: 15000 });
   await page.getByLabel('用户名', { exact: true }).fill('owner');
   await page.getByLabel('密码', { exact: true }).fill('e2e-only-password');
   await page.getByRole('button', { name: /登\s*录/ }).click();
-  await expect(page.getByRole('heading', { name: '出库工作台' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '出库列表' })).toBeVisible();
 }
 async function freezeViaPda(api: APIRequestContext): Promise<void> {
   const base = 'http://127.0.0.1:4311/api/v1';

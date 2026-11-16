@@ -19,7 +19,7 @@ test('B1b1 列显隐持久化，排序/分页保留选择，改筛选清空', as
   const vehicle = page.getByRole('treeitem').filter({ hasText: '车牌' });
   await vehicle.locator('.ant-tree-checkbox').click();
   await page.keyboard.press('Escape');
-  await page.getByRole('heading', { name: '出库工作台' }).click();
+  await page.getByRole('heading', { name: '出库列表' }).click();
   await expect(list.getByRole('columnheader', { name: '车牌', exact: true })).toHaveCount(0);
   await page.reload();
   await expect(list.locator('tbody tr[data-row-key]')).toHaveCount(20);

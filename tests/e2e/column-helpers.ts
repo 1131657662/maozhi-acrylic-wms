@@ -79,7 +79,7 @@ export async function toggleColumn(page: Page, kind: string, label: string) {
       }),
     );
   await page.getByRole('treeitem').filter({ hasText: label }).locator('.ant-tree-checkbox').click();
-  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
+  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库列表', exact: true }).click();
 }
 
 export async function resetColumns(page: Page, kind: string, widthsOnly = false) {
@@ -87,7 +87,7 @@ export async function resetColumns(page: Page, kind: string, widthsOnly = false)
   await page
     .getByRole('button', { name: widthsOnly ? '重置列宽' : '重置列设置', exact: true })
     .click({ timeout: 8000 });
-  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
+  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库列表', exact: true }).click();
 }
 
 export async function reorderColumn(page: Page, kind: string) {
@@ -115,5 +115,5 @@ export async function reorderColumn(page: Page, kind: string) {
   await page.mouse.move(end.x + 41, end.y + end.height - 2);
   await expect(page.locator('.ant-tree-drop-indicator')).toBeVisible();
   await page.mouse.up();
-  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库工作台', exact: true }).click();
+  await page.getByRole('heading', { name: kind === 'inbound' ? '入库记录' : '出库列表', exact: true }).click();
 }

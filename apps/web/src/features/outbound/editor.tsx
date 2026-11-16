@@ -129,7 +129,7 @@ function LoadedPlanEditor({ id, order }: { id: string; order?: Detail }) {
           searchConfig: { submitText: lock.text(order ? '保存修改' : '创建计划'), resetText: '取消' },
           render: (_, dom) => (
             <Space>
-              <Link to={order ? `/outbound/${order.id}` : '/'}>
+              <Link to={order ? `/outbound/${order.id}` : '/outbound'}>
                 <Button>取消</Button>
               </Link>
               {dom[1]}

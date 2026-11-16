@@ -95,7 +95,7 @@ for (const item of pages.slice(0, 2)) {
       .locator('tbody tr[data-row-key] a')
       .first()
       .click();
-    await page.getByRole('link', { name: /返回(入库记录|出库工作台)/ }).click();
+    await page.getByRole('link', { name: /返回(入库记录|出库列表)/ }).click();
     expect(new URL(page.url()).search).toBe(query);
     await rowsReady(page, item.kind, 20);
     console.log('B1B1_RETURN ' + item.kind + ' query_and_page=preserved');

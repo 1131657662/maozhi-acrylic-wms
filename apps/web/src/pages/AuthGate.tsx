@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from '@umijs/max';
 import { Button, Skeleton } from 'antd';
 import { useSession } from '../features/auth/use-session';
+import { internalDestination } from '../features/outbound/list-route';
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -11,6 +12,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (error)
     return <RequestError type="error" error={error} action={<Button onClick={() => void refetch()}>重试</Button>} />;
   if (!session)
-    return <Navigate to={`/user/login?redirect=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+    return (
+      <Navigate
+        to={`/user/login?redirect=${encodeURIComponent(internalDestination(location.pathname + location.search + location.hash))}`}
+        replace
+      />
+    );
   return <>{children}</>;
 }

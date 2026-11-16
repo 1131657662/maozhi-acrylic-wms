@@ -32,7 +32,7 @@ export function OrderDetail() {
     );
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: token.marginMD }}>
-      <ListBackLink fallback="/">← 返回出库工作台</ListBackLink>
+      <ListBackLink fallback="/outbound">← 返回出库列表</ListBackLink>
       <div className="page-title">
         <div>
           <span className="eyebrow">出库详情</span>
