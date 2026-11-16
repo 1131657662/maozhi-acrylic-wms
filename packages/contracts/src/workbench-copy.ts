@@ -73,4 +73,9 @@ export const workbenchCopy = {
   outboundLine: '出库',
   retry: '重试',
   pendingHelp: '待确认入库与未完成出库单数；扫码结束不代表发货',
+  lockHelp: '盘点期间暂停该仓库库存写入，详见下方待办',
+  elapsed: '已持续',
+  registerInbound: '登记入库',
+  dailyValues: '查看每日数量',
+  stocktakeUnknown: '盘点暂停状态待核查',
 } as const;

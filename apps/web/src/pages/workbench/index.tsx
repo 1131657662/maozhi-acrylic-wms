@@ -1,7 +1,5 @@
 import { Navigate, useLocation } from '@umijs/max';
-import { AppstoreOutlined } from '@ant-design/icons';
-import { workbenchCopy as copy } from '@wms/contracts';
-import { PageShell } from '../../components/ui/PageShell';
+import { WorkbenchView } from '../../features/workbench/page';
 import { AuthGate } from '../AuthGate';
 import { internalDestination } from '../../features/outbound/list-route';
 
@@ -12,9 +10,7 @@ export default function WorkbenchPage() {
   if (target !== current) return <Navigate to={target} replace />;
   return (
     <AuthGate>
-      <PageShell title={copy.title} icon={<AppstoreOutlined />} description={copy.description}>
-        {null}
-      </PageShell>
+      <WorkbenchView />
     </AuthGate>
   );
 }
