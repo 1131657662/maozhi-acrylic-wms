@@ -1,5 +1,16 @@
 # 决策台账（DECISION_LOG）
 
+## B7b-2 数据看板（2026-11-16）
+
+| 日期 | 决定 | 状态 | 落到哪 |
+|---|---|---|---|
+| 2026-11-16 | 新增只读 `/web/analysis`，参数 fromDay/toDay/basis，basis 默认 posted；一次只读快照，缓存按日期范围、basis、写版本区分，TTL 30 秒并写后失效 | 生效 | WORKBENCH_SPEC §11 |
+| 2026-11-16 | 12个月趋势与月度对比共用月度聚合；Top 最多10项，商品按有效出库克数、客户按有效出库克数、供应商按有效入库克数排名，Tooltip 展示双向数量，并列按业务编码升序 | 生效 | WORKBENCH_SPEC §11 |
+| 2026-11-16 | 热力图按日有效入库克数+有效出库克数，以 toDay 为末日返回183天；0为已核验无发生，null为不可核验；周转为截至 toDay 的近六个月 | 生效 | WORKBENCH_SPEC §11 |
+| 2026-11-16 | 入库时长为建单至确认操作流水；出库为建单至最终完成发货；最长滞留取快照时未完成单据中建单最早者，按小时展示 | 生效 | WORKBENCH_SPEC §11 |
+| 2026-11-16 | Top 与库龄使用 Bar；不注册 Pie；热力按需注册 HeatmapChart、CalendarComponent、VisualMapComponent；首屏数字先绘制，图表后初始化 | 生效 | WORKBENCH_SPEC §5、§11 |
+| 2026-11-16 | 首屏 p95 < 2s，冷热各30次、并发1/5；与报表三组同范围对账、全量 test/build/E2E；五笔提交后停止，不合并推送 | 生效 | WORKBENCH_SPEC §11；IMPLEMENTATION_PLAN B7b-2 |
+
 ## B7b-1 工作台与路由（2026-11-16）
 
 | 日期 | 决定 | 状态 | 落到哪 |

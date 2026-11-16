@@ -40,11 +40,11 @@
 | 时间范围 | 本月/上月/今年/去年/自定义（全局） |
 | 12 个月趋势 | 折线/面积，入库 vs 出库，可切吨数/包数 |
 | 月度对比 | 柱状 + 环比 |
-| Top 排行 | 商品 / 客户 / 供应商 三列横条 |
+| Top 排行 | 商品 / 客户 / 供应商 三列横向条形图；按克数排名 |
 | 库龄结构 | 五档堆叠条 |
 | 周转趋势 | 近 6 个月周转次数与天数 |
-| 日历热力 | 近 6 个月每日吨数 |
-| 单据时效 | 平均确认时长、最长滞留单 |
+| 日历热力 | 截止日向前连续 183 个上海自然日的每日入库+出库吨数 |
+| 单据时效 | 入库/出库分别计算平均确认时长，并列出最长滞留单 |
 
 看板不放任何写操作；与工作台共用同一聚合服务。
 
@@ -62,14 +62,14 @@
 
 ## 5. 图表
 
-ECharts 按需注册（Line/Bar/Pie/Heatmap + Grid/Tooltip/Legend/Calendar/VisualMap/CanvasRenderer），自封 <Chart> 组件（init + ResizeObserver + dispose），不用 echarts-for-react。
+ECharts 按需注册（Line/Bar/Heatmap + Grid/Tooltip/Legend/Calendar/VisualMap/CanvasRenderer），自封 <Chart> 组件（init + ResizeObserver + dispose），不用 echarts-for-react。看板不注册 Pie；库龄与 Top 使用条形图。
 迷你趋势线用 SVG 手写。
 配色取chartTheme.inbound/outbound与colorBorderSecondary等theme token，不用裸色值。
 
 ## 6. 接口
 
 GET /api/v1/web/dashboard → today、pending、stocktake、stale、stock、trend14d、topProducts、topCustomers、recent、catalogHealth、handoffEvidence、vehicleOrders、asOf、watermark、verification
-GET /api/v1/web/analysis?fromDay=&toDay= → monthly、tops、aging、turnover、heatmap、duration
+GET /api/v1/web/analysis?fromDay=&toDay=&basis=posted → monthly、tops、aging、turnover、heatmap、duration；basis 可取 posted/restated
 两接口均服务端聚合，缓存 30 秒。
 
 ## 7. 边界
@@ -95,7 +95,7 @@ GET /api/v1/web/analysis?fromDay=&toDay= → monthly、tops、aging、turnover�
 
 两个API与/dashboard页面当前不存在，B7b（UI-3）新增；/当前出库列表迁到/outbound需保留旧链接和登录跳转兼容。聚合复用B3c、B5d及B6f的服务端读模型，不由浏览器逐页拼统计，不必为聚合本身建新库存表。
 
-每个指标返回value、unit（单/包/克/次/天）、period、basis、verification/reason；日期统一上海自然日半开区间，今日只到asOf。入/出库KPI与报表页同口径：确认减撤销，数量更正差额计入对应有效收发量，同时保留更正分类；调整/盘点/转移不混入收发，样品出库含在出库。不另建一套计算规则，复用报表事件归一化和收发累计函数。取样统计后置，不返回假零。环比同等时间窗，分母0/未知返回NULL及原因。Top排序用数值+业务编码稳定排序；缺历史快照不得拿当前名称假装原证据。
+每个指标返回value、unit（单/包/克/次/天）、period、basis、verification/reason；日期统一上海自然日半开区间，今日只到asOf。入/出库与报表页同口径：确认减撤销，数量更正差额计入对应有效收发量，同时保留更正分类；调整/盘点/转移不混入收发，样品出库含在出库。不另建一套计算规则，复用报表事件归一化和收发累计函数。取样统计后置，不返回假零。环比同等时间窗，分母0/未知返回NULL及原因。Top排序用数值+业务编码稳定排序；缺历史快照不得拿当前名称假装原证据。
 
 dashboard一次读快照返回全部区块，共用asOf/watermark；analysis复用同basis和条件，默认入账口径，重述能力服从REPORT_SPEC。超时区块明确失败而非0；缓存30秒且写入后失效。只读值可为真实空0，车辆在装/离场、设备实时队列和全设备同步覆盖率均不支持，不能用确认时间推断。
 
@@ -104,6 +104,7 @@ dashboard一次读快照返回全部区块，共用asOf/watermark；analysis复�
 修订记录：C11 替换设备实时队列与车辆离场卡片，仅展示可核验单据/交接证据，不可推断项标不支持。
 修订记录：C12 明确新增聚合API、单位/归期/水位/空未知态、缺失响应与性能基准。
 修订记录：C17 图表颜色改token，补热力图注册依赖。
+修订记录：C18 登记 B7b-2 的接口、聚合口径、Top/时效、183日热力、按需图表和性能验收约束。
 
 ## 10. B7b-1 工作台与路由（2026-11-16，已确认范围）
 
@@ -142,3 +143,17 @@ dashboard一次读快照返回全部区块，共用asOf/watermark；analysis复�
 六笔依次为：规格与决策；契约与批量数据投影；聚合接口/缓存与接口回归；路由兼容与导航回归；工作台页面与交互；性能/全量验证与验收记录。每笔代码提交前审查，不合并、不推送。
 
 验收：三组合成收发场景（含更正、撤销、跨日与样品）与同日同asOf报表包/克一致；权限、未知/真实空、部分失败、缓存写后失效、固定批量查询；旧链接参数保留、裸根路径工作台、详情返回与登录恢复；完整test/build/E2E。至少1万主单/10万流水，同机并发1和5，冷/热各30次，单独记录接口与首屏p95，均目标<1秒；冷请求不可用缓存掩盖，不先宣称达标。1440/1280截图仅存.local/evidence，复用隔离测试库，不改变截图基础设施。
+
+## 11. B7b-2 数据看板（2026-11-16，已确认实现范围）
+
+- 本批新增只读页面 `/dashboard` 与 `GET /api/v1/web/analysis?fromDay=&toDay=&basis=posted`；basis 支持 posted/restated，默认 posted。日期校验、上海自然日口径和最大跨度服从报表契约。
+- 一次只读一致性快照产生全部区块，固定类别/数量的聚合查询，不按月份、日期或单据逐条查询。每块带单位、实际统计期间、basis、verification 和 reason；不能验证的数据为 null 并说明原因，不以0代替。真实无发生量可以为0；空图不绘制坐标轴。
+- 12个月趋势与月度对比共用一次月度投影/聚合，使用请求 fromDay/toDay；Top 与时效也使用该请求区间。库龄以 toDay 为截止日。周转趋势使用截至 toDay 的最近六个月；热力图使用截至 toDay 的连续183个上海自然日。
+- Top 最多10项：商品以有效出库克数降序排名，客户以有效出库克数降序，供应商以有效入库克数降序。Tooltip 分别列出入库、出库数值；并列时业务编码升序，内部主键仅作最终稳定排序且不显示。
+- 热力图色阶值为每日有效入库克数与有效出库克数之和；Tooltip 保留两方向的克数。返回恰好183个位置，0表示已核验无发生，null表示该日数据无法核验。末日为 toDay，当日数据仅统计至 asOf。
+- 入库平均确认时长为 receipt.created_at 至其确认操作流水时间；出库平均确认时长为 outbound_orders.created_at 至使单据最终完成的最后一笔发货 shipped_at。平均值按确认/完成事件落在请求日期区间的单据计算。最长滞留为快照时仍未完成的入库待确认或出库未完成单据中 created_at 最早的一张，按建单至 asOf 的小时数展示。缺少任一时间证据时返回不可验证原因。
+- 单据 Top、时效与流水仍遵循报表确认/撤销/更正口径；扫码不参与库存或排行。历史对象名称缺少当时快照时不以当前名称冒充历史名称。
+- `/web/analysis` 缓存键包含 fromDay、toDay、basis 和数据库写版本，沿用30秒 TTL、并发请求合并和写后失效；与工作台共用缓存时钟与快照实现，不共用不同筛选条件的响应缓存项。
+- Top 使用横向 Bar；不注册 Pie。热力使用 HeatmapChart、CalendarComponent、VisualMapComponent，颜色全部来自 theme token。数字先绘制，ECharts 在首屏绘制后初始化。
+- 不新增迁移；不迁移历史单据、不承接未完成单据、不写生产库、不新增 frozen 状态写入。实现后按5笔提交停止，不合并、不推送。
+- 验收：报表同范围三组抽样对账；热力数组长度183且区分0/null；Top 同值按编码稳定排序；首屏 p95 < 2s，冷/热各30次、并发1/5；完整 test/build/E2E；1440/1280 截图存 `.local/evidence/`。代码完成、构建、E2E与浏览器截图分别记录，不宣称生产或实体设备验收。
