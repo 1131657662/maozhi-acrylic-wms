@@ -85,4 +85,4 @@ PerformanceObserver未观测到>50ms任务不等于任务耗时0ms；手势标�
 
 代码审查覆盖完整实现、单测和E2E差异；首轮发现的固定合计表遗漏已经修正，重跑后无已知阻断问题。审查记录 `.local/evidence/b6i4/code-review.md`。TypeScript/Playwright通过Prettier，`git diff --check`通过，Ant Design lint 0项。
 
-三笔提交：第1笔规格/基线/范围与决策 `b3e7db8`；第2笔DOM提交、静默保存、布局接管、合计行兼容修复及回归 `6e92e31`；第3笔本验收、IMPLEMENTATION_PLAN和AF-056状态。完成三笔后停止；不合并、不推送。代码与本地自动化验证完成、等待用户验收；这不代表实体设备或生产验收。
+三笔功能提交：第1笔规格/基线/范围与决策 `b3e7db8`；第2笔DOM提交、静默保存、布局接管、合计行兼容修复及回归 `6e92e31`；第3笔本验收、IMPLEMENTATION_PLAN和AF-056状态 `66f6665`。用户随后验收通过，功能以非快进合并提交 `8943ab3` 合入master并推送；merge/push exit均0，推送后远端HEAD为 `8943ab30c591f17a470104a46928c6da69bd78e7`。合并后的批次状态收尾由独立 `codex/*` 分支提交并按项目规则非快进合并。代码与本地自动化验证完成；这不代表实体设备或生产验收，B7b未启动。
