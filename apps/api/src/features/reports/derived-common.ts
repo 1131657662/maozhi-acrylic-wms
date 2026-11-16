@@ -34,10 +34,19 @@ export function shiftDay(day: string, offset: number): string {
   return new Date(Date.parse(day + 'T00:00:00Z') + offset * 86400000).toISOString().slice(0, 10);
 }
 
+const countEvents = new WeakMap<LedgerEvent[], { length: number; events: LedgerEvent[] }>();
 export function periodCounts(events: LedgerEvent[], fromDay: string, toDay: string) {
   const adjustments = new Set<string>(),
     stocktakes = new Set<string>();
-  for (const event of events) {
+  let relevant = countEvents.get(events);
+  if (!relevant || relevant.length !== events.length) {
+    relevant = {
+      length: events.length,
+      events: events.filter((event) => ['manual', 'import', 'count'].includes(event.family)),
+    };
+    countEvents.set(events, relevant);
+  }
+  for (const event of relevant.events) {
     if (!event.localTime) continue;
     const day = event.localTime.slice(0, 10);
     if (day < fromDay || day > toDay) continue;
@@ -52,38 +61,7 @@ export function periodCounts(events: LedgerEvent[], fromDay: string, toDay: stri
   };
 }
 
-export function dailyBalances(cell: Cell, days: string[]) {
-  const byDay = eventsByDay(cell.events ?? []),
-    events = cell.events ?? [],
-    first = days[0],
-    prior = first
-      ? events.filter((event) => event.localTime && event.localTime < first + ' 00:00:00').at(-1)
-      : undefined,
-    firstEvent = first ? events.find((event) => event.localTime && event.localTime >= first + ' 00:00:00') : undefined;
-  let balance: number | null = prior?.afterGrams ?? (firstEvent?.beforeGrams === 0 ? 0 : null);
-  const values = days.map((day) => {
-    const current = byDay.get(day);
-    if (current?.length) balance = current.at(-1)!.afterGrams;
-    return balance !== null && balance >= 0 ? balance : null;
-  });
-  const completeDays = values.filter((value) => value !== null).length;
-  return {
-    completeDays,
-    sumGrams: completeDays === days.length ? values.reduce<number>((sum, value) => sum + value!, 0) : null,
-  };
-}
-
-function eventsByDay(events: LedgerEvent[]) {
-  const days = new Map<string, LedgerEvent[]>();
-  for (const event of events) {
-    if (!event.localTime) continue;
-    const key = event.localTime.slice(0, 10),
-      items = days.get(key) ?? [];
-    items.push(event);
-    days.set(key, items);
-  }
-  return days;
-}
+export { dailyBalances } from './derived-balances.ts';
 
 export type DerivedMetaArgs = {
   fromDay: string;

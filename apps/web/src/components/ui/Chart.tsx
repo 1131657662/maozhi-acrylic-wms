@@ -9,7 +9,8 @@ interface ChartProps {
   state: 'ready' | 'loading' | 'empty' | 'error' | 'unverifiable';
   message: string;
   description: string;
-  onPointClick?: (event: { name: string; seriesIndex?: number }) => void;
+  height?: number;
+  onPointClick?: (event: { name: string; seriesIndex?: number; dataIndex?: number }) => void;
 }
 
 function useChart(option: ChartOption | null, onPointClick?: ChartProps['onPointClick']) {
@@ -26,7 +27,11 @@ function useChart(option: ChartOption | null, onPointClick?: ChartProps['onPoint
     instance.current.off('click');
     if (onPointClick)
       instance.current.on('click', (event) =>
-        onPointClick({ name: String(event.name ?? ''), seriesIndex: event.seriesIndex }),
+        onPointClick({
+          name: String(event.name ?? ''),
+          seriesIndex: event.seriesIndex,
+          dataIndex: event.dataIndex,
+        }),
       );
   }, [option, onPointClick]);
   useEffect(() => {
@@ -43,13 +48,20 @@ function useChart(option: ChartOption | null, onPointClick?: ChartProps['onPoint
   return container;
 }
 
-export function Chart({ option, state, message, description, onPointClick }: ChartProps) {
+export function Chart({
+  option,
+  state,
+  message,
+  description,
+  height = componentSize.reportChart,
+  onPointClick,
+}: ChartProps) {
   const container = useChart(state === 'ready' ? option : null, onPointClick);
   return (
     <div
       data-testid="chart"
       data-state={state}
-      style={{ height: componentSize.reportChart, minWidth: 0, position: 'relative', overflow: 'hidden' }}
+      style={{ height, minWidth: 0, position: 'relative', overflow: 'hidden' }}
     >
       <div
         ref={container}

@@ -18,6 +18,7 @@ function event(input: {
     productCode: input.productCode,
     partnerCode: input.partnerCode ?? null,
     weightGrams: input.grams,
+    packages: 1,
     localTime: input.localTime === undefined ? '2026-11-03 12:00:00.000000' : input.localTime,
   } as LedgerEvent;
 }
@@ -27,6 +28,7 @@ test('analysis aggregates effective flows and uses business-code tie breaks', ()
     [
       event({ family: 'outbound', productCode: 'SKU-Z', partnerCode: 'CUS-B', grams: 500 }),
       event({ family: 'outbound', productCode: 'SKU-A', partnerCode: 'CUS-A', grams: 500 }),
+      event({ family: 'inbound', productCode: 'SKU-B', partnerCode: 'SUP-C', grams: 9_000 }),
       event({ family: 'inbound', productCode: 'SKU-A', partnerCode: 'SUP-B', grams: 300 }),
       event({ family: 'inbound', productCode: 'SKU-Z', partnerCode: 'SUP-A', grams: 300 }),
     ],
@@ -43,12 +45,33 @@ test('analysis aggregates effective flows and uses business-code tie breaks', ()
   );
   assert.deepEqual(
     result.tops.suppliers.map((item) => item.code),
-    ['SUP-A', 'SUP-B'],
+    ['SUP-C', 'SUP-A', 'SUP-B'],
   );
   assert.equal(result.tops.products[0]?.rankedGrams, 500);
   assert.equal(result.tops.products[0]?.inboundGrams, 300);
   assert.equal(result.comparison.current.outboundGrams, 1000);
+  assert.deepEqual(
+    result.monthly.find((point) => point.month === '2026-11'),
+    {
+      month: '2026-11',
+      inboundGrams: 9600,
+      outboundGrams: 1000,
+      inboundPackages: 3,
+      outboundPackages: 2,
+    },
+  );
   assert.equal(result.monthly.length, 12);
+});
+
+test('Top rankings remain stable when tied events arrive in a different order', () => {
+  const rows = [
+    event({ family: 'outbound', productCode: 'SKU-Z', grams: 500 }),
+    event({ family: 'outbound', productCode: 'SKU-A', grams: 500 }),
+  ];
+  const rankCodes = (events: LedgerEvent[]) =>
+    movementAggregation(events, query).tops.products.map((item) => item.code);
+  assert.deepEqual(rankCodes(rows), ['SKU-A', 'SKU-Z']);
+  assert.deepEqual(rankCodes([...rows].reverse()), ['SKU-A', 'SKU-Z']);
 });
 
 test('analysis heatmap preserves verified zero separately from unknown dates', () => {

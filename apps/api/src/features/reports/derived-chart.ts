@@ -5,12 +5,29 @@ import type {
   ReportTurnoverQuery,
   ReportTurnoverRow,
 } from '@wms/contracts';
-import type { Projection } from './types.ts';
+import type { Cell, Projection } from './types.ts';
 import type { DatedEvent } from './restated-events.ts';
-import { turnoverRow } from './derived-rows.ts';
+import { turnoverChartRow } from './turnover-basis.ts';
 import { agingTotals, turnoverTotals } from './derived-totals.ts';
 import { shiftDay, snapshotPeriod } from './derived-common.ts';
 import { turnoverMetrics } from './turnover-metrics.ts';
+
+function turnoverChartCells(projection: Projection, restated: boolean): Cell[] {
+  const emptyStates = new Set<string>(),
+    cells: Cell[] = [];
+  for (const cell of projection.cells.values()) {
+    if (!restated && !cell.events?.length) {
+      // No events contribute zero outbound and unknown daily balances. Repeating identical states
+      // cannot change SUM(0), null propagation or the union of reasons; stock/aging totals stay untouched.
+      const state = cell.periods.get('range')!,
+        key = JSON.stringify([state.checkState, state.reasons]);
+      if (emptyStates.has(key)) continue;
+      emptyStates.add(key);
+    }
+    cells.push(cell);
+  }
+  return cells;
+}
 
 export function turnoverChart(args: {
   query: ReportTurnoverQuery;
@@ -27,10 +44,11 @@ export function turnoverChart(args: {
     datedCells.set(key, events);
   }
   // Reuse one captured snapshot; no monthly database rereads or browser aggregation.
+  const cells = turnoverChartCells(projection, Boolean(restated));
   const points = projection.periods.slice(1).map((period) => {
     const range = { ...query, fromDay: period.start.slice(0, 10), toDay: shiftDay(period.end.slice(0, 10), -1) };
-    const items = [...projection.cells.values()].map((cell) =>
-      turnoverRow(
+    const items = cells.map((cell) =>
+      turnoverChartRow(
         range,
         cell,
         projection,

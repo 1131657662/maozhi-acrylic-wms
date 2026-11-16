@@ -2,7 +2,7 @@ import { createHash, type Hash } from 'node:crypto';
 import type { ReportQuery } from '@wms/contracts';
 import type { Database, Row } from '../../db/mysql.ts';
 import type { Cell, Period, Projection } from './types.ts';
-import { balanceFields, balanceFrom, dimensionFilter, ledgerFields, ledgerFrom } from './sql.ts';
+import { balanceFields, balanceFrom, dimensionFilter } from './sql.ts';
 import { normalizeEvent } from './normalize.ts';
 import { cellFor, reportPeriods } from './periods.ts';
 import { consumeEvent, finishRow } from './accumulate.ts';
@@ -12,6 +12,7 @@ import { sourceDiagnostics, hashReferences } from './diagnostics.ts';
 import { documentCounts } from './counts.ts';
 import { reportSnapshot, snapshotLocalTime, REPORT_BATCH_SIZE, type ReportSnapshot } from './snapshot.ts';
 import { recordMonthlyDocument, type MonthlyDocuments } from './monthly-documents.ts';
+import { analysisLedger } from './analysis-ledger.ts';
 
 interface ProjectionState {
   monthlyDocuments: Map<string, MonthlyDocuments>;
@@ -31,9 +32,8 @@ interface ProjectionState {
   turnoverOnly: boolean;
   analysis: boolean;
 }
-function consumeRow(state: ProjectionState, row: Row): void {
-  state.digest.update(JSON.stringify(row));
-  const event = normalizeEvent(row);
+function consumeRow(state: ProjectionState, row: Row, event = normalizeEvent(row)): void {
+  if (!state.analysis) state.digest.update(JSON.stringify(row));
   state.cursor = event.sequence;
   if (event.deleted) return;
   const key = JSON.stringify([event.warehouseCode, event.productCode]);
@@ -52,13 +52,14 @@ function consumeRow(state: ProjectionState, row: Row): void {
     state.lastTime = event.localTime;
   }
   const range = state.periods[0]!;
-  if (event.localTime && event.localTime >= range.start && event.localTime < range.end)
+  if (!state.analysis && event.localTime && event.localTime >= range.start && event.localTime < range.end)
     recordMonthlyDocument(
       state.monthlyDocuments,
       { ...event, documentId: row.chartDocumentId == null ? null : String(row.chartDocumentId) },
       event.localTime,
     );
   if (
+    !state.analysis &&
     event.localTime &&
     event.localTime >= range.start &&
     event.localTime < range.end &&
@@ -72,13 +73,7 @@ function consumeRow(state: ProjectionState, row: Row): void {
 async function readEvents(db: Database, state: ProjectionState, query: ReportQuery): Promise<void> {
   const filter = dimensionFilter(query);
   if (state.analysis) {
-    const rows = await db.all(
-      `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN ${ledgerFields},
-       COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) AS chartDocumentId
-       ${ledgerFrom} WHERE s.id<=? ${filter.sql} ORDER BY s.id`,
-      [state.snapshot.watermarks.journalMaxId, ...filter.values],
-    );
-    for (const row of rows) consumeRow(state, row);
+    for (const event of await analysisLedger(db, state.snapshot)) consumeRow(state, {}, event);
     return;
   }
   for (;;) {
@@ -103,7 +98,7 @@ export async function buildProjection(
   const state: ProjectionState = {
     monthlyDocuments: new Map(),
     cells: new Map(),
-    periods: reportPeriods(query),
+    periods: options.analysis ? reportPeriods(query).slice(0, 1) : reportPeriods(query),
     digest: createHash('sha256'),
     cursor: 0,
     missingTime: 0,
@@ -143,7 +138,7 @@ function finishProjection(
     monthlyDocuments: state.monthlyDocuments,
     snapshot: state.snapshot,
     cells: state.cells,
-    periods: state.periods,
+    periods: state.analysis ? reportPeriods(query) : state.periods,
     detailTotal: state.detailTotal,
     chronological: state.chronological,
     digest: state.digest.digest('hex'),

@@ -6,7 +6,9 @@ function sumKnown(rows: { [key: string]: unknown }[], key: string): number | nul
   return Number.isSafeInteger(sum) ? sum : null;
 }
 
-export function turnoverTotals(rows: ReportTurnoverRow[]): ReportTurnoverTotals {
+export function turnoverTotals(
+  rows: Pick<ReportTurnoverRow, 'netOutboundGrams' | 'dailyClosingGramsSum'>[],
+): ReportTurnoverTotals {
   return {
     netOutboundGrams: sumKnown(rows, 'netOutboundGrams'),
     dailyClosingGramsSum: sumKnown(rows, 'dailyClosingGramsSum'),

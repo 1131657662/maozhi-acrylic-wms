@@ -128,3 +128,28 @@ export function normalizeEvent(row: Row): LedgerEvent {
     checkState: '待核对',
   };
 }
+
+export function analysisHistoricalEvents(rows: Row[]): LedgerEvent[] {
+  const common = new Map<string, LedgerEvent>();
+  return rows.map((row) => {
+    const key = JSON.stringify([
+      row.warehouseCode,
+      row.productCode,
+      row.reportLocalTime,
+      row.source_business_type,
+      row.source_del_flag,
+    ]);
+    let base = common.get(key);
+    if (!base) {
+      base = normalizeEvent({ ...row, source_id: 'historical', correctionOffsetTonnes: '0.0000' });
+      common.set(key, base);
+    }
+    const values = { ...row, source_id: 'historical', correctionOffsetTonnes: '0.0000' };
+    return {
+      ...base,
+      ...quantities(values, objectJson(row.source_row_json), base),
+      id: String(row.id),
+      sequence: Number(row.id),
+    };
+  });
+}

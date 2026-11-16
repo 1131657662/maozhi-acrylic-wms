@@ -11,6 +11,8 @@ export const ANALYSIS = {
   monthlyTrendMonths: 12,
   turnoverMonths: 6,
   heatmapDays: 183,
+  maxRangeDays: 367,
+  dayMs: 86_400_000,
 } as const;
 
 export const analysisQuerySchema = z
@@ -20,8 +22,10 @@ export const analysisQuerySchema = z
     basis: basis.default('posted'),
   })
   .refine(
-    (query) => query.fromDay <= query.toDay && Date.parse(query.toDay) - Date.parse(query.fromDay) <= 366 * 86_400_000,
-    '请选择不超过 367 天的有效日期范围',
+    (query) =>
+      query.fromDay <= query.toDay &&
+      Date.parse(query.toDay) - Date.parse(query.fromDay) <= (ANALYSIS.maxRangeDays - 1) * ANALYSIS.dayMs,
+    `请选择不超过 ${ANALYSIS.maxRangeDays} 天的有效日期范围`,
   );
 export type AnalysisQuery = z.infer<typeof analysisQuerySchema>;
 
@@ -39,7 +43,14 @@ export function analysisBlockSchema<T extends z.ZodType>(data: T) {
 
 const movement = z.strictObject({ inboundGrams: integer.nullable(), outboundGrams: integer.nullable() });
 const monthly = z.strictObject({
-  points: z.array(z.strictObject({ month: z.string(), ...movement.shape })),
+  points: z.array(
+    z.strictObject({
+      month: z.string(),
+      ...movement.shape,
+      inboundPackages: integer.nullable(),
+      outboundPackages: integer.nullable(),
+    }),
+  ),
 });
 const comparisonSide = z.strictObject({
   fromDay: day,

@@ -30192,17 +30192,25 @@
                                           "inboundGrams": {
                                             "$ref": "#/components/schemas/S_e48bc3464562b65b"
                                           },
+                                          "inboundPackages": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          },
                                           "month": {
                                             "$ref": "#/components/schemas/S_00404e686415370f"
                                           },
                                           "outboundGrams": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          },
+                                          "outboundPackages": {
                                             "$ref": "#/components/schemas/S_e48bc3464562b65b"
                                           }
                                         },
                                         "required": [
                                           "month",
                                           "inboundGrams",
-                                          "outboundGrams"
+                                          "outboundGrams",
+                                          "inboundPackages",
+                                          "outboundPackages"
                                         ],
                                         "type": "object"
                                       },

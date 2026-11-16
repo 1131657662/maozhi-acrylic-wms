@@ -31,6 +31,8 @@ export function Login() {
         body: JSON.stringify({ username: values.username, password: values.password, channel: 'web' }),
       });
       delete window.__wmsWorkbenchRequest;
+      delete window.__wmsAnalysisRequest;
+      delete window.__wmsAnalysisSettled;
       client.setQueryData(authKeys.session.queryKey, session);
       history.replace(redirect);
       return true;

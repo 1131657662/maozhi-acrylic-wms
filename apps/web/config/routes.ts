@@ -1,5 +1,6 @@
 export default [
   { path: '/', name: '工作台', icon: 'appstore', component: './workbench/index' },
+  { path: '/dashboard', name: '数据看板', icon: 'barChart', component: './dashboard' },
   { path: '/reports/details', name: '出入库明细', icon: 'profile', component: './reports/details' },
   { path: '/reports/monthly', name: '月度汇总', icon: 'barChart', component: './reports/monthly' },
   { path: '/reports/turnover', name: '周转率', icon: 'dashboard', component: './reports/turnover' },

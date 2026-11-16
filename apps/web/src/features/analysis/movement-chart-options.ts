@@ -1,4 +1,5 @@
 import type { GlobalToken } from 'antd';
+import { publicReportText } from '@wms/contracts';
 import type { Analysis } from '@wms/contracts';
 import type { ChartOption } from '../../components/ui/chart-runtime';
 import { chartAxis, chartBase, chartTheme } from '../reports/chart-theme';
@@ -7,15 +8,18 @@ import { chartCopy as copy } from '../reports/chart-copy';
 
 type MonthlyData = NonNullable<Analysis['monthly']['data']>;
 type ComparisonData = NonNullable<Analysis['comparison']['data']>;
-type TopData = NonNullable<Analysis['tops']['data']>['products'];
+type TopItem = NonNullable<Analysis['tops']['data']>['products'][number];
 const tonnesValue = (grams: number | null) => (grams === null ? null : grams / 1_000_000);
 
-export function trendOption(data: MonthlyData, token: GlobalToken): ChartOption {
-  const colors = chartTheme(token);
+export function trendOption(data: MonthlyData, token: GlobalToken, unit: 'grams' | 'packages' = 'grams'): ChartOption {
+  const colors = chartTheme(token),
+    label = unit === 'grams' ? copy.tonnes : copy.packages,
+    amount = (point: MonthlyData['points'][number], direction: 'inbound' | 'outbound') =>
+      unit === 'grams' ? tonnesValue(point[`${direction}Grams`]) : point[`${direction}Packages`];
   return {
     ...chartBase(token),
     xAxis: { ...chartAxis(token), type: 'category', data: data.points.map((point) => point.month) },
-    yAxis: { ...chartAxis(token), type: 'value', name: copy.tonnes },
+    yAxis: { ...chartAxis(token), type: 'value', name: label },
     series: [
       {
         name: copy.inbound,
@@ -24,7 +28,7 @@ export function trendOption(data: MonthlyData, token: GlobalToken): ChartOption 
         itemStyle: { color: colors.inbound },
         lineStyle: { color: colors.inbound },
         areaStyle: { color: colors.inbound, opacity: 0.1 },
-        data: data.points.map((point) => tonnesValue(point.inboundGrams)),
+        data: data.points.map((point) => amount(point, 'inbound')),
       },
       {
         name: copy.outbound,
@@ -33,7 +37,7 @@ export function trendOption(data: MonthlyData, token: GlobalToken): ChartOption 
         itemStyle: { color: colors.outbound },
         lineStyle: { color: colors.outbound },
         areaStyle: { color: colors.outbound, opacity: 0.1 },
-        data: data.points.map((point) => tonnesValue(point.outboundGrams)),
+        data: data.points.map((point) => amount(point, 'outbound')),
       },
     ],
     tooltip: {
@@ -42,7 +46,7 @@ export function trendOption(data: MonthlyData, token: GlobalToken): ChartOption 
         const first = Array.isArray(params) ? params[0] : params,
           point = first && data.points[first.dataIndex];
         return point
-          ? `${point.month}\n${copy.inbound}：${chartTonnes(point.inboundGrams)} ${copy.tonnes}\n${copy.outbound}：${chartTonnes(point.outboundGrams)} ${copy.tonnes}`
+          ? `${point.month}\n${copy.inbound}：${amount(point, 'inbound') ?? copy.unknown} ${label}\n${copy.outbound}：${amount(point, 'outbound') ?? copy.unknown} ${label}`
           : '';
       },
     },
@@ -81,8 +85,10 @@ export function compareOption(data: ComparisonData, token: GlobalToken): ChartOp
   };
 }
 
-export function topOption(data: TopData, token: GlobalToken): ChartOption {
+export function topOption(data: TopItem[], metric: 'inbound' | 'outbound', token: GlobalToken): ChartOption {
   const colors = chartTheme(token);
+  const metricColor = metric === 'inbound' ? colors.inbound : colors.outbound,
+    metricLabel = metric === 'inbound' ? copy.inbound : copy.outbound;
   return {
     ...chartBase(token),
     grid: { ...chartBase(token).grid, left: token.paddingLG, right: token.paddingLG },
@@ -91,14 +97,14 @@ export function topOption(data: TopData, token: GlobalToken): ChartOption {
       ...chartAxis(token),
       type: 'category',
       inverse: true,
-      data: data.map((item) => item.code),
+      data: data.map((item) => publicReportText(item.code)),
       axisLabel: { color: token.colorTextSecondary, width: token.fontSize * 12, overflow: 'truncate' },
     },
     series: [
       {
-        name: copy.outbound,
+        name: metricLabel,
         type: 'bar',
-        itemStyle: { color: colors.outbound },
+        itemStyle: { color: metricColor },
         data: data.map((item) => tonnesValue(item.rankedGrams)),
       },
     ],
@@ -108,7 +114,7 @@ export function topOption(data: TopData, token: GlobalToken): ChartOption {
         const first = Array.isArray(params) ? params[0] : params,
           item = first && data[first.dataIndex];
         return item
-          ? `${item.code}\n${copy.inbound}：${chartTonnes(item.inboundGrams)} ${copy.tonnes}\n${copy.outbound}：${chartTonnes(item.outboundGrams)} ${copy.tonnes}`
+          ? `${publicReportText(item.name ? `${item.name}（${item.code}）` : item.code)}\n${copy.inbound}：${chartTonnes(item.inboundGrams)} ${copy.tonnes}\n${copy.outbound}：${chartTonnes(item.outboundGrams)} ${copy.tonnes}`
           : '';
       },
     },

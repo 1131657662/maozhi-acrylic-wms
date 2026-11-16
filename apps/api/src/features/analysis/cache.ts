@@ -15,6 +15,10 @@ const cache = new WeakMap<Database['readCacheClock'], Map<string, Entry>>();
 const pending = new WeakMap<Database['readCacheClock'], Map<string, Pending>>();
 const CACHE_LIMIT = 64;
 
+export function clearAnalysisCache(db: Database): void {
+  cache.delete(db.readCacheClock);
+}
+
 function key(query: AnalysisQuery): string {
   return JSON.stringify([query.fromDay, query.toDay, query.basis]);
 }
