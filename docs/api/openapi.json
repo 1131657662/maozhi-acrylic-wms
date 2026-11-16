@@ -20,6 +20,34 @@
         },
         "type": "array"
       },
+      "S_0113c3a5f118130d": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "inboundGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "name": {
+            "$ref": "#/components/schemas/S_174e29b899b9ef91"
+          },
+          "outboundGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          },
+          "rankedGrams": {
+            "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "inboundGrams",
+          "outboundGrams",
+          "rankedGrams"
+        ],
+        "type": "object"
+      },
       "S_01d2f1d55ffcb1b1": {
         "items": {
           "$ref": "#/components/schemas/S_de909ea9de758aea"
@@ -1784,6 +1812,22 @@
           "message",
           "data",
           "traceId"
+        ],
+        "type": "object"
+      },
+      "S_550cfa6f01d02664": {
+        "additionalProperties": false,
+        "properties": {
+          "fromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "toDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          }
+        },
+        "required": [
+          "fromDay",
+          "toDay"
         ],
         "type": "object"
       },
@@ -3932,6 +3976,14 @@
         ],
         "type": "string"
       },
+      "S_a38ad55c3f2ff956": {
+        "enum": [
+          "克",
+          "小时",
+          "次/天"
+        ],
+        "type": "string"
+      },
       "S_a3ff09ae7091e03a": {
         "additionalProperties": false,
         "properties": {
@@ -4533,6 +4585,30 @@
         "const": "OK",
         "type": "string"
       },
+      "S_b47f5d3fb61dbc59": {
+        "additionalProperties": false,
+        "properties": {
+          "fromDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          },
+          "inboundGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "outboundGrams": {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          "toDay": {
+            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+          }
+        },
+        "required": [
+          "fromDay",
+          "toDay",
+          "inboundGrams",
+          "outboundGrams"
+        ],
+        "type": "object"
+      },
       "S_b4fe6306ad3adf2a": {
         "additionalProperties": false,
         "properties": {
@@ -4931,6 +5007,13 @@
         ],
         "type": "object"
       },
+      "S_c6349cd35ba3f909": {
+        "items": {
+          "$ref": "#/components/schemas/S_0113c3a5f118130d"
+        },
+        "maxItems": 10,
+        "type": "array"
+      },
       "S_c6b5eba0874323e5": {
         "format": "date-time",
         "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
@@ -5028,6 +5111,29 @@
           "traceId"
         ],
         "type": "object"
+      },
+      "S_cf6c385a0bd72d41": {
+        "items": false,
+        "maxItems": 5,
+        "minItems": 5,
+        "prefixItems": [
+          {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          },
+          {
+            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+          }
+        ],
+        "type": "array"
       },
       "S_cf7988589b974362": {
         "additionalProperties": false,
@@ -29743,6 +29849,663 @@
         "x-client-channel": "web"
       }
     },
+    "/web/analysis": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fromDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "toDay",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_d66426f1d7997a59"
+            }
+          },
+          {
+            "in": "query",
+            "name": "basis",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/S_b35d6a8e8a3144dc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "aging": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "buckets": {
+                                      "$ref": "#/components/schemas/S_cf6c385a0bd72d41"
+                                    },
+                                    "closingGrams": {
+                                      "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                    },
+                                    "unagedGrams": {
+                                      "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                    }
+                                  },
+                                  "required": [
+                                    "buckets",
+                                    "unagedGrams",
+                                    "closingGrams"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "asOf": {
+                          "$ref": "#/components/schemas/S_4747412d47680923"
+                        },
+                        "basis": {
+                          "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                        },
+                        "comparison": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "current": {
+                                      "$ref": "#/components/schemas/S_b47f5d3fb61dbc59"
+                                    },
+                                    "previous": {
+                                      "$ref": "#/components/schemas/S_b47f5d3fb61dbc59"
+                                    }
+                                  },
+                                  "required": [
+                                    "current",
+                                    "previous"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "duration": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "inboundAverageHours": {
+                                      "$ref": "#/components/schemas/S_a2fef0ca16ae81b8"
+                                    },
+                                    "inboundCompleted": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    },
+                                    "longestPending": {
+                                      "anyOf": [
+                                        {
+                                          "additionalProperties": false,
+                                          "properties": {
+                                            "createdAt": {
+                                              "$ref": "#/components/schemas/S_4747412d47680923"
+                                            },
+                                            "elapsedHours": {
+                                              "$ref": "#/components/schemas/S_d562458dea270026"
+                                            },
+                                            "kind": {
+                                              "$ref": "#/components/schemas/S_ec263776b1517059"
+                                            },
+                                            "number": {
+                                              "$ref": "#/components/schemas/S_00404e686415370f"
+                                            }
+                                          },
+                                          "required": [
+                                            "kind",
+                                            "number",
+                                            "createdAt",
+                                            "elapsedHours"
+                                          ],
+                                          "type": "object"
+                                        },
+                                        {
+                                          "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                        }
+                                      ]
+                                    },
+                                    "outboundAverageHours": {
+                                      "$ref": "#/components/schemas/S_a2fef0ca16ae81b8"
+                                    },
+                                    "outboundCompleted": {
+                                      "$ref": "#/components/schemas/S_e5ae5c0f5f1acc42"
+                                    }
+                                  },
+                                  "required": [
+                                    "inboundAverageHours",
+                                    "inboundCompleted",
+                                    "outboundAverageHours",
+                                    "outboundCompleted",
+                                    "longestPending"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "fromDay": {
+                          "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                        },
+                        "heatmap": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "days": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "day": {
+                                            "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                                          },
+                                          "inboundGrams": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          },
+                                          "outboundGrams": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          },
+                                          "value": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          }
+                                        },
+                                        "required": [
+                                          "day",
+                                          "value",
+                                          "inboundGrams",
+                                          "outboundGrams"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "maxItems": 183,
+                                      "minItems": 183,
+                                      "type": "array"
+                                    }
+                                  },
+                                  "required": [
+                                    "days"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "monthly": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "points": {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "inboundGrams": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          },
+                                          "month": {
+                                            "$ref": "#/components/schemas/S_00404e686415370f"
+                                          },
+                                          "outboundGrams": {
+                                            "$ref": "#/components/schemas/S_e48bc3464562b65b"
+                                          }
+                                        },
+                                        "required": [
+                                          "month",
+                                          "inboundGrams",
+                                          "outboundGrams"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    }
+                                  },
+                                  "required": [
+                                    "points"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "toDay": {
+                          "$ref": "#/components/schemas/S_d66426f1d7997a59"
+                        },
+                        "tops": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "customers": {
+                                      "$ref": "#/components/schemas/S_c6349cd35ba3f909"
+                                    },
+                                    "products": {
+                                      "$ref": "#/components/schemas/S_c6349cd35ba3f909"
+                                    },
+                                    "suppliers": {
+                                      "$ref": "#/components/schemas/S_c6349cd35ba3f909"
+                                    }
+                                  },
+                                  "required": [
+                                    "products",
+                                    "customers",
+                                    "suppliers"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "turnover": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "basis": {
+                              "$ref": "#/components/schemas/S_95d13da1bebfd4c3"
+                            },
+                            "data": {
+                              "anyOf": [
+                                {
+                                  "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "month": {
+                                        "$ref": "#/components/schemas/S_00404e686415370f"
+                                      },
+                                      "reasons": {
+                                        "$ref": "#/components/schemas/S_6f1049c85b09115d"
+                                      },
+                                      "turnoverDays": {
+                                        "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                      },
+                                      "turns": {
+                                        "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                      }
+                                    },
+                                    "required": [
+                                      "month",
+                                      "turns",
+                                      "turnoverDays",
+                                      "reasons"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "period": {
+                              "$ref": "#/components/schemas/S_550cfa6f01d02664"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "unit": {
+                              "$ref": "#/components/schemas/S_a38ad55c3f2ff956"
+                            },
+                            "verification": {
+                              "$ref": "#/components/schemas/S_1ed7494fd196c4eb"
+                            }
+                          },
+                          "required": [
+                            "data",
+                            "unit",
+                            "period",
+                            "basis",
+                            "verification",
+                            "reason"
+                          ],
+                          "type": "object"
+                        },
+                        "watermark": {
+                          "$ref": "#/components/schemas/S_00404e686415370f"
+                        }
+                      },
+                      "required": [
+                        "asOf",
+                        "watermark",
+                        "fromDay",
+                        "toDay",
+                        "basis",
+                        "monthly",
+                        "comparison",
+                        "tops",
+                        "aging",
+                        "turnover",
+                        "heatmap",
+                        "duration"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "数据看板聚合；单次只读快照、30秒按日期范围和口径缓存",
+        "x-client-channel": "web"
+      }
+    },
     "/web/dashboard": {
       "get": {
         "parameters": [],
@@ -34082,27 +34845,7 @@
                           "additionalProperties": false,
                           "properties": {
                             "buckets": {
-                              "items": false,
-                              "maxItems": 5,
-                              "minItems": 5,
-                              "prefixItems": [
-                                {
-                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
-                                },
-                                {
-                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
-                                },
-                                {
-                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
-                                },
-                                {
-                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
-                                },
-                                {
-                                  "$ref": "#/components/schemas/S_e48bc3464562b65b"
-                                }
-                              ],
-                              "type": "array"
+                              "$ref": "#/components/schemas/S_cf6c385a0bd72d41"
                             },
                             "closingGrams": {
                               "$ref": "#/components/schemas/S_e48bc3464562b65b"

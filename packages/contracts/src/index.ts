@@ -181,3 +181,4 @@ export * from './catalog-exports.ts';
 export * from './catalog-candidates.ts';
 export * from './workbench.ts';
 export * from './workbench-copy.ts';
+export * from './analysis.ts';

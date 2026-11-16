@@ -2,7 +2,7 @@ import { createHash, type Hash } from 'node:crypto';
 import type { ReportQuery } from '@wms/contracts';
 import type { Database, Row } from '../../db/mysql.ts';
 import type { Cell, Period, Projection } from './types.ts';
-import { balanceFields, balanceFrom, dimensionFilter } from './sql.ts';
+import { balanceFields, balanceFrom, dimensionFilter, ledgerFields, ledgerFrom } from './sql.ts';
 import { normalizeEvent } from './normalize.ts';
 import { cellFor, reportPeriods } from './periods.ts';
 import { consumeEvent, finishRow } from './accumulate.ts';
@@ -29,6 +29,7 @@ interface ProjectionState {
   snapshot: ReportSnapshot;
   cutoffTime: string;
   turnoverOnly: boolean;
+  analysis: boolean;
 }
 function consumeRow(state: ProjectionState, row: Row): void {
   state.digest.update(JSON.stringify(row));
@@ -70,6 +71,16 @@ function consumeRow(state: ProjectionState, row: Row): void {
 }
 async function readEvents(db: Database, state: ProjectionState, query: ReportQuery): Promise<void> {
   const filter = dimensionFilter(query);
+  if (state.analysis) {
+    const rows = await db.all(
+      `SELECT /*+ NO_BNL(p,w,o) */ STRAIGHT_JOIN ${ledgerFields},
+       COALESCE(s.inbound_receipt_id,s.order_id,sc.inbound_receipt_id,sc.outbound_order_id,NULLIF(s.source_order_no,'')) AS chartDocumentId
+       ${ledgerFrom} WHERE s.id<=? ${filter.sql} ORDER BY s.id`,
+      [state.snapshot.watermarks.journalMaxId, ...filter.values],
+    );
+    for (const row of rows) consumeRow(state, row);
+    return;
+  }
   for (;;) {
     // A primary-key batch stays bounded; hash joins otherwise sort the remaining ledger on every batch.
     const rows = await db.all(
@@ -86,7 +97,7 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
 export async function buildProjection(
   db: Database,
   query: ReportQuery,
-  options: { captureEvents?: boolean; snapshot?: ReportSnapshot; turnoverOnly?: boolean } = {},
+  options: { captureEvents?: boolean; snapshot?: ReportSnapshot; turnoverOnly?: boolean; analysis?: boolean } = {},
 ): Promise<Projection> {
   const snapshot = options.snapshot ?? (await reportSnapshot(db, query));
   const state: ProjectionState = {
@@ -105,11 +116,13 @@ export async function buildProjection(
     snapshot,
     cutoffTime: snapshotLocalTime(snapshot),
     turnoverOnly: options.turnoverOnly ?? false,
+    analysis: options.analysis ?? false,
   };
   await readEvents(db, state, query);
-  if (!options.turnoverOnly) await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
+  if (!options.turnoverOnly && !options.analysis)
+    await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
   await validateAnchors(db, { ...state, query });
-  if (!options.turnoverOnly) await hashReferences(db, state.digest);
+  if (!options.turnoverOnly && !options.analysis) await hashReferences(db, state.digest);
   const diagnostics = await sourceDiagnostics(db, query, state.snapshot);
   state.digest.update(JSON.stringify(diagnostics));
   for (const cell of state.cells.values()) for (const row of cell.periods.values()) finishRow(row);

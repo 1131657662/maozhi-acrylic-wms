@@ -77,6 +77,7 @@ function documentFields(
     orderNo: String(row.orderNo ?? ''),
     documentId: row.documentId == null ? null : String(row.documentId),
     partner: String(document.customer_name ?? row.partner ?? document.supplier_code ?? ''),
+    partnerCode: String(row.documentPartyCode ?? document.customer_code ?? document.supplier_code ?? '') || null,
     vehicleNo: String(document.vehicle_no ?? row.vehicleNo ?? ''),
     containerNo: String(document.container_no ?? ''),
     billType: String(document.bill_type_code ?? ''),

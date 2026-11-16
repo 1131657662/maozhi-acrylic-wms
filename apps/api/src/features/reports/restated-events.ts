@@ -60,6 +60,13 @@ export async function readDatedEvents(db: Database, query: ReportQuery, projecti
     }
   }
 }
+export function restatedEventsFromProjection(projection: Projection): DatedEvent[] {
+  const dates = effectiveDates(projection.snapshot);
+  return [...projection.cells.values()]
+    .flatMap((cell) => cell.events ?? [])
+    .sort((left, right) => left.sequence - right.sequence)
+    .map((event) => datedEvent(event, dates));
+}
 export function dayInRange(day: string | null, query: Pick<ReportQuery, 'fromDay' | 'toDay'>): boolean {
   return day !== null && day >= query.fromDay && day <= query.toDay;
 }
