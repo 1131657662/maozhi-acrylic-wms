@@ -77,6 +77,7 @@ function documentFields(
     orderNo: String(row.orderNo ?? ''),
     documentId: row.documentId == null ? null : String(row.documentId),
     partner: String(document.customer_name ?? row.partner ?? document.supplier_code ?? ''),
+    partnerCode: String(row.documentPartyCode ?? document.customer_code ?? document.supplier_code ?? '') || null,
     vehicleNo: String(document.vehicle_no ?? row.vehicleNo ?? ''),
     containerNo: String(document.container_no ?? ''),
     billType: String(document.bill_type_code ?? ''),
@@ -126,4 +127,29 @@ export function normalizeEvent(row: Row): LedgerEvent {
     timeStatus: row.source_id != null ? '时间未核实' : 'UTC → 上海时间',
     checkState: '待核对',
   };
+}
+
+export function analysisHistoricalEvents(rows: Row[]): LedgerEvent[] {
+  const common = new Map<string, LedgerEvent>();
+  return rows.map((row) => {
+    const key = JSON.stringify([
+      row.warehouseCode,
+      row.productCode,
+      row.reportLocalTime,
+      row.source_business_type,
+      row.source_del_flag,
+    ]);
+    let base = common.get(key);
+    if (!base) {
+      base = normalizeEvent({ ...row, source_id: 'historical', correctionOffsetTonnes: '0.0000' });
+      common.set(key, base);
+    }
+    const values = { ...row, source_id: 'historical', correctionOffsetTonnes: '0.0000' };
+    return {
+      ...base,
+      ...quantities(values, objectJson(row.source_row_json), base),
+      id: String(row.id),
+      sequence: Number(row.id),
+    };
+  });
 }

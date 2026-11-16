@@ -67,8 +67,10 @@ export interface Operation {
   safeEnvelope?: boolean;
 }
 import { dashboardOperations } from './features/workbench/openapi.ts';
+import { analysisOperations } from './features/analysis/openapi.ts';
 export const operations: Operation[] = [
   ...dashboardOperations,
+  ...analysisOperations,
   ...stockMovementOperations,
   ...shipmentOperations,
   ...scanWorkbenchOperations,

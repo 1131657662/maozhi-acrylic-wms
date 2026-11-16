@@ -26,6 +26,7 @@ export const ledgerFields = `${balanceFields},
   COALESCE(i.created_at,hi.created_at,b.created_at,hb.created_at) AS documentCreated,
   COALESCE(i.created_by,hi.created_by,'') AS documentActor,COALESCE(b.vehicle_no,hb.vehicle_no,'') AS vehicleNo,
   COALESCE(i.memo,hi.memo,'') AS memo,COALESCE(b.customer_name,hb.customer_name,su.name,'') AS partner,
+  COALESCE(i.supplier_code,hi.supplier_code,b.customer_code,hb.customer_code) AS documentPartyCode,
   c.original_operation_id AS originalOperationId`;
 export const balanceFrom = `FROM stock_journal s
   JOIN master_products p ON p.code=s.product_code AND p.inventory_eligible=1

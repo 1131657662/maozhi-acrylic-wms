@@ -16,12 +16,14 @@ import { ERROR_MAX_VISIBLE } from './text';
 import { UnsavedNavigation } from './components/form-protection/UnsavedNavigation';
 import { RepeatKeyGuard } from './components/form-protection/RepeatKeyGuard';
 import { workbenchKeys } from './features/workbench/keys';
+import { analysisKeys } from './features/analysis/queries';
 
 const client = new QueryClient({
   mutationCache: new MutationCache({
     onSettled: (_data, _error, _variables, _result, mutation) => {
       if (mutation.options.meta?.skipWorkbenchRefresh) return;
       void client.invalidateQueries({ queryKey: workbenchKeys._def });
+      void client.invalidateQueries({ queryKey: analysisKeys._def });
     },
   }),
   defaultOptions: { queries: { retry: 1 }, mutations: { networkMode: 'always', retry: false } },

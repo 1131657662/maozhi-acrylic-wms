@@ -7,6 +7,7 @@ export interface Period {
   end: string;
 }
 export interface LedgerEvent extends ReportDetailRow {
+  partnerCode: string | null;
   sequence: number;
   localTime: string | null;
   deleted: boolean;

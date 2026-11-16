@@ -449,6 +449,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 |---|---|---|---|---|
 | UI-3 | B7b 工作台/数据看板 | WORKBENCH_SPEC | 新dashboard/analysis聚合；复用B6f库存+B7a报表+B6d目录证据，本身无必需DDL；实时设备/离场不支持 | 8 |
 | B7b-1 | 工作台与出库路由迁移；WORKBENCH_SPEC §10 | **已完成并通过用户验收，非快进合并推送 `0217a573e4a6573f126c46867e6f64fba5464566`**。工作台八区块、单次聚合、同报表口径及出库路由兼容完成，看板/analysis后置；test/E2E/build=`546/218/0`。冷热并发1/5各30次：接口p95≤623.35ms，首屏p95≤991.20ms。原始样本、SQL、环境和数据截图存档于本机 `.local/evidence/b7b1/`。无DDL；详见 [B7B_1_ACCEPTANCE.md](B7B_1_ACCEPTANCE.md) | 已完成 |
+| B7b-2 | 数据看板聚合与只读页面；WORKBENCH_SPEC §11 | 前置 B7b-1、B7a、B6f；`/web/analysis` 与 `/dashboard` 已完成，无DDL。单快照固定8次SQL、日期/basis缓存、共享月聚合、Top/库龄/周转/183日热力/时效。完整test 561/561及最终相关回归20/20，build通过，完整E2E 221/221；冷热并发1/5各30次首屏p95最高1922.20ms。原始证据在 `.local/evidence/b7b-2/`，详见 [B7B_2_ACCEPTANCE.md](B7B_2_ACCEPTANCE.md)。时效终态样本采用当前有效完成的建议假设，待验收确认；五笔提交后停止，未合并推送 | 代码及本地验证完成，待用户验收 |
 | UI-4 | B6f 库存概览/流水 | STOCK_PAGE_SPEC | 已整体完成、用户验收通过；B6f-1/2a/2b/2c 均已合并推送，最终 471/170/0；无新增迁移，性能专项仍归 B6i | 6（已完成） |
 | UI-5 | B7a 报表页面 | REPORTS_PAGE_SPEC + REPORT_SPEC | 先B5d更正分列/日期更正重述（M-DATE-CORRECTIONS）；正式开账证据由B10/M-CUTOVER-ANCHOR提供，未有锚点仍标不可验证 | 7 |
 | UI-6 | B6d 条码目录 | CATALOG_PAGE_SPEC | M-CATALOG-CANDIDATES；保留006/007与既有交接门禁，不在本批加设备实时协议 | 4 |

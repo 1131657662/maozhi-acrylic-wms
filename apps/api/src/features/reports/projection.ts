@@ -12,6 +12,7 @@ import { sourceDiagnostics, hashReferences } from './diagnostics.ts';
 import { documentCounts } from './counts.ts';
 import { reportSnapshot, snapshotLocalTime, REPORT_BATCH_SIZE, type ReportSnapshot } from './snapshot.ts';
 import { recordMonthlyDocument, type MonthlyDocuments } from './monthly-documents.ts';
+import { analysisLedger } from './analysis-ledger.ts';
 
 interface ProjectionState {
   monthlyDocuments: Map<string, MonthlyDocuments>;
@@ -29,10 +30,10 @@ interface ProjectionState {
   snapshot: ReportSnapshot;
   cutoffTime: string;
   turnoverOnly: boolean;
+  analysis: boolean;
 }
-function consumeRow(state: ProjectionState, row: Row): void {
-  state.digest.update(JSON.stringify(row));
-  const event = normalizeEvent(row);
+function consumeRow(state: ProjectionState, row: Row, event = normalizeEvent(row)): void {
+  if (!state.analysis) state.digest.update(JSON.stringify(row));
   state.cursor = event.sequence;
   if (event.deleted) return;
   const key = JSON.stringify([event.warehouseCode, event.productCode]);
@@ -51,13 +52,14 @@ function consumeRow(state: ProjectionState, row: Row): void {
     state.lastTime = event.localTime;
   }
   const range = state.periods[0]!;
-  if (event.localTime && event.localTime >= range.start && event.localTime < range.end)
+  if (!state.analysis && event.localTime && event.localTime >= range.start && event.localTime < range.end)
     recordMonthlyDocument(
       state.monthlyDocuments,
       { ...event, documentId: row.chartDocumentId == null ? null : String(row.chartDocumentId) },
       event.localTime,
     );
   if (
+    !state.analysis &&
     event.localTime &&
     event.localTime >= range.start &&
     event.localTime < range.end &&
@@ -70,6 +72,10 @@ function consumeRow(state: ProjectionState, row: Row): void {
 }
 async function readEvents(db: Database, state: ProjectionState, query: ReportQuery): Promise<void> {
   const filter = dimensionFilter(query);
+  if (state.analysis) {
+    for (const event of await analysisLedger(db, state.snapshot)) consumeRow(state, {}, event);
+    return;
+  }
   for (;;) {
     // A primary-key batch stays bounded; hash joins otherwise sort the remaining ledger on every batch.
     const rows = await db.all(
@@ -86,13 +92,13 @@ async function readEvents(db: Database, state: ProjectionState, query: ReportQue
 export async function buildProjection(
   db: Database,
   query: ReportQuery,
-  options: { captureEvents?: boolean; snapshot?: ReportSnapshot; turnoverOnly?: boolean } = {},
+  options: { captureEvents?: boolean; snapshot?: ReportSnapshot; turnoverOnly?: boolean; analysis?: boolean } = {},
 ): Promise<Projection> {
   const snapshot = options.snapshot ?? (await reportSnapshot(db, query));
   const state: ProjectionState = {
     monthlyDocuments: new Map(),
     cells: new Map(),
-    periods: reportPeriods(query),
+    periods: options.analysis ? reportPeriods(query).slice(0, 1) : reportPeriods(query),
     digest: createHash('sha256'),
     cursor: 0,
     missingTime: 0,
@@ -105,11 +111,13 @@ export async function buildProjection(
     snapshot,
     cutoffTime: snapshotLocalTime(snapshot),
     turnoverOnly: options.turnoverOnly ?? false,
+    analysis: options.analysis ?? false,
   };
   await readEvents(db, state, query);
-  if (!options.turnoverOnly) await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
+  if (!options.turnoverOnly && !options.analysis)
+    await documentCounts(db, state.cells, { query, snapshot: state.snapshot });
   await validateAnchors(db, { ...state, query });
-  if (!options.turnoverOnly) await hashReferences(db, state.digest);
+  if (!options.turnoverOnly && !options.analysis) await hashReferences(db, state.digest);
   const diagnostics = await sourceDiagnostics(db, query, state.snapshot);
   state.digest.update(JSON.stringify(diagnostics));
   for (const cell of state.cells.values()) for (const row of cell.periods.values()) finishRow(row);
@@ -130,7 +138,7 @@ function finishProjection(
     monthlyDocuments: state.monthlyDocuments,
     snapshot: state.snapshot,
     cells: state.cells,
-    periods: state.periods,
+    periods: state.analysis ? reportPeriods(query) : state.periods,
     detailTotal: state.detailTotal,
     chronological: state.chronological,
     digest: state.digest.digest('hex'),
