@@ -457,7 +457,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | UI-7 | B6c 操作记录 | AUDIT_PAGE_SPEC | 已完成，240/116/0；015、成功/失败安全投影、受控 raw/trace、时间线及页面导出；见 B6C_3_ACCEPTANCE | 3 |
 | UI-8 | B8a维护 → B8b身份 → B8c通知 | OPS_PAGES_SPEC | M-MAINTENANCE → M-AUTH-EXTENSIONS → M-NOTIFICATIONS；通知依赖稳定业务/任务事件 | 维护可前置，完整页9 |
 | B8a-1 | 真实异步备份、校验下载、30日+12月保留、每日03:00自动备份/启动24h补偿、健康与两个Tab | OPS_PAGES_SPEC §6/6.5/6.6 | **已完成并通过用户验收，588/E2E 228**。起点3bd8def；实现分支codex/b8a-1-maintenance-backup五笔至bd13eab。完整test588/588，后增低权限导出1/1与调度回归7/7（含新增2项）；build通过。E2E主首轮206通过/4性能失败，原断言空闲复测4/4通过、长任务均为空，目录18/18；228项均有通过结果、跳过0，不宣称首轮一次全绿。026已备份并应用maozhi_dev_sample：迁移前后51张原表指纹不变；真实页面备份/下载SHA/篡改409/保留清理/实际停库503与恢复/连点单任务通过；冒烟后48张业务表不变。功能非快进合并推送2881fcbda1940f721c1f03e934e8643463ce5bd0，checkout/merge/push/远端核对exit均0；详见OPS §6.6。收尾文档经codex分支非快进合并推送后停止，不开始B8a-2 | 已完成并合并推送 |
-| B8a-2 | 隔离恢复、原库预备份、对账报告与失败证据保全 | OPS_PAGES_SPEC §7 | 用户确认开始；起点3f0cf3b，分支codex/b8a-2-isolated-restore。027备份基线与restore_verifications；RECOVER、专用隔离账号与one-database、预备份产物复核、备份时基线、旧备份有限核验、失败保留及阶段报告。五笔提交，完整test/build/E2E后待用户验收；不覆盖、不自动切换/迁移、不做云备份或跨实例、不改库存链路 | 进行中 |
+| B8a-2 | 隔离恢复、原库预备份、对账报告与失败证据保全 | OPS_PAGES_SPEC §7 | 代码完成待用户验收；起点3f0cf3b，分支codex/b8a-2-isolated-restore，五笔提交。027备份基线与restore_verifications；RECOVER、专用隔离账号/one-database、预备份产物复核、备份时基线、旧备份有限核验、失败保留/审计及真实阶段报告。完整test609/609、build通过、E2E231/231，最后弹窗修正专项3/3；首轮test五项旧迁移边界失败已修复，原断言不变。仅本地3307信任设置已按用户授权开启并持久化，关/开预检及原业务指纹通过；样本库仍026，未自动迁移/切换、未合并推送。详见B8A_2_ACCEPTANCE.md；不做云备份或跨实例、不改库存链路 | 待用户验收 |
 
 编号用于稳定跟踪，不表示必须按数值升序实施。UI编号保留页面归属，B编号负责代码/API/迁移/验证范围，不用UI页面完成掩盖后端缺口。
 

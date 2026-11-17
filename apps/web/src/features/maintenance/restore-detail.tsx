@@ -24,7 +24,7 @@ export function RestoreDetail({ id, close }: { id: string; close: () => void }) 
 function RestoreProgress({ detail }: { detail: Detail }) {
   const failed = detail.job.status === 'failed' || detail.job.status === 'interrupted';
   return (
-    <div style={{ display: 'grid', gap: spacing[16] }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', minWidth: 0, gap: spacing[16] }}>
       <Steps
         size="small"
         current={stages.indexOf(detail.stage)}

@@ -133,10 +133,10 @@ Web 的“条码目录”可上传 txt 全量快照（默认 GB18030，可选 UT
 
 ```powershell
 npm run backup
-npm run restore -- D:\maozhi-acrylic-wms\.local\backups\<文件名>.sql
+npm run restore -- "<backup命令输出的绝对SQL路径>" RECOVER
 ```
 
-备份使用 MySQL 8 `mysqldump` 的单事务导出。恢复创建白名单内的新库，导入后校验项目身份并清理恢复库会话；**不会覆盖现有开发库**。
+备份使用 MySQL 8 `mysqldump` 的单事务导出。恢复要求已应用027，先校验当前库预备份，再用专用账号向随机隔离库导入，核对备份时基线并清空副本会话；**不会覆盖现有开发库，不自动迁移或切换**。维护页及027后的CLI备份含基线；旧CLI产物先复制登记，无基线时只核验结构与可读性。失败保留隔离库和证据。仅本地3307实例的触发器前提、权限及验收见 `docs/OPS_PAGES_SPEC.md` §7。
 需要切换时先停止 API，确认恢复库可用后再显式修改本地开发配置；不提供删除历史数据的自动重置命令。
 
 ## 状态与取舍

@@ -5,7 +5,10 @@ import { restoreCopy as t } from './restore-copy';
 
 export function RestoreReport({ report }: { report: Report }) {
   return (
-    <div style={{ display: 'grid', gap: spacing[16] }} data-testid="restore-report">
+    <div
+      style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', minWidth: 0, gap: spacing[16] }}
+      data-testid="restore-report"
+    >
       <Alert
         showIcon
         type={report.outcome === 'passed' ? 'success' : report.outcome === 'limited' ? 'warning' : 'error'}

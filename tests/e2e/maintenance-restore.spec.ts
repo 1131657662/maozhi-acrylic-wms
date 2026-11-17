@@ -56,6 +56,9 @@ test('B8a-2 确认词、防连点、真实阶段与核验报告双宽验收', as
   await expect(page.getByRole('dialog')).not.toContainText(jobId);
   await expect(page.getByRole('row').filter({ hasText: '库存总包数' })).toContainText('通过');
   await screenshotWidths(page, 'b8a2/restore-report');
+  await expect
+    .poll(() => page.locator('.ant-modal-body').evaluate((element) => element.scrollWidth <= element.clientWidth))
+    .toBe(true);
 });
 
 test('B8a-2 无基线备份在确认与最终报告均明确未验证', async ({ page }) => {
@@ -88,6 +91,9 @@ test('B8a-2 无基线备份在确认与最终报告均明确未验证', async ({
     await expect(report.getByRole('row').filter({ hasText: '库存总包数' })).toContainText('未验证');
     await expect(report.getByText('核验通过', { exact: true })).toHaveCount(0);
     await screenshotWidths(page, 'b8a2/restore-no-baseline');
+    await expect
+      .poll(() => page.locator('.ant-modal-body').evaluate((element) => element.scrollWidth <= element.clientWidth))
+      .toBe(true);
   } finally {
     await db.close();
   }

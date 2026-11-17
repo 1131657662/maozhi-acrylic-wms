@@ -64,10 +64,14 @@ web → 网页端；pda → 手持终端；miniapp → 小程序。
 
 统一显示「—」，不显示 null / undefined / 空白。
 
-### 2.8 维护页状态（B8a-1）
+### 2.8 维护页状态（B8a-1 / B8a-2）
 
-任务：queued → 等待执行；running → 备份中；succeeded → 已完成；failed → 失败；interrupted → 已中断。
+任务：queued → 等待执行；running → 进行中；succeeded → 已完成；failed → 失败；interrupted → 已中断。
 自动调度：running → 进行中；succeeded → 已完成；failed → 失败；interrupted → 已中断；skipped → 已跳过。失败时间与原因在健康页可查，不仅显示最新任务结果。
+恢复阶段：backup → 备份；provision → 建库建账号；import → 导入；verify → 核验；report → 报告。
+
+恢复结论：passed → 核验通过；limited → 无基线，仅核验结构与可读性；mismatch → 核验不一致；failed/interrupted → 恢复失败/中断，证据已保留；逐项unverified → 未验证。任务类型backup/restore → 备份/恢复。确认词RECOVER及用户要求的配置提示“需管理员开启 log_bin_trust_function_creators”为恢复操作明确例外。
+
 产物：daily → 日备份；monthly → 月备份。健康：ok → 正常；error → 异常；unsupported → 不支持；pending → 进行中。
 健康采集失败撤下此前的正常值，显示原因；缺采集器不显示零。SHA-256作为文件完整性校验摘要可显示，任务/产物内部编号、操作追踪号及文件路径不展示。任务状态和健康状态分别映射，不套用通用操作结果。
 
