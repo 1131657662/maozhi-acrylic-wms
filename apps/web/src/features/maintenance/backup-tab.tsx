@@ -1,4 +1,8 @@
 import { Button } from 'antd';
+import { useState } from 'react';
+import type { BackupArtifact } from '@wms/contracts';
+import { RestoreConfirm } from './restore-confirm';
+import { RestoreDetail } from './restore-detail';
 import { spacing } from '../../theme/design-tokens';
 import { useJobs, activeJob } from './hooks/use-jobs';
 import { BackupButton } from './backup-button';
@@ -9,6 +13,8 @@ import { MaintenanceError } from './error-notice';
 import { maintenanceCopy as t } from './copy';
 
 export function BackupTab() {
+  const [restoring, setRestoring] = useState<BackupArtifact | null>(null),
+    [reportId, setReportId] = useState<string | null>(null);
   const {
     data: jobs,
     error: jobsError,
@@ -30,10 +36,31 @@ export function BackupTab() {
       {jobsError ? (
         <MaintenanceError error={jobsError} retry={refreshJobs} />
       ) : (
-        <JobsTable jobs={jobs?.items ?? []} loading={loadingJobs} />
+        <JobsTable jobs={jobs?.items ?? []} loading={loadingJobs} showReport={setReportId} />
       )}
-      <ArtifactsTable version={version} />
+      <ArtifactsTable version={version} restoreDisabled={unavailable || running} restore={setRestoring} />
       <RetentionPanel disabled={unavailable || running} />
+      {restoring && (
+        <RestoreConfirm
+          key={restoring.id}
+          artifact={restoring}
+          close={() => setRestoring(null)}
+          accepted={(id) => {
+            setRestoring(null);
+            setReportId(id);
+          }}
+        />
+      )}
+      {reportId && (
+        <RestoreDetail
+          key={reportId}
+          id={reportId}
+          close={() => {
+            setReportId(null);
+            void refreshJobs();
+          }}
+        />
+      )}
     </div>
   );
 }
