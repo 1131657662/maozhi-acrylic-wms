@@ -4,6 +4,7 @@ import { expect, type Page } from '@playwright/test';
 import { z } from 'zod';
 import { openDatabase, type Database } from '../../apps/api/src/db/mysql';
 import { adminConfig } from '../../scripts/mysql/local-config';
+import { login } from '../../apps/api/src/features/auth/service';
 
 export function e2eDatabase() {
   const { name } = z
@@ -12,11 +13,31 @@ export function e2eDatabase() {
   return openDatabase({ ...adminConfig(), database: name });
 }
 export async function loginInventory(page: Page) {
-  await page.goto('/user/login');
-  await page.getByLabel('用户名', { exact: true }).fill('owner');
-  await page.getByLabel('密码', { exact: true }).fill('e2e-only-password');
-  await page.getByRole('button', { name: /登\s*录/ }).click();
-  await expect(page.getByRole('heading', { name: '工作台' })).toBeVisible();
+  // Inventory scenarios need an authenticated session; login UI/rate limits have separate coverage.
+  const db = e2eDatabase();
+  try {
+    const session = await login(
+      db,
+      { username: 'owner', password: 'e2e-only-password', channel: 'web' },
+      { username: 'owner', traceId: 'inventory-e2e-session' },
+    );
+    await page.context().addCookies([
+      {
+        name: 'wms_session',
+        value: session.token,
+        domain: '127.0.0.1',
+        path: '/api',
+        expires: -1,
+        httpOnly: true,
+        secure: false,
+        sameSite: 'Strict',
+      },
+    ]);
+  } finally {
+    await db.close();
+  }
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: '工作台', exact: true })).toBeVisible();
 }
 export async function inventoryCell(db: Database) {
   const code = `TX-${randomUUID().slice(0, 8)}`;

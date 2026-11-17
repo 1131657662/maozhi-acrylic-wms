@@ -58,6 +58,9 @@ test('analysis duration excludes reversed and voided documents with counts and r
     const query = { fromDay: shanghaiToday(), toDay: shanghaiToday(), basis: 'posted' as const };
     for (const kind of ['inbound', 'outbound'] as const) {
       const target = await prepared(c.db, kind);
+      // This case checks exclusion counts; establish chronology independently of the host/database clocks.
+      const table = kind === 'inbound' ? 'inbound_receipts' : 'outbound_orders';
+      await c.db.run(`UPDATE ${table} SET created_at='2025-01-01 00:00:00' WHERE id=?`, [target.id]);
       await executeLifecycle(c.db, await commandFor(c.db, target));
     }
     const voidInbound = await createInbound(c.db, newReceipt(), randomUUID(), actor),
@@ -66,6 +69,8 @@ test('analysis duration excludes reversed and voided documents with counts and r
       { kind: 'inbound' as const, id: voidInbound.id },
       { kind: 'outbound' as const, id: voidOutbound.id },
     ]) {
+      const table = target.kind === 'inbound' ? 'inbound_receipts' : 'outbound_orders';
+      await c.db.run(`UPDATE ${table} SET created_at='2025-01-01 00:00:00' WHERE id=?`, [target.id]);
       await executeLifecycle(c.db, await commandFor(c.db, target, 'void'));
     }
     const result = (await analysis(c.db, query)).duration;
