@@ -4,7 +4,8 @@
 
 | 日期 | 决定 | 状态 | 落到哪 |
 |---|---|---|---|
-| 2026-11-17 | B7d在B7b之后、B8之前，交互修复，不含视觉改版；两笔提交后停止，不合并 | 生效（用户授权） | IMPLEMENTATION_PLAN B7d；WEB_UX_SPEC §5 |
+| 2026-11-17 | B7d在B7b之后、B8之前，交互修复，不含视觉改版；两笔提交后停止，不合并 | 不合并限制已废弃，由本日用户验收后的合并收尾授权取代；范围及批次位置仍生效 | IMPLEMENTATION_PLAN B7d；WEB_UX_SPEC §5 |
+| 2026-11-17 | B7d验收通过，565/222/0；按指定消息非快进合并codex/b7d-navigation-row-click并推送master，合并后更新批次、审计与验收记录；完成后停止，不开始B8a | 生效（用户收尾授权） | IMPLEMENTATION_PLAN B7d；WEB_UX_SPEC §5；B7D_ACCEPTANCE；AUDIT_FINDINGS |
 | 2026-11-17 | 内部页面统一同标签路由跳转并保留URL筛选及浏览器返回；可见链接使用Link，由原生Ctrl/Cmd点击打开新标签，不自行拦截修饰键；文件下载仍保持_blank | 生效；取代B7a-3强制新开页要求，其他下钻口径保留 | WEB_UX_SPEC §5；REPORTS_PAGE_SPEC §8/10；WORKBENCH_SPEC §11 |
 | 2026-11-17 | 行空白单击立即切换选中，删除250ms延迟及定时器；第二次click不反转，dblclick显式选中后打开详情；空格/Enter、交互控件及拖选排除保持 | 生效；取代WEB_UX_SPEC §4的延迟判定 | WEB_UX_SPEC §4 |
 
