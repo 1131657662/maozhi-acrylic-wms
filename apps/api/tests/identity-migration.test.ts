@@ -13,7 +13,7 @@ test('028保留旧会话并回填独立编号、UTC创建时间', async () => {
       'pda',
       at + 28_800_000,
     ]);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '028_auth_extensions');
     const row = await c.db.get('SELECT * FROM sessions');
     assert.match(String(row?.id), /^[0-9a-f-]{36}$/);
     assert.equal(row?.created_at, '2026-11-17 01:00:00.000');
@@ -26,12 +26,12 @@ test('028保留旧会话并回填独立编号、UTC创建时间', async () => {
 });
 
 test('028空扩展数据可down/up且owner口令不变', async () => {
-  const c = await fixture();
+  const c = await fixture('028_auth_extensions');
   try {
     const before = await c.db.get('SELECT username,password_hash FROM owner');
     await migrateDown(c.db);
     assert.equal((await c.db.all("SHOW COLUMNS FROM owner LIKE 'auth_epoch'")).length, 0);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '028_auth_extensions');
     assert.deepEqual(await c.db.get('SELECT username,password_hash FROM owner'), before);
   } finally {
     await c.dispose();
@@ -40,7 +40,7 @@ test('028空扩展数据可down/up且owner口令不变', async () => {
 
 for (const field of ['display_name', 'password_changed_at', 'auth_epoch', 'failed_attempts', 'locked_until']) {
   test(`028 ${field}有值时在DDL前拒绝回退`, async () => {
-    const c = await fixture();
+    const c = await fixture('028_auth_extensions');
     try {
       const value =
         field === 'display_name'

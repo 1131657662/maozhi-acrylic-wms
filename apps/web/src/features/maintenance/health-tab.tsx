@@ -7,6 +7,7 @@ import { MaintenanceError } from './error-notice';
 import { HealthCard } from './health-card';
 import { maintenanceCopy as t } from './copy';
 import { diskText, durationText, latencyText } from './presentation';
+import { MessageScanHealth } from '../messages/scan-health';
 
 export function HealthTab() {
   const {
@@ -42,6 +43,7 @@ function HealthChecks({ health }: { health: MaintenanceHealth }) {
   const unsupported = t.healthStatus.unsupported;
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: spacing[16] }}>
+      <MessageScanHealth scan={health.messages} />
       <HealthCard
         name="database"
         title={t.database}

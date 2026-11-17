@@ -4,6 +4,7 @@ import { BackupFiles } from './files.ts';
 import { backupHealth } from './backup-health.ts';
 import type { MaintenanceOptions } from './options.ts';
 import { maintenanceHealthText as t } from './copy.ts';
+import { messageScanHealth } from '../notifications/health.ts';
 
 function check(source: string, status: MaintenanceCheck['status'], reason: string | null = null): MaintenanceCheck {
   return { source, status, reason, checkedAt: new Date().toISOString() };
@@ -34,9 +35,15 @@ async function diskHealth(options?: MaintenanceOptions): Promise<MaintenanceHeal
   }
 }
 export async function maintenanceHealth(db: Database, options?: MaintenanceOptions): Promise<MaintenanceHealth> {
-  const [database, disk, backup] = await Promise.all([databaseHealth(db), diskHealth(options), backupHealth(db)]);
+  const [database, disk, backup, messages] = await Promise.all([
+    databaseHealth(db),
+    diskHealth(options),
+    backupHealth(db),
+    messageScanHealth(db),
+  ]);
   return {
     database,
+    messages,
     disk,
     backup,
     http: {

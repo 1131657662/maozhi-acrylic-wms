@@ -34,6 +34,7 @@ test('021 records cannot be updated/deleted; nonempty down rejects before any DD
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
     await c.web.post('/api/v1/auth/logout').expect(200);
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.

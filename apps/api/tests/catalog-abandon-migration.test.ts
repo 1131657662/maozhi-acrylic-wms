@@ -55,6 +55,7 @@ test('023 正数CHECK、父版本FK、操作号唯一约束与不可变触发器
 test('023 非空 down 在任何DDL及迁移状态改变之前拒绝', async () => {
   const c = await catalogFixture();
   try {
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.

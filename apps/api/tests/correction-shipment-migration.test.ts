@@ -35,6 +35,7 @@ test('020 multiple shipments or unmatched original lines stay NULL, legacy order
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
     await c.web.post('/api/v1/auth/logout').expect(200);
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.
@@ -58,6 +59,7 @@ test('020 multiple shipments or unmatched original lines stay NULL, legacy order
     // A header pointing at an order without a matching shipment must not be guessed from another order's line.
     await c.db.run("UPDATE document_corrections SET outbound_order_id='DEMO-001'");
     await c.web.post('/api/v1/auth/logout').expect(200);
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.
@@ -84,6 +86,7 @@ test('020 backfills one shipment without changing effective amounts; non-null re
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
     await c.web.post('/api/v1/auth/logout').expect(200);
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.
@@ -101,6 +104,7 @@ test('020 backfills one shipment without changing effective amounts; non-null re
     assert.deepEqual((await c.detail()).body.data.corrections.effective, before);
     assert.ok((await c.db.get('SELECT shipment_line_id FROM document_correction_lines'))?.shipment_line_id);
     await c.web.post('/api/v1/auth/logout').expect(200);
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.

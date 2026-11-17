@@ -9,11 +9,27 @@ export class MaintenanceScheduler {
   private pending: Promise<void> | undefined;
   private timer: ReturnType<typeof setInterval> | undefined;
   private startupPending = false;
+  private notificationPending: Promise<void> | undefined;
   constructor(
     private readonly service: MaintenanceService,
     private readonly clock = () => new Date(),
+    private readonly notifications?: (now: Date) => Promise<void>,
   ) {}
-  check(startup = false): Promise<void> {
+  async check(startup = false): Promise<void> {
+    await Promise.all([this.checkBackup(startup), this.checkNotifications()]);
+  }
+  private checkNotifications(): Promise<void> | undefined {
+    if (!this.notifications || this.notificationPending) return this.notificationPending;
+    this.notificationPending = this.notifications(this.clock())
+      .catch(() => {
+        logger.error({ event: 'message_scan_failed' }, '消息扫描未完成，下一轮重试');
+      })
+      .finally(() => {
+        this.notificationPending = undefined;
+      });
+    return this.notificationPending;
+  }
+  private checkBackup(startup: boolean): Promise<void> {
     if (startup) this.startupPending = true;
     if (this.pending) return this.pending;
     const pending = this.checkDue(this.startupPending)
@@ -38,7 +54,7 @@ export class MaintenanceScheduler {
   async stop(): Promise<void> {
     if (this.timer) clearInterval(this.timer);
     this.timer = undefined;
-    await this.pending;
+    await Promise.all([this.pending, this.notificationPending]);
   }
   private async checkDue(startup: boolean): Promise<void> {
     const now = this.clock(),

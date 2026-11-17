@@ -4,6 +4,10 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/messages | web | 系统通知分页及活动未读数 |
+| GET | /api/v1/messages/unread-count | web | 全局活动未读数 |
+| POST | /api/v1/messages/{id}/read | web | 幂等标记已读；不存在返回404 |
+| POST | /api/v1/messages/read-all | web | 全部活动消息幂等已读 |
 | GET | /api/v1/me | web | 本人资料与当前会话期限 |
 | PUT | /api/v1/me/profile | web | 修改本人显示名 |
 | POST | /api/v1/me/password | web | 验证原密码，同事务改密并撤销本人全部渠道会话；新密码UTF-8为12–72字节且含字母数字 |

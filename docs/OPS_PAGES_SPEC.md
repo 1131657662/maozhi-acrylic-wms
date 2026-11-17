@@ -2,6 +2,49 @@
 
 > 本文档中的状态、类型、结果等库值仅作实现标识；界面显示必须按 docs/UX_STANDARDS.md 映射为中文。
 
+## 九、B8c 消息中心（2026-11-17 定稿）
+
+起点 master@49d94bf，分支 codex/b8c-notifications；B8a/B8b已完成。本节为B8c实现定稿，取代原无条件90天清理及last_seen/count累计方案，五笔提交后停止。
+
+### 9.1 存储与生命周期
+
+029_notifications新增notifications、notification_scan_state。notifications包含id/type/object_type/object_id/event_key/cycle_anchor、title/body/link_path、created_at/read_at/resolved_at/expires_at；active_key为未解除时event_key、否则NULL的生成列，唯一索引保证一个事件周期只有一条活动通知。event_key为类型+对象类型+对象稳定标识的SHA-256；cycle_anchor记录源事件时间或版本。UTC DATETIME(3)，对象删除仍保留通知。
+
+notification_scan_state含key、last_run_at、last_status、detail，保存六类扫描状态及持续活动事件锚点。扫描每分钟一次并在启动时运行；复用B8a进程内调度器的启停、防重入和测试开关，但消息扫描拥有独立key、事件锚点和失败状态。六类各一条批量源查询，多来源用UNION，不逐单查询；同事务完成候选比较、通知幂等upsert、解除和scan_state写入。已有活动event_key且锚点未变则跳过；条件解除写resolved_at，锚点变化或解除后再次满足才新建。
+
+清理只删除expires_at到期且read_at非空或resolved_at非空的通知；活动未读即使到期也保留。清理后scan_state保留持续事件锚点，避免下一轮重发；条件解除后移除锚点。仅删通知，不动业务、审计、任务或扫描状态。
+
+### 9.2 六类触发与锚点
+
+| 类型 | 判定 | 锚点 |
+|---|---|---|
+| 待确认 | 本地未删除pending入库创建满2小时；本地未删除open/frozen/partially_shipped出库scan_closed_at满2小时 | 入库id/created_at；出库id/scan_closed_at |
+| 发货超时 | 同状态出库scan_closed_at非空且满7天，终态排除，缺时间不猜 | 出库id/scan_closed_at |
+| 盘点未结束 | counting且活动窗口started_at满24小时 | 盘点id/started_at |
+| 目录待更新 | 当前发布版本published_at满30天；未初始化或缺时间不生成 | head/发布版本id |
+| 备份失败 | backup任务failed/interrupted；无关联任务的backup调度failed/interrupted也计，关联失败不重复 | 任务或调度id/执行时间 |
+| 异常 | 未删除库存包数或吨数<0仅诊断；明盘或已揭示盲盘逐行abs(实盘包数-快照包数)>max(快照包数×10%,50包)，零基数发现行按50包 | 仓品组合/盘点id及稳定诊断锚点 |
+
+异常只按包数判断，不把吨数折包、不用整单净差抵消逐行差异。未揭示盲盘不生成差异通知；缺时间保留未知，不凭创建时间补猜扫码时间。
+
+时间阈值均包含恰好满时点，差异阈值严格大于。备份失败持续到后续一次成功备份完成；成功后原失败通知解除，原任务/调度历史保留。每轮以数据库命名锁防并发，六类候选、解除、清理及成功状态同事务提交；任何源失败整轮回滚并单独记失败状态，下一分钟重试。消息扫描独立防重入，不等待长备份任务。
+
+### 9.3 接口、页面、健康
+
+四接口均要求登录Web会话，写操作校验Origin并拒绝Bearer。GET /messages?type=&unread=&page=按created_at DESC、id DESC返回items/total/unreadCount/page/pageSize；unread=true仅read_at和resolved_at均为空。GET /messages/unread-count返回全局活动未读数。POST /messages/:id/read及/read-all幂等；不存在id返回404；全部已读覆盖全部活动未读。
+
+/messages提供类型筛选、未读筛选、分页和全部已读，点击先标已读再跳转。空态、加载、错误分开，标题使用16px线性图标，颜色/间距使用既有token。侧栏消息菜单Badge每60秒刷新，已读成功后立即更新共享计数；读取失败不得显示0。健康页增加消息扫描状态卡片。
+
+### 9.4 验收与提交
+
+五笔：①规格/台账/批次；②029/契约/API及迁移测试；③扫描/去重/清理/调度/健康及六类回归；④页面/角标/浏览器专项；⑤完整验证、修正与验收记录。完整test/build/E2E，截图1440/1280仅.local/evidence/b8c，不改截图基础设施、不写开发样本库；不宣称设备或生产验收。
+
+B8c完整回归发现恢复导入背压会触发Node readline关闭后resume错误。仅替换SQL逐行读取为按需读取，保留UTF-8、CR/LF规范化、跨库语句检查、单行字节上限及原恢复权限/核验链路；新增背压、分块与限额回归，真实备份恢复必须通过。
+
+### 9.5 本批验收结果
+
+2026-11-17：完整test 646/646、完整E2E 238/238（220+18）、build exit 0；消息页与消息扫描健康卡1440/1280截图已复核，详见B8C_ACCEPTANCE.md。代码/自动化验收完成，待用户验收；五笔提交后停止，不合并推送，开发样本库未应用029，无实体设备或生产验收。
+
 ## 一、消息中心
 
 ### 1. 定位
@@ -41,7 +84,7 @@
 - 未读数显示在左侧菜单角标；
 - 支持「全部已读」；
 - 单条已读在点击跳转时自动完成；
-- 消息保留 90 天，过期自动清理（仅删通知，不动业务数据）；
+- 消息创建满90天后，仅清理已读或已解除通知；活动未读保留（§9取代原无条件清理）；
 - 不做消息回复、不做评论。
 
 ### 5. 接口
@@ -56,7 +99,7 @@ GET /api/v1/messages/unread-count
 | 情况 | 处理 |
 |---|---|
 | 对象已删除 | 消息保留，跳转提示“对象不存在” |
-| 重复触发 | 同事件周期合并last_seen/count，不重置已读；条件解除后标已恢复 |
+| 重复触发 | 同事件周期跳过，不重置已读；条件解除后标已解除（§9取代原last_seen/count累计方案） |
 | 免打扰 | 不做（单用户，量很小） |
 
 ---
@@ -272,7 +315,7 @@ DELETE /api/v1/me/sessions/:id
 | B8a-1 / UI-8维护基础 | M-MAINTENANCE：026 maintenance_jobs、backup_artifacts、scheduler_runs | 异步真实备份、校验下载、保留清理、健康与页面；字段及当前接口以第六节为准 |
 | B8a-2 / UI-8恢复 | restore_verifications（迁移号实施时分配） | 前置B8a-1；隔离恢复、原库预备份、表/行/仓品包吨/迁移版本指纹与失败保全；不覆盖原库、不自动切换 |
 | B8b / UI-8身份 | M-AUTH-EXTENSIONS：028账户显示名/改密时间/锁定计数期限与auth_epoch；会话id/created_at/epoch | 具体接口、并发和验收按第八节；保留/auth/login、/auth/me、/auth/logout兼容，HTTP限流与账户锁定独立 |
-| B8c / UI-8通知 | M-NOTIFICATIONS：notifications、notification_scan_state | 通知保存event_key/type/target/business_no、first_seen/last_seen/count、read_at/resolved_at、expires_at；活动event_key唯一，事务游标扫描+幂等upsert，90天只清通知不清审计 |
+| B8c / UI-8通知 | M-NOTIFICATIONS：029 notifications、notification_scan_state | §9取代原first_seen/last_seen/count方案：event_key/cycle_anchor及对象、文案、路径、四个时间字段；active_key生成列唯一，批量扫描事务去重；90天仅清理已读/已解除通知 |
 
 维护接口是异步任务：POST返回jobId、GET读取状态，不让浏览器执行任意路径/命令/目标库名。备份/恢复按任务互斥、超时/重启可查；备份文件清理只针对自身产物且已核验归属，恢复隔离库不自动清理。备份已在B8a-1产品化，恢复按第七节实施；恢复副本现有清空会话行为在指纹中明确排除并验证，其余业务表必须逐项对账。UI中的恢复不覆盖原库，切换连接另有CUTOVER门禁；不自动触发迁移。
 

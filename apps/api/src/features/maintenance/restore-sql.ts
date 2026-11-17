@@ -1,8 +1,7 @@
-import { createInterface } from 'node:readline';
 import type { Readable } from 'node:stream';
-import { RESTORE } from '@wms/contracts';
 import { AppError } from '../../shared/errors.ts';
 import { restoreText as t } from './restore-copy.ts';
+import { restoreLines } from './restore-lines.ts';
 
 // The account is the security boundary. This scan also rejects USE rather than letting
 // --one-database silently skip statements and report a successful partial import.
@@ -61,12 +60,9 @@ export class RestoreSqlGuard {
   }
 }
 export async function* guardedRestoreSql(source: Readable): AsyncGenerator<string> {
-  const lines = createInterface({ input: source, crlfDelay: Infinity });
   const guard = new RestoreSqlGuard();
   try {
-    for await (const line of lines) {
-      if (Buffer.byteLength(line) > RESTORE.maximumSqlLineBytes)
-        throw new AppError('RESTORE_SQL_LIMIT', t.importFailed, 409);
+    for await (const line of restoreLines(source)) {
       guard.scan(line);
       // mysqldump's trigger header only; never rewrite literals or trigger bodies.
       yield line
@@ -77,7 +73,6 @@ export async function* guardedRestoreSql(source: Readable): AsyncGenerator<strin
         ) + '\n';
     }
   } finally {
-    lines.close();
     source.destroy();
   }
 }

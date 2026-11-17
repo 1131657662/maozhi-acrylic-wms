@@ -17,6 +17,7 @@ import { UnsavedNavigation } from './components/form-protection/UnsavedNavigatio
 import { RepeatKeyGuard } from './components/form-protection/RepeatKeyGuard';
 import { workbenchKeys } from './features/workbench/keys';
 import { analysisKeys } from './features/analysis/queries';
+import { MessageMenuLabel } from './features/messages/menu-label';
 
 const client = new QueryClient({
   mutationCache: new MutationCache({
@@ -78,7 +79,12 @@ export const layout: RunTimeLayoutConfig = () => ({
       </span>
     </Link>
   ),
-  menuItemRender: (item, dom) => (item.path ? <Link to={item.path}>{dom}</Link> : dom),
+  menuItemRender: (item, dom) =>
+    item.path ? (
+      <Link to={item.path}>{item.path === '/messages' ? <MessageMenuLabel>{dom}</MessageMenuLabel> : dom}</Link>
+    ) : (
+      dom
+    ),
   menuExtraRender: () => <ActiveStocktakeLink />,
   actionsRender: () => [<AccountActions key="account" />],
   footerRender: () => <div className="pro-footer">茂智云仓 · 腈纶仓储管理系统 · Maozhi Acrylic Fiber WMS</div>,

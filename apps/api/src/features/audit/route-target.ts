@@ -10,6 +10,8 @@ interface RouteRule {
   channel?: AuditChannel;
 }
 const routes: RouteRule[] = [
+  { pattern: /^\/messages\/read-all$/, action: () => 'message.read_all', kind: 'message', channel: 'web' },
+  { pattern: /^\/messages\/([^/]+)\/read$/, action: () => 'message.read', kind: 'message', id: 1, channel: 'web' },
   { pattern: /^\/maintenance\/backups$/, action: () => 'maintenance.backup', kind: 'maintenance', channel: 'web' },
   { pattern: /^\/maintenance\/restores$/, action: () => 'maintenance.restore', kind: 'maintenance', channel: 'web' },
   { pattern: /^\/maintenance\/retention$/, action: () => 'maintenance.retention', kind: 'maintenance', channel: 'web' },
