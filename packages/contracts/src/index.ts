@@ -183,3 +183,4 @@ export * from './workbench.ts';
 export * from './workbench-copy.ts';
 export * from './analysis.ts';
 export * from './maintenance.ts';
+export * from './maintenance-health.ts';

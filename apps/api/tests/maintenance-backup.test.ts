@@ -53,6 +53,10 @@ test('B8a-1 数据库身份不匹配保留失败任务，不生成产物', async
     await c.service.settled();
     assert.equal((await c.db.get('SELECT status FROM maintenance_jobs WHERE id=?', [jobId]))?.status, 'failed');
     assert.equal(Number((await c.db.get('SELECT COUNT(*) AS n FROM backup_artifacts'))?.n), 0);
+    assert.equal(
+      (await c.db.get("SELECT result FROM operation_log WHERE action='maintenance.backup.failed'"))?.result,
+      'failed',
+    );
   } finally {
     await c.dispose();
   }

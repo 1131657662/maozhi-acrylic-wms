@@ -4,6 +4,12 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| POST | /api/v1/maintenance/backups | web | 持久化异步真实备份任务；同键重试复用，不同键并发拒绝；HTTP不可指定路径或连接 |
+| GET | /api/v1/maintenance/jobs | web | 维护任务状态、耗时与操作人；不暴露命令/路径/凭证 |
+| GET | /api/v1/maintenance/artifacts | web | 当前可下载产物分页；大小、SHA、时间与保留类型 |
+| GET | /api/v1/maintenance/artifacts/{id}/download | web | 校验文件归属、大小及SHA后下载；篡改拒绝 |
+| POST | /api/v1/maintenance/retention | web | 保留近30日全部及近12个上海自然月各最新产物；只清已登记超期文件 |
+| GET | /api/v1/maintenance/health | web | 真实数据库ping、磁盘剩余、最近备份；HTTP24h未采集明确不支持；认证断连503 |
 | GET | /api/v1/web/dashboard | web | 工作台八区块；只读一致性快照、报表收发口径、30秒缓存及写后失效 |
 | GET | /api/v1/web/analysis | web | 数据看板聚合；单次只读快照、30秒按日期范围和口径缓存 |
 | POST | /api/v1/stock/peek | web | 本页最多200个仓品，一条只读SQL取各自最近3条有效库存流水 |

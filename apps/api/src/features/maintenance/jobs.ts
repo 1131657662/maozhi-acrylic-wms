@@ -33,9 +33,10 @@ export async function insertBackup(db: Database, actor: Actor, key: string): Pro
 export async function interruptBackups(db: Database): Promise<void> {
   await db.run(
     `UPDATE maintenance_jobs SET status='interrupted',finished_at=UTC_TIMESTAMP(3),error=?
-    WHERE status IN ('queued','running')`,
+    WHERE kind='backup' AND status IN ('queued','running')`,
     [copy.interrupted],
   );
+  await db.run("UPDATE scheduler_runs SET status='interrupted' WHERE status='running'");
 }
 export async function listMaintenanceJobs(db: Database, query: MaintenanceJobsQuery): Promise<MaintenanceJob[]> {
   const rows = await db.all(

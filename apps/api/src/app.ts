@@ -9,6 +9,8 @@ import { trace, errors, ok } from './middleware/http.ts';
 import { AppError } from './shared/errors.ts';
 import { beginAuditRequest, retainRequestFailure } from './features/audit/http.ts';
 import { STOCK_PEEK_BODY_LIMIT_BYTES } from '@wms/contracts';
+import { maintenanceRouter } from './features/maintenance/router.ts';
+import { MaintenanceService } from './features/maintenance/service.ts';
 
 export const localOrigins = [
   'http://localhost:5173',
@@ -25,6 +27,7 @@ export function createApp(
   db: Database,
   origins: string[] = localOrigins,
   catalogPublishEnabled = process.env.CATALOG_PUBLISH_ENABLED === 'true',
+  maintenance = new MaintenanceService(db, undefined),
 ): express.Express {
   const app = express();
   app.disable('x-powered-by');
@@ -51,6 +54,7 @@ export function createApp(
   });
   app.get('/api/v1/health', (_req, res) => ok(res, { status: 'ok', mode: 'local-development', database: 'mysql8' }));
   app.use('/api/v1/auth', authRouter(db));
+  app.use('/api/v1/maintenance', maintenanceRouter(db, origins, maintenance));
   app.use('/api/v1', businessRouter(db, origins, catalogPublishEnabled));
   app.use(() => {
     throw new AppError('NOT_FOUND', '接口不存在', 404);

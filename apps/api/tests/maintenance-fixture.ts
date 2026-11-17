@@ -8,8 +8,22 @@ import { MaintenanceService } from '../src/features/maintenance/service.ts';
 import { localMaintenanceOptions } from '../src/features/maintenance/options.ts';
 import { insertBackup } from '../src/features/maintenance/jobs.ts';
 import type { Database } from '../src/db/mysql.ts';
+import request from 'supertest';
+import { createApp } from '../src/app.ts';
+import { sqlDate } from '../src/db/dates.ts';
 
 export const maintenanceActor = { username: 'owner', channel: 'web' as const, traceId: 'maintenance-test' };
+export async function maintenanceHttpFixture() {
+  const c = await maintenanceFixture();
+  const app = createApp(c.db, undefined, undefined, c.service);
+  const api = request.agent(app);
+  await api
+    .post('/api/v1/auth/login')
+    .set('Origin', 'http://127.0.0.1:5173')
+    .send({ username: 'owner', password: 'maintenance-test-password', channel: 'web' })
+    .expect(200);
+  return { ...c, app, api };
+}
 export async function maintenanceFixture() {
   const c = await createTestDatabase();
   await seedDemo(c.db, 'maintenance-test-password');
@@ -35,7 +49,7 @@ export async function artifactFixture(db: Database, input: { root: string; at: s
   await db.run(
     `INSERT INTO backup_artifacts(id,job_id,path,bytes,sha256,created_at,retention_class)
     VALUES(?,?,?,?,?,?,'daily')`,
-    [id, id, `${id}.sql`, bytes.length, sha256, input.at],
+    [id, id, `${id}.sql`, bytes.length, sha256, sqlDate(input.at)],
   );
   return { id, bytes: bytes.length, sha256 };
 }

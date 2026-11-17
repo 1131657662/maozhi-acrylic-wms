@@ -17,7 +17,7 @@ export function eventMetadata(entry: AuditEntry) {
     ? `master.${entry.targetId.split(':')[0]}`
     : auditAction(entry.action).kind;
   const result =
-    entry.action === 'export.failed' ? 'failed' : entry.action === 'export.cancelled' ? 'cancelled' : 'success';
+    ['export.failed', 'maintenance.backup.failed'].includes(entry.action) ? 'failed' : entry.action === 'export.cancelled' ? 'cancelled' : 'success';
   return {
     kind: context?.targetId === entry.targetId ? context.targetKind : kind,
     number: auditCode(value.receiptNo) ?? auditCode(value.orderNo) ?? auditCode(value.number) ?? auditCode(value.code),

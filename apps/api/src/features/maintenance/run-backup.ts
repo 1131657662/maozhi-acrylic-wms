@@ -24,10 +24,18 @@ export async function runBackup(db: Database, run: BackupRun): Promise<void> {
     await completeBackup(db, run, digest);
   } catch (error) {
     const reason = error instanceof AppError ? error.message : copy.failed;
-    await db.run("UPDATE maintenance_jobs SET status='failed',finished_at=UTC_TIMESTAMP(3),error=? WHERE id=?", [
-      reason,
-      run.id,
-    ]);
+    await db.transaction(async (tx) => {
+      await tx.run("UPDATE maintenance_jobs SET status='failed',finished_at=UTC_TIMESTAMP(3),error=? WHERE id=?", [
+        reason,
+        run.id,
+      ]);
+      await audit(tx, run.actor, {
+        action: 'maintenance.backup.failed',
+        targetId: run.id,
+        before: null,
+        after: { name: '数据库备份失败', reason },
+      });
+    });
   }
 }
 async function completeBackup(db: Database, run: BackupRun, digest: { bytes: number; sha256: string }): Promise<void> {

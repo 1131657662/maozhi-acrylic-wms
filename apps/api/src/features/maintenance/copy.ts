@@ -12,3 +12,17 @@ export const maintenanceErrors = {
   retention: '备份清理未完成，记录已保留，请重试',
   tooMany: '备份产物过多，已停止清理，请由维护人员核验',
 } as const;
+
+export const maintenanceHealthText = {
+  databaseSource: '数据库连接探测',
+  databaseFailed: '数据库连接失败',
+  diskSource: '备份目录所在磁盘',
+  diskMissing: '尚未配置备份目录',
+  diskLow: '磁盘剩余空间不足',
+  diskFailed: '无法读取磁盘剩余空间',
+  backupSource: '备份任务记录',
+  backupEmpty: '从未备份',
+  backupFailed: '无法读取最近备份记录',
+  httpSource: '近24小时请求统计',
+  httpUnsupported: '尚未接入近24小时请求统计采集器',
+} as const;

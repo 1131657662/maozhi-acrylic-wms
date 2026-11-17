@@ -68,7 +68,9 @@ export interface Operation {
 }
 import { dashboardOperations } from './features/workbench/openapi.ts';
 import { analysisOperations } from './features/analysis/openapi.ts';
+import { maintenanceOperations } from './features/maintenance/openapi.ts';
 export const operations: Operation[] = [
+  ...maintenanceOperations,
   ...dashboardOperations,
   ...analysisOperations,
   ...stockMovementOperations,
@@ -350,7 +352,7 @@ function operationDocument(operation: Operation): object {
     }),
   );
   const failures = Object.fromEntries(
-    [401, 403, 404, 409, 413, 415, 422, 429, 500].map((status) => [
+    [401, 403, 404, 409, 413, 415, 422, 429, 500, ...(operation.path.startsWith('/maintenance/') ? [503] : [])].map((status) => [
       status,
       { description: '统一错误信封', content: { 'application/json': { schema: error } } },
     ]),
