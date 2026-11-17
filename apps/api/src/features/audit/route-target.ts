@@ -69,6 +69,8 @@ const routes: RouteRule[] = [
     channel: 'web',
   },
   { pattern: /^\/auth\/(login|logout|me)$/, action: (m) => `auth.${m[1]}`, kind: 'account' },
+  { pattern: /^\/me\/sessions(?:\/[^/]+)?$/, action: (_, method) => method === 'DELETE' ? 'auth.session.revoke' : 'auth.sessions', kind: 'account', channel: 'web' },
+  { pattern: /^\/me(?:\/(profile|password|logout))?$/, action: m => `auth.${m[1] ?? 'me'}`, kind: 'account', channel: 'web' },
   {
     pattern: /^\/(inbound|outbound)\/([^/]+)\/(confirm|reverse|void|corrections|business-date)$/,
     action: (m) =>

@@ -4,6 +4,12 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| GET | /api/v1/me | web | 本人资料与当前会话期限 |
+| PUT | /api/v1/me/profile | web | 修改本人显示名 |
+| POST | /api/v1/me/password | web | 验证原密码，同事务改密并撤销本人全部渠道会话；新密码UTF-8为12–72字节且含字母数字 |
+| GET | /api/v1/me/sessions | web | 本人的有效登录会话 |
+| DELETE | /api/v1/me/sessions/{id} | web | 撤销本人指定会话；当前会话撤销等同退出 |
+| POST | /api/v1/me/logout | web | 退出当前网页会话 |
 | POST | /api/v1/maintenance/restores | web | 确认后预备份、专用账号隔离恢复，失败保留证据，不覆盖当前库 |
 | GET | /api/v1/maintenance/restores/{id} | web | 恢复阶段、安全日志及逐项核验报告 |
 | POST | /api/v1/maintenance/backups | web | 持久化异步真实备份任务；同键重试复用，不同键并发拒绝；HTTP不可指定路径或连接 |

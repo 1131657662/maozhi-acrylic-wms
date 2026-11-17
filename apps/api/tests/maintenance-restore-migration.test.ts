@@ -16,11 +16,11 @@ test('B8a-2 027保留旧备份空基线并支持无证据down/up', async () => {
       root: localMaintenanceOptions({ ...adminConfig(), database: name }).directory,
       at: new Date().toISOString(),
     });
-    await migrateUp(c.db);
+    await migrateUp(c.db, '027_restore_baselines');
     assert.equal((await c.db.get('SELECT baseline FROM backup_artifacts WHERE id=?', [file.id]))?.baseline, null);
     await migrateDown(c.db);
     assert.ok(await c.db.get('SELECT id FROM backup_artifacts WHERE id=?', [file.id]));
-    await migrateUp(c.db);
+    await migrateUp(c.db, '027_restore_baselines');
     assert.ok(await c.db.get("SHOW TABLES LIKE 'restore_verifications'"));
   } finally {
     await c.dispose();
@@ -28,7 +28,7 @@ test('B8a-2 027保留旧备份空基线并支持无证据down/up', async () => {
 });
 for (const evidence of ['baseline', 'restore'] as const) {
   test(`B8a-2 027存在${evidence}证据时在DDL前拒绝down`, async () => {
-    const c = await fixture();
+    const c = await fixture('027_restore_baselines');
     try {
       const name = String((await c.db.get('SELECT DATABASE() AS name'))?.name);
       const file = await artifactFixture(c.db, {

@@ -4,6 +4,10 @@ import type { AttemptContext } from './context.ts';
 
 const reasons: Record<string, string> = {
   INVALID_CREDENTIALS: '用户名或密码不正确',
+  ACCOUNT_LOCKED: '账号暂时锁定',
+  OLD_PASSWORD_INVALID: '原密码不正确',
+  PASSWORD_RULE: '新密码不符合安全规则',
+  SESSION_NOT_FOUND: '登录会话不存在或已撤销',
   UNAUTHORIZED: '登录已失效，请重新登录',
   CLIENT_NOT_ALLOWED: '当前客户端不能进行此操作',
   ORIGIN_NOT_ALLOWED: '请求来源不允许',
