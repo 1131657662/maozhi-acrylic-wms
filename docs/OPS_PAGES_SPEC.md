@@ -27,10 +27,10 @@
 
 | 类型 | 触发 | 跳转 |
 |---|---|---|
-| 待确认 | 入库创建待确认/出库冻结待确认超过2小时，尚未入账 | 单据详情 |
-| 冻结超时 | 出库单冻结超过 7 天未确认 | 单据详情 |
+| 待确认 | 本地待确认入库创建超过2小时；本地未完成出库结束扫码超过2小时，仍需 Web 人工实发确认 | 单据详情 |
+| 发货超时 | 本地未删除的 open/frozen/partially_shipped，scan_closed_at 非空且满7天，仍未完成发货；部分发货继续提醒，终态排除，历史缺时间标未知，不新增 frozen | 单据详情 |
 | 盘点未结束 | 盘点锁仓超过 24 小时 | 盘点详情 |
-| 目录待更新 | 距上次上传超过 30 天 | 条码目录 |
+| 目录待更新 | 当前发布版本的 published_at 距今满30天；上传未发布不刷新时效，未初始化/缺时间显示未知，与工作台一致 | 条码目录 |
 | 备份失败 | 备份任务失败 | 系统维护 |
 | 异常 | 历史异常负余额（诊断，不允许新写负库存）、盘点差异超提示阈值 | 对应页面 |
 
@@ -222,7 +222,8 @@ POST /api/v1/me/logout
 
 | 批次 | 新服务/表 | 契约及边界 |
 |---|---|---|
-| B8a / UI-8维护 | M-MAINTENANCE：maintenance_jobs、backup_artifacts、restore_verifications、scheduler_runs | 任务保存kind/status/idempotency_key/actor/起止/错误/归属；产物保存SHA256/字节数/私有引用/保留期限，恢复保存原库及副本指纹/逐表计数/仓品包吨/迁移版本与校验报告 |
+| B8a-1 / UI-8维护基础 | M-MAINTENANCE：026 maintenance_jobs、backup_artifacts、scheduler_runs | 异步真实备份、校验下载、保留清理、健康与页面；字段及当前接口以第六节为准 |
+| B8a-2 / UI-8恢复 | restore_verifications（迁移号实施时分配） | 前置B8a-1；隔离恢复、原库预备份、表/行/仓品包吨/迁移版本指纹与失败保全；不覆盖原库、不自动切换 |
 | B8b / UI-8身份 | M-AUTH-EXTENSIONS：账户display_name/password_changed_at/锁定计数与期限；会话失效版本、登录尝试证据 | 当前只有登录/me/logout与限流20，5次15分钟为新增持久策略，不能把HTTP限流冒充账户锁定；新增改密、会话查询/撤销接口，保留现有认证路由兼容 |
 | B8c / UI-8通知 | M-NOTIFICATIONS：notifications、notification_scan_state | 通知保存event_key/type/target/business_no、first_seen/last_seen/count、read_at/resolved_at、expires_at；活动event_key唯一，事务游标扫描+幂等upsert，90天只清通知不清审计 |
 
@@ -230,8 +231,89 @@ POST /api/v1/me/logout
 
 健康页需要数据库/磁盘/HTTP耗时及错误采集服务，记录采集时间/窗口和缺测原因；慢查询数、24小时p95在未启用采集器时标不支持。车辆离场/实时设备队列始终不由维护页猜测，沿用WORKBENCH/CATALOG证据范围。账户密码/token不进审计，失败尝试依赖B6c；改密/会话撤销认证检查在服务端，单用户不引入RBAC。
 
-新迁移编号从012按实施顺序分配，up保留来源与历史证据，非空业务/任务/通知记录拒绝破坏性down。查询/分页/导出和唯一主操作遵循WEB_UX_SPEC，不在三页各定一套。阶段先维护与身份，再接稳定事件做通知；演练、实体与生产结果分别记录。
+迁移编号按仓库当前最大编号递增分配；B8a-1明确使用026，后续不预占编号。up保留来源与历史证据，非空业务/任务/通知记录拒绝破坏性down。查询/分页/导出和唯一主操作遵循WEB_UX_SPEC，不在三页各定一套。阶段先B8a-1、B8a-2与B8b身份，再接稳定事件做B8c通知；演练、实体与生产结果分别记录。
 
 修订记录：C11 健康页/提醒不推断设备实时队列或车辆离场，不支持指标明示。
 修订记录：C15 补通知去重/恢复周期、任务产物/指纹/失败保全、健康采集及身份会话服务依赖。
 修订记录：C16 复用公共查询和现有认证契约，扩展端点标为新增能力。
+
+## 六、B8a-1：备份与健康（2026-11-17 用户确认）
+
+本节限定本批交付，优先于第二节的完整运维目标。起点3bd8def，分支codex/b8a-1-maintenance-backup，五笔提交后停止，不合并、不推送、不进入B8a-2。恢复、对账报告、云备份、调度可视化和RBAC均不做。所有验证仅使用独立本地合成测试库，不对开发样本库自动迁移或写入验收数据。
+
+### 6.1 迁移026
+
+- maintenance_jobs：id、kind（backup/restore）、status（queued/running/succeeded/failed/interrupted）、started_at、finished_at、operator、params、result、error、operation_id。operator来自认证会话；operation_id为请求幂等键；params/result为受控JSON，错误只存安全中文原因。
+- backup_artifacts：id、job_id、path、bytes、sha256、created_at、retention_class（daily/monthly）。path为服务端私有引用，接口与页面不暴露绝对路径。关联任务、字节数、SHA和类别有数据库约束。
+- scheduler_runs：id、kind、ran_at、status、detail，保存保留清理执行结果与失败证据；不因建表宣称自动调度完成。
+- 沿用项目UTC DATETIME(3)、UUID及MySQL8约定。down在任何DDL与迁移登记修改前检查三表，任一非空即拒绝；不删除业务表或旧记录。
+
+### 6.2 本批接口与任务边界
+
+全部以/api/v1为前缀，仅登录Web会话可调用，写操作检查来源，操作人不接收客户端覆盖。
+
+| 接口 | 行为 |
+|---|---|
+| POST /maintenance/backups | 空正文、Idempotency-Key；202返回jobId。任务先持久化再异步运行mysqldump，不等待文件生成；同键重试返回同任务，不同键并发返回409且不新增任务 |
+| GET /maintenance/jobs?kind=&limit= | 按起始时间倒序查询任务与安全状态、耗时、操作人；limit有默认值与上限 |
+| GET /maintenance/artifacts | 返回产物时间、大小、SHA、类型和下载引用，不返回path；有界分页 |
+| GET /maintenance/artifacts/:id/download | 校验归属、文件类型、大小与SHA后下载；缺失/篡改拒绝，失败不发送部分SQL |
+| POST /maintenance/retention | 服务端计算30日+12月保留集合，仅清理本服务登记且已核验归属的过期文件，返回删除清单并记录执行结果 |
+| GET /maintenance/health | 数据库实际连接探测、备份目录所在磁盘剩余、HTTP24h统计支持状态、最近备份；提供采集时间/来源和失败原因 |
+
+备份与清理共用数据库级互斥；服务重启后未结束任务标为中断并保留记录，不伪装成功。子进程使用固定mysqldump命令和参数数组，HTTP不能指定命令、路径、连接或目标库。产物写入专属目录，流完整结束后计算大小与SHA再发布；任务失败不登记可下载的半成品。提供超时与磁盘空间预检，失败不泄露凭证、命令或原始stderr。
+
+保留策略采用保守规则：最近连续30天内所有登记产物均保留；另保留含当前月在内最近12个上海自然月每月最新的一份成功产物作为月备，其他超期产物才进入删除候选。无备份月份不补造记录；不触碰旧CLI目录中未登记的文件，不按文件名猜归属。任务和审计记录不随产物清理删除；清理失败保留结果，可重试。
+
+数据库断连若发生在身份校验阶段，接口返回安全的503而不绕过认证；健康页撤下旧成功数据，明确数据库连接异常。已认证后的探测失败同样显示异常。HTTP24h统计未接采集器则返回不支持与null，不能用进程累计值冒充24h，不能填0；磁盘或备份读取失败分别显示原因。
+
+### 6.3 页面与验证
+
+/maintenance使用现有PageShell与Ant Design，标题16px线性工具图标，两个Tab为备份/健康。备份页唯一主操作为立即备份；任务表显示中文状态/耗时/操作人，产物表显示时间/大小/中文类型/完整校验摘要及下载。内部ID、操作追踪号和绝对路径不展示；SHA是用户要求的文件完整性校验值。保留策略说明常驻，清理通过次级危险操作及二次确认。提交即时锁定并保留请求键，任务进行中禁用再次创建，轮询直到终态。
+
+健康Tab四项为数据库、磁盘、HTTP、备份；异常使用theme token错误状态并给原因，不支持有独立文案，不能渲染成正常。只在页面可见时查询，失败不继续显示之前的正常值。
+
+验收覆盖：真实mysqldump文件及SHA/字节数、篡改下载拒绝、最近30天零删除与12月保留、未登记文件不动、数据库不可连接时异常、并发/重试仅一个任务、匿名/移动端/跨源拒绝、任务失败/重启中断、迁移空表up/down/up与三表分别非空拒绝。完整test/build/E2E与token检查；1440/1280截图仅存.local/evidence/b8a1，不改截图框架，不冒充设备或生产验收。验收记录使用本节追加，不新建大文档。
+
+五笔提交：①规格/台账/批次；②迁移/契约/真实备份任务及基础测试；③下载/保留/健康接口及测试；④页面/路由/浏览器回归；⑤完整验证、修正与验收记录。
+
+本批提供手动备份、手动清理及§6.4每日自动备份。scheduler_runs记录保留策略及自动调度实际执行结果，重启未结束记录标中断。清理仅删除产物文件，backup_artifacts元数据不删除；maintenance_jobs.result记录pendingDeletionAt/deletedAt，使中断可核对重试、已清文件不再列入可下载产物。
+
+### 6.4 每日自动备份（用户补充确认）
+
+- 进程内每分钟检查一次，不引入cron/调度依赖。Asia/Shanghai每日03:00后首个检查点尝试一次；以scheduler_runs的上海日期留证避免同进程重启重复当日到期尝试。
+- 启动时最近成功备份超过24小时立即补跑一次；从未成功也补跑。若启动补跑同时满足当日03:00到期，将该次记录计作当天执行，避免连续生成两份。
+- 已有备份或清理持锁则记录跳过，不排队、不在同日反复补排。一次检查尚在执行时，后续计时回调不重入；失败留证，不伪装成功。
+- 每次到期尝试或启动补偿均写scheduler_runs：kind、ran_at、status、detail；detail含上海日期、触发原因、jobId及安全失败/跳过原因。status使用succeeded/failed/interrupted/skipped，任务本身仍保留五种状态。不是每分钟无到期的检查都写新记录。
+- 服务启动默认启用；NODE_ENV=test或测试启动脚本默认关闭，显式MAINTENANCE_SCHEDULER_ENABLED=true/false可控制。已有Web手动入口不受关闭调度影响。退出时停止计时器并等待已受理任务结束。
+- GET /maintenance/health的backup包含lastFailure（失败时间与原因）及latestSchedule；最近失败在后续成功后仍可查；最新调度失败/中断令备份健康异常。GET /maintenance/jobs可查失败任务，B8c以后接入消息中心。本批不发外部通知。
+- 调度沿用同一个固定mysqldump执行器与数据库互斥；操作人从当前账户表的实际username读取，不硬编码账户名称。当前单用户范围内无法唯一确定账户时，记录调度失败，不冒用任意账户；任务和审计使用相同操作人。不接收HTTP指定时间/目标。测试使用可注入时钟的检查入口验证03:00边界、24小时补偿、跳过/失败/跨日；测试不自动启动定时器。
+
+提交总数仍为五笔；第④笔补入用户确认的调度与页面，第⑤笔完整验收。恢复、对账、云备份、调度可视化、改调度时间、多实例选主、RBAC和外部通知不在本批。
+
+执行器固定关闭tablespaces与GTID_PURGED输出，备份读取仅依赖目标库SELECT/SHOW VIEW/TRIGGER，不为执行备份新增全局PROCESS/RELOAD授权；使用隔离临时低权限账户验证。服务只在本地库已应用026时启动，不自动迁移开发样本库。
+
+### 6.5 B8a-1 本地验收记录（2026-11-17）
+
+起点master@3bd8def；分支codex/b8a-1-maintenance-backup。代码覆盖026三表及非空回退保护、六组维护接口、真实异步备份、SHA校验下载、30日+12月清理、进程内每日03:00及启动补偿、备份/健康两个Tab。恢复/对账归B8a-2，消息中心归B8c；没有创建通知表、外部通知或RBAC。
+
+| 验收项 | 本地结果与证据 |
+|---|---|
+| 真实备份与权限 | 隔离MySQL 8合成库生成真实SQL；字节数与SHA一致、含业务表DDL；临时仅SELECT/SHOW VIEW/TRIGGER账户同样成功，不增加全局权限 |
+| 异步与幂等 | HTTP 202返回jobId；同键重试/同键同时点击复用任务；不同键并发仅一个任务；浏览器丢失响应后原键重试不新增 |
+| 文件与保留 | 同大小篡改返回409且不发送SQL；非法归属拒绝；30日边界及12上海自然月正确，未登记文件保留，清理中断有意图记录可重试，元数据和历史任务保留 |
+| 健康与故障 | 实际启动并停止独立临时MySQL实例，ping异常/健康HTTP503；不停止共享3307实例。浏览器另验证503撤下旧正常值并可恢复；HTTP24h缺采集器显示不支持/null |
+| 每日自动备份 | 注入时钟验证上海02:59:59/03:00、严格超过24h、启动无成功记录、同日重启不重复、跨日运行、忙时跳过不排队；真实产物及scheduler_runs成功/跳过/失败可查，后续成功保留失败历史。账户改名后真实备份、任务与审计归属一致；账户缺失或不唯一时留失败记录。没有等待真实凌晨墙钟，也未做生产守护进程验收 |
+| 迁移 | 026空表up/down/up；三表分别非空在任何DDL前拒绝；旧业务指纹不变 |
+| 界面 | 1440/1280备份与健康页无整页横向溢出；标题16px线性图标、单主操作、清理单独危险操作及二次确认；库值/内部ID/路径不展示 |
+
+验证命令与日志：
+
+- `npm run test -- --test-concurrency=4`：588/588，失败/跳过0，exit 0；`.local/evidence/b8a1/full-test-final.log`。该轮启动后追加的最低权限真实导出测试另运行1/1、exit 0：`restricted-dump-test.log`。收尾账户归属修正后调度回归7/7、exit 0（含2项新增）：`scheduler-account-tests.log`；累计覆盖591项，不宣称单次完整591项运行，无删减原测试。
+- `npm run build`：严格类型检查和Web构建exit 0；`build-final.log`。账户归属修正后重跑同命令仍exit 0：`build-closeout.log`。
+- `npm run check:design-tokens`：新增0，既有22条；`token-final.log`。`antd lint`：0问题、0跳过；`antd-lint.json`。
+- `npm run test:e2e`首轮主套件206/210通过、4项旧列表50ms性能断言失败，exit 1；`full-e2e.log`与`first-full-resize-failures/`保留。移除并行测试/构建负载后，原Umi dev配置运行`npx playwright test tests/e2e/b6i4-resize-performance.spec.ts tests/e2e/list-ux-a-resize.spec.ts`：4/4通过、exit 0，四项长任务数组均为空；`resize-idle-retest.log`。原断言/阈值、旧列表实现与Playwright配置均未改，未使用生产预览替代。随后`npx playwright test -c playwright.catalog.config.ts`完整目录套件18/18、exit 0：`catalog-full-e2e.log`。合计228项均有通过结果、跳过0，其中4项经复测通过；不宣称首轮整条命令一次通过。
+- 维护专项23/23加低权限真实导出1/1、收尾调度回归7/7（其中2项新增）；`maintenance-final-tests.log`、`restricted-dump-test.log`、`scheduler-account-tests.log`。浏览器首轮发现构建冷启动等待、按钮图标名称和映射文案断言问题；修正后5/5通过，补充失败健康展示后在完整E2E中6/6通过。
+- 截图：`.local/evidence/b8a1/backup-1440.png`、`backup-1280.png`、`health-1440.png`、`health-1280.png`、`health-outage-1440.png`、`health-backup-failed-1440.png`；只存本地，不进Git。
+
+代码审查已覆盖身份/来源、固定命令与参数、路径归属、SHA、互斥/重启、保留集合和失败状态，已修复发现的问题；记录`.local/evidence/b8a1/code-review.md`。五笔提交中前四笔为af3ea44、50f3a80、8371bcb、6fe5a80，第五笔为最终验收收尾。未合并、未推送，不进入B8a-2。开发样本库未应用026，本地完整验证使用随机隔离测试库；代码完成/本地验证不等于用户现场、实体设备或生产验收。原有B7c/未来多用户文档改动保持未提交。

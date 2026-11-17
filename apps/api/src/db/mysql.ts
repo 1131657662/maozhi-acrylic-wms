@@ -60,6 +60,12 @@ export class Database {
     });
   }
   async close(): Promise<void> { if (this.pool) await this.pool.end(); }
+  async ping(): Promise<void> {
+    if (!this.pool) { await this.get('SELECT 1 AS connected'); return; }
+    const connection = await this.pool.getConnection();
+    try { await connection.ping(); }
+    finally { connection.release(); }
+  }
 }
 
 export function openDatabase(config: DatabaseConfig): Database {

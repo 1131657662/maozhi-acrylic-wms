@@ -132,6 +132,7 @@ const migrations = [
   { id: '023_catalog_candidate_abandons', guardedTables: ['catalog_candidate_abandons'] },
   { id: '024_stocktake_blind', guardedTables: [] },
   { id: '025_stocktake_discoveries', guardedTables: ['stocktake_discovery_lines'] },
+  { id: '026_maintenance', guardedTables: ['backup_artifacts', 'scheduler_runs', 'maintenance_jobs'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

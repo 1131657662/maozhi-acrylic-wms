@@ -13,6 +13,11 @@ import { assertBoundaryReady } from './db/boundary-readiness.ts';
 import { assertCorrectionsReady } from './db/correction-migration.ts';
 import { assertMasterReady } from './db/master-readiness.ts';
 import { assertAuditReady } from './db/audit-readiness.ts';
+import { MaintenanceService } from './features/maintenance/service.ts';
+import { localMaintenanceOptions } from './features/maintenance/options.ts';
+import { BackupFiles } from './features/maintenance/files.ts';
+import { MaintenanceScheduler } from './features/maintenance/scheduler.ts';
+import { scheduleEnabled } from './features/maintenance/schedule-plan.ts';
 
 const db = openDatabase(developmentConfig());
 const meta = await db.get("SELECT value FROM app_meta WHERE meta_key='identity'");
@@ -40,6 +45,8 @@ try {
   await assertCorrectionsReady(db);
   await assertMasterReady(db);
   await assertAuditReady(db);
+  if ((await db.get("SELECT state FROM schema_migrations WHERE id='026_maintenance'"))?.state !== 'applied')
+    throw new Error('026 维护迁移未完成，拒绝启动写服务；请先备份并完成本地迁移');
   if (
     (await db.get("SELECT state FROM schema_migrations WHERE id='021_document_date_corrections'"))?.state !== 'applied'
   )
@@ -50,10 +57,21 @@ try {
   await db.close();
   throw error;
 }
-const server = createApp(db).listen(4310, '127.0.0.1', () => logger.info('MySQL 开发 API: http://127.0.0.1:4310'));
+const maintenance = new MaintenanceService(db, localMaintenanceOptions(developmentConfig()));
+await new BackupFiles(maintenance.options!.directory).prepare();
+await maintenance.recover();
+const scheduler = new MaintenanceScheduler(maintenance);
+if (scheduleEnabled(process.env)) scheduler.start();
+const server = createApp(db, undefined, undefined, maintenance).listen(4310, '127.0.0.1', () =>
+  logger.info('MySQL 开发 API: http://127.0.0.1:4310'),
+);
 function shutdown(): void {
   server.close(() => {
-    void db.close().finally(() => process.exit(0));
+    void scheduler
+      .stop()
+      .then(() => maintenance.settled())
+      .then(() => db.close())
+      .finally(() => process.exit(0));
   });
 }
 process.on('SIGINT', shutdown);

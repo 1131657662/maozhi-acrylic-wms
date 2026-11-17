@@ -5,6 +5,12 @@ import { seedNumberingEvidence } from './e2e-numbering-fixtures.ts';
 import { seedSourceEvidence } from './e2e-source-fixtures.ts';
 import { seedReportEvidence } from './report-fixtures.ts';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { adminConfig } from './mysql/local-config.ts';
+import { MaintenanceService } from '../apps/api/src/features/maintenance/service.ts';
+import { localMaintenanceOptions } from '../apps/api/src/features/maintenance/options.ts';
+import { BackupFiles } from '../apps/api/src/features/maintenance/files.ts';
+import { MaintenanceScheduler } from '../apps/api/src/features/maintenance/scheduler.ts';
+import { scheduleEnabled } from '../apps/api/src/features/maintenance/schedule-plan.ts';
 
 const { db, name, dispose } = await createTestDatabase();
 mkdirSync('.local', { recursive: true });
@@ -17,16 +23,26 @@ await seedReportEvidence(db);
 await db.run(
   "UPDATE master_products SET source_kind='erp-product',origin_kind='legacy',inventory_eligible=1 WHERE code='ACR-032'",
 );
-const server = createApp(db, [...localOrigins, 'http://localhost:5174', 'http://127.0.0.1:5174']).listen(
-  Number(process.env.TEST_PORT ?? 4311),
-  '127.0.0.1',
-);
+const options = localMaintenanceOptions({ ...adminConfig(), database: name });
+const maintenance = new MaintenanceService(db, options);
+await new BackupFiles(options.directory).prepare();
+await maintenance.recover();
+const scheduler = new MaintenanceScheduler(maintenance);
+if (scheduleEnabled({ ...process.env, NODE_ENV: 'test' })) scheduler.start();
+const server = createApp(
+  db,
+  [...localOrigins, 'http://localhost:5174', 'http://127.0.0.1:5174'],
+  undefined,
+  maintenance,
+).listen(Number(process.env.TEST_PORT ?? 4311), '127.0.0.1');
 
 let closing = false;
 async function shutdown(): Promise<void> {
   if (closing) return;
   closing = true;
   await new Promise<void>((resolve) => server.close(() => resolve()));
+  await scheduler.stop();
+  await maintenance.settled();
   await dispose();
 }
 process.once('SIGTERM', () => void shutdown());

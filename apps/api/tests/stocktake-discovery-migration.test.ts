@@ -15,7 +15,7 @@ test('B6e-2 025 空表up/down保留原数据与024，未迁移拒绝启动', asy
   try {
     await assert.rejects(assertStocktakeDiscoveryReady(c.db), /025/);
     const before = await businessFingerprint(c.db);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '025_stocktake_discoveries');
     await assertStocktakeDiscoveryReady(c.db);
     assert.equal((await c.db.all("SHOW TRIGGERS LIKE 'stocktake_discovery_lines'")).length, 3);
     await migrateDown(c.db);
@@ -27,7 +27,7 @@ test('B6e-2 025 空表up/down保留原数据与024，未迁移拒绝启动', asy
   }
 });
 test('B6e-2 025 非空在DDL前拒绝down，作废发现行仍不可删改', async () => {
-  const c = await fixture();
+  const c = await fixture('025_stocktake_discoveries');
   try {
     await discoveryProduct(c.db);
     const take = await createStocktake(c.db, { warehouseCode: 'DEMO-WH' }, randomUUID(), actor);

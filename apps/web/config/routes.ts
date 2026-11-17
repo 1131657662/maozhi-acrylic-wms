@@ -9,6 +9,7 @@ export default [
   { path: '/stocktakes/new', hideInMenu: true, component: './stocktakes/new' },
   { path: '/stocktakes/:id', hideInMenu: true, component: './stocktakes/detail' },
   { path: '/catalog', name: '条码目录', icon: 'barcode', component: './catalog/index' },
+  { path: '/maintenance', name: '系统维护', icon: 'tool', component: './maintenance' },
   {
     path: '/system/document-numbering',
     name: '单据编号配置',
