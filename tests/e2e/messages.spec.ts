@@ -10,12 +10,13 @@ test('B8c六类真实扫描、逐条跳转已读、共享角标即时减少与�
   const c = await browserMessageSources();
   try {
     expect(new Set(c.messages.map((row) => row.type)).size).toBe(6);
-    await page.goto('/messages');
-    await expect(page.getByRole('heading', { name: '消息中心', exact: true })).toBeVisible();
-    await expect(page.getByRole('table')).toBeVisible();
-    await screenshotWidths(page, 'b8c/messages');
-    for (const row of c.messages) {
+    for (const [index, row] of c.messages.entries()) {
       await page.goto('/messages');
+      await expect(page.getByRole('heading', { name: '消息中心', exact: true })).toBeVisible();
+      await page.getByRole('combobox', { name: '阅读状态' }).click();
+      await page.locator('.ant-select-dropdown:visible').getByText('仅未读', { exact: true }).click();
+      await expect(page.getByRole('table').locator('tbody tr')).toHaveCount(c.messages.length - index);
+      if (index === 0) await screenshotWidths(page, 'b8c/messages');
       const before = (await (await page.request.get('/api/v1/messages/unread-count')).json()).data.unreadCount;
       await page.locator(`tr[data-row-key="${row.id}"]`).getByRole('link').click();
       await expect(page).toHaveURL(new RegExp(`${String(row.link_path)}$`));

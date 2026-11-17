@@ -10,7 +10,7 @@
 
 029_notifications新增notifications、notification_scan_state。notifications包含id/type/object_type/object_id/event_key/cycle_anchor、title/body/link_path、created_at/read_at/resolved_at/expires_at；active_key为未解除时event_key、否则NULL的生成列，唯一索引保证一个事件周期只有一条活动通知。event_key为类型+对象类型+对象稳定标识的SHA-256；cycle_anchor记录源事件时间或版本。UTC DATETIME(3)，对象删除仍保留通知。
 
-notification_scan_state含key、last_run_at、last_status、detail，保存六类扫描状态及持续活动事件锚点。扫描每分钟一次并在启动时运行；复用B8a进程内调度器的启停、防重入和测试开关，但消息扫描拥有独立kind、游标和失败状态。六类各一条批量源查询，多来源用UNION，不逐单查询；同事务完成候选比较、通知幂等upsert、解除和scan_state写入。已有活动event_key且锚点未变则跳过；条件解除写resolved_at，锚点变化或解除后再次满足才新建。
+notification_scan_state含key、last_run_at、last_status、detail，保存六类扫描状态及持续活动事件锚点。扫描每分钟一次并在启动时运行；复用B8a进程内调度器的启停、防重入和测试开关，但消息扫描拥有独立key、事件锚点和失败状态。六类各一条批量源查询，多来源用UNION，不逐单查询；同事务完成候选比较、通知幂等upsert、解除和scan_state写入。已有活动event_key且锚点未变则跳过；条件解除写resolved_at，锚点变化或解除后再次满足才新建。
 
 清理只删除expires_at到期且read_at非空或resolved_at非空的通知；活动未读即使到期也保留。清理后scan_state保留持续事件锚点，避免下一轮重发；条件解除后移除锚点。仅删通知，不动业务、审计、任务或扫描状态。
 
@@ -38,6 +38,12 @@ notification_scan_state含key、last_run_at、last_status、detail，保存六�
 ### 9.4 验收与提交
 
 五笔：①规格/台账/批次；②029/契约/API及迁移测试；③扫描/去重/清理/调度/健康及六类回归；④页面/角标/浏览器专项；⑤完整验证、修正与验收记录。完整test/build/E2E，截图1440/1280仅.local/evidence/b8c，不改截图基础设施、不写开发样本库；不宣称设备或生产验收。
+
+B8c完整回归发现恢复导入背压会触发Node readline关闭后resume错误。仅替换SQL逐行读取为按需读取，保留UTF-8、CR/LF规范化、跨库语句检查、单行字节上限及原恢复权限/核验链路；新增背压、分块与限额回归，真实备份恢复必须通过。
+
+### 9.5 本批验收结果
+
+2026-11-17：完整test 646/646、完整E2E 238/238（220+18）、build exit 0；消息页与消息扫描健康卡1440/1280截图已复核，详见B8C_ACCEPTANCE.md。代码/自动化验收完成，待用户验收；五笔提交后停止，不合并推送，开发样本库未应用029，无实体设备或生产验收。
 
 ## 一、消息中心
 

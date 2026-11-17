@@ -34,7 +34,7 @@ test('B8c时间恰好达阈值才触发，空扫码时间和终态不猜测', as
     }
     await c.db.run("UPDATE outbound_orders SET scan_closed_at=NULL WHERE id='DEMO-001'");
     assert.equal((await overdueSources(c.db, now)).length, 0);
-    await c.db.run("UPDATE outbound_orders SET scan_closed_at=?,status='shipped' WHERE id='DEMO-001'", [
+    await c.db.run("UPDATE outbound_orders SET scan_closed_at=?,status='confirmed' WHERE id='DEMO-001'", [
       oldTime(now, 8),
     ]);
     assert.equal((await overdueSources(c.db, now)).length, 0);

@@ -48,6 +48,12 @@ export async function browserMessageSources() {
     'SELECT id,type,title,link_path FROM notifications WHERE resolved_at IS NULL AND object_id IN (?,?,?,?,?)',
     [receipt.id, plan.id, take.id, job, '1'],
   );
+  // The full suite has older synthetic documents too. Keep this case's seven
+  // notifications unread, so its navigation checks do not assume page one.
+  await db.run(
+    `UPDATE notifications SET read_at=UTC_TIMESTAMP(3) WHERE id NOT IN (${messages.map(() => '?').join(',')})`,
+    messages.map((row) => String(row.id)),
+  );
   await db.run('UPDATE catalog_versions SET published_at=? WHERE version_id=?', [
     String(catalog!.published_at),
     String(catalog!.version_id),
