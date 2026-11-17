@@ -317,3 +317,17 @@ POST /api/v1/me/logout
 - 截图：`.local/evidence/b8a1/backup-1440.png`、`backup-1280.png`、`health-1440.png`、`health-1280.png`、`health-outage-1440.png`、`health-backup-failed-1440.png`；只存本地，不进Git。
 
 代码审查已覆盖身份/来源、固定命令与参数、路径归属、SHA、互斥/重启、保留集合和失败状态，已修复发现的问题；记录`.local/evidence/b8a1/code-review.md`。五笔提交中前四笔为af3ea44、50f3a80、8371bcb、6fe5a80，第五笔为最终验收收尾。未合并、未推送，不进入B8a-2。开发样本库未应用026，本地完整验证使用随机隔离测试库；代码完成/本地验证不等于用户现场、实体设备或生产验收。原有B7c/未来多用户文档改动保持未提交。
+
+### 6.6 B8a-1 用户验收后收尾（2026-11-17）
+
+用户已验收B8a-1，明确授权开发样本库迁移、真实页面冒烟及合并推送。本节取代§6此前不合并/不推送、026仅在隔离库应用的阶段限制；保留§6.5为当时的验收事实。恢复仍归B8a-2，本次不开始。
+
+- 目标已核验为127.0.0.1:3307/maozhi_dev_sample，实例目录为本项目`.local/mysql/data`、身份为maozhi-local-mysql8-v1；未操作其他MySQL实例或生产库。
+- 先执行`npm run backup`（exit 0），文件`.local/backups/maozhi-1794892367647.sql`，6,801,009字节，SHA-256为`dcbc2c2604c6807a10578231396c174a57445bbbb6fe24de49fb96b98fbc051a`。随后保存52张原表指纹，应用026（exit 0）；除schema_migrations登记外51张原表的列、行数、内容哈希一致，仅新增三张空维护表。证据`.local/evidence/b8a1-closeout/{before,after}.json`、`migration.log`。
+- 使用正常开发API4310/Web5173及现有登录账户操作维护页。立即备份两次连续点击仅产生1次POST、1个任务，HTTP202，任务完成并生成真实SQL；本次产物6,807,811字节，SHA-256为`6819e7dd5cc14ce2c0a35a376ecdd34045a4c8f647117ca8b3930296becc964f`，实际下载字节数与SHA均一致。该启动方式产物位于`apps/api/.local/backups/maintenance/maozhi_dev_sample/`（npm工作区的API工作目录）。
+- 手工翻转真实产物一个字节且保持大小不变，再点下载返回409并显示拒绝原因；测试后完整还原原文件，重下200且SHA一致，不留下损坏产物。
+- 保留策略用4份真实SQL副本模拟最近29日、两个月前月内最新/更早、超12月；任务params明确标记验收副本。通过页面二次确认清理，仅删除月内更早及超12月两份；月内最新保留，最近30日3份文件逐个SHA复核不变，合计保留4份。任务/产物元数据、清理记录保留；不删除历史业务记录。
+- 对已核验的本项目MySQL执行正常shutdown，页面健康请求真实503，红色“数据库连接异常”出现，旧正常卡片撤下且无“正常”文本。数据库恢复后页面再次显示真实连接正常；没有用HTTP模拟替代停库。恢复脚本首用旧powershell.exe遇UTF-8解析失败，随后在pwsh启动实例；原脚本等待超时exit 1后实例实际完成启动，已独立ping、页面与指纹复核通过（recovery验证exit 0）。未修改旧启动脚本、未改数据库全局配置。冒烟临时关闭自动调度以隔离手动任务计数，已停止本轮开发进程；默认启用规则未变，数据库保持运行。
+- 冒烟后48张业务表指纹与迁移前一致；允许变化的仅会话/审计/迁移登记及本批维护三表。首次脚本按仓库根目录查找产物失败，修正为API实际工作目录后完成全部页面断言；恢复验证另行确认持久结果。证据`smoke-sample.ts`、`smoke-retry.log`、`smoke-results.json`、`recovery.log`及1440截图均在`.local/evidence/b8a1-closeout/`，不进Git。
+- 沿用用户验收基线完整test588/588、E2E228项、build通过；追加测试与4项性能复测口径详见§6.5。本次只应用已验收迁移并冒烟，无功能代码变化，不重跑无关全套。
+- 按指定命令`git checkout master`、`git merge --no-ff codex/b8a-1-maintenance-backup -m "merge: b8a-1 maintenance backup"`、`git push origin master`执行，exit均0。功能merge与当次远端refs/heads/master均为`2881fcbda1940f721c1f03e934e8643463ce5bd0`，远端核对exit 0；合并树与bd13eab一致。合并后批次/决策/验收/审计文档在codex/b8a-1-closeout提交，再非快进合并推送master；原有B7c文档修改恢复为未提交，不纳入本批。完成后停止，不开始B8a-2。
