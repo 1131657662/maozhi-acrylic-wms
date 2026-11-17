@@ -31,6 +31,7 @@ test('018 down refuses new evidence before DDL without changing schema', async (
     for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
       await c.db.run(`UPDATE ${table} SET search_text=NULL`);
     await c.web.post('/api/v1/auth/logout').expect(200);
+    await migrateDown(c.db); // Remove empty 029 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 028 after normal logout.
     await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.

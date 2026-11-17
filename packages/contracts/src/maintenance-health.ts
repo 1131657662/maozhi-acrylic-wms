@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { maintenanceJobSchema } from './maintenance.ts';
+import { messageScanSchema } from './messages.ts';
 export const maintenanceScheduleSchema = z.object({
   at: z.iso.datetime(),
   status: z.enum(['running', 'succeeded', 'failed', 'interrupted', 'skipped']),
@@ -13,6 +14,7 @@ export const maintenanceCheckSchema = z.object({
   reason: z.string().nullable(),
 });
 export const maintenanceHealthSchema = z.object({
+  messages: messageScanSchema,
   database: maintenanceCheckSchema.extend({ latencyMs: z.number().nonnegative().nullable() }),
   disk: maintenanceCheckSchema.extend({ freeBytes: z.number().nonnegative().nullable() }),
   http: maintenanceCheckSchema.extend({

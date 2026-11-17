@@ -4,7 +4,7 @@
 
 ## 九、B8c 消息中心（2026-11-17 定稿）
 
-起点 master@49d94bf，分支 codex/b8c-notifications；B8a/B8b已完成。本节补充B8c实现边界，五笔提交后停止。
+起点 master@49d94bf，分支 codex/b8c-notifications；B8a/B8b已完成。本节为B8c实现定稿，取代原无条件90天清理及last_seen/count累计方案，五笔提交后停止。
 
 ### 9.1 存储与生命周期
 
@@ -26,6 +26,8 @@ notification_scan_state含key、last_run_at、last_status、detail，保存六�
 | 异常 | 未删除库存包数或吨数<0仅诊断；明盘或已揭示盲盘逐行abs(实盘包数-快照包数)>max(快照包数×10%,50包)，零基数发现行按50包 | 仓品组合/盘点id及稳定诊断锚点 |
 
 异常只按包数判断，不把吨数折包、不用整单净差抵消逐行差异。未揭示盲盘不生成差异通知；缺时间保留未知，不凭创建时间补猜扫码时间。
+
+时间阈值均包含恰好满时点，差异阈值严格大于。备份失败持续到后续一次成功备份完成；成功后原失败通知解除，原任务/调度历史保留。每轮以数据库命名锁防并发，六类候选、解除、清理及成功状态同事务提交；任何源失败整轮回滚并单独记失败状态，下一分钟重试。消息扫描独立防重入，不等待长备份任务。
 
 ### 9.3 接口、页面、健康
 
@@ -76,7 +78,7 @@ notification_scan_state含key、last_run_at、last_status、detail，保存六�
 - 未读数显示在左侧菜单角标；
 - 支持「全部已读」；
 - 单条已读在点击跳转时自动完成；
-- 消息保留 90 天，过期自动清理（仅删通知，不动业务数据）；
+- 消息创建满90天后，仅清理已读或已解除通知；活动未读保留（§9取代原无条件清理）；
 - 不做消息回复、不做评论。
 
 ### 5. 接口
@@ -91,7 +93,7 @@ GET /api/v1/messages/unread-count
 | 情况 | 处理 |
 |---|---|
 | 对象已删除 | 消息保留，跳转提示“对象不存在” |
-| 重复触发 | 同事件周期合并last_seen/count，不重置已读；条件解除后标已恢复 |
+| 重复触发 | 同事件周期跳过，不重置已读；条件解除后标已解除（§9取代原last_seen/count累计方案） |
 | 免打扰 | 不做（单用户，量很小） |
 
 ---
@@ -307,7 +309,7 @@ DELETE /api/v1/me/sessions/:id
 | B8a-1 / UI-8维护基础 | M-MAINTENANCE：026 maintenance_jobs、backup_artifacts、scheduler_runs | 异步真实备份、校验下载、保留清理、健康与页面；字段及当前接口以第六节为准 |
 | B8a-2 / UI-8恢复 | restore_verifications（迁移号实施时分配） | 前置B8a-1；隔离恢复、原库预备份、表/行/仓品包吨/迁移版本指纹与失败保全；不覆盖原库、不自动切换 |
 | B8b / UI-8身份 | M-AUTH-EXTENSIONS：028账户显示名/改密时间/锁定计数期限与auth_epoch；会话id/created_at/epoch | 具体接口、并发和验收按第八节；保留/auth/login、/auth/me、/auth/logout兼容，HTTP限流与账户锁定独立 |
-| B8c / UI-8通知 | M-NOTIFICATIONS：notifications、notification_scan_state | 通知保存event_key/type/target/business_no、first_seen/last_seen/count、read_at/resolved_at、expires_at；活动event_key唯一，事务游标扫描+幂等upsert，90天只清通知不清审计 |
+| B8c / UI-8通知 | M-NOTIFICATIONS：029 notifications、notification_scan_state | §9取代原first_seen/last_seen/count方案：event_key/cycle_anchor及对象、文案、路径、四个时间字段；active_key生成列唯一，批量扫描事务去重；90天仅清理已读/已解除通知 |
 
 维护接口是异步任务：POST返回jobId、GET读取状态，不让浏览器执行任意路径/命令/目标库名。备份/恢复按任务互斥、超时/重启可查；备份文件清理只针对自身产物且已核验归属，恢复隔离库不自动清理。备份已在B8a-1产品化，恢复按第七节实施；恢复副本现有清空会话行为在指纹中明确排除并验证，其余业务表必须逐项对账。UI中的恢复不覆盖原库，切换连接另有CUTOVER门禁；不自动触发迁移。
 

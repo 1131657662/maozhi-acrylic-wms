@@ -14544,9 +14544,37 @@
                             "p95Ms"
                           ],
                           "type": "object"
+                        },
+                        "messages": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "at": {
+                              "$ref": "#/components/schemas/S_48ecc3cdb57f9d4d"
+                            },
+                            "reason": {
+                              "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                            },
+                            "status": {
+                              "enum": [
+                                "unknown",
+                                "succeeded",
+                                "failed",
+                                "running",
+                                "interrupted"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "at",
+                            "status",
+                            "reason"
+                          ],
+                          "type": "object"
                         }
                       },
                       "required": [
+                        "messages",
                         "database",
                         "disk",
                         "http",
