@@ -136,6 +136,7 @@ const migrations = [
   { id: '026_maintenance', guardedTables: ['backup_artifacts', 'scheduler_runs', 'maintenance_jobs'] },
   { id: '027_restore_baselines', guardedTables: ['restore_verifications'] },
   { id: '028_auth_extensions', guardedTables: [] },
+  { id: '029_notifications', guardedTables: ['notifications', 'notification_scan_state'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {

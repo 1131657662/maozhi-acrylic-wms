@@ -70,7 +70,9 @@ import { dashboardOperations } from './features/workbench/openapi.ts';
 import { analysisOperations } from './features/analysis/openapi.ts';
 import { maintenanceOperations } from './features/maintenance/openapi.ts';
 import { identityOperations } from './features/auth/openapi.ts';
+import { messageOperations } from './features/notifications/openapi.ts';
 export const operations: Operation[] = [
+  ...messageOperations,
   ...identityOperations,
   ...maintenanceOperations,
   ...dashboardOperations,

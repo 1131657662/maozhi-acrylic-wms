@@ -190,3 +190,5 @@ export * from './maintenance-health.ts';
 export * from './maintenance-baseline.ts';
 export * from './maintenance-restore.ts';
 export * from './identity.ts';
+export * from './messages.ts';
+export * from './message-copy.ts';

@@ -12,6 +12,7 @@ import { beginAuditRequest, retainRequestFailure } from './features/audit/http.t
 import { STOCK_PEEK_BODY_LIMIT_BYTES } from '@wms/contracts';
 import { maintenanceRouter } from './features/maintenance/router.ts';
 import { MaintenanceService } from './features/maintenance/service.ts';
+import { messageRouter } from './features/notifications/router.ts';
 
 export const localOrigins = [
   'http://localhost:5173',
@@ -56,6 +57,7 @@ export function createApp(
   app.get('/api/v1/health', (_req, res) => ok(res, { status: 'ok', mode: 'local-development', database: 'mysql8' }));
   app.use('/api/v1/auth', authRouter(db));
   app.use('/api/v1/me', accountRouter(db, origins));
+  app.use('/api/v1/messages', messageRouter(db, origins));
   app.use('/api/v1/maintenance', maintenanceRouter(db, origins, maintenance));
   app.use('/api/v1', businessRouter(db, origins, catalogPublishEnabled));
   app.use(() => {
