@@ -2,6 +2,41 @@
 
 > 本文档中的状态、类型、结果等库值仅作实现标识；界面显示必须按 docs/UX_STANDARDS.md 映射为中文。
 
+## 九、B8c 消息中心（2026-11-17 定稿）
+
+起点 master@49d94bf，分支 codex/b8c-notifications；B8a/B8b已完成。本节补充B8c实现边界，五笔提交后停止。
+
+### 9.1 存储与生命周期
+
+029_notifications新增notifications、notification_scan_state。notifications包含id/type/object_type/object_id/event_key/cycle_anchor、title/body/link_path、created_at/read_at/resolved_at/expires_at；active_key为未解除时event_key、否则NULL的生成列，唯一索引保证一个事件周期只有一条活动通知。event_key为类型+对象类型+对象稳定标识的SHA-256；cycle_anchor记录源事件时间或版本。UTC DATETIME(3)，对象删除仍保留通知。
+
+notification_scan_state含key、last_run_at、last_status、detail，保存六类扫描状态及持续活动事件锚点。扫描每分钟一次并在启动时运行；复用B8a进程内调度器的启停、防重入和测试开关，但消息扫描拥有独立kind、游标和失败状态。六类各一条批量源查询，多来源用UNION，不逐单查询；同事务完成候选比较、通知幂等upsert、解除和scan_state写入。已有活动event_key且锚点未变则跳过；条件解除写resolved_at，锚点变化或解除后再次满足才新建。
+
+清理只删除expires_at到期且read_at非空或resolved_at非空的通知；活动未读即使到期也保留。清理后scan_state保留持续事件锚点，避免下一轮重发；条件解除后移除锚点。仅删通知，不动业务、审计、任务或扫描状态。
+
+### 9.2 六类触发与锚点
+
+| 类型 | 判定 | 锚点 |
+|---|---|---|
+| 待确认 | 本地未删除pending入库创建满2小时；本地未删除open/frozen/partially_shipped出库scan_closed_at满2小时 | 入库id/created_at；出库id/scan_closed_at |
+| 发货超时 | 同状态出库scan_closed_at非空且满7天，终态排除，缺时间不猜 | 出库id/scan_closed_at |
+| 盘点未结束 | counting且活动窗口started_at满24小时 | 盘点id/started_at |
+| 目录待更新 | 当前发布版本published_at满30天；未初始化或缺时间不生成 | head/发布版本id |
+| 备份失败 | backup任务failed/interrupted；无关联任务的backup调度failed/interrupted也计，关联失败不重复 | 任务或调度id/执行时间 |
+| 异常 | 未删除库存包数或吨数<0仅诊断；明盘或已揭示盲盘逐行abs(实盘包数-快照包数)>max(快照包数×10%,50包)，零基数发现行按50包 | 仓品组合/盘点id及稳定诊断锚点 |
+
+异常只按包数判断，不把吨数折包、不用整单净差抵消逐行差异。未揭示盲盘不生成差异通知；缺时间保留未知，不凭创建时间补猜扫码时间。
+
+### 9.3 接口、页面、健康
+
+四接口均要求登录Web会话，写操作校验Origin并拒绝Bearer。GET /messages?type=&unread=&page=按created_at DESC、id DESC返回items/total/unreadCount/page/pageSize；unread=true仅read_at和resolved_at均为空。GET /messages/unread-count返回全局活动未读数。POST /messages/:id/read及/read-all幂等；不存在id返回404；全部已读覆盖全部活动未读。
+
+/messages提供类型筛选、未读筛选、分页和全部已读，点击先标已读再跳转。空态、加载、错误分开，标题使用16px线性图标，颜色/间距使用既有token。侧栏消息菜单Badge每60秒刷新，已读成功后立即更新共享计数；读取失败不得显示0。健康页增加消息扫描状态卡片。
+
+### 9.4 验收与提交
+
+五笔：①规格/台账/批次；②029/契约/API及迁移测试；③扫描/去重/清理/调度/健康及六类回归；④页面/角标/浏览器专项；⑤完整验证、修正与验收记录。完整test/build/E2E，截图1440/1280仅.local/evidence/b8c，不改截图基础设施、不写开发样本库；不宣称设备或生产验收。
+
 ## 一、消息中心
 
 ### 1. 定位
