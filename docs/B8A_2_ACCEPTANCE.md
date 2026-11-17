@@ -62,3 +62,9 @@ WMS/security审查记录 `.local/evidence/b8a2/code-review.md`。已修复授权
 - **原业务不变**：49张业务表（含已完成027的迁移登记）在恢复前后指纹均为`54f20b7716dd0d58e8ade0b8dbcc00e9abfa4e31277ddc2a9bd7bbafdb5c10c9`。新增维护任务/备份/恢复记录、会话与审计单列排除，不混入业务流水。完整报告、归属及前后指纹见`smoke-result.json`。
 - **脚本与进程**：首轮已完成恢复后因弹窗关闭按钮英文定位失败，续跑复用原任务，没有重复新建恢复；日志保留。后续修复页面提示后`smoke-final.log` exit 0。成功/无基线报告与预检截图1440已复核，截图脚本仅重开现有报告。已停止本轮API4310/Web5173；MySQL3307保持运行。冒烟进程临时禁用自动调度，项目默认启用规则不变。
 - **验证口径**：沿用用户通过的完整test609/609、完整E2E231/231、build exit 0基线。收尾提示映射追加Web错误回归4/4（含1项新增安全边界用例），真实页面预检与新旧报告冒烟exit 0，重新完整build exit 0；恢复E2E专项3/3、exit 0（42.6秒），覆盖确认/真实恢复、无基线和失败保留，见`restore-e2e.log`。未将追加用例冒充完整610项运行，也不宣称提示修正后重跑完整231项。
+
+## 合并推送
+
+收尾修复/验收提交`e975f3351cec0abb519c341323cd56b86dda5795`。按用户指定命令依次执行`git checkout master`、`git merge --no-ff codex/b8a-2-isolated-restore -m "merge: b8a-2 isolated restore"`、`git push origin master`，exit均0。功能merge为`c27bc7f04d19c304fd6f50f9e414a844a97598f8`，当次远端refs/heads/master一致，ls-remote exit0；合并树与功能分支一致。
+
+合并后IMPLEMENTATION_PLAN及AUDIT_FINDINGS在`codex/b8a-2-closeout`分支补记B8a全部完成609/231/0及AF-061关闭，以非快进方式合回master再推送。最终远端HEAD及各命令结果记录在本地`git-results.json`与本次交付回复，避免在被记录的提交中循环写入自身hash。用户既有两份文档修改恢复为未提交；不进入下一批。
