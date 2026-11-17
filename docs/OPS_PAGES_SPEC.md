@@ -148,7 +148,7 @@ GET /api/v1/maintenance/health
 
 ### 8.1 范围与迁移
 
-起点63b5ec8，codex/b8b-identity，五笔提交后停止，不合并推送。只做本人资料/会话/改密及账户锁定，不做RBAC、多用户管理、找回密码、OAuth或头像联系方式。
+起点63b5ec8，codex/b8b-identity，功能五笔提交后停止并等待验收；用户验收后授权的迁移与合并收尾见8.5。只做本人资料/会话/改密及账户锁定，不做RBAC、多用户管理、找回密码、OAuth或头像联系方式。
 
 028为owner增加display_name VARCHAR(80) NULL、password_changed_at DATETIME(3) NULL、auth_epoch INT UNSIGNED NOT NULL DEFAULT 0、failed_attempts INT UNSIGNED NOT NULL DEFAULT 0、locked_until DATETIME(3) NULL；sessions增加id CHAR(36) NOT NULL UNIQUE、created_at DATETIME(3) NOT NULL、epoch INT UNSIGNED NOT NULL DEFAULT 0。时间UTC保存、上海显示。旧会话不删除：补独立UUID，created_at按既有固定8小时有效期由expires_at减8小时回填，epoch为0。会话id仅供接口定位，不展示。
 
@@ -184,6 +184,10 @@ down在任何DDL前检查owner可空新列非NULL、计数/版本非0以及任�
 PDA离线时不清业务数据；下次联网请求401才提示重新登录并清认证凭证。后台401停止重试并标记需认证，前台恢复时显示登录；登录后沿既有补传链路继续。Room队列、目录、计划、交接清单、UUID及正文原样保留，仅上传状态允许变化。
 
 验收：三端旧token全401；双改密仅一次成功；登录/改密竞态；5次锁15分钟、重建服务仍锁、到期恢复/成功清零；锁中正确错误同响应；字节边界/中文/旧超长提示；渠道/Origin/伪造账号/他人会话拒绝；事务回滚/审计无秘密；028回填/空数据往返/非空拒绝。完整test/build/E2E、token和AntD检查、1440/1280截图仅.local/evidence/b8b；PDA构建/单测/lint，模拟器可用时验证并注明不等于实体/生产验收。不改截图基础设施，不为截图写开发样本库。
+
+### 8.5 用户验收与收尾（2026-11-17）
+
+B8b已用户验收，629/234/0；按明确授权备份、指纹后应用028至开发样本库，原55张表原有列指纹一致。个人中心显示名保存刷新、当前会话与到期时间、5次失败429及剩余时间均通过；验证后SQL清计数/锁期限，原密码恢复登录200。开发库禁止改密，密码哈希未变，改密由自动化覆盖。功能已非快进合并推送d122652，收尾文档更新后停止，不开始B8c；详见B8B_ACCEPTANCE。
 
 ## 三、个人中心
 

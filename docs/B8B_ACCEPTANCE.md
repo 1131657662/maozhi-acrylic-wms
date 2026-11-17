@@ -1,10 +1,10 @@
 # B8b 身份与个人中心验收（2026-11-17）
 
-状态：代码、完整自动化验证及模拟器专项验证完成，待用户验收；未合并、未推送。仅隔离本地合成数据与 Chromium / Android 模拟器验证，不等于实体设备或生产验收。
+状态：已完成，用户验收通过；028已应用开发样本库并完成冒烟，功能已合并推送。完整自动化629/234/0。仅本地合成数据与 Chromium / Android 模拟器验证，不等于实体设备或生产验收。
 
 ## 范围与实现
 
-起点 `63b5ec8d9eb053869c0a959bde0687656eb1d683`，分支 `codex/b8b-identity`。028 扩展 owner / sessions，保留旧会话并回填编号、创建时间和版本；非空扩展数据在任何 DDL 前拒绝 down。没有自动应用到开发样本库。
+起点 `63b5ec8d9eb053869c0a959bde0687656eb1d683`，分支 `codex/b8b-identity`。028 扩展 owner / sessions，保留旧会话并回填编号、创建时间和版本；非空扩展数据在任何 DDL 前拒绝 down。功能阶段只做隔离验证，用户验收后明确授权应用开发样本库，收尾结果见下节。
 
 个人中心提供本人资料、有效会话列表与撤销、改密、退出。新增接口只接受已登录 Web Cookie，写操作校验 Origin 白名单，拒绝 Authorization 头；请求体不能指定账号。显示名保存刷新账号入口，渠道使用中文映射，内部会话 UUID 不展示。密码字段不使用草稿和 React Query mutation 变量缓存，请求结束或离开时清空。
 
@@ -46,4 +46,13 @@ AntD lint 9 文件问题 0；设计 token 检查新增 0、既有 22，不扩大
 
 ## 交付边界
 
-五笔提交，完成后停；不合并、不推送，不进入 B8c。用户原有 DECISION_LOG / IMPLEMENTATION_PLAN 未提交修改保留，不纳入本批。开发样本库仍需另行应用 028 才能运行新代码；本批没有生产连接、历史单据迁移、真实作业队列清理、RBAC、多用户管理、找回密码或 OAuth。
+功能五笔提交已完成；用户验收后授权以下收尾。不进入 B8c。用户原有 DECISION_LOG / IMPLEMENTATION_PLAN 未提交修改保留，不纳入本批。本批没有生产连接、历史单据迁移、真实作业队列清理、RBAC、多用户管理、找回密码或 OAuth。
+
+## 用户验收后收尾（2026-11-17）
+
+- 连接严格限定 `127.0.0.1:3307/maozhi_dev_sample`，校验 MySQL 实例目录和 app_meta 身份后备份。备份 `.local/evidence/b8b-closeout/before-028.sql`，7,116,790 字节，SHA-256 `aae907d621e33578c0f288425f930c87af4be809b87622674831bc825d55b4b5`，含核验基线；不进入 Git。
+- 指纹后执行028，状态 `applied`，exit 0。55张原表投影到原有列后的行数/指纹全部一致（仅schema_migrations新增登记）；7条既有会话全部补齐唯一id与created_at，epoch均0。
+- 真实Web个人中心冒烟exit 0：显示名修改为“仓库管理员”，刷新后保留；会话列表可见且仅一条标记当前，会话到期时间与本人资料一致。
+- 同账号连续5次错误登录返回 `[401,401,401,401,429]`，最后 `retryAfterSeconds=900`、`Retry-After=900`；锁中正确密码也429。随后按用户要求SQL清除failed_attempts/locked_until，原密码恢复登录200，计数0、锁期限NULL。未调用改密接口；密码哈希保持一致，auth_epoch仍0、password_changed_at仍NULL。52张无关表在冒烟前后指纹一致。
+- 备份/指纹/迁移/冒烟/截图/命令退出码保留在 `.local/evidence/b8b-closeout/`。不以开发库改密做验证，改密、并发及全端失效由已通过的自动化覆盖。
+- 按用户命令执行 `git checkout master`、`git merge --no-ff codex/b8b-identity -m "merge: b8b identity"`、`git push origin master`，exit均0。功能merge为 `d1226525e26ecac31d8551cd1736581b7c795abc`，首次推送后远端master一致，核对exit 0。收尾文档单独在codex分支提交并非快进合并推送，最终远端结果见本地 `git-results.json`；停止，不开始B8c。
