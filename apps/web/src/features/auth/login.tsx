@@ -10,6 +10,7 @@ import { authKeys } from './keys';
 import { LoginShell } from './login-shell';
 import { loginCopy as t } from './copy';
 import { internalDestination } from '../outbound/list-route';
+import { identityCopy } from '../identity/copy';
 
 interface LoginValues {
   username?: string;
@@ -34,7 +35,7 @@ export function Login() {
       delete window.__wmsAnalysisRequest;
       delete window.__wmsAnalysisSettled;
       client.setQueryData(authKeys.session.queryKey, session);
-      history.replace(redirect);
+      history.replace(session.passwordChangeRecommended ? '/me?password=required' : redirect);
       return true;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t.failed);
@@ -45,6 +46,8 @@ export function Login() {
   return (
     <LoginShell>
       <ProForm<LoginValues>
+        clearOnDestroy
+        preserve={false}
         onFinish={(values) => lock.run(() => submit(values))}
         submitter={{
           searchConfig: { submitText: lock.text(t.submit) },
@@ -54,6 +57,9 @@ export function Login() {
         initialValues={{ username: 'owner' }}
       >
         <div className="login-description">{t.description}</div>
+        {new URLSearchParams(location.search).get('password') === 'changed' && (
+          <Alert type="success" showIcon title={identityCopy.changed} />
+        )}
         <ProFormText
           name="username"
           label={t.username}

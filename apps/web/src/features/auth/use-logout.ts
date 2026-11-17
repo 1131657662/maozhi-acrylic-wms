@@ -7,14 +7,14 @@ export function useLogout() {
   return useMutation({
     mutationFn: async () => {
       try {
-        await request('/auth/logout', z.null(), { method: 'POST' });
+        await request('/me/logout', z.null(), { method: 'POST' });
       } catch (error) {
         if (!(error instanceof ApiError && error.status === 401)) throw error;
       }
     },
     onSuccess: () => {
       client.clear();
-      window.location.assign('/');
+      window.location.assign('/user/login');
     },
   });
 }

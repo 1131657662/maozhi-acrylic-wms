@@ -10,8 +10,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import cn.maozhi.wms.pda.auth.SessionStore
+import cn.maozhi.wms.pda.auth.AuthText
 import cn.maozhi.wms.pda.data.AppStore
 import cn.maozhi.wms.pda.network.ApiClient
+import cn.maozhi.wms.pda.network.ApiFailure
 import cn.maozhi.wms.pda.scan.PlanRepository
 import cn.maozhi.wms.pda.scan.ScanRepository
 import cn.maozhi.wms.pda.scan.SubmissionRepository
@@ -32,6 +34,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var notice: TextView
     private var busy = false
     private var selectedLine: String? = null
+    private var stopObservingExpiry: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +42,15 @@ class MainActivity : ComponentActivity() {
             if (session.selectedPlan.isEmpty()) showPlans() else showScan()
             SyncWorker.schedule(this@MainActivity)
         }
+    }
+    override fun onStart() {
+        super.onStart()
+        stopObservingExpiry = session.observeExpiry { runOnUiThread { showLogin() } }
+        if (session.needsReauthentication) showLogin()
+    }
+    override fun onStop() {
+        stopObservingExpiry?.invoke(); stopObservingExpiry = null
+        super.onStop()
     }
     private fun page(): LinearLayout {
         val root = Ui.column(this)
@@ -68,8 +80,15 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try { action() }
             catch (error: Exception) {
+                if (error is ApiFailure && error.status == 401 && session.needsReauthentication) {
+                    showLogin(); return@launch
+                }
                 if (!::notice.isInitialized) page()
-                notice.text = "操作未完成，扫码记录已保留。请检查网络后重试或联系管理员。"
+                notice.text = when {
+                    error is ApiFailure && error.code == "INVALID_CREDENTIALS" -> AuthText.invalidCredentials
+                    error is ApiFailure && error.status == 429 -> AuthText.locked
+                    else -> "操作未完成，扫码记录已保留。请检查网络后重试或联系管理员。"
+                }
                 notice.setTextColor(android.graphics.Color.rgb(168, 44, 44))
             } finally { busy = false }
         }
@@ -77,6 +96,7 @@ class MainActivity : ComponentActivity() {
     }
     private fun showLogin() {
         LoginScreen.render(page(), session.endpoint) { credentials -> perform { login(credentials) } }
+        if (session.needsReauthentication) notice.text = AuthText.expired
     }
     private suspend fun login(credentials: Credentials) {
         session.endpoint = credentials.endpoint
@@ -89,6 +109,7 @@ class MainActivity : ComponentActivity() {
         refresh()
         showPlans()
         SyncWorker.schedule(this)
+        if (result.optBoolean("passwordChangeRecommended")) notice.text = AuthText.legacyPassword
     }
     private suspend fun showPlans() {
         val plans = withContext(Dispatchers.IO) { dao.plans() }

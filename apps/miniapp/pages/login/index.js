@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const { showPasswordNotice } = require('../../utils/auth-notice');
 Page({
   data: { username: 'owner', password: '', loading: false, error: '' },
   onLoad() {
@@ -18,6 +19,7 @@ Page({
       if (typeof result.token !== 'string') throw new Error('登录响应缺少会话');
       wx.setStorageSync('session', result.token);
       this.setData({ password: '' });
+      await showPasswordNotice(result);
       wx.reLaunch({ url: '/pages/outbound/index' });
     } catch (error) {
       this.setData({ error: error.message });
