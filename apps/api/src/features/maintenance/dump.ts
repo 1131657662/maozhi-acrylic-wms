@@ -33,6 +33,8 @@ export async function mysqlDump(config: DatabaseConfig, filename: string): Promi
       config.user,
       '--single-transaction',
       '--skip-lock-tables',
+      '--no-tablespaces',
+      '--set-gtid-purged=OFF',
       '--hex-blob',
       '--skip-routines',
       config.database,

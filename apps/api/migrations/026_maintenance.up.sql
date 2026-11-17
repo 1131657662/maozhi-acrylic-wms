@@ -35,7 +35,7 @@ CREATE TABLE scheduler_runs (
   id CHAR(36) PRIMARY KEY,
   kind VARCHAR(32) NOT NULL,
   ran_at DATETIME(3) NOT NULL,
-  status VARCHAR(16) NOT NULL CHECK (status IN ('running','succeeded','failed','interrupted')),
+  status VARCHAR(16) NOT NULL CHECK (status IN ('running','succeeded','failed','interrupted','skipped')),
   detail JSON NOT NULL,
   INDEX scheduler_kind_time (kind,ran_at DESC,id DESC)
 ) ENGINE=InnoDB;

@@ -25,4 +25,14 @@ export const maintenanceHealthText = {
   backupFailed: '无法读取最近备份记录',
   httpSource: '近24小时请求统计',
   httpUnsupported: '尚未接入近24小时请求统计采集器',
+  scheduleFailed: '最近自动备份调度失败，请检查备份任务',
+  scheduleInterrupted: '自动备份调度被服务中断',
+} as const;
+
+export const schedulerText = {
+  busy: '已有备份或清理进行中，本次跳过，不排队',
+  startup: '启动时超过24小时没有成功备份',
+  daily: '每日北京时间03:00到期备份',
+  failed: '自动备份调度失败，请检查数据库和备份执行器',
+  interrupted: '服务中断，自动备份未完成',
 } as const;

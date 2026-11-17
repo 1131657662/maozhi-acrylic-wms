@@ -40,6 +40,7 @@ export class BackupFiles {
     if (reference !== `${z.uuid().parse(id)}.sql`) throw new AppError('BACKUP_FILE', copy.file, 409);
     const filename = this.file(id, 'sql');
     try {
+      if ((await lstat(this.root)).isSymbolicLink()) throw new Error('invalid root');
       const info = await lstat(filename);
       if (
         !info.isFile() ||

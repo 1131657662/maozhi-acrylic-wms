@@ -277,4 +277,18 @@ POST /api/v1/me/logout
 
 五笔提交：①规格/台账/批次；②迁移/契约/真实备份任务及基础测试；③下载/保留/健康接口及测试；④页面/路由/浏览器回归；⑤完整验证、修正与验收记录。
 
-本批严格按已确认清单提供手动备份、手动清理；原完整页的每日自动调度后置，未运行的采集器与调度不宣称完成。scheduler_runs记录手动保留策略的执行结果，重启未结束记录标中断。清理仅删除产物文件，backup_artifacts元数据不删除；maintenance_jobs.result记录pendingDeletionAt/deletedAt，使中断可核对重试、已清文件不再列入可下载产物。
+本批提供手动备份、手动清理及§6.4每日自动备份。scheduler_runs记录保留策略及自动调度实际执行结果，重启未结束记录标中断。清理仅删除产物文件，backup_artifacts元数据不删除；maintenance_jobs.result记录pendingDeletionAt/deletedAt，使中断可核对重试、已清文件不再列入可下载产物。
+
+### 6.4 每日自动备份（用户补充确认）
+
+- 进程内每分钟检查一次，不引入cron/调度依赖。Asia/Shanghai每日03:00后首个检查点尝试一次；以scheduler_runs的上海日期留证避免同进程重启重复当日到期尝试。
+- 启动时最近成功备份超过24小时立即补跑一次；从未成功也补跑。若启动补跑同时满足当日03:00到期，将该次记录计作当天执行，避免连续生成两份。
+- 已有备份或清理持锁则记录跳过，不排队、不在同日反复补排。一次检查尚在执行时，后续计时回调不重入；失败留证，不伪装成功。
+- 每次到期尝试或启动补偿均写scheduler_runs：kind、ran_at、status、detail；detail含上海日期、触发原因、jobId及安全失败/跳过原因。status使用succeeded/failed/interrupted/skipped，任务本身仍保留五种状态。不是每分钟无到期的检查都写新记录。
+- 服务启动默认启用；NODE_ENV=test或测试启动脚本默认关闭，显式MAINTENANCE_SCHEDULER_ENABLED=true/false可控制。已有Web手动入口不受关闭调度影响。退出时停止计时器并等待已受理任务结束。
+- GET /maintenance/health的backup包含lastFailure（失败时间与原因）及latestSchedule；最近失败在后续成功后仍可查；最新调度失败/中断令备份健康异常。GET /maintenance/jobs可查失败任务，B8c以后接入消息中心。本批不发外部通知。
+- 调度沿用同一个固定mysqldump执行器、数据库互斥与单用户owner审计，不接收HTTP指定时间/目标。测试使用可注入时钟的检查入口验证03:00边界、24小时补偿、跳过/失败/跨日；测试不自动启动定时器。
+
+提交总数仍为五笔；第④笔补入用户确认的调度与页面，第⑤笔完整验收。恢复、对账、云备份、调度可视化、改调度时间、多实例选主、RBAC和外部通知不在本批。
+
+执行器固定关闭tablespaces与GTID_PURGED输出，备份读取仅依赖目标库SELECT/SHOW VIEW/TRIGGER，不为执行备份新增全局PROCESS/RELOAD授权；使用隔离临时低权限账户验证。服务只在本地库已应用026时启动，不自动迁移开发样本库。

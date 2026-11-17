@@ -45,6 +45,18 @@ test('B8a-1 两个服务实例并发备份只创建一个任务', async () => {
     await c.dispose();
   }
 });
+test('B8a-1 同键同时点击均返回相同任务', async () => {
+  const c = await maintenanceFixture();
+  try {
+    const key = randomUUID();
+    const results = await Promise.all([c.service.create(actor, key), c.service.create(actor, key)]);
+    assert.deepEqual(results[0], results[1]);
+    await c.service.settled();
+    assert.equal(Number((await c.db.get('SELECT COUNT(*) AS n FROM maintenance_jobs'))?.n), 1);
+  } finally {
+    await c.dispose();
+  }
+});
 test('B8a-1 数据库身份不匹配保留失败任务，不生成产物', async () => {
   const c = await maintenanceFixture();
   try {

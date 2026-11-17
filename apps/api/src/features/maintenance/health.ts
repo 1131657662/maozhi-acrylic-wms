@@ -1,9 +1,8 @@
 import { MAINTENANCE, type MaintenanceHealth, type MaintenanceCheck } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { BackupFiles } from './files.ts';
-import { listMaintenanceJobs } from './jobs.ts';
+import { backupHealth } from './backup-health.ts';
 import type { MaintenanceOptions } from './options.ts';
-import { isoDate } from '../../db/dates.ts';
 import { maintenanceHealthText as t } from './copy.ts';
 
 function check(source: string, status: MaintenanceCheck['status'], reason: string | null = null): MaintenanceCheck {
@@ -32,21 +31,6 @@ async function diskHealth(options?: MaintenanceOptions): Promise<MaintenanceHeal
     };
   } catch {
     return { ...check(t.diskSource, 'error', t.diskFailed), freeBytes: null };
-  }
-}
-async function backupHealth(db: Database): Promise<MaintenanceHealth['backup']> {
-  try {
-    const [latest] = await listMaintenanceJobs(db, { kind: 'backup', limit: 1 });
-    const success = await db.get(
-      "SELECT finished_at FROM maintenance_jobs WHERE kind='backup' AND status='succeeded' ORDER BY started_at DESC,id DESC LIMIT 1",
-    );
-    const lastSuccessAt = success?.finished_at ? isoDate(success.finished_at) : null;
-    if (!latest) return { ...check(t.backupSource, 'error', t.backupEmpty), latest: null, lastSuccessAt };
-    const status =
-      latest.status === 'succeeded' ? 'ok' : ['queued', 'running'].includes(latest.status) ? 'pending' : 'error';
-    return { ...check(t.backupSource, status, latest.error), latest, lastSuccessAt };
-  } catch {
-    return { ...check(t.backupSource, 'error', t.backupFailed), latest: null, lastSuccessAt: null };
   }
 }
 export async function maintenanceHealth(db: Database, options?: MaintenanceOptions): Promise<MaintenanceHealth> {

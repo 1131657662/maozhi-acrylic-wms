@@ -16,6 +16,8 @@ import { assertAuditReady } from './db/audit-readiness.ts';
 import { MaintenanceService } from './features/maintenance/service.ts';
 import { localMaintenanceOptions } from './features/maintenance/options.ts';
 import { BackupFiles } from './features/maintenance/files.ts';
+import { MaintenanceScheduler } from './features/maintenance/scheduler.ts';
+import { scheduleEnabled } from './features/maintenance/schedule-plan.ts';
 
 const db = openDatabase(developmentConfig());
 const meta = await db.get("SELECT value FROM app_meta WHERE meta_key='identity'");
@@ -58,13 +60,16 @@ try {
 const maintenance = new MaintenanceService(db, localMaintenanceOptions(developmentConfig()));
 await new BackupFiles(maintenance.options!.directory).prepare();
 await maintenance.recover();
+const scheduler = new MaintenanceScheduler(maintenance);
+if (scheduleEnabled(process.env)) scheduler.start();
 const server = createApp(db, undefined, undefined, maintenance).listen(4310, '127.0.0.1', () =>
   logger.info('MySQL 开发 API: http://127.0.0.1:4310'),
 );
 function shutdown(): void {
   server.close(() => {
-    void maintenance
-      .settled()
+    void scheduler
+      .stop()
+      .then(() => maintenance.settled())
       .then(() => db.close())
       .finally(() => process.exit(0));
   });

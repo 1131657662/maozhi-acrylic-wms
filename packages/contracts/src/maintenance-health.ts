@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { maintenanceJobSchema } from './maintenance.ts';
+export const maintenanceScheduleSchema = z.object({
+  at: z.iso.datetime(),
+  status: z.enum(['running', 'succeeded', 'failed', 'interrupted', 'skipped']),
+  reason: z.string().nullable(),
+});
 
 export const maintenanceCheckSchema = z.object({
   status: z.enum(['ok', 'error', 'unsupported', 'pending']),
@@ -19,6 +24,8 @@ export const maintenanceHealthSchema = z.object({
   backup: maintenanceCheckSchema.extend({
     latest: maintenanceJobSchema.nullable(),
     lastSuccessAt: z.iso.datetime().nullable(),
+    lastFailure: z.object({ at: z.iso.datetime(), reason: z.string() }).nullable(),
+    latestSchedule: maintenanceScheduleSchema.nullable(),
   }),
 });
 export type MaintenanceHealth = z.infer<typeof maintenanceHealthSchema>;

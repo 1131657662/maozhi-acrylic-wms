@@ -14,6 +14,8 @@ export const MAINTENANCE = {
   diskEstimateFactor: 2,
   recoveryDelayMs: 1000,
   maxRetentionItems: 10000,
+  schedulerIntervalMs: 60000,
+  schedulerHour: 3,
 } as const;
 export const maintenanceKindSchema = z.enum(['backup', 'restore']);
 export const maintenanceStatusSchema = z.enum(['queued', 'running', 'succeeded', 'failed', 'interrupted']);

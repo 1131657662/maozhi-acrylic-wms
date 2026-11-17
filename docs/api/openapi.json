@@ -14277,6 +14277,29 @@
                             "checkedAt": {
                               "$ref": "#/components/schemas/S_4747412d47680923"
                             },
+                            "lastFailure": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "at": {
+                                      "$ref": "#/components/schemas/S_4747412d47680923"
+                                    },
+                                    "reason": {
+                                      "$ref": "#/components/schemas/S_00404e686415370f"
+                                    }
+                                  },
+                                  "required": [
+                                    "at",
+                                    "reason"
+                                  ],
+                                  "type": "object"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
                             "lastSuccessAt": {
                               "$ref": "#/components/schemas/S_48ecc3cdb57f9d4d"
                             },
@@ -14284,6 +14307,40 @@
                               "anyOf": [
                                 {
                                   "$ref": "#/components/schemas/S_7ba1b49510ec7ae3"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                                }
+                              ]
+                            },
+                            "latestSchedule": {
+                              "anyOf": [
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "at": {
+                                      "$ref": "#/components/schemas/S_4747412d47680923"
+                                    },
+                                    "reason": {
+                                      "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                    },
+                                    "status": {
+                                      "enum": [
+                                        "running",
+                                        "succeeded",
+                                        "failed",
+                                        "interrupted",
+                                        "skipped"
+                                      ],
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "at",
+                                    "status",
+                                    "reason"
+                                  ],
+                                  "type": "object"
                                 },
                                 {
                                   "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
@@ -14306,7 +14363,9 @@
                             "source",
                             "reason",
                             "latest",
-                            "lastSuccessAt"
+                            "lastSuccessAt",
+                            "lastFailure",
+                            "latestSchedule"
                           ],
                           "type": "object"
                         },

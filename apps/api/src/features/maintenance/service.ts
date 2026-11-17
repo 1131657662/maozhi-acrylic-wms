@@ -11,6 +11,7 @@ import { maintenanceErrors as copy } from './copy.ts';
 
 export class MaintenanceService {
   private readonly running = new Set<Promise<void>>();
+  private readonly accepting = new Map<string, Promise<{ jobId: string }>>();
   constructor(
     readonly db: Database,
     readonly options: MaintenanceOptions | undefined,
@@ -23,6 +24,18 @@ export class MaintenanceService {
     }
   }
   async create(actor: Actor, operationId: string): Promise<{ jobId: string }> {
+    const key = `${actor.username}:${operationId}`;
+    const pending = this.accepting.get(key);
+    if (pending) return pending;
+    const accepted = this.accept(actor, operationId);
+    this.accepting.set(key, accepted);
+    try {
+      return await accepted;
+    } finally {
+      if (this.accepting.get(key) === accepted) this.accepting.delete(key);
+    }
+  }
+  private async accept(actor: Actor, operationId: string): Promise<{ jobId: string }> {
     if (!this.options) throw new AppError('BACKUP_UNAVAILABLE', copy.unavailable, 503);
     const previous = await existingBackup(this.db, actor, operationId);
     if (previous) return { jobId: previous };
@@ -36,7 +49,7 @@ export class MaintenanceService {
               resolve({ jobId: replay });
               return;
             }
-            await interruptBackups(this.db);
+            await interruptBackups(this.db, false);
             const jobId = await insertBackup(this.db, actor, operationId);
             resolve({ jobId });
             await runBackup(this.db, { id: jobId, actor, options });
