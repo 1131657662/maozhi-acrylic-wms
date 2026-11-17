@@ -9,7 +9,7 @@ import { compareOption, trendOption } from './movement-chart-options';
 import { MovementSummary, SummaryValue } from './analysis-summaries';
 import { chartTonnes } from '../reports/chart-options';
 import { chartCopy } from '../reports/chart-copy';
-import { openReport } from '../reports/drilldown';
+import { openReport } from '../reports/navigation';
 import { analysisLink } from './drilldown';
 import { ComparisonChange } from './comparison-change';
 

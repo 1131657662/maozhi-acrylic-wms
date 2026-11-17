@@ -59,25 +59,25 @@ test('B7a-3 aging canvas segment opens independent unaged band and current cutof
   const canvas = page.getByTestId('chart').locator('canvas');
   await expect(canvas).toBeVisible();
   const box = await canvas.boundingBox();
-  const pending = page.context().waitForEvent('page');
+  const source = page.url(),
+    pages = page.context().pages().length;
   await canvas.click({ position: { x: box!.width / 2, y: box!.height / 2 } });
-  const band = await pending;
-  await expect(band).toHaveURL(/band=unagedGrams/);
-  await expect(recordRows(band, 'aging')).toHaveCount(1);
-  await band.close();
+  await expect(page).toHaveURL(/band=unagedGrams/);
+  await expect(recordRows(page, 'aging')).toHaveCount(1);
+  expect(page.context().pages()).toHaveLength(pages);
+  await page.goBack();
+  await expect(page).toHaveURL(source);
   const today = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
   await page.goto(
     `/reports/aging?fromDay=2026-02-02&toDay=2026-03-03&cutoffDay=${today}&product=B3C-COMP&basis=restated`,
   );
   await expect(recordRows(page, 'aging')).toHaveCount(1);
-  const stockPending = page.context().waitForEvent('page');
   await recordRows(page, 'aging').locator('td[data-export-field="productName"] a').click();
-  const stock = await stockPending;
-  await expect(stock).toHaveURL(/productCode=B3C-COMP/);
-  await expect(stock).toHaveURL(/warehouseCodes=B3C-WH/);
-  await expect(stock.getByTestId('stock-list')).toBeVisible();
-  await expect(stock.getByText(/此页显示当前库存/)).toBeVisible();
-  await stock.close();
+  await expect(page).toHaveURL(/\/stock\?.*productCode=B3C-COMP/);
+  await expect(page).toHaveURL(/warehouseCodes=B3C-WH/);
+  await expect(page.getByTestId('stock-list')).toBeVisible();
+  await expect(page.getByText(/此页显示当前库存/)).toBeVisible();
+  expect(page.context().pages()).toHaveLength(pages);
 });
 
 test('B7a-3 expired export displays the exact refresh instruction', async ({ page }) => {
@@ -112,14 +112,16 @@ test('B7a-3 detail document link opens the original receipt with source conditio
     const today = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
     await page.goto(`/reports/details?fromDay=${today}&toDay=${today}&productCode=${cell.productCode}&basis=posted`);
     await expect(recordRows(page, 'details')).toHaveCount(1);
-    const pending = page.context().waitForEvent('page');
+    const source = page.url(),
+      pages = page.context().pages().length;
     await recordRows(page, 'details').locator('td[data-export-field="orderNo"] a').click();
-    const document = await pending;
-    await expect(document).toHaveURL(new RegExp(`/inbound/${target.id}\\?`));
-    await expect(document).toHaveURL(/basis=posted/);
-    await expect(document.getByRole('heading', { level: 1 })).toHaveText(/^RK-/);
-    await expect(document.getByRole('alert')).toContainText('已确认入库');
-    await document.close();
+    await expect(page).toHaveURL(new RegExp(`/inbound/${target.id}\\?`));
+    await expect(page).toHaveURL(/basis=posted/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^RK-/);
+    await expect(page.getByRole('alert')).toContainText('已确认入库');
+    expect(page.context().pages()).toHaveLength(pages);
+    await page.goBack();
+    await expect(page).toHaveURL(source);
   } finally {
     await db.close();
   }

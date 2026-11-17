@@ -48,8 +48,12 @@ for (const kind of ['inbound', 'outbound'] as const) {
     const checkbox = row.getByRole('checkbox');
     await revealTableCell(blank);
     const before = await rowRect(list);
+    await page.clock.install();
+    await page.clock.pauseAt(new Date(Date.now() + 1000));
     await blank.click();
     await expect(checkbox).toBeChecked();
+    // No browser timer has advanced: a delayed row toggle cannot satisfy this assertion.
+    await page.clock.resume();
     expect(await rowRect(list)).toEqual(before);
     for (const width of [1440, 1280]) {
       await page.setViewportSize({ width, height: 960 });
@@ -94,26 +98,46 @@ for (const kind of ['inbound', 'outbound'] as const) {
     );
   });
 
-  test(`体验A ${kind} 双击不改变选择，焦点行Enter打开详情`, async ({ page }) => {
+  test(`B7d ${kind} 双击最终选中并打开详情，焦点行Enter保持`, async ({ page }) => {
     const list = await baseline(page, kind);
     const row = list.locator('tbody tr[data-row-key]').first();
     const id = await row.getAttribute('data-row-key');
-    await row.getByRole('checkbox').check();
-    await row.evaluate((element) => {
-      sessionStorage.setItem('row-selection-changes', '[]');
-      new MutationObserver((records) => {
-        const changes = JSON.parse(sessionStorage.getItem('row-selection-changes')!) as string[];
-        records.forEach(() => changes.push(String(element.getAttribute('aria-selected'))));
-        sessionStorage.setItem('row-selection-changes', JSON.stringify(changes));
-      }).observe(element, { attributes: true, attributeFilter: ['aria-selected'] });
-    });
-    const cell = row.locator(`td[data-export-field="${kind === 'inbound' ? 'packages' : 'plannedPackages'}"]`);
-    await revealTableCell(cell);
-    await cell.dblclick({ delay: 60 });
-    await expect(page).toHaveURL(new RegExp(`/${kind}/${id}$`));
-    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('row-selection-changes')!))).toEqual([]);
-    await page.goBack();
-    await expect(row).toBeVisible();
+    const source = page.url();
+    for (const initiallySelected of [false, true]) {
+      await row.getByRole('checkbox').setChecked(initiallySelected);
+      await row.evaluate((element) => {
+        Reflect.get(window, 'b7dSelectionObserver')?.disconnect();
+        const selector = `tr[data-row-key="${CSS.escape(element.getAttribute('data-row-key')!)}"]`;
+        let previous = element.getAttribute('aria-selected');
+        sessionStorage.setItem('row-selection-changes', '[]');
+        const observer = new MutationObserver(() => {
+          const current = document.querySelector(selector)?.getAttribute('aria-selected');
+          if (current == null || current === previous) return;
+          previous = current;
+          const changes = JSON.parse(sessionStorage.getItem('row-selection-changes')!) as string[];
+          changes.push(current);
+          sessionStorage.setItem('row-selection-changes', JSON.stringify(changes));
+        });
+        Object.assign(window, { b7dSelectionObserver: observer });
+        observer.observe(document.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['aria-selected'],
+        });
+      });
+      const cell = row.locator(`td[data-export-field="${kind === 'inbound' ? 'packages' : 'plannedPackages'}"]`);
+      await revealTableCell(cell);
+      await page.evaluate(() => window.getSelection()?.removeAllRanges());
+      await cell.dblclick({ delay: 60 });
+      await expect(page).toHaveURL(new RegExp(`/${kind}/${id}$`));
+      const changes: string[] = await page.evaluate(() => JSON.parse(sessionStorage.getItem('row-selection-changes')!));
+      expect(changes.at(-1)).toBe('true');
+      expect(changes.filter((value) => value === 'false')).toHaveLength(initiallySelected ? 1 : 0);
+      await page.goBack();
+      await expect(page).toHaveURL(source);
+      await expect(row).toBeVisible();
+    }
     await row.focus();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(new RegExp(`/${kind}/${id}$`));
