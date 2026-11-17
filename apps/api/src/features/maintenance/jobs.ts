@@ -4,13 +4,15 @@ import type { Database, Row } from '../../db/mysql.ts';
 import { isoDate } from '../../db/dates.ts';
 import { audit, type Actor } from '../../shared/audit.ts';
 import { maintenanceErrors as copy } from './copy.ts';
+import { AppError } from '../../shared/errors.ts';
+import { restoreText } from './restore-copy.ts';
 
 export async function existingBackup(db: Database, actor: Actor, key: string): Promise<string | null> {
-  const row = await db.get('SELECT id FROM maintenance_jobs WHERE operator=? AND operation_id=? AND kind=?', [
+  const row = await db.get('SELECT id,kind FROM maintenance_jobs WHERE operator=? AND operation_id=?', [
     actor.username,
     key,
-    'backup',
   ]);
+  if (row && row.kind !== 'backup') throw new AppError('MAINTENANCE_KEY_CONFLICT', restoreText.conflict, 409);
   return row ? String(row.id) : null;
 }
 export async function insertBackup(db: Database, actor: Actor, key: string): Promise<string> {

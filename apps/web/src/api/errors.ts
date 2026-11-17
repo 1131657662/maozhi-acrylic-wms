@@ -40,7 +40,11 @@ export class ApiError extends Error {
       (kind === 'CONFLICT' &&
         (/^库存(?:不足|包数或实重不足)/.test(message) ||
           (path === '/web/exports' && message === REPORT_EXPORT_EXPIRED)));
-    super(detail ? safeBusinessMessage(message, fallback) : fallback);
+    const prerequisite =
+      status === 409 && path === '/maintenance/restores' && message === errorUi.restoreTriggerPrerequisite;
+    super(
+      prerequisite ? errorUi.restoreTriggerPrerequisite : detail ? safeBusinessMessage(message, fallback) : fallback,
+    );
     this.name = 'ApiError';
     const parsed = fieldsSchema.safeParse(data);
     this.fields = (parsed.success ? (parsed.data.fields ?? []) : []).map((field) => ({

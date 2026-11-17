@@ -71,3 +71,26 @@ test('422 只保留位置和安全中文原因', () => {
   assert.equal(error.message, '填写有误，请检查标红的内容');
   assert.deepEqual(error.fields, [{ path: ['lines', 0, 'weightGrams'], message: '请检查此项填写内容' }]);
 });
+
+test('恢复前提提示仅在指定接口的已知409响应中展示', async (t) => {
+  const message = '需管理员开启 log_bin_trust_function_creators';
+  for (const [path, status, body, expected] of [
+    ['/maintenance/restores', 409, message, message],
+    ['/maintenance/restores', 409, `${message} SQL stack`, '该单据已被修改，请刷新后重试'],
+    ['/inbound', 409, message, '该单据已被修改，请刷新后重试'],
+    ['/maintenance/restores', 500, message, '系统出错了，已记录'],
+  ] as const) {
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async () =>
+        new Response(JSON.stringify({ code: 'RESTORE_TRIGGER_PREREQUISITE', message: body, data: null }), { status }),
+    );
+    await assert.rejects(request(path, z.object({})), (error: unknown) => {
+      assert.ok(error instanceof ApiError);
+      assert.equal(error.message, expected);
+      return true;
+    });
+    t.mock.restoreAll();
+  }
+});

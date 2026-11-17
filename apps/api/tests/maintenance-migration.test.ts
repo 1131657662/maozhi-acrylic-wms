@@ -11,12 +11,12 @@ test('B8a-1 026空表up/down/up保留原业务数据', async () => {
   const c = await fixture('025_stocktake_discoveries');
   try {
     const before = await businessFingerprint(c.db);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '026_maintenance');
     assert.ok(await c.db.get("SHOW TABLES LIKE 'maintenance_jobs'"));
     await migrateDown(c.db);
     assert.deepEqual(await businessFingerprint(c.db), before);
     assert.equal(await c.db.get("SHOW TABLES LIKE 'maintenance_jobs'"), undefined);
-    await migrateUp(c.db);
+    await migrateUp(c.db, '026_maintenance');
     assert.equal((await c.db.get("SELECT state FROM schema_migrations WHERE id='026_maintenance'"))?.state, 'applied');
   } finally {
     await c.dispose();
@@ -24,7 +24,7 @@ test('B8a-1 026空表up/down/up保留原业务数据', async () => {
 });
 for (const table of ['maintenance_jobs', 'backup_artifacts', 'scheduler_runs']) {
   test(`B8a-1 026 ${table}非空在DDL前拒绝down`, async () => {
-    const c = await fixture();
+    const c = await fixture('026_maintenance');
     try {
       if (table === 'scheduler_runs')
         await c.db.run(`INSERT INTO scheduler_runs VALUES(?,'retention',UTC_TIMESTAMP(3),'succeeded','{}')`, [

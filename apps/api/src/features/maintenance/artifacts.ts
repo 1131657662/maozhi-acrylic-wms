@@ -6,7 +6,7 @@ import { maintenanceErrors as copy } from './copy.ts';
 
 const active =
   "FROM backup_artifacts a JOIN maintenance_jobs j ON j.id=a.job_id WHERE JSON_EXTRACT(j.result,'$.deletedAt') IS NULL";
-const fields = 'a.id,a.job_id,a.path,a.bytes,a.sha256,a.created_at,a.retention_class,j.result';
+const fields = 'a.id,a.job_id,a.path,a.bytes,a.sha256,a.created_at,a.retention_class,a.baseline,j.result';
 export async function listArtifacts(
   db: Database,
   query: MaintenancePageQuery,
@@ -37,5 +37,6 @@ export function projectArtifact(row: Row): BackupArtifact {
     sha256: row.sha256,
     createdAt: isoDate(row.created_at),
     retentionClass: row.retention_class,
+    hasBaseline: row.baseline !== null && row.baseline !== undefined,
   });
 }

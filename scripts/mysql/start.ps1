@@ -37,6 +37,7 @@ collation-server=utf8mb4_0900_bin
 default-time-zone=+00:00
 sql-mode=STRICT_ALL_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
 innodb-lock-wait-timeout=5
+log_bin_trust_function_creators=1
 "@ | Set-Content (Join-Path $mysqlRoot 'my.ini') -Encoding utf8
 $config = Join-Path $mysqlRoot 'my.ini'
 if (!(Test-Path -LiteralPath (Join-Path $dataPath 'mysql'))) {

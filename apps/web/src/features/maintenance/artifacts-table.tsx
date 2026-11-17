@@ -7,8 +7,17 @@ import { useDownload } from './hooks/use-download';
 import { MaintenanceError } from './error-notice';
 import { maintenanceCopy as t } from './copy';
 import { bytesText } from './presentation';
+import { restoreCopy as r } from './restore-copy';
 
-export function ArtifactsTable({ version }: { version: string }) {
+export function ArtifactsTable({
+  version,
+  restore,
+  restoreDisabled,
+}: {
+  version: string;
+  restore: (file: BackupArtifact) => void;
+  restoreDisabled: boolean;
+}) {
   const [page, setPage] = useState(1),
     downloading = useRef(false);
   const {
@@ -46,7 +55,17 @@ export function ArtifactsTable({ version }: { version: string }) {
           size="small"
           tableLayout="fixed"
           locale={{ emptyText: t.noArtifacts }}
-          columns={artifactColumns(save, isDownloading, downloadingId)}
+          columns={[
+            ...artifactColumns(save, isDownloading, downloadingId),
+            {
+              title: r.action,
+              render: (_, file) => (
+                <Button type="link" danger disabled={restoreDisabled} onClick={() => restore(file)}>
+                  {r.action}
+                </Button>
+              ),
+            },
+          ]}
           pagination={{
             current: page,
             pageSize: MAINTENANCE.listLimit,

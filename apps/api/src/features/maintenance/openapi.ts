@@ -7,10 +7,29 @@ import {
   maintenanceJobsSchema,
   maintenancePageQuerySchema,
   retentionResultSchema,
+  restoreRequestSchema,
+  restoreDetailSchema,
 } from '@wms/contracts';
 import type { Operation } from '../../openapi.ts';
 
 export const maintenanceOperations: Operation[] = [
+  {
+    method: 'post',
+    path: '/maintenance/restores',
+    channel: 'web',
+    body: restoreRequestSchema,
+    idempotent: true,
+    successStatus: 202,
+    response: backupAcceptedSchema,
+    summary: '确认后预备份、专用账号隔离恢复，失败保留证据，不覆盖当前库',
+  },
+  {
+    method: 'get',
+    path: '/maintenance/restores/{id}',
+    channel: 'web',
+    response: restoreDetailSchema,
+    summary: '恢复阶段、安全日志及逐项核验报告',
+  },
   {
     method: 'post',
     path: '/maintenance/backups',

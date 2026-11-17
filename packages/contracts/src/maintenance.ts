@@ -43,6 +43,7 @@ export const backupArtifactSchema = z.object({
   bytes: z.number().int().positive(),
   sha256: z.string().regex(/^[0-9a-f]{64}$/),
   retentionClass: z.enum(['daily', 'monthly']),
+  hasBaseline: z.boolean().default(false),
 });
 export const maintenanceJobsSchema = z.object({ items: z.array(maintenanceJobSchema) });
 export const backupArtifactsSchema = z.object({

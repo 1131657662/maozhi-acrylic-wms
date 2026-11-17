@@ -9,7 +9,7 @@ import { maintenanceHttpFixture, artifactFixture } from './maintenance-fixture.t
 
 const now = Date.parse('2026-11-17T12:00:00Z');
 function artifact(createdAt: string): BackupArtifact {
-  return { id: randomUUID(), createdAt, bytes: 1, sha256: 'a'.repeat(64), retentionClass: 'daily' };
+  return { id: randomUUID(), createdAt, bytes: 1, sha256: 'a'.repeat(64), retentionClass: 'daily', hasBaseline: false };
 }
 test('B8a-1 30日边界全部保护，12上海自然月每月只留最新，未来文件不删', () => {
   const recent = artifact(new Date(now - 30 * MAINTENANCE.dayMs).toISOString());

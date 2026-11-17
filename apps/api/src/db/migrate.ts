@@ -133,6 +133,7 @@ const migrations = [
   { id: '024_stocktake_blind', guardedTables: [] },
   { id: '025_stocktake_discoveries', guardedTables: ['stocktake_discovery_lines'] },
   { id: '026_maintenance', guardedTables: ['backup_artifacts', 'scheduler_runs', 'maintenance_jobs'] },
+  { id: '027_restore_baselines', guardedTables: ['restore_verifications'] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -218,6 +219,11 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (
+          migration.id === '027_restore_baselines' &&
+          (await connection.get('SELECT id FROM backup_artifacts WHERE baseline IS NOT NULL LIMIT 1'))
+        )
+          throw new Error('拒绝回退：备份基线含有数据，禁止删除核验证据');
         if (migration.id === '024_stocktake_blind') await guardStocktakeBlindDown(connection);
         if (migration.id === '022_master_search_text') await guardSearchTextDown(connection);
         if (

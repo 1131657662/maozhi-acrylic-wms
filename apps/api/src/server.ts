@@ -47,6 +47,8 @@ try {
   await assertAuditReady(db);
   if ((await db.get("SELECT state FROM schema_migrations WHERE id='026_maintenance'"))?.state !== 'applied')
     throw new Error('026 维护迁移未完成，拒绝启动写服务；请先备份并完成本地迁移');
+  if ((await db.get("SELECT state FROM schema_migrations WHERE id='027_restore_baselines'"))?.state !== 'applied')
+    throw new Error('027 恢复迁移未完成，拒绝启动写服务；请先备份并完成本地迁移');
   if (
     (await db.get("SELECT state FROM schema_migrations WHERE id='021_document_date_corrections'"))?.state !== 'applied'
   )

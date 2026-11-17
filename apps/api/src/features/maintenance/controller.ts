@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { z } from 'zod';
-import { maintenanceJobsQuerySchema, maintenancePageQuerySchema } from '@wms/contracts';
+import { maintenanceJobsQuerySchema, maintenancePageQuerySchema, restoreRequestSchema } from '@wms/contracts';
+import { restoreDetail } from './restore-records.ts';
 import { actorFrom, ok } from '../../middleware/http.ts';
 import { AppError } from '../../shared/errors.ts';
 import { listMaintenanceJobs } from './jobs.ts';
@@ -14,6 +15,14 @@ import { maintenanceErrors as copy } from './copy.ts';
 
 export function maintenanceController(service: MaintenanceService): Record<string, RequestHandler> {
   return {
+    restore: async (req, res) => {
+      const body = restoreRequestSchema.parse(req.body),
+        key = z.uuid().parse(req.get('Idempotency-Key'));
+      const result = await service.restores.create(actorFrom(res), key, body);
+      res.status(202);
+      ok(res, result);
+    },
+    restoreDetail: async (req, res) => ok(res, await restoreDetail(service.db, z.uuid().parse(req.params.id))),
     create: async (req, res) => {
       z.strictObject({}).parse(req.body);
       const key = z.uuid().parse(req.get('Idempotency-Key'));

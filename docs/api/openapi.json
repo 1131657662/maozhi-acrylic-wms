@@ -163,6 +163,16 @@
         ],
         "type": "object"
       },
+      "S_0661bf908589c730": {
+        "enum": [
+          "backup",
+          "provision",
+          "import",
+          "verify",
+          "report"
+        ],
+        "type": "string"
+      },
       "S_0669cba1ec24c3ea": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -1352,6 +1362,18 @@
         "maxLength": 400,
         "type": "string"
       },
+      "S_3e5e9e947e11816b": {
+        "additionalProperties": false,
+        "properties": {
+          "jobId": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "type": "object"
+      },
       "S_3edbe3e16d7603b1": {
         "additionalProperties": false,
         "properties": {
@@ -2429,12 +2451,6 @@
           "supplier"
         ],
         "type": "string"
-      },
-      "S_67fdedc78c8f6882": {
-        "items": {
-          "$ref": "#/components/schemas/S_e1873d07278baa24"
-        },
-        "type": "array"
       },
       "S_68485ee7f49d760c": {
         "additionalProperties": false,
@@ -3624,6 +3640,38 @@
         ],
         "type": "string"
       },
+      "S_90ced2f93c9d71ad": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/S_4747412d47680923"
+          },
+          "hasBaseline": {
+            "$ref": "#/components/schemas/S_f56777819c8be28f"
+          },
+          "id": {
+            "$ref": "#/components/schemas/S_118b3f027283832f"
+          },
+          "retentionClass": {
+            "$ref": "#/components/schemas/S_342b228cd802e25f"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/S_c2985f9307d4d422"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "bytes",
+          "sha256",
+          "retentionClass",
+          "hasBaseline"
+        ],
+        "type": "object"
+      },
       "S_923abab7d0507c1b": {
         "additionalProperties": false,
         "properties": {
@@ -3847,6 +3895,31 @@
       "S_9ae5ec65647cb279": {
         "maxLength": 500,
         "type": "string"
+      },
+      "S_9af58d6456c2507a": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/S_b4685c29266fd612"
+          },
+          "data": {
+            "$ref": "#/components/schemas/S_3e5e9e947e11816b"
+          },
+          "message": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          },
+          "traceId": {
+            "$ref": "#/components/schemas/S_00404e686415370f"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data",
+          "traceId"
+        ],
+        "type": "object"
       },
       "S_9b59c71e18354d0d": {
         "maxLength": 50,
@@ -5149,6 +5222,12 @@
       "S_cddf8275afa15408": {
         "type": "number"
       },
+      "S_ce25738ee2512082": {
+        "items": {
+          "$ref": "#/components/schemas/S_90ced2f93c9d71ad"
+        },
+        "type": "array"
+      },
       "S_ce622ef9640026a7": {
         "const": "Asia/Shanghai",
         "type": "string"
@@ -5565,34 +5644,6 @@
           "warehouses",
           "movements",
           "types"
-        ],
-        "type": "object"
-      },
-      "S_e1873d07278baa24": {
-        "additionalProperties": false,
-        "properties": {
-          "bytes": {
-            "$ref": "#/components/schemas/S_9c3981b1e1b076db"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/S_4747412d47680923"
-          },
-          "id": {
-            "$ref": "#/components/schemas/S_118b3f027283832f"
-          },
-          "retentionClass": {
-            "$ref": "#/components/schemas/S_342b228cd802e25f"
-          },
-          "sha256": {
-            "$ref": "#/components/schemas/S_c2985f9307d4d422"
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "bytes",
-          "sha256",
-          "retentionClass"
         ],
         "type": "object"
       },
@@ -6094,6 +6145,10 @@
           "expectedRevision"
         ],
         "type": "object"
+      },
+      "S_f56777819c8be28f": {
+        "default": false,
+        "type": "boolean"
       },
       "S_f8337975fdbd218f": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -13797,7 +13852,7 @@
                       "additionalProperties": false,
                       "properties": {
                         "items": {
-                          "$ref": "#/components/schemas/S_67fdedc78c8f6882"
+                          "$ref": "#/components/schemas/S_ce25738ee2512082"
                         },
                         "total": {
                           "$ref": "#/components/schemas/S_83f6485d0d169a84"
@@ -14104,38 +14159,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$schema": "https://json-schema.org/draft/2020-12/schema",
-                  "additionalProperties": false,
-                  "properties": {
-                    "code": {
-                      "$ref": "#/components/schemas/S_b4685c29266fd612"
-                    },
-                    "data": {
-                      "additionalProperties": false,
-                      "properties": {
-                        "jobId": {
-                          "$ref": "#/components/schemas/S_118b3f027283832f"
-                        }
-                      },
-                      "required": [
-                        "jobId"
-                      ],
-                      "type": "object"
-                    },
-                    "message": {
-                      "$ref": "#/components/schemas/S_00404e686415370f"
-                    },
-                    "traceId": {
-                      "$ref": "#/components/schemas/S_00404e686415370f"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message",
-                    "data",
-                    "traceId"
-                  ],
-                  "type": "object"
+                  "$ref": "#/components/schemas/S_9af58d6456c2507a"
                 }
               }
             },
@@ -14785,6 +14809,442 @@
         "x-client-channel": "web"
       }
     },
+    "/maintenance/restores": {
+      "post": {
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_4cd0b4f653d64777"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "additionalProperties": false,
+                "properties": {
+                  "artifactId": {
+                    "$ref": "#/components/schemas/S_118b3f027283832f"
+                  },
+                  "confirmation": {
+                    "const": "RECOVER",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "artifactId",
+                  "confirmation"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_9af58d6456c2507a"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "确认后预备份、专用账号隔离恢复，失败保留证据，不覆盖当前库",
+        "x-client-channel": "web"
+      }
+    },
+    "/maintenance/restores/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/S_00404e686415370f"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "$ref": "#/components/schemas/S_b4685c29266fd612"
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "accountLocked": {
+                          "$ref": "#/components/schemas/S_7cb541e84f226754"
+                        },
+                        "databaseRetained": {
+                          "$ref": "#/components/schemas/S_7cb541e84f226754"
+                        },
+                        "evidence": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "at": {
+                                "$ref": "#/components/schemas/S_4747412d47680923"
+                              },
+                              "message": {
+                                "$ref": "#/components/schemas/S_00404e686415370f"
+                              },
+                              "stage": {
+                                "$ref": "#/components/schemas/S_0661bf908589c730"
+                              }
+                            },
+                            "required": [
+                              "at",
+                              "stage",
+                              "message"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "job": {
+                          "$ref": "#/components/schemas/S_7ba1b49510ec7ae3"
+                        },
+                        "report": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "baselineAt": {
+                                  "$ref": "#/components/schemas/S_48ecc3cdb57f9d4d"
+                                },
+                                "items": {
+                                  "items": {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "actual": {
+                                        "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                      },
+                                      "conclusion": {
+                                        "enum": [
+                                          "passed",
+                                          "mismatch",
+                                          "unverified"
+                                        ],
+                                        "type": "string"
+                                      },
+                                      "difference": {
+                                        "$ref": "#/components/schemas/S_00404e686415370f"
+                                      },
+                                      "expected": {
+                                        "$ref": "#/components/schemas/S_174e29b899b9ef91"
+                                      },
+                                      "label": {
+                                        "$ref": "#/components/schemas/S_00404e686415370f"
+                                      }
+                                    },
+                                    "required": [
+                                      "label",
+                                      "expected",
+                                      "actual",
+                                      "difference",
+                                      "conclusion"
+                                    ],
+                                    "type": "object"
+                                  },
+                                  "type": "array"
+                                },
+                                "outcome": {
+                                  "enum": [
+                                    "passed",
+                                    "limited",
+                                    "mismatch",
+                                    "failed",
+                                    "interrupted"
+                                  ],
+                                  "type": "string"
+                                },
+                                "verifiedAt": {
+                                  "$ref": "#/components/schemas/S_48ecc3cdb57f9d4d"
+                                }
+                              },
+                              "required": [
+                                "outcome",
+                                "baselineAt",
+                                "verifiedAt",
+                                "items"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "$ref": "#/components/schemas/S_bcde375ebd4cbacf"
+                            }
+                          ]
+                        },
+                        "stage": {
+                          "$ref": "#/components/schemas/S_0661bf908589c730"
+                        }
+                      },
+                      "required": [
+                        "job",
+                        "stage",
+                        "report",
+                        "evidence",
+                        "databaseRetained",
+                        "accountLocked"
+                      ],
+                      "type": "object"
+                    },
+                    "message": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    },
+                    "traceId": {
+                      "$ref": "#/components/schemas/S_00404e686415370f"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data",
+                    "traceId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "成功"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/S_cf39e49dc2c9a9de"
+                }
+              }
+            },
+            "description": "统一错误信封"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "恢复阶段、安全日志及逐项核验报告",
+        "x-client-channel": "web"
+      }
+    },
     "/maintenance/retention": {
       "post": {
         "parameters": [],
@@ -14813,7 +15273,7 @@
                       "additionalProperties": false,
                       "properties": {
                         "deleted": {
-                          "$ref": "#/components/schemas/S_67fdedc78c8f6882"
+                          "$ref": "#/components/schemas/S_ce25738ee2512082"
                         },
                         "failures": {
                           "items": {
@@ -30612,8 +31072,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "acknowledgeSnapshotBasis": {
-                    "default": false,
-                    "type": "boolean"
+                    "$ref": "#/components/schemas/S_f56777819c8be28f"
                   },
                   "expectedToken": {
                     "maxLength": 64,

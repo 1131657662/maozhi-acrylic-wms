@@ -11,9 +11,21 @@ interface RouteRule {
 }
 const routes: RouteRule[] = [
   { pattern: /^\/maintenance\/backups$/, action: () => 'maintenance.backup', kind: 'maintenance', channel: 'web' },
+  { pattern: /^\/maintenance\/restores$/, action: () => 'maintenance.restore', kind: 'maintenance', channel: 'web' },
   { pattern: /^\/maintenance\/retention$/, action: () => 'maintenance.retention', kind: 'maintenance', channel: 'web' },
-  { pattern: /^\/maintenance\/artifacts\/([^/]+)\/download$/, action: () => 'maintenance.download', kind: 'maintenance', id: 1, channel: 'web' },
-  { pattern: /^\/maintenance\/(jobs|artifacts|health)$/, action: () => 'maintenance.read', kind: 'maintenance', channel: 'web' },
+  {
+    pattern: /^\/maintenance\/artifacts\/([^/]+)\/download$/,
+    action: () => 'maintenance.download',
+    kind: 'maintenance',
+    id: 1,
+    channel: 'web',
+  },
+  {
+    pattern: /^\/maintenance\/(jobs|artifacts|health)$/,
+    action: () => 'maintenance.read',
+    kind: 'maintenance',
+    channel: 'web',
+  },
   {
     pattern: /^\/stocktakes?\/([^/]+)\/discoveries(?:\/[^/]+)?$/,
     action: (_, method) => `stocktake.discovery.${verb(method)}`,
