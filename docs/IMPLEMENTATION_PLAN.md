@@ -456,7 +456,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | UI-6 | B6d 条码目录 | CATALOG_PAGE_SPEC | M-CATALOG-CANDIDATES；保留006/007与既有交接门禁，不在本批加设备实时协议 | 4 |
 | UI-7 | B6c 操作记录 | AUDIT_PAGE_SPEC | 已完成，240/116/0；015、成功/失败安全投影、受控 raw/trace、时间线及页面导出；见 B6C_3_ACCEPTANCE | 3 |
 | UI-8 | B8a维护 → B8b身份 → B8c通知 | OPS_PAGES_SPEC | M-MAINTENANCE → M-AUTH-EXTENSIONS → M-NOTIFICATIONS；通知依赖稳定业务/任务事件 | 维护可前置，完整页9 |
-| B8a-1 | 真实异步备份、校验下载、30日+12月保留、每日03:00自动备份/启动24h补偿、健康与两个Tab | OPS_PAGES_SPEC §6 | 前置B7d已完成；起点3bd8def、codex/b8a-1-maintenance-backup；026 maintenance_jobs/backup_artifacts/scheduler_runs；不含恢复、对账、云备份、调度可视化、手动改时间、多实例选主、RBAC、外部通知；五笔提交与完整test/build/E2E后停止 | 已授权，实施中 |
+| B8a-1 | 真实异步备份、校验下载、30日+12月保留、每日03:00自动备份/启动24h补偿、健康与两个Tab | OPS_PAGES_SPEC §6/6.5 | 前置B7d已完成；起点3bd8def、codex/b8a-1-maintenance-backup；026 maintenance_jobs/backup_artifacts/scheduler_runs。完整test588/588，后增低权限导出1/1与收尾调度7/7（含新增2项）；累计覆盖591项。build通过；E2E主套件首轮206通过/4性能失败，原断言空闲复测4/4通过，目录18/18，合计228项均有通过结果、跳过0；维护浏览器6/6。1440/1280截图及验收见OPS §6.5。五笔提交后停止；不含恢复、对账、云备份、调度可视化、手动改时间、多实例选主、RBAC、外部通知；开发样本库未应用026 | 代码/本地验证完成，待用户验收；未合并 |
 | B8a-2 | 隔离恢复、原库预备份、对账报告与失败证据保全 | OPS_PAGES_SPEC §2/5 | 前置B8a-1；restore_verifications迁移号实施时分配，不覆盖原库、不自动切换；另批确认和验收 | 未开始 |
 
 编号用于稳定跟踪，不表示必须按数值升序实施。UI编号保留页面归属，B编号负责代码/API/迁移/验证范围，不用UI页面完成掩盖后端缺口。

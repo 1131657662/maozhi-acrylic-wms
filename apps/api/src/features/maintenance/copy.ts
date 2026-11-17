@@ -30,6 +30,7 @@ export const maintenanceHealthText = {
 } as const;
 
 export const schedulerText = {
+  operator: '无法唯一确定自动备份操作账户，请检查账户配置',
   busy: '已有备份或清理进行中，本次跳过，不排队',
   startup: '启动时超过24小时没有成功备份',
   daily: '每日北京时间03:00到期备份',

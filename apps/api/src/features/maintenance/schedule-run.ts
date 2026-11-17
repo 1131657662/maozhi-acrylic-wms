@@ -24,7 +24,12 @@ export async function runScheduledBackup(service: MaintenanceService, input: Sch
     JSON.stringify(detail),
   ]);
   try {
-    const { jobId } = await service.create({ username: 'owner', channel: 'web', traceId: id }, id);
+    const accounts = await service.db.all('SELECT username FROM owner LIMIT 2');
+    if (accounts.length !== 1) throw new AppError('BACKUP_OPERATOR', t.operator, 409);
+    const { jobId } = await service.create(
+      { username: String(accounts[0]!.username), channel: 'web', traceId: id },
+      id,
+    );
     await service.db.run('UPDATE maintenance_jobs SET params=? WHERE id=?', [
       JSON.stringify({ schedulerRunId: id, trigger: detail.trigger }),
       jobId,
@@ -41,7 +46,10 @@ export async function runScheduledBackup(service: MaintenanceService, input: Sch
     const busy = error instanceof AppError && error.code === 'MAINTENANCE_BUSY';
     await service.db.run('UPDATE scheduler_runs SET status=?,detail=? WHERE id=?', [
       busy ? 'skipped' : 'failed',
-      JSON.stringify({ ...detail, reason: busy ? t.busy : t.failed }),
+      JSON.stringify({
+        ...detail,
+        reason: busy ? t.busy : error instanceof AppError && error.code === 'BACKUP_OPERATOR' ? t.operator : t.failed,
+      }),
       id,
     ]);
   }

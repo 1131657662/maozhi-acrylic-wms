@@ -287,8 +287,33 @@ POST /api/v1/me/logout
 - 每次到期尝试或启动补偿均写scheduler_runs：kind、ran_at、status、detail；detail含上海日期、触发原因、jobId及安全失败/跳过原因。status使用succeeded/failed/interrupted/skipped，任务本身仍保留五种状态。不是每分钟无到期的检查都写新记录。
 - 服务启动默认启用；NODE_ENV=test或测试启动脚本默认关闭，显式MAINTENANCE_SCHEDULER_ENABLED=true/false可控制。已有Web手动入口不受关闭调度影响。退出时停止计时器并等待已受理任务结束。
 - GET /maintenance/health的backup包含lastFailure（失败时间与原因）及latestSchedule；最近失败在后续成功后仍可查；最新调度失败/中断令备份健康异常。GET /maintenance/jobs可查失败任务，B8c以后接入消息中心。本批不发外部通知。
-- 调度沿用同一个固定mysqldump执行器、数据库互斥与单用户owner审计，不接收HTTP指定时间/目标。测试使用可注入时钟的检查入口验证03:00边界、24小时补偿、跳过/失败/跨日；测试不自动启动定时器。
+- 调度沿用同一个固定mysqldump执行器与数据库互斥；操作人从当前账户表的实际username读取，不硬编码账户名称。当前单用户范围内无法唯一确定账户时，记录调度失败，不冒用任意账户；任务和审计使用相同操作人。不接收HTTP指定时间/目标。测试使用可注入时钟的检查入口验证03:00边界、24小时补偿、跳过/失败/跨日；测试不自动启动定时器。
 
 提交总数仍为五笔；第④笔补入用户确认的调度与页面，第⑤笔完整验收。恢复、对账、云备份、调度可视化、改调度时间、多实例选主、RBAC和外部通知不在本批。
 
 执行器固定关闭tablespaces与GTID_PURGED输出，备份读取仅依赖目标库SELECT/SHOW VIEW/TRIGGER，不为执行备份新增全局PROCESS/RELOAD授权；使用隔离临时低权限账户验证。服务只在本地库已应用026时启动，不自动迁移开发样本库。
+
+### 6.5 B8a-1 本地验收记录（2026-11-17）
+
+起点master@3bd8def；分支codex/b8a-1-maintenance-backup。代码覆盖026三表及非空回退保护、六组维护接口、真实异步备份、SHA校验下载、30日+12月清理、进程内每日03:00及启动补偿、备份/健康两个Tab。恢复/对账归B8a-2，消息中心归B8c；没有创建通知表、外部通知或RBAC。
+
+| 验收项 | 本地结果与证据 |
+|---|---|
+| 真实备份与权限 | 隔离MySQL 8合成库生成真实SQL；字节数与SHA一致、含业务表DDL；临时仅SELECT/SHOW VIEW/TRIGGER账户同样成功，不增加全局权限 |
+| 异步与幂等 | HTTP 202返回jobId；同键重试/同键同时点击复用任务；不同键并发仅一个任务；浏览器丢失响应后原键重试不新增 |
+| 文件与保留 | 同大小篡改返回409且不发送SQL；非法归属拒绝；30日边界及12上海自然月正确，未登记文件保留，清理中断有意图记录可重试，元数据和历史任务保留 |
+| 健康与故障 | 实际启动并停止独立临时MySQL实例，ping异常/健康HTTP503；不停止共享3307实例。浏览器另验证503撤下旧正常值并可恢复；HTTP24h缺采集器显示不支持/null |
+| 每日自动备份 | 注入时钟验证上海02:59:59/03:00、严格超过24h、启动无成功记录、同日重启不重复、跨日运行、忙时跳过不排队；真实产物及scheduler_runs成功/跳过/失败可查，后续成功保留失败历史。账户改名后真实备份、任务与审计归属一致；账户缺失或不唯一时留失败记录。没有等待真实凌晨墙钟，也未做生产守护进程验收 |
+| 迁移 | 026空表up/down/up；三表分别非空在任何DDL前拒绝；旧业务指纹不变 |
+| 界面 | 1440/1280备份与健康页无整页横向溢出；标题16px线性图标、单主操作、清理单独危险操作及二次确认；库值/内部ID/路径不展示 |
+
+验证命令与日志：
+
+- `npm run test -- --test-concurrency=4`：588/588，失败/跳过0，exit 0；`.local/evidence/b8a1/full-test-final.log`。该轮启动后追加的最低权限真实导出测试另运行1/1、exit 0：`restricted-dump-test.log`。收尾账户归属修正后调度回归7/7、exit 0（含2项新增）：`scheduler-account-tests.log`；累计覆盖591项，不宣称单次完整591项运行，无删减原测试。
+- `npm run build`：严格类型检查和Web构建exit 0；`build-final.log`。账户归属修正后重跑同命令仍exit 0：`build-closeout.log`。
+- `npm run check:design-tokens`：新增0，既有22条；`token-final.log`。`antd lint`：0问题、0跳过；`antd-lint.json`。
+- `npm run test:e2e`首轮主套件206/210通过、4项旧列表50ms性能断言失败，exit 1；`full-e2e.log`与`first-full-resize-failures/`保留。移除并行测试/构建负载后，原Umi dev配置运行`npx playwright test tests/e2e/b6i4-resize-performance.spec.ts tests/e2e/list-ux-a-resize.spec.ts`：4/4通过、exit 0，四项长任务数组均为空；`resize-idle-retest.log`。原断言/阈值、旧列表实现与Playwright配置均未改，未使用生产预览替代。随后`npx playwright test -c playwright.catalog.config.ts`完整目录套件18/18、exit 0：`catalog-full-e2e.log`。合计228项均有通过结果、跳过0，其中4项经复测通过；不宣称首轮整条命令一次通过。
+- 维护专项23/23加低权限真实导出1/1、收尾调度回归7/7（其中2项新增）；`maintenance-final-tests.log`、`restricted-dump-test.log`、`scheduler-account-tests.log`。浏览器首轮发现构建冷启动等待、按钮图标名称和映射文案断言问题；修正后5/5通过，补充失败健康展示后在完整E2E中6/6通过。
+- 截图：`.local/evidence/b8a1/backup-1440.png`、`backup-1280.png`、`health-1440.png`、`health-1280.png`、`health-outage-1440.png`、`health-backup-failed-1440.png`；只存本地，不进Git。
+
+代码审查已覆盖身份/来源、固定命令与参数、路径归属、SHA、互斥/重启、保留集合和失败状态，已修复发现的问题；记录`.local/evidence/b8a1/code-review.md`。五笔提交中前四笔为af3ea44、50f3a80、8371bcb、6fe5a80，第五笔为最终验收收尾。未合并、未推送，不进入B8a-2。开发样本库未应用026，本地完整验证使用随机隔离测试库；代码完成/本地验证不等于用户现场、实体设备或生产验收。原有B7c/未来多用户文档改动保持未提交。

@@ -23,6 +23,7 @@ test('B8a-1 上海03:00与严格超过24h边界，测试默认关闭调度', () 
 test('B8a-1 到期自动备份真实产物；同日检查与重启不重复，跨日再执行', async () => {
   const c = await maintenanceFixture();
   try {
+    await c.db.run('UPDATE owner SET username=?', ['maintenance-account']);
     let now = new Date('2026-11-16T18:59:59Z');
     const scheduler = new MaintenanceScheduler(c.service, () => now);
     await scheduler.check();
@@ -30,6 +31,10 @@ test('B8a-1 到期自动备份真实产物；同日检查与重启不重复，�
     now = new Date('2026-11-16T19:00:00Z');
     await Promise.all([scheduler.check(), scheduler.check()]);
     assert.equal((await c.db.get('SELECT status FROM scheduler_runs'))?.status, 'succeeded');
+    assert.equal((await c.db.get('SELECT operator FROM maintenance_jobs'))?.operator, 'maintenance-account');
+    const audits = await c.db.all("SELECT actor FROM operation_log WHERE action='maintenance.backup'");
+    assert.ok(audits.length > 0);
+    assert.ok(audits.every((row) => row.actor === 'maintenance-account'));
     await scheduler.check();
     await new MaintenanceScheduler(c.service, () => now).check(true);
     assert.equal(Number((await c.db.get('SELECT COUNT(*) AS n FROM maintenance_jobs'))?.n), 1);
@@ -51,6 +56,26 @@ test('B8a-1 到期自动备份真实产物；同日检查与重启不重复，�
     await c.dispose();
   }
 });
+for (const scenario of ['missing', 'ambiguous'] as const) {
+  test(`B8a-1 调度账户${scenario}时留失败记录，不冒用其他账户`, async () => {
+    const c = await maintenanceFixture();
+    try {
+      if (scenario === 'missing') await c.db.run('DELETE FROM owner');
+      else
+        await c.db.run('INSERT INTO owner(username,password_hash) SELECT ?,password_hash FROM owner', [
+          'another-account',
+        ]);
+      await new MaintenanceScheduler(c.service).check(true);
+      assert.equal(Number((await c.db.get('SELECT COUNT(*) AS n FROM maintenance_jobs'))?.n), 0);
+      assert.equal((await c.db.get('SELECT status FROM scheduler_runs'))?.status, 'failed');
+      const health = await backupHealth(c.db);
+      assert.equal(health.status, 'error');
+      assert.match(health.lastFailure?.reason ?? '', /无法唯一确定/);
+    } finally {
+      await c.dispose();
+    }
+  });
+}
 test('B8a-1 启动超24小时补跑一次，并与当日到期合并', async () => {
   const c = await maintenanceFixture();
   try {
