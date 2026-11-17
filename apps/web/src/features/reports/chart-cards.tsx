@@ -1,4 +1,5 @@
 import { Tooltip } from 'antd';
+import { Link } from '@umijs/max';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { StatCard } from '../../components/ui';
 import { spacing } from '../../theme/design-tokens';
@@ -19,15 +20,7 @@ export function ReportStatCards({ stats, hrefs }: { stats: ReportStat[]; hrefs?:
       {stats.map((stat, index) => (
         <StatCard
           key={stat.label}
-          value={
-            hrefs?.[index] ? (
-              <a href={hrefs[index]} target="_blank" rel="noopener noreferrer">
-                {stat.value}
-              </a>
-            ) : (
-              stat.value
-            )
-          }
+          value={hrefs?.[index] ? <Link to={hrefs[index]}>{stat.value}</Link> : stat.value}
           label={
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: spacing[4] }}>
               {stat.label}

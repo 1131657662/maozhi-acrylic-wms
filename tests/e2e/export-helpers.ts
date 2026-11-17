@@ -33,6 +33,7 @@ export async function downloadAndCompare(
   input: { kind: string; scope: string; expected: Awaited<ReturnType<typeof screenRows>> },
 ) {
   await expect(page.getByRole('link', { name: '下载 XLSX' })).toBeVisible();
+  await expect(page.getByRole('link', { name: '下载 XLSX' })).toHaveAttribute('target', '_blank');
   const pending = page.waitForEvent('download');
   await page.getByRole('link', { name: '下载 XLSX' }).click();
   const download = await pending;

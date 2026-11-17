@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { theme, Typography } from 'antd';
+import { theme } from 'antd';
+import { Link } from '@umijs/max';
 import type { Analysis } from '@wms/contracts';
 import { publicReportText } from '@wms/contracts';
 import { spacing } from '../../theme/design-tokens';
@@ -8,7 +9,7 @@ import { AnalysisPlot } from './analysis-plot';
 import { dashboardCopy as copy } from './dashboard-copy';
 import { topOption } from './movement-chart-options';
 import { chartTonnes } from '../reports/chart-options';
-import { openReport } from '../reports/drilldown';
+import { openReport } from '../reports/navigation';
 import { analysisLink } from './drilldown';
 
 type TopRows = NonNullable<Analysis['tops']['data']>['products'];
@@ -37,9 +38,7 @@ function TopChart({
         {data.map((item) => (
           <li key={item.code}>
             {target ? (
-              <Typography.Link href={analysisLink(target, block, item.code)} target="_blank" rel="noopener noreferrer">
-                {publicReportText(item.name ?? item.code)}
-              </Typography.Link>
+              <Link to={analysisLink(target, block, item.code)}>{publicReportText(item.name ?? item.code)}</Link>
             ) : (
               publicReportText(item.name ?? item.code)
             )}

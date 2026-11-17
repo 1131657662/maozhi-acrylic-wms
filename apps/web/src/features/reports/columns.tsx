@@ -40,12 +40,7 @@ export function reportColumns<Row>(kind: ReportKind, params: ListParams = {}): P
       const drillColumn = kind === 'report-details' ? 'orderNo' : kind === 'report-monthly' ? 'period' : 'productName';
       if (f.key === drillColumn) {
         const href = rowDrilldown(kind, params, record);
-        if (href)
-          return (
-            <Link to={href} target="_blank" rel="noopener noreferrer">
-              {text}
-            </Link>
-          );
+        if (href) return <Link to={href}>{text}</Link>;
         if (kind === 'report-aging')
           return (
             <span aria-disabled="true" title={copy.historicalStock}>

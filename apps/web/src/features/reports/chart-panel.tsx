@@ -7,7 +7,8 @@ import { ReportStatCards } from './chart-cards';
 import { monthlyPresentation, turnoverPresentation, agingPresentation } from './chart-presentations';
 import { chartCopy as copy } from './chart-copy';
 import type { ListParams } from '../web-lists/keys';
-import { cardDrilldown, chartDrilldown, openReport } from './drilldown';
+import { cardDrilldown, chartDrilldown } from './drilldown';
+import { openReport } from './navigation';
 
 interface ChartQuery<C> {
   data?: { chart: C; viewToken: string };

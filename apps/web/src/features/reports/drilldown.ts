@@ -63,9 +63,6 @@ export function rowDrilldown(kind: string, params: ListParams, row: Record<strin
 export function canOpenStock(params: ListParams): boolean {
   return params.cutoffDay === new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
 }
-export function openReport(href: string | undefined): void {
-  if (href) window.open(href, '_blank', 'noopener,noreferrer');
-}
 export function cardDrilldown(kind: string, params: ListParams, index: number): string {
   if (kind === 'aging')
     return reportDrilldown('/reports/aging', params, { band: ['all', 'over90', 'unagedGrams'][index]! });

@@ -67,7 +67,6 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
     openDetail(selectedRows[0]!);
   };
   const onRow = useRowInteractions({
-    scope: JSON.stringify(state.params),
     selection: {
       ...props.selection,
       change: (keys, rows) => {
@@ -199,7 +198,7 @@ export function ListTable<Row extends { id: Key }>(props: ListTableProps<Row>) {
                       )
                         return;
                       const href = props.rowHref?.(row);
-                      if (href) window.open(href, '_blank', 'noopener,noreferrer');
+                      if (href) navigate(href);
                     },
                   })
                 : onRow
