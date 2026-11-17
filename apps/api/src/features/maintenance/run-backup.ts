@@ -2,7 +2,8 @@ import type { Database } from '../../db/mysql.ts';
 import { audit, type Actor } from '../../shared/audit.ts';
 import { AppError } from '../../shared/errors.ts';
 import { BackupFiles } from './files.ts';
-import { mysqlDump } from './dump.ts';
+import { dumpWithBaseline } from './backup-snapshot.ts';
+import type { BackupBaseline } from '@wms/contracts';
 import { verifyBackupConnection, type MaintenanceOptions } from './options.ts';
 import { maintenanceErrors as copy } from './copy.ts';
 
@@ -19,9 +20,9 @@ export async function runBackup(db: Database, run: BackupRun): Promise<void> {
       FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()`);
     await files.preflight(Number(estimate?.bytes));
     await db.run("UPDATE maintenance_jobs SET status='running' WHERE id=?", [run.id]);
-    await mysqlDump(run.options.connection, files.file(run.id, 'part'));
+    const baseline = await dumpWithBaseline(db, { options: run.options, filename: files.file(run.id, 'part') });
     const digest = await files.publish(run.id);
-    await completeBackup(db, run, digest);
+    await completeBackup(db, run, { ...digest, baseline });
   } catch (error) {
     const reason = error instanceof AppError ? error.message : copy.failed;
     await db.transaction(async (tx) => {
@@ -38,15 +39,19 @@ export async function runBackup(db: Database, run: BackupRun): Promise<void> {
     });
   }
 }
-async function completeBackup(db: Database, run: BackupRun, digest: { bytes: number; sha256: string }): Promise<void> {
+async function completeBackup(
+  db: Database,
+  run: BackupRun,
+  digest: { bytes: number; sha256: string; baseline: BackupBaseline },
+): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.run(
-      `INSERT INTO backup_artifacts(id,job_id,path,bytes,sha256,created_at,retention_class)
-      VALUES(?,?,?,?,?,UTC_TIMESTAMP(3),'daily')`,
-      [run.id, run.id, `${run.id}.sql`, digest.bytes, digest.sha256],
+      `INSERT INTO backup_artifacts(id,job_id,path,bytes,sha256,created_at,retention_class,baseline)
+      VALUES(?,?,?,?,?,UTC_TIMESTAMP(3),'daily',?)`,
+      [run.id, run.id, `${run.id}.sql`, digest.bytes, digest.sha256, JSON.stringify(digest.baseline)],
     );
     await tx.run("UPDATE maintenance_jobs SET status='succeeded',finished_at=UTC_TIMESTAMP(3),result=? WHERE id=?", [
-      JSON.stringify({ artifactId: run.id, ...digest }),
+      JSON.stringify({ artifactId: run.id, bytes: digest.bytes, sha256: digest.sha256 }),
       run.id,
     ]);
     await audit(tx, run.actor, {

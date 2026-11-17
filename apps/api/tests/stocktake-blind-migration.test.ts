@@ -35,6 +35,7 @@ test('B6e-1 024 已有盲盘即拒绝 down 且数据、迁移状态均不变', a
   const c = await fixture();
   try {
     await createStocktake(c.db, { warehouseCode: 'DEMO-WH', mode: 'blind' }, randomUUID(), actor);
+    await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.
     await migrateDown(c.db); // Remove empty 025 before the nonempty 024 guard.
     const before = await businessFingerprint(c.db);
