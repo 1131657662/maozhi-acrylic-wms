@@ -8,15 +8,20 @@ import { existingBackup, insertBackup, interruptBackups } from './jobs.ts';
 import { runBackup } from './run-backup.ts';
 import type { MaintenanceOptions } from './options.ts';
 import { maintenanceErrors as copy } from './copy.ts';
+import { RestoreService } from './restore-service.ts';
 
 export class MaintenanceService {
+  readonly restores: RestoreService;
   private readonly running = new Set<Promise<void>>();
   private readonly accepting = new Map<string, Promise<{ jobId: string }>>();
   constructor(
     readonly db: Database,
     readonly options: MaintenanceOptions | undefined,
-  ) {}
+  ) {
+    this.restores = new RestoreService(db, options);
+  }
   async recover(): Promise<void> {
+    await this.restores.recover();
     try {
       await withMaintenanceLock(this.db, () => interruptBackups(this.db));
     } catch (error) {
@@ -64,6 +69,6 @@ export class MaintenanceService {
     });
   }
   async settled(): Promise<void> {
-    await Promise.all([...this.running]);
+    await Promise.all([...this.running, this.restores.settled()]);
   }
 }

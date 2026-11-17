@@ -38,6 +38,11 @@ async function cleanArtifacts(db: Database, files: BackupFiles, actor: Actor): P
   const rows = await activeArtifacts(db),
     now = Date.now();
   const plan = retentionPlan(rows.map(projectArtifact), now);
+  const evidence = await db.all('SELECT artifact_id,prebackup_id FROM restore_verifications');
+  for (const row of evidence) {
+    plan.keep.add(String(row.artifact_id));
+    if (row.prebackup_id) plan.keep.add(String(row.prebackup_id));
+  }
   const result: RetentionResult = { deleted: [], retained: plan.keep.size, failures: [] };
   for (const row of rows) {
     const id = String(row.id);

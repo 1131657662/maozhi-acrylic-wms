@@ -14,6 +14,8 @@ export function maintenanceRouter(db: Database, origins: string[], service: Main
   });
   router.use(maintenanceAuth(db), requireChannel('web', origins));
   router.post('/backups', controller.create!);
+  router.post('/restores', controller.restore!);
+  router.get('/restores/:id', controller.restoreDetail!);
   router.get('/jobs', controller.jobs!);
   router.get('/artifacts', controller.artifacts!);
   router.get('/artifacts/:id/download', controller.download!);

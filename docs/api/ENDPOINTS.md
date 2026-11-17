@@ -4,6 +4,8 @@
 
 | 方法 | 路径 | 客户端 | 说明 |
 |---|---|---|---|
+| POST | /api/v1/maintenance/restores | web | 确认后预备份、专用账号隔离恢复，失败保留证据，不覆盖当前库 |
+| GET | /api/v1/maintenance/restores/{id} | web | 恢复阶段、安全日志及逐项核验报告 |
 | POST | /api/v1/maintenance/backups | web | 持久化异步真实备份任务；同键重试复用，不同键并发拒绝；HTTP不可指定路径或连接 |
 | GET | /api/v1/maintenance/jobs | web | 维护任务状态、耗时与操作人；不暴露命令/路径/凭证 |
 | GET | /api/v1/maintenance/artifacts | web | 当前可下载产物分页；大小、SHA、时间与保留类型 |

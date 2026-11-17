@@ -16,8 +16,16 @@ export function eventMetadata(entry: AuditEntry) {
   const kind = entry.action.startsWith('master.')
     ? `master.${entry.targetId.split(':')[0]}`
     : auditAction(entry.action).kind;
-  const result =
-    ['export.failed', 'maintenance.backup.failed'].includes(entry.action) ? 'failed' : entry.action === 'export.cancelled' ? 'cancelled' : 'success';
+  const result = [
+    'export.failed',
+    'maintenance.backup.failed',
+    'maintenance.restore.failed',
+    'maintenance.restore.import.failed',
+  ].includes(entry.action)
+    ? 'failed'
+    : entry.action === 'export.cancelled'
+      ? 'cancelled'
+      : 'success';
   return {
     kind: context?.targetId === entry.targetId ? context.targetKind : kind,
     number: auditCode(value.receiptNo) ?? auditCode(value.orderNo) ?? auditCode(value.number) ?? auditCode(value.code),
