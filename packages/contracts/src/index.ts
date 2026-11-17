@@ -145,7 +145,10 @@ export const stockSchema = z.array(
   }),
 );
 export const sessionSchema = z.object({ username: z.string(), channel: channelSchema });
-export const loginResultSchema = sessionSchema.extend({ token: z.string().optional() });
+export const loginResultSchema = sessionSchema.extend({
+  token: z.string().optional(),
+  passwordChangeRecommended: z.boolean().optional(),
+});
 export { auditRowSchema } from './audit.ts';
 import { auditRowSchema } from './audit.ts';
 export const auditSchema = z.array(auditRowSchema);
@@ -186,3 +189,4 @@ export * from './maintenance.ts';
 export * from './maintenance-health.ts';
 export * from './maintenance-baseline.ts';
 export * from './maintenance-restore.ts';
+export * from './identity.ts';

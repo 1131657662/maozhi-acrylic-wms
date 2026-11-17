@@ -1,5 +1,13 @@
 # 四端重建 / 第一里程碑
 
+## B8b 身份与个人中心（2026-11-17，代码与自动化完成，待用户验收）
+
+前置B8a已完成；起点63b5ec8，分支codex/b8b-identity。028扩展owner/sessions，个人资料、会话列表撤销、改密全端失效、持久5次失败锁15分钟、PDA401重新认证。规格OPS_PAGES_SPEC §8；不做RBAC、多用户管理、找回密码、OAuth、B8c通知或全站改版。
+
+用户批准五笔：①规格台账；②迁移契约；③API安全回归；④Web/PDA衔接；⑤完整验证与验收。完整test/build/E2E、个人中心1440/1280、PDA构建/单测/lint。只用隔离本地合成库，028不自动应用开发样本库；完成五笔后停，不合并推送。用户既有两份文档的未提交修改单独保留，不纳入B8b提交。
+
+结果：test 629/629、完整E2E 234/234（216+18）、build exit 0；PDA构建/单测/lint通过，JVM 3/3、模拟器会话失效与队列保留2/2；个人中心1440/1280截图已复核。失败轮次、修正与证据见 [B8B_ACCEPTANCE.md](B8B_ACCEPTANCE.md)。未做实体设备/生产验收，未向开发样本库应用028，未合并推送，不进入B8c。
+
 ## B4e / B4g：已完成（2026-11-12，用户验收通过）
 
 - **B4e 单据字段扩展：269/119/0**。test 269/269、完整 E2E 119/0、build exit 0，三项 exit 均为 0；单据类型默认值/筛选/导出、柜号、出库行合同号及行备注已完成。017 已备份后应用 3307 开发样本库，历史 NULL 展示、新建默认值与「全部」包含历史单的冒烟通过；已合并推送，merge `19022412fe9bd84844f9f559b51b6c8c2f8d7ade`。
@@ -455,7 +463,7 @@ SQL：[`scripts/sql/verify-stock-sources.sql`](../scripts/sql/verify-stock-sourc
 | UI-5 | B7a 报表页面 | REPORTS_PAGE_SPEC + REPORT_SPEC | 先B5d更正分列/日期更正重述（M-DATE-CORRECTIONS）；正式开账证据由B10/M-CUTOVER-ANCHOR提供，未有锚点仍标不可验证 | 7 |
 | UI-6 | B6d 条码目录 | CATALOG_PAGE_SPEC | M-CATALOG-CANDIDATES；保留006/007与既有交接门禁，不在本批加设备实时协议 | 4 |
 | UI-7 | B6c 操作记录 | AUDIT_PAGE_SPEC | 已完成，240/116/0；015、成功/失败安全投影、受控 raw/trace、时间线及页面导出；见 B6C_3_ACCEPTANCE | 3 |
-| UI-8 | B8a维护 → B8b身份 → B8c通知 | OPS_PAGES_SPEC | **B8a全部完成，609/231/0，已用户验收并合并推送**；M-MAINTENANCE已完成，M-AUTH-EXTENSIONS/M-NOTIFICATIONS仍后置；通知依赖稳定业务/任务事件 | 维护完成，完整页9 |
+| UI-8 | B8a维护 → B8b身份 → B8c通知 | OPS_PAGES_SPEC | **B8a全部完成，609/231/0，已用户验收并合并推送**；B8b/M-AUTH-EXTENSIONS代码与自动化完成，629/234/0，待用户验收，未合并；M-NOTIFICATIONS仍后置，依赖稳定业务/任务事件 | 维护完成；身份待用户验收 |
 | B8a-1 | 真实异步备份、校验下载、30日+12月保留、每日03:00自动备份/启动24h补偿、健康与两个Tab | OPS_PAGES_SPEC §6/6.5/6.6 | **已完成并通过用户验收，588/E2E 228**。起点3bd8def；实现分支codex/b8a-1-maintenance-backup五笔至bd13eab。完整test588/588，后增低权限导出1/1与调度回归7/7（含新增2项）；build通过。E2E主首轮206通过/4性能失败，原断言空闲复测4/4通过、长任务均为空，目录18/18；228项均有通过结果、跳过0，不宣称首轮一次全绿。026已备份并应用maozhi_dev_sample：迁移前后51张原表指纹不变；真实页面备份/下载SHA/篡改409/保留清理/实际停库503与恢复/连点单任务通过；冒烟后48张业务表不变。功能非快进合并推送2881fcbda1940f721c1f03e934e8643463ce5bd0，checkout/merge/push/远端核对exit均0；详见OPS §6.6。收尾文档经codex分支非快进合并推送后停止，不开始B8a-2 | 已完成并合并推送 |
 | B8a-2 | 隔离恢复、原库预备份、对账报告与失败证据保全 | OPS_PAGES_SPEC §7/7.6 | **已完成并通过用户验收，609/231/0；B8a全部完成**。起点3f0cf3b，分支codex/b8a-2-isolated-restore，初次五笔至e384172、收尾提示修正及验收e975f33。027备份基线与restore_verifications；RECOVER、专用账号/one-database、预备份文件与SHA门禁、备份时基线、无基线有限核验、失败保留/审计与真实阶段报告。完整test609/609、E2E231/231、build通过；最后弹窗修正专项3/3。收尾追加错误回归4/4（含1项新增）、恢复E2E3/3、真实页面冒烟及完整build均exit0，不冒充重新完整610/231运行。仅本地3307重启后trust=1持久生效；启动脚本超时exit1后独立核验exit0。027已备份后应用样本库，54张原表不变；新备份带baseline，新旧恢复/报告保留/预检409明确提示通过，49张业务表恢复前后指纹一致。功能非快进合并推送c27bc7f04d19c304fd6f50f9e414a844a97598f8，checkout/merge/push/远端核对exit均0；收尾文档在codex分支非快进合并推送后停止。详见B8A_2_ACCEPTANCE；不覆盖、不自动迁移/切换、不改库存链路、不做云备份或跨实例 | 已完成并合并推送 |
 

@@ -144,6 +144,47 @@ GET /api/v1/maintenance/health
 
 ---
 
+## 八、B8b 身份与个人中心（2026-11-17 定稿）
+
+### 8.1 范围与迁移
+
+起点63b5ec8，codex/b8b-identity，五笔提交后停止，不合并推送。只做本人资料/会话/改密及账户锁定，不做RBAC、多用户管理、找回密码、OAuth或头像联系方式。
+
+028为owner增加display_name VARCHAR(80) NULL、password_changed_at DATETIME(3) NULL、auth_epoch INT UNSIGNED NOT NULL DEFAULT 0、failed_attempts INT UNSIGNED NOT NULL DEFAULT 0、locked_until DATETIME(3) NULL；sessions增加id CHAR(36) NOT NULL UNIQUE、created_at DATETIME(3) NOT NULL、epoch INT UNSIGNED NOT NULL DEFAULT 0。时间UTC保存、上海显示。旧会话不删除：补独立UUID，created_at按既有固定8小时有效期由expires_at减8小时回填，epoch为0。会话id仅供接口定位，不展示。
+
+down在任何DDL前检查owner可空新列非NULL、计数/版本非0以及任一sessions记录；有数据拒绝，不自动清理。默认0不视为业务数据，旧会话补值也受保护；空扩展数据可down/up。迁移仅在隔离合成测试库验证，不自动应用开发样本库。
+
+### 8.2 接口与显示
+
+新/me接口全部先认证，再校验Web渠道；写操作要求Origin白名单，Authorization头被拒绝。账号来自服务端会话，不接收客户端username。保留/auth/login、/auth/me、/auth/logout。
+
+| 方法/路径（/api/v1） | 行为 |
+|---|---|
+| GET /me | username、displayName（可空）、channel、lastLoginAt（当前会话之前最近成功登录，无证据null）、expiresAt、passwordChangedAt |
+| PUT /me/profile | 严格仅displayName；去首尾空白，最多80字符，空串归NULL；不改账号；事务审计 |
+| POST /me/password | 严格oldPassword/newPassword；正确原密码后同事务更新哈希、改密时间、auth_epoch+1、删本人全部渠道会话、成功审计；成功清Cookie并重新登录 |
+| GET /me/sessions | 本人有效且epoch匹配会话；id、channel、createdAt、expiresAt、isCurrent；创建时间倒序、页面分页常量控制；不声称实时在线 |
+| DELETE /me/sessions/:id | 仅本人；未知/他人编号统一404；撤销当前等同退出并清Cookie；审计仅渠道/是否当前，不含会话UUID/哈希/token |
+| POST /me/logout | 当前会话退出别名；/auth/logout保持兼容 |
+
+/me按资料、登录会话、密码安全分区，唯一主操作修改密码，资料保存为次级；撤销/退出与主操作分区并二次确认。标题16px UserOutlined，既有PageShell、Ant Design、theme token，不加UI库。渠道中文，UUID和内部版本不展示；显示名保存同步账号入口。密码表单不接草稿、不持久化；确认前输入仅留在当前组件内存；请求成功/失败或离开后均清空密码字段。
+
+### 8.3 密码、锁定与并发
+
+新密码UTF-8 12–72字节，含英文字母和数字，不trim；超72字节明确422。登录/旧密码保持1–128字符串长度兼容，旧超长bcrypt密码仍可认证，成功返回需改密提示，Web进入个人中心提示、PDA显示提示、小程序确认提示后继续查询；新密码禁止截断。确认密码仅页面校验。
+
+连续失败按实际owner持久计数，跨渠道/进程共用；第5次锁15分钟并返回429及retryAfterSeconds/Retry-After。锁定中正确/错误密码同429，在bcrypt前拒绝，不增加计数、不续锁。到期下次尝试从0开始；成功清零/清锁；不存在账号统一401，不新增owner。HTTP按IP的15分钟20次限流独立保留。
+
+登录比较密码后在事务中锁owner，复核此前auth_epoch和密码哈希，变化即拒绝签发。事务中复查锁定，提交失败计数或清零并签发；失败结果在事务提交后抛错，避免计数回滚。每次认证要求sessions.epoch=owner.auth_epoch。改密在owner行锁下再次认证当前会话，验证旧密码后更新并撤销，保证并发两次仅一次成功、旧密码已验证的并发登录不能事后签发。撤销/资料更新同样在owner行锁后复验会话。
+
+成功写operation_log，失败复用operation_attempts；仅动作、本人账号与安全业务摘要。密码、密码哈希、token、token哈希不得进入审计、日志或表单草稿；密码及密码哈希不进入客户端持久缓存，认证凭证继续沿既有会话存储方式保存。兼容提示只返回布尔信号/固定文案。
+
+### 8.4 PDA与验收
+
+PDA离线时不清业务数据；下次联网请求401才提示重新登录并清认证凭证。后台401停止重试并标记需认证，前台恢复时显示登录；登录后沿既有补传链路继续。Room队列、目录、计划、交接清单、UUID及正文原样保留，仅上传状态允许变化。
+
+验收：三端旧token全401；双改密仅一次成功；登录/改密竞态；5次锁15分钟、重建服务仍锁、到期恢复/成功清零；锁中正确错误同响应；字节边界/中文/旧超长提示；渠道/Origin/伪造账号/他人会话拒绝；事务回滚/审计无秘密；028回填/空数据往返/非空拒绝。完整test/build/E2E、token和AntD检查、1440/1280截图仅.local/evidence/b8b；PDA构建/单测/lint，模拟器可用时验证并注明不等于实体/生产验收。不改截图基础设施，不为截图写开发样本库。
+
 ## 三、个人中心
 
 ### 1. 定位
@@ -171,7 +212,7 @@ GET /api/v1/maintenance/health
 
 规则：
 - 改密码需原密码；
-- 新密码长度 ≥ 12，含字母与数字；
+- 新密码 UTF-8 长度 12–72 字节，含英文字母与数字；超过 72 字节明确拒绝，不静默截断（B8b 取代原字符长度规则）；
 - 改密后Web/PDA/小程序所有会话同事务失效并重新登录；PDA本地未传UUID/正文及离线队列保留，重新认证后继续原样补传；
 - 显示名仅影响页面右上角，不影响账号；
 - 不做头像、邮箱、手机号（单用户无意义）。
@@ -182,6 +223,8 @@ GET /api/v1/me
 PUT /api/v1/me/profile
 POST /api/v1/me/password
 POST /api/v1/me/logout
+GET /api/v1/me/sessions
+DELETE /api/v1/me/sessions/:id
 
 ### 4. 边界
 
@@ -224,7 +267,7 @@ POST /api/v1/me/logout
 |---|---|---|
 | B8a-1 / UI-8维护基础 | M-MAINTENANCE：026 maintenance_jobs、backup_artifacts、scheduler_runs | 异步真实备份、校验下载、保留清理、健康与页面；字段及当前接口以第六节为准 |
 | B8a-2 / UI-8恢复 | restore_verifications（迁移号实施时分配） | 前置B8a-1；隔离恢复、原库预备份、表/行/仓品包吨/迁移版本指纹与失败保全；不覆盖原库、不自动切换 |
-| B8b / UI-8身份 | M-AUTH-EXTENSIONS：账户display_name/password_changed_at/锁定计数与期限；会话失效版本、登录尝试证据 | 当前只有登录/me/logout与限流20，5次15分钟为新增持久策略，不能把HTTP限流冒充账户锁定；新增改密、会话查询/撤销接口，保留现有认证路由兼容 |
+| B8b / UI-8身份 | M-AUTH-EXTENSIONS：028账户显示名/改密时间/锁定计数期限与auth_epoch；会话id/created_at/epoch | 具体接口、并发和验收按第八节；保留/auth/login、/auth/me、/auth/logout兼容，HTTP限流与账户锁定独立 |
 | B8c / UI-8通知 | M-NOTIFICATIONS：notifications、notification_scan_state | 通知保存event_key/type/target/business_no、first_seen/last_seen/count、read_at/resolved_at、expires_at；活动event_key唯一，事务游标扫描+幂等upsert，90天只清通知不清审计 |
 
 维护接口是异步任务：POST返回jobId、GET读取状态，不让浏览器执行任意路径/命令/目标库名。备份/恢复按任务互斥、超时/重启可查；备份文件清理只针对自身产物且已核验归属，恢复隔离库不自动清理。备份已在B8a-1产品化，恢复按第七节实施；恢复副本现有清空会话行为在指纹中明确排除并验证，其余业务表必须逐项对账。UI中的恢复不覆盖原库，切换连接另有CUTOVER门禁；不自动触发迁移。

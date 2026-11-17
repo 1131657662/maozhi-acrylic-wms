@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import type { Database } from './db/mysql.ts';
 import { authRouter } from './features/auth/router.ts';
+import { accountRouter } from './features/auth/account-router.ts';
 import { businessRouter } from './routes.ts';
 import { trace, errors, ok } from './middleware/http.ts';
 import { AppError } from './shared/errors.ts';
@@ -54,6 +55,7 @@ export function createApp(
   });
   app.get('/api/v1/health', (_req, res) => ok(res, { status: 'ok', mode: 'local-development', database: 'mysql8' }));
   app.use('/api/v1/auth', authRouter(db));
+  app.use('/api/v1/me', accountRouter(db, origins));
   app.use('/api/v1/maintenance', maintenanceRouter(db, origins, maintenance));
   app.use('/api/v1', businessRouter(db, origins, catalogPublishEnabled));
   app.use(() => {

@@ -6,7 +6,7 @@ export const spacing = { 4: 4, 8: 8, 16: 16, 24: 24 } as const;
 export const fontSize = { pageTitle: 20, cardTitle: 16, body: 14, auxiliary: 12, kpi: 28 } as const;
 export const lineHeight = { pageTitle: 28, cardTitle: 24, body: 22, auxiliary: 20, kpi: 36 } as const;
 export const fontWeight = { regular: 400, semibold: 600 } as const;
-export const componentSize = { compactEmpty: 120, reportChart: 320, reportTable: 320 } as const;
+export const componentSize = { compactEmpty: 120, reportChart: 320, reportTable: 320, identityName: 160 } as const;
 export type StatusTone = 'default' | 'processing' | 'success' | 'warning' | 'error';
 
 export function statusColors(token: GlobalToken) {

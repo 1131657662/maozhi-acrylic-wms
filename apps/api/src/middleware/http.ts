@@ -72,6 +72,7 @@ export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) =>
   const tooLarge = typeof error === 'object' && error !== null && 'type' in error && error.type === 'entity.too.large';
   const catalogUpload = _req.path.endsWith('/catalog/uploads');
   const status = known ? error.status : tooLarge ? 413 : invalid ? 422 : 500;
+  if (known && error.code === 'ACCOUNT_LOCKED') res.set('Retry-After', String(error.data?.retryAfterSeconds));
   if (status === 500) logger.error({ event: 'request_failed', traceId: res.locals.traceId,
     code: error instanceof TransactionOutcomeUnknown ? error.code : 'INTERNAL_ERROR' }, '请求未完成');
   res.status(status).json({

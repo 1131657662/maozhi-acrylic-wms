@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import type { Database } from '../../db/mysql.ts';
-import { loginSchema } from '@wms/contracts';
+import { AUTH_POLICY, AUTH_TEXT, loginSchema } from '@wms/contracts';
 import { login, logout } from './service.ts';
 import { actorFrom, ok, requireAuth, tokenFrom } from '../../middleware/http.ts';
 import { AppError } from '../../shared/errors.ts';
@@ -11,11 +11,11 @@ export function authRouter(db: Database): Router {
   router.post(
     '/login',
     rateLimit({
-      windowMs: 15 * 60000,
-      limit: 20,
+      windowMs: AUTH_POLICY.httpWindowMs,
+      limit: AUTH_POLICY.httpLimit,
       standardHeaders: 'draft-8',
       legacyHeaders: false,
-      handler: (_req, _res, next) => next(new AppError('RATE_LIMITED', '登录尝试过多，请稍后重试', 429)),
+      handler: (_req, _res, next) => next(new AppError('RATE_LIMITED', AUTH_TEXT.rateLimited, 429)),
     }),
     async (req, res) => {
       const input = loginSchema.parse(req.body);
@@ -25,11 +25,19 @@ export function authRouter(db: Database): Router {
           httpOnly: true,
           sameSite: 'strict',
           secure: req.secure,
-          maxAge: 8 * 3600000,
+          maxAge: AUTH_POLICY.sessionMs,
           path: '/api',
         });
-        ok(res, { username: result.username, channel: result.channel });
-      } else ok(res, result);
+        ok(
+          res,
+          {
+            username: result.username,
+            channel: result.channel,
+            passwordChangeRecommended: result.passwordChangeRecommended,
+          },
+          result.passwordChangeRecommended ? AUTH_TEXT.legacyPassword : undefined,
+        );
+      } else ok(res, result, result.passwordChangeRecommended ? AUTH_TEXT.legacyPassword : undefined);
     },
   );
   router.get('/me', requireAuth(db), (_req, res) => ok(res, res.locals.session));

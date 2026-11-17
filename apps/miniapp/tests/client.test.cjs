@@ -39,3 +39,21 @@ test('吨数展示来自独立克重并保留四位小数', () => {
   assert.equal(result.plannedTonnes, '0.6000');
   assert.equal(result.statusLabel, '待出库确认');
 });
+
+test('旧超长密码登录提示先确认再继续，正常密码不弹窗且不输出凭据', async () => {
+  const { showPasswordNotice } = require('../utils/auth-notice');
+  let modal;
+  global.wx = {
+    showModal: (options) => {
+      modal = options;
+    },
+  };
+  await showPasswordNotice({ passwordChangeRecommended: false });
+  assert.equal(modal, undefined);
+  const pending = showPasswordNotice({ passwordChangeRecommended: true, token: 'private-test-token' });
+  assert.equal(modal.showCancel, false);
+  assert.match(modal.content, /网页个人中心修改密码/);
+  assert.ok(!JSON.stringify(modal).includes('private-test-token'));
+  modal.complete();
+  await pending;
+});

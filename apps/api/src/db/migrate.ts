@@ -9,6 +9,7 @@ import { guardScanWorkbenchDown } from './scan-workbench-migration.ts';
 import { guardSearchTextDown } from './search-text-migration.ts';
 import { guardStocktakeBlindDown } from './stocktake-blind-migration.ts';
 import { installDiscoveryTriggers } from './stocktake-discovery-migration.ts';
+import { guardAuthDown } from './auth-migration.ts';
 
 const migrations = [
   {
@@ -134,6 +135,7 @@ const migrations = [
   { id: '025_stocktake_discoveries', guardedTables: ['stocktake_discovery_lines'] },
   { id: '026_maintenance', guardedTables: ['backup_artifacts', 'scheduler_runs', 'maintenance_jobs'] },
   { id: '027_restore_baselines', guardedTables: ['restore_verifications'] },
+  { id: '028_auth_extensions', guardedTables: [] },
 ] as const;
 
 function migrationSql(id: string, direction: 'up' | 'down'): string {
@@ -219,6 +221,7 @@ export async function migrateDown(db: Database): Promise<void> {
         const previous = await connection.get('SELECT state FROM schema_migrations WHERE id=?', [migration.id]);
         if (!previous) continue;
         if (previous.state !== 'applied') throw new Error(`迁移 ${migration.id} 不完整，拒绝盲目回退`);
+        if (migration.id === '028_auth_extensions') await guardAuthDown(connection);
         if (
           migration.id === '027_restore_baselines' &&
           (await connection.get('SELECT id FROM backup_artifacts WHERE baseline IS NOT NULL LIMIT 1'))

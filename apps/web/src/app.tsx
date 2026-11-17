@@ -8,7 +8,7 @@ import type { RunTimeLayoutConfig } from '@umijs/max';
 import { Link } from '@umijs/max';
 import { authKeys } from './features/auth/keys';
 import { ApiError } from './api/client';
-import { LogoutButton } from './features/auth/logout';
+import { AccountActions } from './features/identity/account-actions';
 import './styles.css';
 import { ActiveStocktakeLink } from './features/stocktake/active-link';
 import { ErrorNotifications } from './components/ErrorNotifications';
@@ -80,11 +80,6 @@ export const layout: RunTimeLayoutConfig = () => ({
   ),
   menuItemRender: (item, dom) => (item.path ? <Link to={item.path}>{dom}</Link> : dom),
   menuExtraRender: () => <ActiveStocktakeLink />,
-  actionsRender: () => [
-    <span className="environment-label" key="environment">
-      本地验证环境
-    </span>,
-    <LogoutButton key="logout" />,
-  ],
+  actionsRender: () => [<AccountActions key="account" />],
   footerRender: () => <div className="pro-footer">茂智云仓 · 腈纶仓储管理系统 · Maozhi Acrylic Fiber WMS</div>,
 });

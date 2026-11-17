@@ -9,6 +9,7 @@ import {
 import { auditObject } from './input-summary.ts';
 import { businessText } from './projection.ts';
 const fields: Record<string, { label: string; unit: string }> = {
+  displayName: { label: '显示名', unit: '' },
   barcode: { label: '条码', unit: '' },
   productName: { label: '商品', unit: '' },
   source: { label: '录入方式', unit: '' },

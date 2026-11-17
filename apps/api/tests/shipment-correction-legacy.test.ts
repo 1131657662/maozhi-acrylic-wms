@@ -54,6 +54,10 @@ for (const replenish of [false, true])
         assert.equal(current.corrections.effective.packages, original.actualPackages);
         for (const table of ['master_products', 'master_customers', 'master_suppliers', 'master_vehicles'])
           await c.db.run(`UPDATE ${table} SET search_text=NULL`);
+        await c.web.post('/api/v1/auth/logout').expect(200);
+        await migrateDown(c.db); // Remove empty 028 before the previous migration boundary.
+        await migrateDown(c.db); // Remove empty 027 before the previous migration boundary.
+        await migrateDown(c.db); // Remove empty 026 before the previous migration boundary.
         await migrateDown(c.db); // Remove empty 025 before the previous migration boundary.
         await migrateDown(c.db); // Remove empty 024 before exercising the 020 migration roundtrip.
         await migrateDown(c.db); // Remove empty 023 before exercising the 020 migration roundtrip.
@@ -61,6 +65,10 @@ for (const replenish of [false, true])
         await migrateDown(c.db); // Empty 021 before the intended 020 migration.
         await migrateDown(c.db);
         await migrateUp(c.db);
+        await c.web
+          .post('/api/v1/auth/login')
+          .send({ username: 'owner', password: 'test-only-password', channel: 'web' })
+          .expect(200);
         assert.equal(
           (await c.db.get('SELECT shipment_line_id FROM document_correction_lines'))!.shipment_line_id,
           null,

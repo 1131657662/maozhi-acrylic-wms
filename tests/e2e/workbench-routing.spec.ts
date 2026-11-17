@@ -17,6 +17,7 @@ test('B7b AuthGate preserves a legacy list destination through login', async ({ 
   await expect(page).toHaveURL(/\/user\/login\?redirect=/);
   const target = new URL(page.url()).searchParams.get('redirect');
   expect(target).toBe('/outbound?keyword=WL-CK-&page=2#rows');
+  await page.getByLabel('用户名', { exact: true }).fill('owner');
   await page.getByLabel('密码', { exact: true }).fill('e2e-only-password');
   await page.getByRole('button', { name: /登\s*录/ }).click();
   await expect(page).toHaveURL('/outbound?keyword=WL-CK-&page=2#rows');

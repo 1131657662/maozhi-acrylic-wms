@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { businessErrorText, listTime, REPORT_EXPORT_EXPIRED } from '@wms/contracts';
 import { errorCopy, errorUi } from '../text';
+import { identityError } from './identity-error';
 
 export type ErrorKind = keyof typeof errorCopy;
 const fieldsSchema = z.object({
@@ -43,7 +44,12 @@ export class ApiError extends Error {
     const prerequisite =
       status === 409 && path === '/maintenance/restores' && message === errorUi.restoreTriggerPrerequisite;
     super(
-      prerequisite ? errorUi.restoreTriggerPrerequisite : detail ? safeBusinessMessage(message, fallback) : fallback,
+      identityError(message, status, path, data) ??
+        (prerequisite
+          ? errorUi.restoreTriggerPrerequisite
+          : detail
+            ? safeBusinessMessage(message, fallback)
+            : fallback),
     );
     this.name = 'ApiError';
     const parsed = fieldsSchema.safeParse(data);

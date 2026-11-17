@@ -69,7 +69,9 @@ export interface Operation {
 import { dashboardOperations } from './features/workbench/openapi.ts';
 import { analysisOperations } from './features/analysis/openapi.ts';
 import { maintenanceOperations } from './features/maintenance/openapi.ts';
+import { identityOperations } from './features/auth/openapi.ts';
 export const operations: Operation[] = [
+  ...identityOperations,
   ...maintenanceOperations,
   ...dashboardOperations,
   ...analysisOperations,

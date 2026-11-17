@@ -1,6 +1,7 @@
 package cn.maozhi.wms.pda.network
 
 import cn.maozhi.wms.pda.auth.SessionStore
+import cn.maozhi.wms.pda.auth.AuthText
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -9,8 +10,8 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class ApiFailure(val status: Int, val code: String, message: String) : Exception(message)
-class ApiClient(private val session: SessionStore) {
-    private val client = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS).build()
+class ApiClient(private val session: SessionStore,
+    private val client: OkHttpClient = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS).build()) {
     fun get(path: String): Any = execute(Request.Builder().url(base() + path).get())
     fun post(path: String, json: String, key: String? = null): Any {
         val request = Request.Builder().url(base() + path)
@@ -26,8 +27,14 @@ class ApiClient(private val session: SessionStore) {
     }
     private fun execute(builder: Request.Builder): Any {
         builder.header("X-Device-Id", session.deviceId)
-        if (session.token().isNotEmpty()) builder.header("Authorization", "Bearer ${session.token()}")
+        val requestToken = session.token()
+        val login = builder.build().url.encodedPath.endsWith("/auth/login")
+        if (!login && requestToken.isNotEmpty()) builder.header("Authorization", "Bearer $requestToken")
         client.newCall(builder.build()).execute().use { response ->
+            if (response.code == 401 && !login) {
+                session.expire(requestToken)
+                throw ApiFailure(401, "UNAUTHORIZED", AuthText.expired)
+            }
             val body = JSONObject(response.body?.string() ?: error("服务返回空响应"))
             if (!response.isSuccessful) throw ApiFailure(response.code, body.optString("code"),
                 body.optString("message", "服务异常") + " · " + body.optString("traceId").take(8))
