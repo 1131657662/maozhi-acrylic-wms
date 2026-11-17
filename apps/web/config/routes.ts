@@ -10,6 +10,7 @@ export default [
   { path: '/stocktakes/:id', hideInMenu: true, component: './stocktakes/detail' },
   { path: '/catalog', name: '条码目录', icon: 'barcode', component: './catalog/index' },
   { path: '/maintenance', name: '系统维护', icon: 'tool', component: './maintenance' },
+  { path: '/messages', name: '消息中心', icon: 'bell', component: './messages' },
   { path: '/me', name: '个人中心', icon: 'user', component: './me', hideInMenu: true },
   {
     path: '/system/document-numbering',
