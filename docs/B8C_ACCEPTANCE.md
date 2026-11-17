@@ -4,7 +4,7 @@
 
 ## 用户验收与收尾（2026-11-18）
 
-- 迁移前使用项目维护备份流程备份 `maozhi_dev_sample`；SQL 备份 7,154,825 字节，SHA-256 为 `28fb6558f49a8f1e943cc8208c7846352d4ae7a2d816728dea64fb1a16250be6`。身份为 `maozhi-local-mysql8-v1`，MySQL 8.0.46；029应用后原有56张表指纹不变，`notifications` 与 `notification_scan_state` 均为空后开始冒烟。
+- 迁移前使用项目维护备份流程备份 `maozhi_dev_sample`；SQL 备份 7,154,825 字节，SHA-256 为 `28fb6558f49a8f1e943cc8208c7846352d4ae7a2d816728dea64fb1a16250be6`。身份为 `maozhi-local-mysql8-v1`，MySQL 8.0.46；029应用后原有55张业务表指纹不变，仅 `schema_migrations` 新增029登记，`notifications` 与 `notification_scan_state` 均为空后开始冒烟。
 - 真实开发样本库冒烟：创建年龄3小时的待确认入库（现行待确认口径为2小时，满足本次“超1小时”要求），首次扫描生成 `pending` 通知并跳转 `/inbound/6707a34e-0865-42f8-8021-ecda003fbdde`；再次扫描同一 `event_key` 仍为1条。
 - 过期活动未读通知保留；页面点击本条消息后全局角标由“未读3条”立即变为“未读2条”。明确确认入库后再次扫描写入 `resolved_at`，过期且已读/已解除通知随后被清理。
 - 功能分支已按指定命令非快进合并并推送到 `master`，合并提交 `83ca2a5599c72c8085151bca780fcbf886b1c11e`，checkout/merge/push exit 均为0。收尾文档随后单独合并推送；B8全部完成，不开始B7c。
