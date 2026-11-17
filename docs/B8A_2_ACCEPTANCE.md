@@ -1,6 +1,6 @@
 # B8a-2 隔离恢复与核验报告验收（2026-11-17）
 
-当前状态：代码完成，完整test/build/E2E通过，未用户验收、未合并、未推送。仅本地合成数据库，不等于实体设备或生产验收。开发样本库仍停留026，本批未自动应用027。
+当前状态：用户验收通过，完整验证基线609/231/0；本地3307重启持久化、开发样本库027与真实恢复冒烟已通过。合并推送结果见后续收尾记录。仅本地合成数据库，不等于实体设备或生产验收。
 
 ## 范围与不变量
 
@@ -16,7 +16,7 @@
 
 ## 本地触发器前提
 
-用户明确批准仅 `127.0.0.1:3307` 的项目本地MySQL开启 `log_bin_trust_function_creators=1`。已核验实例版本/datadir后SET GLOBAL，写入 `.local/mysql/my.ini`，并更新启动脚本模板。`mysqld --defaults-file=... --validate-config` exit 0。未重启实例，不宣称重启实测；配置已持久化。生产是否开启须另行决定。
+用户明确批准仅 `127.0.0.1:3307` 的项目本地MySQL开启 `log_bin_trust_function_creators=1`。已核验实例版本/datadir后SET GLOBAL，写入 `.local/mysql/my.ini`，并更新启动脚本模板。`mysqld --defaults-file=... --validate-config` exit 0。初次交付未重启；用户验收后已实测重启并确认值为1，详见收尾记录。生产是否开启须另行决定。
 
 任务受理前读 `@@log_bin` 与信任值。临时设0的真实HTTP验收返回409与“需管理员开启 log_bin_trust_function_creators”，恢复任务数0、原业务指纹一致；finally恢复为1。见 `.local/evidence/b8a2/preflight-result.json` 与 `local-trigger-setting.json`。导入账号权限始终不变。
 
@@ -45,6 +45,20 @@
 
 WMS/security审查记录 `.local/evidence/b8a2/code-review.md`。已修复授权通配、账号审计时机/关闭重试、证据保留、CLI兼容、虚假核验时间等边界。未新增UI库或依赖。
 
-提交：`e5e2fc5` 规格；`97aff5a` 027/基线/契约；`08c10fe` 恢复执行器/CLI/审计/测试；`c164c6f` 页面与E2E；第五笔为最终验收与CLI/弹窗收尾修正。用户原有B7c及未来多用户文档改动保留未提交，不纳入本批。等待用户验收后再按AGENTS合并纪律处理。
+初次交付五笔：`e5e2fc5` 规格；`97aff5a` 027/基线/契约；`08c10fe` 恢复执行器/CLI/审计/测试；`c164c6f` 页面与E2E；`e384172` 验收与CLI/弹窗收尾修正。用户原有B7c及未来多用户文档改动保留未提交，不纳入本批。用户现已验收并授权以下收尾。
 
-最终只读环境核对：127.0.0.1:3307，binlog=1、trust=1，maozhi_dev_sample最大迁移仍026，失败隔离库仍存在；见`final-environment.json`。没有自动切换连接、应用027到样本库、合并、推送或进行生产验收。
+初次交付时只读环境核对：127.0.0.1:3307，binlog=1、trust=1，maozhi_dev_sample最大迁移026，失败隔离库仍存在；见`final-environment.json`。当时没有自动切换连接、应用027到样本库、合并、推送或进行生产验收。下述用户授权的收尾取代迁移/合并阶段限制。
+
+## 用户验收后收尾（2026-11-17）
+
+所有本轮证据位于 `.local/evidence/b8a2-closeout/`，不进Git。
+
+- **重启持久化**：管理员核验127.0.0.1:3307、MySQL8及本项目datadir后正常SHUTDOWN，exit 0。旧PID2896退出，新PID28604使用本项目配置启动。启动脚本20秒等待超时，exit 1；服务随后实际就绪，独立验证exit 0，`SHOW GLOBAL VARIABLES LIKE 'log_bin_trust_function_creators'`返回ON，数值为1。`restart-after.json`同时保存port3307和datadir；`.local/mysql/my.ini`值为1。没有改其他实例或生产设置。
+- **迁移前备份**：`before-027.sql`为6,813,985字节，SHA256=`b65b4100ba970cd9763a19337eedc6b459a127fbabf6e9655286c89df1b5e6a8`；同锁窗口基线保存在`before-027-backup.json`。027前没有baseline列，升级前备份使用基线旁文件，不伪造旧产物字段。
+- **应用027**：已明确应用到开发样本库maozhi_dev_sample，exit 0。54张原表按迁移前列投影的行数/内容指纹一致（schema_migrations登记单列），原指纹`ed46eaaf89b6cacf57de379e326e89820c820542d73afad78f609cf474efc1ae`；旧backup_artifacts基线保持NULL。见`migration-result.json`。
+- **真实新备份/恢复**：页面生成新备份6,816,953字节，SHA256=`a94bcd7b0cd272b35956d8bcb7bbaad63bf0252b8c54c86b4bd9c20dd62324f0`，产物重算一致、baseline非空（57表）。使用该备份恢复，报告有期望值/实际值/差异/结论；57表、库存4526包/1360.1552吨，直接查询隔离库一致。隔离库`maozhi_restore_19a38b80e7d9f3641f14f36f`保留，专用账号已锁定，页面可重新查看持久报告。
+- **真实旧备份**：选择升级前现存SQL恢复，未改写其NULL基线；报告明确“无基线，仅核验结构与可读性”，所有基线对账项期望NULL且未验证，无总体“核验通过”。旧副本56表，与原备份版本对应，不自动迁移。隔离库`maozhi_restore_23cf71339d893fa797a76b21`保留、账号已锁定。
+- **真实预检拒绝**：临时trust=0时页面POST返回409与“需管理员开启 log_bin_trust_function_creators”；恢复任务及隔离库增量均0，finally恢复1。首次页面冒烟发现通用409文案覆盖原因，已仅为恢复接口的精确已知提示补固定映射；未知正文、其他接口、非409仍使用原过滤规则。补丁后真实页面提示通过，见`preflight-rejected-1440.png`。
+- **原业务不变**：49张业务表（含已完成027的迁移登记）在恢复前后指纹均为`54f20b7716dd0d58e8ade0b8dbcc00e9abfa4e31277ddc2a9bd7bbafdb5c10c9`。新增维护任务/备份/恢复记录、会话与审计单列排除，不混入业务流水。完整报告、归属及前后指纹见`smoke-result.json`。
+- **脚本与进程**：首轮已完成恢复后因弹窗关闭按钮英文定位失败，续跑复用原任务，没有重复新建恢复；日志保留。后续修复页面提示后`smoke-final.log` exit 0。成功/无基线报告与预检截图1440已复核，截图脚本仅重开现有报告。已停止本轮API4310/Web5173；MySQL3307保持运行。冒烟进程临时禁用自动调度，项目默认启用规则不变。
+- **验证口径**：沿用用户通过的完整test609/609、完整E2E231/231、build exit 0基线。收尾提示映射追加Web错误回归4/4（含1项新增安全边界用例），真实页面预检与新旧报告冒烟exit 0，重新完整build exit 0；恢复E2E专项3/3、exit 0（42.6秒），覆盖确认/真实恢复、无基线和失败保留，见`restore-e2e.log`。未将追加用例冒充完整610项运行，也不宣称提示修正后重跑完整231项。

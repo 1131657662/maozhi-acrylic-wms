@@ -11,6 +11,7 @@ export const errorCopy = {
   DATA_INVALID: ['数据异常，已记录', '重试'],
 } as const;
 export const errorUi = {
+  restoreTriggerPrerequisite: '需管理员开启 log_bin_trust_function_creators',
   kilograms: '千克',
   details: '查看诊断信息',
   time: '发生时间',
