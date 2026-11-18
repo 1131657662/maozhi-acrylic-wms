@@ -20,3 +20,6 @@ apps/miniapp/miniprogram_npm/
 project.private.config.json
 apps/web/src/.umi/
 apps/web/src/.umi-production/
+
+# 第三方审查 Skill（本地使用，不入库）
+.agents/
