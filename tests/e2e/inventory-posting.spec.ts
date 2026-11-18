@@ -143,11 +143,15 @@ test('B1a3 跨单调整：不改两张单据，调整前后值与 SQL delta 一�
       ),
     ).toEqual([1, 1]);
     const sql = readFileSync('scripts/sql/verify-inventory-posting.sql', 'utf8');
-    for (const statement of sql
+    const statements = sql
       .replace(/^--.*$/gm, '')
       .split(';')
-      .filter((part) => part.trim())) {
+      .filter((part) => part.trim());
+    expect(statements).toHaveLength(3);
+    for (const [index, statement] of statements.entries()) {
       const rows = await db.all(statement);
+      if (index === 2) expect(rows).toHaveLength(0);
+      else expect(rows.length).toBeGreaterThan(0);
       expect(
         rows.every((row) => ('balanced' in row ? Number(row.balanced) === 1 : Number(row.mismatches) === 0)),
       ).toBeTruthy();

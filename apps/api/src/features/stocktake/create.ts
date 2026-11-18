@@ -21,12 +21,14 @@ async function capture(db: Database, id: string, input: CreateStocktake) {
     );
     ensure(Number(valid?.n) === codes.length, 'PRODUCT_NOT_INVENTORY', '盘点范围只能包含有库存资格的商品');
   }
-  const filter = codes ? `p.code IN (${codes.map(() => '?').join(',')})` : 's.product_code IS NOT NULL';
+  const filter = codes
+    ? `p.active=1 AND p.code IN (${codes.map(() => '?').join(',')})`
+    : 's.product_code IS NOT NULL AND (p.active=1 OR s.packages<>0 OR s.weight_tonnes<>0)';
   await db.run(
     `INSERT INTO stocktake_snapshots(stocktake_id,product_code,product_name,packages,weight_tonnes)
     SELECT ?,p.code,p.name,COALESCE(s.packages,0),COALESCE(s.weight_tonnes,0)
     FROM master_products p LEFT JOIN stock s ON s.product_code=p.code AND s.warehouse_code=? AND s.source_del_flag=0
-    WHERE p.inventory_eligible=1 AND p.active=1 AND p.source_del_flag=0 AND ${filter}`,
+    WHERE p.inventory_eligible=1 AND p.source_del_flag=0 AND ${filter}`,
     [id, input.warehouseCode, ...(codes ?? [])],
   );
   const rows = await db.all(

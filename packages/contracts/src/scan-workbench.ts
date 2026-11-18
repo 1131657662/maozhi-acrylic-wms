@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const SCAN_CANDIDATE_PAGE_SIZE = 20;
 export const SCAN_BATCH_LIMIT = 200;
+export const SCAN_PASTE_SUBMIT_LIMIT = 100;
 export const SCAN_FRAGMENT_MIN = 4;
 export const scanSourceLabels = { scanner: '扫码枪', search: '候选选择', paste: '批量粘贴', manual: '手工输入' };
 export const scanAttributionLabels = { catalog: '目录对应', manual: '归属人工确认' };

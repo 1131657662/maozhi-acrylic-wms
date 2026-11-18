@@ -12,7 +12,7 @@ export function RestoreReport({ report }: { report: Report }) {
       <Alert
         showIcon
         type={report.outcome === 'passed' ? 'success' : report.outcome === 'limited' ? 'warning' : 'error'}
-        title={t.outcome[report.outcome]}
+        title={report.outcome === 'limited' && report.baselineAt ? t.legacyLimited : t.outcome[report.outcome]}
       />
       <Descriptions
         items={[

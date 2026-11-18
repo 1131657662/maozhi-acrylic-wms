@@ -1,4 +1,5 @@
 import type { BackupBaseline, RestoreReport, VerificationItem } from '@wms/contracts';
+import { inventoryComparisons } from './restore-inventory.ts';
 
 function comparison(label: string, expected: string | null, actual: string | null): VerificationItem {
   const conclusion = expected === null ? 'unverified' : expected === actual ? 'passed' : 'mismatch';
@@ -41,11 +42,24 @@ function digestComparison(label: string, expected: string | null, actual: string
             : '已采集校验摘要',
   };
 }
-export function buildRestoreReport(expected: BackupBaseline | null, actual: BackupBaseline): RestoreReport {
+export function buildRestoreReport(
+  expected: BackupBaseline | null,
+  actual: Extract<BackupBaseline, { version: 2 }>,
+): RestoreReport {
   const items: VerificationItem[] = [
     comparison('数据表数量', expected ? String(expected.tableCount) : null, String(actual.tableCount)),
   ];
-  compareInventory(items, expected, actual);
+  items.push(comparison('库存总包数', expected?.inventory.packages ?? null, actual.inventory.packages));
+  items.push(comparison('库存总吨数', expected?.inventory.tonnes ?? null, actual.inventory.tonnes));
+  for (const args of inventoryComparisons(expected, actual)) items.push(comparison(...args));
+  if (expected?.version === 1)
+    items.push({
+      label: '库存行归属',
+      expected: null,
+      actual: null,
+      conclusion: 'unverified',
+      difference: '旧基线未记录库存行标志',
+    });
   items.push(
     digestComparison(
       '迁移版本与校验值',
@@ -59,7 +73,11 @@ export function buildRestoreReport(expected: BackupBaseline | null, actual: Back
   compareDocuments(items, expected, actual);
   compareTables(items, expected, actual);
   return {
-    outcome: items.some((item) => item.conclusion === 'mismatch') ? 'mismatch' : expected ? 'passed' : 'limited',
+    outcome: items.some((item) => item.conclusion === 'mismatch')
+      ? 'mismatch'
+      : items.some((item) => item.conclusion === 'unverified')
+        ? 'limited'
+        : 'passed',
     baselineAt: expected?.capturedAt ?? null,
     verifiedAt: actual.capturedAt,
     items,
@@ -86,29 +104,6 @@ function compareTables(items: VerificationItem[], expected: BackupBaseline | nul
     items.push(
       digestComparison(`${label}内容`, expected ? (before?.content ?? '不存在') : null, after?.content ?? '不存在'),
     );
-  }
-}
-function compareInventory(items: VerificationItem[], expected: BackupBaseline | null, actual: BackupBaseline): void {
-  items.push(comparison('库存总包数', expected?.inventory.packages ?? null, actual.inventory.packages));
-  items.push(comparison('库存总吨数', expected?.inventory.tonnes ?? null, actual.inventory.tonnes));
-  const cells = new Map(
-    [...(expected?.inventory.cells ?? []), ...actual.inventory.cells].map((cell) => [
-      JSON.stringify([cell.warehouse, cell.product]),
-      cell,
-    ]),
-  );
-  for (const cell of cells.values()) {
-    const before = expected?.inventory.cells.find(
-      (row) => row.warehouse === cell.warehouse && row.product === cell.product,
-    );
-    const after = actual.inventory.cells.find(
-      (row) => row.warehouse === cell.warehouse && row.product === cell.product,
-    );
-    const label = `仓库 ${cell.warehouse} / 商品 ${cell.product}`;
-    items.push(
-      comparison(`${label}包数`, expected ? (before?.packages ?? '不存在') : null, after?.packages ?? '不存在'),
-    );
-    items.push(comparison(`${label}吨数`, expected ? (before?.tonnes ?? '不存在') : null, after?.tonnes ?? '不存在'));
   }
 }
 function compareDocuments(items: VerificationItem[], expected: BackupBaseline | null, actual: BackupBaseline): void {

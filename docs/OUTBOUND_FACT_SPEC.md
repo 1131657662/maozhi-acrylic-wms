@@ -315,3 +315,6 @@ PDA 扫不出、条码破损、人不在现场、或需要复核数量时，在 
 - 018 空库 up/down/up、历史新列 NULL、来源/归属证据及跨单重复回退拒绝均通过。合成非空查询 EXPLAIN：`type=const key=fact_order_barcode rows=1 Extra=Using index`；该索引用于业务唯一约束，不声称已完成大数据性能验收。
 - 完整 E2E 最终 120/120、失败 0（主套件 111 + 目录套件 9），exit 0；日志 `b4g-e2e.log`。先前为修复兼容性中断的运行保留为 `b4g-e2e-interrupted.log`，不计作通过证据。
 - 浏览器原始输出：`B4G_E2E manual/search/paste=1/1/1 revoke=-1 export=2 prefill=2 actual=1 stock=5/1.5000 confirmed_readonly=true`。1440/1280 截图为 `b4g-counting-1440.png`、`b4g-counting-1280.png`，已检查当前商品、归属提示与固定底部操作；导出样本为 `b4g-counting-export.xlsx`，均在 `.local/evidence/`。
+## 批量传输（F04）
+
+默认 JSON 限额 10 KiB，原导出与库存速览例外不变。仅新建入库和清点批量 POST 放宽至 256 KiB，不放宽业务字段或条数校验。提交过大提示「提交内容过大，请分批提交」。Web 最多检查 200 条候选，有效行按每批最多 100 条顺序发送；成功结果按批显示，传输失败后保留该批正文及幂等键，不重发已返回结果的批次。清点只记事实，不扣库存。

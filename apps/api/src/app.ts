@@ -9,7 +9,7 @@ import { businessRouter } from './routes.ts';
 import { trace, errors, ok } from './middleware/http.ts';
 import { AppError } from './shared/errors.ts';
 import { beginAuditRequest, retainRequestFailure } from './features/audit/http.ts';
-import { STOCK_PEEK_BODY_LIMIT_BYTES } from '@wms/contracts';
+import { JSON_BODY_BYTES, STOCK_PEEK_BODY_LIMIT_BYTES } from '@wms/contracts';
 import { maintenanceRouter } from './features/maintenance/router.ts';
 import { MaintenanceService } from './features/maintenance/service.ts';
 import { messageRouter } from './features/notifications/router.ts';
@@ -32,6 +32,10 @@ export function createApp(
   maintenance = new MaintenanceService(db, undefined),
 ): express.Express {
   const app = express();
+  app.post(['/api/v1/inbound', '/api/v1/outbound/:id/scan-records/batch'], (_req, res, next) => {
+    res.locals.bulkJson = true;
+    next();
+  });
   app.disable('x-powered-by');
   app.use(
     trace,
@@ -41,10 +45,12 @@ export function createApp(
     (req, res, next) => {
       const limit =
         req.path === '/api/v1/web/exports'
-          ? '6mb'
+          ? JSON_BODY_BYTES.exports
           : req.path === '/api/v1/stock/peek'
             ? STOCK_PEEK_BODY_LIMIT_BYTES
-            : '10kb';
+            : res.locals.bulkJson
+              ? JSON_BODY_BYTES.bulk
+              : JSON_BODY_BYTES.normal;
       express.json({ limit })(req, res, next);
     },
     cookieParser(),
