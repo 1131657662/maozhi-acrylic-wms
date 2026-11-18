@@ -23,6 +23,11 @@ WITH movements AS (
   FROM movements GROUP BY warehouse_code,product_code
 )
 SELECT g.*,s.packages AS current_packages,s.weight_tonnes AS current_tonnes,
-  (s.packages=g.opening_packages+g.packages_delta AND s.weight_tonnes=g.opening_tonnes+g.tonnes_delta
+  (s.product_code IS NOT NULL AND s.packages=g.opening_packages+g.packages_delta AND s.weight_tonnes=g.opening_tonnes+g.tonnes_delta
     AND s.packages=g.last_packages AND s.weight_tonnes=g.last_tonnes AND g.chain_breaks=0) AS balanced
-FROM grouped g JOIN stock s ON s.warehouse_code=g.warehouse_code AND s.product_code=g.product_code AND s.source_del_flag=0;
+FROM grouped g LEFT JOIN stock s ON s.warehouse_code=g.warehouse_code AND s.product_code=g.product_code AND s.source_del_flag=0;
+
+SELECT j.warehouse_code,j.product_code,COUNT(*) AS posted_rows
+FROM stock_journal j LEFT JOIN stock s ON s.warehouse_code=j.warehouse_code AND s.product_code=j.product_code AND s.source_del_flag=0
+WHERE j.operation_id IS NOT NULL AND j.source_del_flag=0 AND s.product_code IS NULL
+GROUP BY j.warehouse_code,j.product_code ORDER BY j.warehouse_code,j.product_code;
