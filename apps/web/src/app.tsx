@@ -69,6 +69,7 @@ export function rootContainer(container: ReactNode) {
 }
 
 export const layout: RunTimeLayoutConfig = () => ({
+  siderWidth: 208,
   title: '茂智腈纶仓',
   menuHeaderRender: () => (
     <Link to="/" className="pro-brand">

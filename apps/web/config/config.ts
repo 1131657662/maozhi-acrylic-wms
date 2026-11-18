@@ -21,7 +21,6 @@ export default defineConfig({
   antd: {},
   layout: {
     locale: false,
-    siderWidth: 232,
     navTheme: 'light',
     colorPrimary: '#105957',
   },

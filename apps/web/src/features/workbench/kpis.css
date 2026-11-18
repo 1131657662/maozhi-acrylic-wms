@@ -1,0 +1,22 @@
+.wms-workbench-kpis > .ant-col > .ant-card {
+  height: 100%;
+}
+
+.wms-workbench-kpi-readout {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  column-gap: var(--wms-space-4);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--wms-font-size-kpi);
+  line-height: var(--wms-line-height-kpi);
+  font-weight: var(--wms-font-weight-semibold);
+}
+
+.wms-workbench-kpi-unit {
+  color: var(--wms-color-text-secondary);
+  font-size: var(--wms-font-size-auxiliary);
+  line-height: var(--wms-line-height-auxiliary);
+  font-weight: var(--wms-font-weight-regular);
+}
