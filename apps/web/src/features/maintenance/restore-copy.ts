@@ -9,6 +9,7 @@ export const restoreCopy = {
   checked: '导入前将重新核验文件大小和校验摘要',
   baseline: '含备份时核验基线',
   noBaseline: '无基线，仅核验结构与可读性',
+  legacyLimited: '旧基线未记录库存行标志，已核验其余项目',
   report: '恢复进度与核验报告',
   view: '查看报告',
   loading: '正在读取恢复任务',

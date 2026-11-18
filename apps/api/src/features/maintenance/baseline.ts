@@ -1,16 +1,16 @@
-import { RESTORE, backupBaselineSchema, type BackupBaseline } from '@wms/contracts';
+import { RESTORE, physicalBaselineSchema, type BackupBaseline } from '@wms/contracts';
 import type { Database } from '../../db/mysql.ts';
 import { databaseTables, fingerprint, sqlIdentifier, tableFingerprint } from './baseline-tables.ts';
 
-export async function captureBaseline(db: Database): Promise<BackupBaseline> {
+export async function captureBaseline(db: Database): Promise<Extract<BackupBaseline, { version: 2 }>> {
   const names = await databaseTables(db),
     tables = [];
   for (const name of names) tables.push(await tableFingerprint(db, name));
   const inventory = await captureInventory(db);
   const migrations = await db.all('SELECT id,checksum,state FROM schema_migrations ORDER BY id');
   const documents = [...(await sampleDocuments(db, 'inbound')), ...(await sampleDocuments(db, 'outbound'))];
-  return backupBaselineSchema.parse({
-    version: 1,
+  return physicalBaselineSchema.parse({
+    version: 2,
     capturedAt: new Date().toISOString(),
     tableCount: tables.length,
     tables,
@@ -19,18 +19,19 @@ export async function captureBaseline(db: Database): Promise<BackupBaseline> {
     documents,
   });
 }
-async function captureInventory(db: Database): Promise<BackupBaseline['inventory']> {
+async function captureInventory(db: Database) {
   const totals = await db.get(
     'SELECT COALESCE(SUM(packages),0) AS packages,COALESCE(SUM(weight_tonnes),0) AS tonnes FROM stock',
   );
   const cells = await db.all(
-    'SELECT warehouse_code,product_code,packages,weight_tonnes FROM stock ORDER BY warehouse_code,product_code',
+    'SELECT warehouse_code,product_code,source_del_flag,packages,weight_tonnes FROM stock ORDER BY warehouse_code,product_code,source_del_flag',
   );
   return {
     packages: String(totals?.packages),
     tonnes: String(totals?.tonnes),
     cells: cells.map((row) => ({
       warehouse: String(row.warehouse_code),
+      sourceDelFlag: row.source_del_flag,
       product: String(row.product_code),
       packages: String(row.packages),
       tonnes: String(row.weight_tonnes),
