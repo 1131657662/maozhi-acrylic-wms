@@ -2,7 +2,7 @@ import type { ErrorRequestHandler, Request, RequestHandler, Response } from 'exp
 import type { Database } from '../db/mysql.ts';
 import { randomUUID } from 'node:crypto';
 import { ZodError } from 'zod';
-import { sessionSchema } from '@wms/contracts';
+import { PAYLOAD_TOO_LARGE_MESSAGE, sessionSchema } from '@wms/contracts';
 import { AppError } from '../shared/errors.ts';
 import { authenticate } from '../features/auth/service.ts';
 import type { Actor } from '../shared/audit.ts';
@@ -90,7 +90,7 @@ export const errors: ErrorRequestHandler = (error: unknown, _req, res, _next) =>
       : tooLarge
         ? catalogUpload
           ? '文件不能超过 5 MiB'
-          : '请求正文超出允许大小'
+          : PAYLOAD_TOO_LARGE_MESSAGE
         : invalid
           ? '请求字段或格式不正确'
           : '服务异常，请提供请求编号',

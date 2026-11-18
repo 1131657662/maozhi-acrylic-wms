@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SCAN_PASTE_SUBMIT_LIMIT } from '@wms/contracts';
 import { Button, Flex, Input, Table, Typography } from 'antd';
 import { useSubmitLock } from '../../components/form-protection/use-submit-lock';
 import { RequestError } from '../../components/RequestError';
@@ -20,6 +21,7 @@ export function CountingPaste({
   const [value, setValue] = useState('');
   const [rows, setRows] = useState<PasteRow[]>([]);
   const [error, setError] = useState<unknown>();
+  const [retryPending, setRetryPending] = useState(false);
   const lock = useSubmitLock();
   const valid = rows.filter((row) => row.state === 'valid');
   async function inspect() {
@@ -36,21 +38,25 @@ export function CountingPaste({
   }
   async function add() {
     try {
-      const result = await command.run({
-        kind: 'batch',
-        input: { records: valid.map(({ barcode, productCode }) => ({ barcode, productCode })), source: 'paste' },
+      await lock.run(async () => {
+        for (let offset = 0; offset < valid.length; offset += SCAN_PASTE_SUBMIT_LIMIT) {
+          const records = valid
+            .slice(offset, offset + SCAN_PASTE_SUBMIT_LIMIT)
+            .map(({ barcode, productCode }) => ({ barcode, productCode }));
+          const result = await command.run({ kind: 'batch', input: { records, source: 'paste' } });
+          if (!result) return;
+          const byBarcode = new Map(result.items.map((item) => [item.barcode, item]));
+          setRows((previous) =>
+            previous.map((row) => {
+              const item = row.state === 'valid' && byBarcode.get(row.barcode);
+              return item ? { ...row, state: item.ok ? 'saved' : 'failed', reason: item.reason } : row;
+            }),
+          );
+          setRetryPending(false);
+        }
       });
-      if (!result) return;
-      let index = 0;
-      setRows(
-        rows.map((r) => {
-          if (r.state !== 'valid') return r;
-          const item = result.items[index++]!;
-          return { ...r, state: item.ok ? 'saved' : 'failed', reason: item.reason };
-        }),
-      );
     } catch {
-      /* Shared command error remains visible; retry keeps the same key. */
+      setRetryPending(true);
     }
   }
   return (
@@ -64,10 +70,14 @@ export function CountingPaste({
         autoSize={{ minRows: 3, maxRows: 8 }}
       />
       <Flex gap="small">
-        <Button disabled={!value.trim() || command.busy} loading={lock.busy} onClick={() => void inspect()}>
+        <Button
+          disabled={!value.trim() || command.busy || retryPending}
+          loading={lock.busy}
+          onClick={() => void inspect()}
+        >
           {text.inspect}
         </Button>
-        <Button disabled={lock.busy || command.busy} onClick={() => setRows([])}>
+        <Button disabled={lock.busy || command.busy || retryPending} onClick={() => setRows([])}>
           {text.clear}
         </Button>
       </Flex>

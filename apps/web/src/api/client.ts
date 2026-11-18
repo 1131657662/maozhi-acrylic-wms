@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PAYLOAD_TOO_LARGE_MESSAGE } from '@wms/contracts';
 import { ApiError, diagnosticPath } from './errors';
 import { reportRequestError } from './error-events';
 import { WEB_REQUEST_TIMEOUT_MS } from '../text';
@@ -48,7 +49,7 @@ export async function parseResponse<T>(path: string, schema: z.ZodType<T>, respo
   const route = diagnosticPath(path);
   if (!response.ok)
     throw new ApiError(
-      body.success ? body.data.message : '',
+      body.success ? body.data.message : response.status === 413 ? PAYLOAD_TOO_LARGE_MESSAGE : '',
       response.status,
       trace,
       body.success ? body.data.data : undefined,
