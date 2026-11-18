@@ -1,5 +1,21 @@
-import { expect } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
 import { test } from './list-test';
+
+async function expectLeftAlignedReadouts(content: Locator) {
+  const offsets = await content.locator('.wms-workbench-kpi-readout').evaluateAll((groups) =>
+    groups.map((group) => {
+      const left = group.firstElementChild!.getBoundingClientRect().left;
+      return {
+        fromContent: left - group.getBoundingClientRect().left,
+        fromCard: left - group.closest('.ant-card')!.getBoundingClientRect().left,
+      };
+    }),
+  );
+  expect(offsets).toHaveLength(4);
+  for (const offset of offsets) expect(Math.abs(offset.fromContent)).toBeLessThanOrEqual(1);
+  const insets = offsets.map((offset) => offset.fromCard);
+  expect(Math.max(...insets) - Math.min(...insets)).toBeLessThanOrEqual(1);
+}
 
 for (const [width, height] of [
   [1280, 800],
@@ -34,6 +50,7 @@ for (const [width, height] of [
     await expect(unit).toHaveCSS('font-size', '12px');
     await expect(unit).toHaveCSS('line-height', '20px');
     await expect(unit).toHaveCSS('font-weight', '400');
+    await expectLeftAlignedReadouts(content);
     const numberBox = (await value.boundingBox())!;
     const unitBox = (await unit.boundingBox())!;
     const card = (await inbound.boundingBox())!;
