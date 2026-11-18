@@ -7,10 +7,13 @@ async function validateRows(db: Database, id: string, warehouse: string): Promis
   const invalid = await db.get(
     `SELECT COUNT(*) AS n FROM stocktake_snapshots s
     JOIN stocktake_readings r USING(stocktake_id,product_code)
+    JOIN stocktakes t ON t.id=s.stocktake_id
     LEFT JOIN master_products p ON p.code=s.product_code
-    LEFT JOIN stock b ON b.warehouse_code=? AND b.product_code=s.product_code
+    LEFT JOIN stock b ON b.warehouse_code=? AND b.product_code=s.product_code AND b.source_del_flag=0
     WHERE s.stocktake_id=? AND (r.packages IS NULL OR p.code IS NULL OR p.inventory_eligible<>1
-      OR p.source_del_flag<>0 OR p.active<>1 OR b.source_del_flag<>0
+      OR p.source_del_flag<>0 OR (p.active<>1 AND (t.scope_kind<>'warehouse' OR (s.packages=0 AND s.weight_tonnes=0)))
+      OR (b.product_code IS NULL AND EXISTS (SELECT 1 FROM stock deleted
+        WHERE deleted.warehouse_code=t.warehouse_code AND deleted.product_code=s.product_code AND deleted.source_del_flag=1))
       OR s.packages<>COALESCE(b.packages,0) OR s.weight_tonnes<>COALESCE(b.weight_tonnes,0))`,
     [warehouse, id],
   );

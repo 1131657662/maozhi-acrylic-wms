@@ -37,7 +37,8 @@ export async function stocktakePreview(db: Database, id: string) {
             await db.get(
               `SELECT COUNT(*) AS n FROM stock b
     JOIN master_products p ON p.code=b.product_code AND p.inventory_eligible=1 AND p.source_del_flag=0
-    WHERE b.warehouse_code=? AND b.source_del_flag=0 AND NOT EXISTS(SELECT 1 FROM stocktake_snapshots s
+    WHERE b.warehouse_code=? AND b.source_del_flag=0 AND (b.packages<>0 OR b.weight_tonnes<>0)
+    AND NOT EXISTS(SELECT 1 FROM stocktake_snapshots s
       WHERE s.stocktake_id=? AND s.product_code=b.product_code)
     AND NOT EXISTS(SELECT 1 FROM stocktake_discovery_lines d WHERE d.stocktake_id=? AND d.product_code=b.product_code)`,
               [take.warehouseCode, id, id],
